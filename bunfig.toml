@@ -1,3 +1,9 @@
-# Enables Tailwind for HTML imports served by Bun.serve() (dev server).
+# Plugins for HTML imports served by Bun.serve() (dev server).
+# html-compose runs first so Tailwind scans fully composed markup.
 [serve.static]
-plugins = ["bun-plugin-tailwind"]
+plugins = ["./bun/html-plugin.ts", "bun-plugin-tailwind"]
+
+# Give the test runner a DOM (document, matchMedia, localStorage) so feature
+# modules can be tested without a browser.
+[test]
+preload = ["./bun/dom-setup.ts"]

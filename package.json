@@ -9,6 +9,7 @@
     "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
+    "@happy-dom/global-registrator": "^20.14.5",
     "@types/bun": "latest",
     "bun-plugin-tailwind": "^0.1.2",
     "tailwindcss": "^4.3.3"

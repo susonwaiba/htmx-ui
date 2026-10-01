@@ -1,35 +1,21 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Home · HTMX UI</title>
-    <script type="module" src="../app.ts"></script>
-  </head>
-  <body class="min-h-screen bg-gray-50 text-gray-900">
-    <nav class="flex gap-4 border-b bg-white px-6 py-3 text-sm">
-      <a href="/" class="font-semibold">Home</a>
-      <a href="/about">About</a>
-    </nav>
-    <main class="mx-auto max-w-2xl space-y-6 p-6">
-      <h1 class="text-2xl font-bold">HTMX UI</h1>
+<layout src="../layouts/base.html">
+  <template slot="title">Home · HTMX UI</template>
 
-      <div class="card">
-        <h2 class="card-title">HTMX request</h2>
-        <button class="btn btn-primary" hx-get="/api/hello" hx-target="#hello">
-          Load fragment
-          <span class="htmx-indicator">…</span>
-        </button>
-        <div id="hello" class="mt-4"></div>
-      </div>
+  <h1 class="text-2xl font-bold">HTMX UI</h1>
 
-      <div class="card" data-dismissible>
-        <div class="flex items-start justify-between">
-          <p>A dismissible component.</p>
-          <button class="btn btn-secondary" data-dismiss>Close</button>
-        </div>
-      </div>
-    </main>
-    <footer class="p-6 text-center text-xs text-gray-500">© <span data-year></span></footer>
-  </body>
-</html>
+  <div class="card">
+    <h2 class="card-title">HTMX request</h2>
+    <button class="btn btn-primary" hx-get="/api/hello" hx-target="#hello">
+      Load fragment
+      <span class="htmx-indicator">…</span>
+    </button>
+    <div id="hello" class="mt-4"></div>
+  </div>
+
+  <div class="card" data-dismissible>
+    <div class="flex items-start justify-between">
+      <p>A dismissible component.</p>
+      <button class="btn btn-secondary" data-dismiss>Close</button>
+    </div>
+  </div>
+</layout>

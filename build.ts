@@ -2,6 +2,7 @@
 import { Glob } from "bun";
 import tailwind from "bun-plugin-tailwind";
 import { rm } from "node:fs/promises";
+import htmlCompose from "./bun/html-plugin";
 
 const outdir = "./dist";
 await rm(outdir, { recursive: true, force: true });
@@ -16,7 +17,7 @@ const result = await Bun.build({
   minify: true,
   splitting: true,
   sourcemap: "linked",
-  plugins: [tailwind],
+  plugins: [htmlCompose, tailwind],
   define: { "process.env.NODE_ENV": JSON.stringify("production") },
 });
 

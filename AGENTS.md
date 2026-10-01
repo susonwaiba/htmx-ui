@@ -42,6 +42,11 @@ Agents must adhere strictly to Bun-native primitives:
 ```
 .
 ├── .agents/                    # Custom agent personas and configurations (e.g. qa-engineer)
+├── bun/                        # Bun-specific tooling
+│   ├── compose.ts              # Pure HTML composition engine (layouts, slots, includes)
+│   ├── compose.test.ts         # Unit tests for the composition engine
+│   ├── dom-setup.ts            # Registers a happy-dom DOM for `bun test`
+│   └── html-plugin.ts          # BunPlugin: composes .html via onLoad(loader: "html")
 ├── src/
 │   ├── app.ts                  # Shared client entrypoint (loads htmx, CSS, initializes modules)
 │   ├── components/             # Reusable UI component library (styles + idempotent JS behaviors)
@@ -50,8 +55,15 @@ Agents must adhere strictly to Bun-native primitives:
 │   │   ├── button.css          # Component styling (@layer components with @apply)
 │   │   └── card.css            # Component styling (@layer components with @apply)
 │   ├── features/               # Page/app feature modules (executed once on DOMContentLoaded)
-│   │   └── theme.ts            # Feature implementations (e.g., dynamic copyright year)
-│   ├── pages/                  # Hand-crafted HTML pages defining routes
+│   │   ├── theme.ts            # Light/dark theme (.dark class on <html>, persisted)
+│   │   ├── year.ts             # Fills [data-year] with the current year
+│   │   └── features.test.ts    # Tests for the feature modules
+│   ├── layouts/                # Document shells (own <html>/<head>/<body>, declare <slot>s)
+│   │   └── base.html           # Default layout: head, nav, main frame, footer
+│   ├── partials/               # Reusable markup fragments inlined by <include>
+│   │   ├── nav.html
+│   │   └── footer.html
+│   ├── pages/                  # HTML page *fragments* defining routes
 │   │   ├── index.html          # Route: /
 │   │   └── about.html          # Route: /about
 │   ├── server/                 # Local dev server & mock API fragments
@@ -60,7 +72,7 @@ Agents must adhere strictly to Bun-native primitives:
 │   └── styles/
 │       └── app.css             # Root Tailwind stylesheet; imports component CSS & sets indicators
 ├── build.ts                    # Production build script (globs src/pages/**/*.html -> dist/)
-├── bunfig.toml                 # Bun dev server configuration (bun-plugin-tailwind)
+├── bunfig.toml                 # Bun dev server plugins (html-compose, then bun-plugin-tailwind)
 ├── bun.lock                    # Bun dependency lockfile
 ├── package.json                # Project metadata, scripts, and dependency declarations
 ├── tsconfig.json               # TypeScript compiler configuration
@@ -78,11 +90,7 @@ Agents must adhere strictly to Bun-native primitives:
   - `src/pages/about.html` $\rightarrow$ `/about`
   - `src/pages/nested/index.html` $\rightarrow$ `/nested`
   - `src/pages/nested/page.html` $\rightarrow$ `/nested/page`
-- **Shared Script Injection:** Every page must include the client entrypoint script tag in its `<head>`:
-  ```html
-  <script type="module" src="../app.ts"></script>
-  ```
-  *(Adjust the relative path according to folder depth, e.g., `../../app.ts` for nested subdirectories).*
+- **Layouts & Partials:** Pages are *fragments*, not full documents. They declare a layout and the layout owns `<html>`/`<head>`/`<body>` plus the nav, main frame and footer. See §4.6.
 - **Dev Server Startup Glob:** `src/server/dev.ts` globs pages on startup. **Creating a new `.html` page requires restarting `bun run dev`** to register the route.
 - **Production Build:** `build.ts` scans `src/pages/**/*.html` as entrypoints using `root: "./src/pages"` to compile static assets directly into `dist/`.
 
@@ -104,30 +112,66 @@ Components are partitioned into CSS classes and optional TypeScript behaviors.
    - *Note:* HTMX 4 uses colon-delimited event names (`htmx:after:swap`, NOT HTMX 1/2's `htmx:afterSwap`).
 
 ### 4.3. Features Contract (`src/features/`)
-- Located in `src/features/<feature>.ts`.
+- Located in `src/features/<feature>.ts`. **The filename must match what the module does.**
+  - `theme.ts` — light/dark theme. Applies `.dark` on `<html>`; persists the choice in `localStorage`; follows `prefers-color-scheme` until the user picks.
+  - `year.ts` — fills `[data-year]` elements with the current year.
 - Intended for global, single-run behaviors (theme toggles, global analytics, copyright year injection).
 - Invoked only once inside the `DOMContentLoaded` listener in `src/app.ts`. Do not hook features into `htmx:after:swap` unless they explicitly manage swapped DOM nodes.
+- **Do not capture browser globals at module scope** (e.g. `const mq = matchMedia(...)`) — call them inside the function so tests can stub them.
+- Dark mode uses a **class-based** `dark:` variant, declared in `src/styles/app.css` via `@custom-variant dark (&:where(.dark, .dark *))`. To avoid a flash of the wrong theme, `src/layouts/base.html` carries a tiny inline `<script>` in `<head>` that sets the class before first paint. Keep that script in sync with `theme.ts`.
 
 ### 4.4. Tailwind CSS v4 Configuration
 Tailwind is configured in two locations:
-1. **Development Server:** `bunfig.toml` via `[serve.static] plugins = ["bun-plugin-tailwind"]`.
-2. **Production Build:** `build.ts` via `Bun.build({ plugins: [tailwind], ... })`.
-3. **Content Discovery:** Handled by `@source "../";` inside `src/styles/app.css` to scan HTML and TS files.
+1. **Development Server:** `bunfig.toml` via `[serve.static] plugins = ["./bun/html-plugin.ts", "bun-plugin-tailwind"]`.
+2. **Production Build:** `build.ts` via `Bun.build({ plugins: [htmlCompose, tailwind], ... })`.
+3. **Content Discovery:** Handled by `@source "../";` inside `src/styles/app.css` to scan HTML and TS files. Because `htmlCompose` runs first, Tailwind sees classes coming from layouts and partials too.
 
 ### 4.5. Mock Backend & Dev Endpoints (`src/server/api.ts`)
 - Mock routes return HTML fragments using `new Response(htmlString, { headers: { "Content-Type": "text/html; charset=utf-8" } })`.
 - Handlers in `apiRoutes` are only registered in `src/server/dev.ts`.
 - **Static Output Warning:** The production build (`dist/`) is purely static. The mock endpoints in `api.ts` are not compiled into `dist/` and will not be available under `bun run preview`.
 
+### 4.6. Template Composition (`bun/`)
+`bun/` holds all Bun-specific tooling. Pages are fragments; a Bun plugin stitches them into full documents before Bun's HTML bundler runs.
+
+- **`bun/compose.ts`** — pure composition engine. Exports `compose(path, toDir?)`.
+- **`bun/html-plugin.ts`** — `BunPlugin` that runs `compose()` in an `onLoad` hook with `loader: "html"`.
+- **`src/layouts/*.html`** — document shells. Declare `<slot>`s, `<include>` partials.
+- **`src/partials/*.html`** — reusable fragments (nav, footer, ...).
+
+**Directives** (all resolved at build time, stripped from output):
+
+| Directive | Purpose |
+| :--- | :--- |
+| `<layout src="../layouts/base.html">…</layout>` | Wraps a fragment in a layout. Nests innermost-first. |
+| `<template slot="title">…</template>` | Fills a named slot from inside a `<layout>`. |
+| `<include src="../partials/nav.html" />` | Inlines a partial. Recursive. |
+| `<include src="x.html"><template slot="k">…</template></include>` | Fills the partial's own slots. |
+| `<slot name="x">fallback</slot>` | Layout insertion point. Uses `fallback` when unfilled. |
+| `<slot name="x" required />` | Errors at build time if no page supplies it. |
+
+**Rules:**
+- Slots are **optional** unless marked `required`. Unfilled optional slots render empty.
+- Relative URLs (`src`, `href`, `action`, …) inside a layout or partial are **auto-rebased** to the including page's depth. Absolute URLs (`/`, `http:`, `data:`, `#`) are left alone.
+- `<include>`/`<layout>` `src` values are build-time directives and are never rebased.
+- Circular `<layout>`/`<include>` and unknown slots throw with a source path.
+- **Load order matters:** `htmlCompose` must precede `bun-plugin-tailwind` in `bunfig.toml` and `build.ts` so Tailwind scans composed markup.
+
 ---
 
 ## 5. Development Recipes & Code Conventions
 
 ### Creating a New Page
-1. Create `src/pages/<name>.html`.
-2. Ensure the `<head>` contains `<script type="module" src="<relative-path>/app.ts"></script>`.
-3. Restart `bun run dev` if running in development mode.
-4. Verify by navigating to `/<name>` or building with `bun run build`.
+1. Create `src/pages/<name>.html` as a fragment wrapped in a layout:
+   ```html
+   <layout src="../layouts/base.html">
+     <template slot="title">My Page · HTMX UI</template>
+
+     <h1 class="text-2xl font-bold">My Page</h1>
+   </layout>
+   ```
+2. Restart `bun run dev` if running in development mode.
+3. Verify by navigating to `/<name>` or building with `bun run build`.
 
 ### Adding a New UI Component
 1. Create `src/components/<name>.css`:
@@ -187,6 +231,7 @@ When making changes, agents must verify code integrity using the following comma
 
 ### Testing Guidelines
 - Use the built-in test runner: `bun test`.
+- A DOM is available in tests — `bun/dom-setup.ts` registers happy-dom via `bunfig.toml`'s `[test] preload`. So `document`, `matchMedia`, and `localStorage` work directly.
 - Test files must follow Bun naming conventions: `*.test.ts`, `*_test_.ts`, `*.spec.ts`, or `*_spec_.ts`.
 - Run single test file: `bun test path/to/file.test.ts`.
 - Run filtered tests: `bun test -t "pattern"`.
@@ -198,4 +243,4 @@ Before declaring any task or code change complete:
 2. Run `bun run build` and ensure clean bundling with no missing assets or compilation errors.
 3. If test files exist, run `bun test` and ensure all suites pass.
 4. Verify all new components use `:not([data-init])` and set `dataset.init`.
-5. Ensure relative paths to `app.ts` in newly created pages match directory nesting.
+5. Verify no `<layout>`, `<include>`, `<slot>` or `<template slot=…>` directives leak into `dist/**/*.html`.

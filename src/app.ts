@@ -2,6 +2,7 @@ import "htmx.org"; // registers window.htmx
 import "./styles/app.css";
 import { initComponents } from "./components";
 import { initTheme } from "./features/theme";
+import { initYear } from "./features/year";
 
 function init(root: ParentNode = document) {
   initComponents(root);
@@ -9,6 +10,7 @@ function init(root: ParentNode = document) {
 
 document.addEventListener("DOMContentLoaded", () => {
   initTheme();
+  initYear();
   init();
 });
 
