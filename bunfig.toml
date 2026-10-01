@@ -1,0 +1,3 @@
+# Enables Tailwind for HTML imports served by Bun.serve() (dev server).
+[serve.static]
+plugins = ["bun-plugin-tailwind"]

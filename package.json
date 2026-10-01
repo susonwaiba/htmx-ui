@@ -1,0 +1,22 @@
+{
+  "name": "htmx-ui",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "bun --hot src/server/dev.ts",
+    "build": "bun run build.ts",
+    "preview": "bunx serve dist",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "bun-plugin-tailwind": "^0.1.2",
+    "tailwindcss": "^4.3.3"
+  },
+  "dependencies": {
+    "htmx.org": "^4.0.0"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}
