@@ -1,0 +1,169 @@
+{% extends "layouts/docs.html" %}
+{% from "components/icon/icon.html" import icon %}
+{% from "macros/docs.html" import demo, classes %}
+{% set title = "Input" %}
+{% set description = "Text inputs, textareas, selects and file pickers, with focus, disabled, error, warning and success states." %}
+
+{% block content %}
+  {% call demo() %}
+    <input class="input max-w-sm" type="email" placeholder="you@example.com" aria-label="Email" />
+  {% endcall %}
+
+  <h2 id="usage">Usage</h2>
+  <p>
+    Add <code>.input</code> to any text-like <code>&lt;input&gt;</code>. It fills its container's width; constrain it
+    with a <code>max-w-*</code> utility or a wrapper. Every input needs a label: wrap it in a
+    <a href="/docs/components/field">field</a> with a <code>.field-label</code>, or give it an <code>aria-label</code>.
+  </p>
+  {% call demo("flex-col") %}
+    <div class="field max-w-sm">
+      <label class="field-label" for="input-name">Name</label>
+      <input class="input" id="input-name" placeholder="Ada Lovelace" />
+    </div>
+  {% endcall %}
+
+  <h2 id="types">Types</h2>
+  {% call demo("flex-col") %}
+    <div class="grid w-full max-w-sm gap-3">
+      <input class="input" type="password" value="hunter22" aria-label="Password" />
+      <input class="input" type="number" value="42" aria-label="Quantity" />
+      <input class="input" type="date" aria-label="Date" />
+      <input class="input" type="search" placeholder="Search…" aria-label="Search" />
+    </div>
+  {% endcall %}
+
+  <h2 id="file">File</h2>
+  <p>File inputs keep the native picker, with its button restyled. <code>multiple</code> and <code>accept</code> work as usual.</p>
+  {% call demo("flex-col") %}
+    <div class="field max-w-sm">
+      <label class="field-label" for="input-avatar">Picture</label>
+      <input class="input" id="input-avatar" type="file" accept="image/*" />
+      <p class="field-description">PNG or JPG, up to 2 MB.</p>
+    </div>
+    <div class="field max-w-sm">
+      <label class="field-label" for="input-docs">Documents</label>
+      <input class="input" id="input-docs" type="file" multiple />
+    </div>
+  {% endcall %}
+
+  <h2 id="textarea">Textarea</h2>
+  <p><code>.textarea</code> grows with its content in browsers that support <code>field-sizing</code>.</p>
+  {% call demo() %}
+    <textarea class="textarea max-w-sm" placeholder="Type your message here." aria-label="Message"></textarea>
+  {% endcall %}
+
+  <h2 id="select">Select</h2>
+  <p><code>.select</code> styles a native <code>&lt;select&gt;</code>.</p>
+  {% call demo() %}
+    <select class="select max-w-48" aria-label="Fruit">
+      <option>Apple</option>
+      <option>Banana</option>
+      <option>Blueberry</option>
+    </select>
+  {% endcall %}
+
+  <h2 id="sizes">Sizes</h2>
+  <p><code>.input-sm</code> and <code>.input-lg</code> match the heights of <code>.btn-sm</code> and <code>.btn-lg</code>.</p>
+  {% call demo("flex-col") %}
+    <div class="flex w-full max-w-sm items-center gap-2">
+      <input class="input input-sm" placeholder="Small" aria-label="Small" />
+      <button class="btn btn-outline btn-sm">Go</button>
+    </div>
+    <div class="flex w-full max-w-sm items-center gap-2">
+      <input class="input" placeholder="Default" aria-label="Default" />
+      <button class="btn btn-outline">Go</button>
+    </div>
+    <div class="flex w-full max-w-sm items-center gap-2">
+      <input class="input input-lg" placeholder="Large" aria-label="Large" />
+      <button class="btn btn-outline btn-lg">Go</button>
+    </div>
+  {% endcall %}
+
+  <h2 id="states">States</h2>
+
+  <h3 id="disabled">Disabled</h3>
+  <p>The <code>disabled</code> attribute fades the input; inside a field, the label fades too.</p>
+  {% call demo("flex-col") %}
+    <div class="field max-w-sm">
+      <label class="field-label" for="input-disabled">Email</label>
+      <input class="input" id="input-disabled" type="email" placeholder="you@example.com" disabled />
+    </div>
+  {% endcall %}
+
+  <h3 id="required">Required</h3>
+  <p>A field holding a <code>required</code> input marks its label with an asterisk automatically.</p>
+  {% call demo("flex-col") %}
+    <div class="field max-w-sm">
+      <label class="field-label" for="input-required">Username</label>
+      <input class="input" id="input-required" required />
+    </div>
+  {% endcall %}
+
+  <h3 id="invalid">Error, warning, success</h3>
+  <p>
+    Set <code>aria-invalid="true"</code> for an error (the border turns red; so does the field's label). Native
+    validation styles the same way once the user has interacted (<code>:user-invalid</code>). For softer states, add
+    <code>.input-warning</code> or <code>.input-success</code>. Pair each with a message from the
+    <a href="/docs/components/field#messages">field</a> classes and link it with <code>aria-describedby</code>.
+  </p>
+  {% call demo("flex-col") %}
+    <div class="field-group max-w-sm">
+      <div class="field">
+        <label class="field-label" for="input-error">Email</label>
+        <input class="input" id="input-error" type="email" value="ada@" aria-invalid="true" aria-describedby="input-error-msg" />
+        <p class="field-error" id="input-error-msg">{{ icon("x-circle") }} Enter a complete email address.</p>
+      </div>
+      <div class="field">
+        <label class="field-label" for="input-warning">Password</label>
+        <input class="input input-warning" id="input-warning" type="password" value="password" aria-describedby="input-warning-msg" />
+        <p class="field-warning" id="input-warning-msg">{{ icon("alert-triangle") }} This password is common. Consider a longer one.</p>
+      </div>
+      <div class="field">
+        <label class="field-label" for="input-success">Username</label>
+        <input class="input input-success" id="input-success" value="ada" aria-describedby="input-success-msg" />
+        <p class="field-success" id="input-success-msg">{{ icon("check-circle") }} Username is available.</p>
+      </div>
+    </div>
+  {% endcall %}
+
+  <h3 id="validate-htmx">Validating with htmx</h3>
+  <p>
+    The server can return the whole field with its state, swapped in on <code>change</code>. Here the mock server
+    just echoes the value back:
+  </p>
+  {% call demo("flex-col") %}
+    <div class="field max-w-sm">
+      <label class="field-label" for="input-htmx">Username</label>
+      <input class="input" id="input-htmx" name="username" placeholder="Pick a username"
+             hx-post="/api/echo" hx-trigger="change" hx-target="#input-htmx-msg" />
+      <p class="field-description" id="input-htmx-msg" aria-live="polite">Checked when you leave the field.</p>
+    </div>
+  {% endcall %}
+
+  <h2 id="combining">Combining</h2>
+  <p>
+    Join an input to buttons with a <a href="/docs/components/button-group">button group</a>, put icons, text, badges
+    or buttons inside its border with an <a href="/docs/components/input-group">input group</a>, and lay out labels,
+    help text and grids of inputs with <a href="/docs/components/field">field</a>.
+  </p>
+  {% call demo("flex-col") %}
+    <div class="btn-group w-full max-w-sm" role="group" aria-label="Subscribe">
+      <input class="input" type="email" placeholder="you@example.com" aria-label="Email" />
+      <button class="btn btn-outline">Subscribe</button>
+    </div>
+    <div class="input-group max-w-sm">
+      <input class="input" placeholder="Add tags…" aria-label="Tags" />
+      <span class="input-group-addon"><span class="badge badge-secondary">htmx</span><span class="badge badge-secondary">css</span></span>
+    </div>
+  {% endcall %}
+
+  <h2 id="reference">Reference</h2>
+  {{ classes([
+    [".input", "Text-like inputs, including type=\"file\"."],
+    [".textarea", "Multi-line input; grows with its content where supported."],
+    [".select", "Native select with a chevron."],
+    [".input-sm / .input-lg", "32px or 44px tall instead of 36px. Also on .select."],
+    [".input-warning / .input-success", "Amber or green border and focus ring."],
+    ["aria-invalid=\"true\"", "Error state: red border and focus ring. :user-invalid looks the same."]
+  ], heading="Class / attribute") }}
+{% endblock %}

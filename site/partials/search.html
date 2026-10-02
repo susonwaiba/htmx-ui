@@ -1,0 +1,27 @@
+{# Site search (site/features/search.ts): a header button and a <dialog> command
+   palette. Opens with Ctrl/⌘K or "/", searches the sitemap of the docs version
+   being read, and navigates to the page or exact section. #}
+{% from "components/icon/icon.html" import icon %}
+<button type="button" class="btn btn-outline btn-sm hidden w-56 justify-between font-normal text-muted-foreground md:inline-flex" data-search-open aria-haspopup="dialog" aria-label="Search the docs">
+  <span class="inline-flex items-center gap-2">{{ icon("search") }} Search docs…</span>
+  <kbd class="kbd" data-search-shortcut>Ctrl K</kbd>
+</button>
+<button type="button" class="btn btn-ghost btn-icon md:hidden" data-search-open aria-haspopup="dialog" aria-label="Search the docs">{{ icon("search") }}</button>
+
+<dialog class="search-dialog" data-search-dialog aria-label="Search the docs">
+  <div class="search-field">
+    {{ icon("search", "size-4 shrink-0 text-muted-foreground") }}
+    <input type="search" class="search-input" placeholder="Search docs, components, sections…" autocomplete="off" spellcheck="false"
+      role="combobox" aria-expanded="false" aria-controls="search-results" aria-autocomplete="list" aria-label="Search" data-search-input />
+    <kbd class="kbd">Esc</kbd>
+  </div>
+  <div class="search-body">
+    <ul id="search-results" class="search-results" role="listbox" aria-label="Results" data-search-results></ul>
+    <p class="search-message" data-search-message>Type to search pages and sections.</p>
+  </div>
+  <div class="search-footer" aria-hidden="true">
+    <span><kbd class="kbd">↑</kbd> <kbd class="kbd">↓</kbd> to navigate</span>
+    <span><kbd class="kbd">{{ icon("corner-down-left", "size-3") }}</kbd> to open</span>
+    <span class="ml-auto" data-search-version></span>
+  </div>
+</dialog>

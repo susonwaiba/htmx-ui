@@ -1,0 +1,42 @@
+/* Any .btn becomes a two-state toggle with aria-pressed; data-toggle flips it on click.
+   <button class="btn btn-ghost btn-icon" data-toggle aria-pressed="false" aria-label="Bold">…</button>
+   .btn-toggle is the dedicated look: transparent when off, filled when on. */
+@layer components {
+  .btn-toggle {
+    @apply text-muted-foreground hover:bg-muted hover:text-foreground;
+  }
+  .btn-toggle.btn-outline {
+    @apply bg-transparent;
+  }
+
+  /* Pressed state, per variant */
+  :is(.btn-toggle, .btn-ghost, .btn-outline)[aria-pressed="true"] {
+    @apply bg-accent text-accent-foreground;
+  }
+  .btn-outline[aria-pressed="true"] {
+    @apply border-foreground/25;
+  }
+  .btn-secondary[aria-pressed="true"] {
+    @apply bg-primary text-primary-foreground hover:bg-primary/90;
+  }
+  /* Solid variants: outlined in their colour when off, filled when on (same border width
+     both ways, so the button doesn't change size) */
+  :is(.btn-primary, .btn-danger)[aria-pressed] {
+    @apply border border-transparent;
+  }
+  .btn-primary[aria-pressed="false"] {
+    @apply border border-primary/50 bg-transparent text-primary shadow-none;
+  }
+  .btn-primary[aria-pressed="false"]:hover {
+    @apply bg-primary/10;
+  }
+  .btn-danger[aria-pressed="false"] {
+    @apply border border-danger/50 bg-transparent text-danger shadow-none;
+  }
+  .btn-danger[aria-pressed="false"]:hover {
+    @apply bg-danger/10;
+  }
+  .btn-link[aria-pressed="true"] {
+    @apply font-semibold underline;
+  }
+}

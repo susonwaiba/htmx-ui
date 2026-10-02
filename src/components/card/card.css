@@ -1,9 +1,19 @@
+/* <div class="card">
+     <img class="card-image" src="…" alt="…" />                optional, edge to edge
+     <div class="card-header">
+       <h3 class="card-title">…</h3>
+       <p class="card-description">…</p>
+       <div class="card-action">…</div>                         optional, top right
+     </div>
+     <div class="card-content [card-scroll]">…</div>
+     <div class="card-footer">…</div>
+   </div> */
 @layer components {
   .card {
     @apply flex flex-col rounded-[calc(var(--radius)+4px)] border border-border bg-surface text-foreground shadow-xs;
   }
   .card-header {
-    @apply flex flex-col gap-1.5 p-6 pb-0;
+    @apply grid shrink-0 auto-rows-min items-start gap-1.5 p-6 pb-0 has-[>.card-action]:grid-cols-[1fr_auto];
   }
   .card-title {
     @apply leading-none font-semibold;
@@ -11,12 +21,63 @@
   .card-description {
     @apply text-sm text-muted-foreground;
   }
+  /* Button, badge or menu in the header's top-right corner, beside the title and description */
+  .card-action {
+    @apply col-start-2 row-span-2 row-start-1 self-start justify-self-end;
+  }
   .card-content {
     @apply p-6;
   }
   .card-footer {
-    @apply mt-auto flex items-center gap-2 p-6 pt-0;
+    @apply mt-auto flex shrink-0 items-center gap-2 p-6 pt-0;
   }
+
+  /* Content that scrolls on its own while the header and footer stay put. Give the card a
+     height (h-80, max-h-96...) or the content a max-h-*. */
+  .card-scroll {
+    @apply min-h-0 flex-1 overflow-y-auto overscroll-contain;
+  }
+
+  /* Edge-to-edge image (or video, or any media block). Its outer corners follow the card's. */
+  .card-image {
+    @apply block w-full object-cover;
+  }
+  .card > .card-image:first-child {
+    @apply rounded-t-[calc(var(--radius)+3px)];
+  }
+  .card > .card-image:last-child {
+    @apply rounded-b-[calc(var(--radius)+3px)];
+  }
+
+  /* Media beside the text from the sm breakpoint:
+     <div class="card card-horizontal"><img class="card-image"><div class="card-body">…parts…</div></div> */
+  .card-body {
+    @apply flex min-w-0 flex-1 flex-col;
+  }
+  .card-horizontal {
+    @apply sm:flex-row;
+  }
+  .card-horizontal > .card-image {
+    @apply sm:h-auto sm:w-2/5 sm:shrink-0 sm:self-stretch;
+  }
+  .card-horizontal > .card-image:first-child {
+    @apply sm:rounded-tr-none sm:rounded-bl-[calc(var(--radius)+3px)];
+  }
+  .card-horizontal > .card-image:last-child {
+    @apply sm:rounded-tr-[calc(var(--radius)+3px)] sm:rounded-bl-none;
+  }
+
+  /* Compact padding: <div class="card card-sm"> */
+  .card-sm .card-header {
+    @apply p-4 pb-0;
+  }
+  .card-sm .card-content {
+    @apply p-4;
+  }
+  .card-sm .card-footer {
+    @apply p-4 pt-0;
+  }
+
   /* Whole card is a link: <a class="card card-link" href="..."> */
   .card-link {
     @apply transition-colors hover:border-primary/40 hover:bg-accent/40;

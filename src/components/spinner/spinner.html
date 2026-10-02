@@ -1,0 +1,18 @@
+{# Loading spinner: any icon from src/icons/, spinning.
+   {% from "components/spinner/spinner.html" import spinner %}
+   {{ spinner() }}                              "loader" icon, announced as "Loading" (role="status")
+   {{ spinner("refresh-cw", "spinner-lg") }}    another icon, larger
+   {{ spinner(label="Saving") }}                custom accessible name
+   {{ spinner(label=none) }}                    decorative, e.g. next to a visible "Saving…" label
+   {{ spinner(class="htmx-indicator") }}        shown only while an htmx request runs
+   {{ spinner(id="save-spinner") }}             id, e.g. for hx-indicator="#save-spinner" #}
+
+{% macro spinner(icon="loader", class="", label="Loading", id=none) %}
+{{ svg("icons/" + icon + ".svg", {
+  id: id,
+  class: ("spinner " + class) | trim,
+  role: "status" if label else none,
+  "aria-label": label,
+  "aria-hidden": none if label else "true"
+}) }}
+{%- endmacro %}

@@ -1,0 +1,42 @@
+/* Any SVG icon spins:      <svg class="spinner" role="status" aria-label="Loading">…</svg>   (macro: spinner())
+   Any other element is a CSS ring, for markup without icons (e.g. fragments from a server):
+                            <span class="spinner" role="status" aria-label="Loading"></span>
+   Size: .spinner-sm / -lg / -xl, or any size-* utility. Inside .btn and .badge it takes their icon size. */
+@layer components {
+  .spinner {
+    @apply inline-block size-4 shrink-0 animate-spin motion-reduce:[animation-duration:1.5s];
+  }
+  .spinner:not(svg) {
+    @apply rounded-full border-2 border-current border-r-transparent;
+  }
+
+  .spinner-sm {
+    @apply size-3;
+  }
+  .spinner-lg {
+    @apply size-6;
+  }
+  .spinner-xl {
+    @apply size-8;
+  }
+  .badge .spinner {
+    @apply size-3;
+  }
+  .badge .spinner:not(svg),
+  .spinner-sm:not(svg) {
+    @apply border-[1.5px];
+  }
+
+  /* An htmx indicator inside a button, badge or input-group addon takes no space until its
+     request starts, so the button doesn't carry an empty gap. htmx adds .htmx-request to
+     the element making the request (or to the hx-indicator target). */
+  :is(.btn, .badge, .input-group-addon) .htmx-indicator:not(.htmx-request, .htmx-request *) {
+    display: none;
+  }
+  /* ...and an element marked .htmx-indicator-hide disappears while it runs, so a spinner
+     can stand in for an icon. */
+  .htmx-request .htmx-indicator-hide,
+  .htmx-request.htmx-indicator-hide {
+    display: none;
+  }
+}

@@ -147,7 +147,7 @@ describe("pages", () => {
     expect(page).toMatch(/href="\/docs\/components\/button" class="sidebar-link" aria-current="page"/);
     expect(page).toContain('<p class="eyebrow">Components</p>');
     expect(page).toMatch(/Previous[\s\S]*?Badge/);
-    expect(page).toMatch(/Next[\s\S]*?Card/);
+    expect(page).toMatch(/Next[\s\S]*?Button group/);
   });
 
   test("changelog version pages keep Changelog active in the sidebar", () => {

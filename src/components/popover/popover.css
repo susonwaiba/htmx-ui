@@ -1,0 +1,29 @@
+/* <div class="popover" data-popover>
+     <button class="btn btn-outline" data-popover-trigger aria-expanded="false">Details</button>
+     <div class="popover-content" data-popover-content hidden>…any content, forms included…</div>
+   </div> */
+@layer components {
+  .popover {
+    @apply relative inline-block;
+  }
+  .popover-content {
+    @apply absolute top-full left-0 z-50 mt-2 w-72 rounded-(--radius) border border-border bg-surface p-4 text-sm
+      text-foreground shadow-lg outline-none;
+  }
+  /* Align to the trigger's right edge / centre / open upwards */
+  .popover-content-end {
+    @apply right-0 left-auto;
+  }
+  .popover-content-center {
+    @apply left-1/2 -translate-x-1/2;
+  }
+  .popover-content-up {
+    @apply top-auto bottom-full mt-0 mb-2;
+  }
+  .popover-title {
+    @apply leading-none font-semibold;
+  }
+  .popover-description {
+    @apply mt-1.5 text-muted-foreground;
+  }
+}

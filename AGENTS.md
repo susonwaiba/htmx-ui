@@ -56,16 +56,17 @@ Three top-level areas with one rule: **`src/` is the published package and must 
 │   │   │   ├── <name>.css      #   styles (@layer components)        dropdown.css
 │   │   │   ├── <name>.ts       #   optional behaviour: init<Name>()  dropdown.ts
 │   │   │   ├── <name>.test.ts  #   tests for the behaviour           dropdown.test.ts
-│   │   │   ├── <name>.html     #   optional Nunjucks macro           (alert, code, icon)
+│   │   │   ├── <name>.html     #   optional Nunjucks macro           (alert, code, icon, spinner)
 │   │   │   └── *.json          #   optional data the macro reads     (code/package-managers.json)
-│   │   └── …                   # alert badge button card code dismissible dropdown icon sidebar table tabs text
+│   │   └── …                   # accordion alert badge button button-group card code dismissible dropdown field icon input
+│   │                           #   input-group popover sidebar spinner table tabs text toggle toggle-group
 │   ├── utils/dom.ts            # queryAll(root, selector), which includes root itself
 │   └── icons/*.svg             # Icon files; inlined by icon(), copied to dist/assets/icons/
 ├── site/                       # THE WEBSITE — marketing pages + docs. Not published.
 │   ├── app.ts                  # Client entry: htmx, styles, initComponents, site features
 │   ├── pages/                  # Routes: index.html -> /, docs/theming.html -> /docs/theming
 │   ├── layouts/                # base.html (shell), site.html (marketing), docs.html (sidebar docs)
-│   ├── partials/               # header, footer, version-switcher
+│   ├── partials/               # header, footer, version-switcher, search (Ctrl/⌘K palette)
 │   ├── macros/docs.html        # Docs-only helpers: demo() preview+source, classes() reference table
 │   ├── data/                   # JSON read by templates with json()
 │   │   ├── site.json           # Name, description, URL (sitemap origin unless $SITE_URL)
@@ -146,6 +147,7 @@ Each component is a directory, `src/components/<name>/`, holding every file name
   - `year.ts` — fills `[data-year]` elements with the current year.
   - `markdown-copy.ts` — "Copy Markdown" buttons on docs pages.
   - `versions.ts` — rebuilds the version switcher from `/docs/versions.json`; shows the "old version" banner.
+  - `search.ts` + `search-index.ts` — site search: a `<dialog>` command palette (Ctrl/⌘K, `/`) over the sitemap of the docs version being read (`/sitemap.json`, or an archived version's own sitemap). `search-index.ts` is the pure fuzzy matcher (pages + sections; exact > prefix > substring > in-order letters > one typo); results link to `page#section`. The index loads on first open or on hovering the search button.
 - The theme switcher is part of the package: `src/theme.ts` (`initTheme`, `getTheme`). It applies `.dark` on `<html>`, persists the choice in `localStorage`, and follows `prefers-color-scheme` until the user picks.
 - Intended for global, single-run behaviors (theme toggles, global analytics, copyright year injection).
 - Invoked only once inside the `DOMContentLoaded` listener in `site/app.ts`. Do not hook features into `htmx:after:process` unless they explicitly manage swapped DOM nodes.

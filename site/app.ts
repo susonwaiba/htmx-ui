@@ -3,6 +3,7 @@ import "./styles/app.css";
 import { initComponents } from "../src";
 import { initMarkdownCopy } from "./features/markdown-copy";
 import { initTheme } from "../src/theme";
+import { initSearch } from "./features/search";
 import { initVersions } from "./features/versions";
 import { initYear } from "./features/year";
 
@@ -15,6 +16,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initYear();
   initMarkdownCopy();
   initVersions();
+  initSearch();
   init();
 });
 

@@ -1,0 +1,113 @@
+{% extends "layouts/docs.html" %}
+{% from "components/icon/icon.html" import icon %}
+{% from "macros/docs.html" import demo, classes %}
+{% set title = "Toggle group" %}
+{% set description = "A set of two-state buttons. Pick exactly one, at most one, or any number." %}
+
+{% block content %}
+  {% call demo() %}
+    <div class="toggle-group btn-group" role="group" aria-label="Text alignment" data-toggle-group="single" data-toggle-group-required>
+      <button class="btn btn-outline btn-icon" aria-pressed="true" value="left" aria-label="Align left">{{ icon("align-left") }}</button>
+      <button class="btn btn-outline btn-icon" aria-pressed="false" value="center" aria-label="Align center">{{ icon("align-center") }}</button>
+      <button class="btn btn-outline btn-icon" aria-pressed="false" value="right" aria-label="Align right">{{ icon("align-right") }}</button>
+    </div>
+  {% endcall %}
+
+  <p>
+    Use a toggle group for buttons that <strong>switch a state</strong>. For buttons that perform actions, use a
+    <a href="/docs/components/button-group">button group</a>.
+  </p>
+
+  <h2 id="usage">Usage</h2>
+  <ul>
+    <li>Wrap the buttons in <code>.toggle-group</code> with <code>data-toggle-group</code>, <code>role="group"</code> and an <code>aria-label</code>.</li>
+    <li>Each button gets <code>aria-pressed</code>, and a <code>value</code> to identify it. They don't need <code>data-toggle</code>; the group handles them.</li>
+    <li>The group is one tab stop. <kbd class="kbd">←</kbd> <kbd class="kbd">→</kbd> <kbd class="kbd">↑</kbd> <kbd class="kbd">↓</kbd> <kbd class="kbd">Home</kbd> <kbd class="kbd">End</kbd> move between buttons; <kbd class="kbd">Space</kbd> or <kbd class="kbd">Enter</kbd> presses.</li>
+    <li>Every change fires a bubbling <code>toggle-group:change</code> event with <code>detail.value</code>: the pressed buttons' values.</li>
+  </ul>
+
+  <h2 id="single">Single</h2>
+  <p>
+    <code>data-toggle-group="single"</code>: pressing a button releases the others. Pressing the pressed one releases it,
+    leaving none. Add <code>data-toggle-group-required</code> to keep exactly one pressed, as in the alignment example at the top.
+  </p>
+  {% call demo() %}
+    <div class="toggle-group" role="group" aria-label="Plan" data-toggle-group="single">
+      <button class="btn btn-toggle btn-sm" aria-pressed="false" value="monthly">Monthly</button>
+      <button class="btn btn-toggle btn-sm" aria-pressed="true" value="yearly">Yearly</button>
+      <button class="btn btn-toggle btn-sm" aria-pressed="false" value="lifetime">Lifetime</button>
+    </div>
+  {% endcall %}
+
+  <h2 id="multiple">Multiple</h2>
+  <p><code>data-toggle-group="multiple"</code>: each button toggles on its own.</p>
+  {% call demo() %}
+    <div class="toggle-group" role="group" aria-label="Text formatting" data-toggle-group="multiple">
+      <button class="btn btn-toggle btn-icon" aria-pressed="true" value="bold" aria-label="Bold">{{ icon("bold") }}</button>
+      <button class="btn btn-toggle btn-icon" aria-pressed="false" value="italic" aria-label="Italic">{{ icon("italic") }}</button>
+      <button class="btn btn-toggle btn-icon" aria-pressed="false" value="underline" aria-label="Underline">{{ icon("underline") }}</button>
+    </div>
+  {% endcall %}
+
+  <h2 id="joined">Joined or spaced</h2>
+  <p>
+    A <code>.toggle-group</code> spaces its buttons. Add <code>.btn-group</code> to join them like a
+    <a href="/docs/components/button-group">button group</a>, with all of its options: sizes, vertical, separators.
+  </p>
+  {% call demo() %}
+    <div class="toggle-group btn-group btn-group-sm" role="group" aria-label="Size" data-toggle-group="single" data-toggle-group-required>
+      <button class="btn btn-outline" aria-pressed="false" value="s">S</button>
+      <button class="btn btn-outline" aria-pressed="true" value="m">M</button>
+      <button class="btn btn-outline" aria-pressed="false" value="l">L</button>
+      <button class="btn btn-outline" aria-pressed="false" value="xl">XL</button>
+    </div>
+    <div class="toggle-group btn-group" role="group" aria-label="View" data-toggle-group="single" data-toggle-group-required>
+      <button class="btn btn-secondary" aria-pressed="true" value="list">List</button>
+      <div class="btn-group-separator" role="separator"></div>
+      <button class="btn btn-secondary" aria-pressed="false" value="board">Board</button>
+    </div>
+  {% endcall %}
+
+  <h2 id="vertical">Vertical</h2>
+  {% call demo() %}
+    <div class="toggle-group toggle-group-vertical" role="group" aria-label="Filters" data-toggle-group="multiple">
+      <button class="btn btn-toggle justify-start" aria-pressed="true" value="open">{{ icon("check-circle") }} Open</button>
+      <button class="btn btn-toggle justify-start" aria-pressed="false" value="closed">{{ icon("x-circle") }} Closed</button>
+      <button class="btn btn-toggle justify-start" aria-pressed="false" value="draft">{{ icon("file-text") }} Draft</button>
+    </div>
+  {% endcall %}
+
+  <h2 id="disabled">Disabled</h2>
+  <p>Disabled buttons are skipped by clicks and arrow keys.</p>
+  {% call demo() %}
+    <div class="toggle-group" role="group" aria-label="Text formatting" data-toggle-group="multiple">
+      <button class="btn btn-toggle btn-icon" aria-pressed="false" value="bold" aria-label="Bold">{{ icon("bold") }}</button>
+      <button class="btn btn-toggle btn-icon" aria-pressed="false" value="italic" aria-label="Italic" disabled>{{ icon("italic") }}</button>
+      <button class="btn btn-toggle btn-icon" aria-pressed="false" value="underline" aria-label="Underline">{{ icon("underline") }}</button>
+    </div>
+  {% endcall %}
+
+  <h2 id="htmx">With htmx</h2>
+  <p>
+    Buttons with a <code>name</code> send their <code>value</code> with the request they trigger, so each button can
+    post the choice by itself:
+  </p>
+  {% call demo("flex-col") %}
+    <div class="toggle-group btn-group" role="group" aria-label="Theme" data-toggle-group="single" data-toggle-group-required>
+      <button class="btn btn-outline" aria-pressed="true" name="theme" value="light" hx-post="/api/echo" hx-target="#toggle-group-result">{{ icon("sun") }} Light</button>
+      <button class="btn btn-outline" aria-pressed="false" name="theme" value="dark" hx-post="/api/echo" hx-target="#toggle-group-result">{{ icon("moon") }} Dark</button>
+      <button class="btn btn-outline" aria-pressed="false" name="theme" value="system" hx-post="/api/echo" hx-target="#toggle-group-result">{{ icon("monitor") }} System</button>
+    </div>
+    <p id="toggle-group-result" class="muted" aria-live="polite"></p>
+  {% endcall %}
+
+  <h2 id="reference">Reference</h2>
+  {{ classes([
+    [".toggle-group", "Spaced row of toggle buttons. Add .btn-group to join them."],
+    [".toggle-group-vertical", "Stacks the buttons."],
+    ["data-toggle-group=\"single\"", "Pressing a button releases the others."],
+    ["data-toggle-group=\"multiple\"", "Buttons toggle independently."],
+    ["data-toggle-group-required", "With single: one button always stays pressed."],
+    ["toggle-group:change", "Event fired on the group; detail.value lists the pressed buttons' values."]
+  ], heading="Class / attribute") }}
+{% endblock %}

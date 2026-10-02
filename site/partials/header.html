@@ -20,6 +20,7 @@
       {% endfor %}
     </nav>
     <div class="ml-auto flex items-center gap-1">
+      {% include "partials/search.html" %}
       <a href="/docs/installation" class="btn btn-primary btn-sm hidden sm:inline-flex">Get started</a>
       <button type="button" class="btn btn-ghost btn-icon" data-theme-toggle aria-pressed="false" title="Toggle light and dark theme">
         <span class="dark:hidden">{{ icon("sun") }}</span>

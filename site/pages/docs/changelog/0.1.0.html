@@ -13,17 +13,26 @@
   <h2 id="added">Added</h2>
   <h3>Components</h3>
   <ul>
+    <li><a href="/docs/components/accordion">Accordion</a>: built on <code>&lt;details&gt;</code>: one or several open, disabled items, bordered and separated styles, lazy-loaded content with htmx.</li>
     <li><a href="/docs/components/alert">Alert</a>: neutral, info, success, warning and danger, with an optional dismiss button.</li>
     <li><a href="/docs/components/badge">Badge</a>: solid, outline and soft status variants, plus a status dot.</li>
-    <li><a href="/docs/components/button">Button</a>: primary, secondary, outline, ghost, danger and link variants; small, large and icon sizes; button groups.</li>
-    <li><a href="/docs/components/card">Card</a>: header, title, description, content and footer parts, and a clickable card link.</li>
+    <li><a href="/docs/components/button">Button</a>: primary, secondary, outline, ghost, danger and link variants; extra small to large sizes; icon, rounded, disabled and loading states.</li>
+    <li><a href="/docs/components/button-group">Button group</a>: joins buttons, inputs, dropdowns and popovers: vertical, sized, separated, nested toolbars and split buttons.</li>
+    <li><a href="/docs/components/card">Card</a>: header, title, description, action, content and footer parts; edge-to-edge images, horizontal layout, scrolling content, compact size and clickable cards.</li>
     <li><a href="/docs/components/code-block">Code block</a>: build-time syntax highlighting, copy button, file tabs and npm/pnpm/yarn/bun command tabs.</li>
     <li><a href="/docs/components/dropdown">Dropdown</a>: accessible menu with keyboard navigation; powers the docs version switcher.</li>
+    <li><a href="/docs/components/field">Field</a>: labels, descriptions and error, warning and success messages; an automatic required asterisk; inline, responsive and grid form layouts; fieldsets and separators.</li>
     <li><a href="/docs/components/icon">Icon</a>: SVG files inlined at build time, or linked as images.</li>
+    <li><a href="/docs/components/input">Input</a>: text inputs, textareas, selects and file inputs, with sizes and disabled, error, warning and success states.</li>
+    <li><a href="/docs/components/input-group">Input group</a>: icons, text, badges, buttons, dropdowns and spinners inside an input, at the inline start or end, above or below.</li>
+    <li><a href="/docs/components/popover">Popover</a>: a floating panel of rich content or a small form that opens from a button.</li>
     <li><a href="/docs/components/sidebar">Sidebar</a>: sticky on desktop, off-canvas with a backdrop on mobile.</li>
+    <li><a href="/docs/components/spinner">Spinner</a>: any icon or a pure-CSS ring, in four sizes; works in buttons, badges, button groups and input groups, and as an htmx request indicator.</li>
     <li><a href="/docs/components/table">Table</a>: bordered wrapper, muted header and hover rows.</li>
     <li><a href="/docs/components/tabs">Tabs</a>: accessible tab groups that can sync with each other and remember the reader's choice.</li>
     <li><a href="/docs/components/text">Text</a>: <code>@tailwindcss/typography</code> (<code>.prose</code>) mapped onto the design tokens, plus heading, lead, muted, link, inline code and kbd helpers.</li>
+    <li><a href="/docs/components/toggle">Toggle</a>: any button becomes an on/off toggle with <code>aria-pressed</code>.</li>
+    <li><a href="/docs/components/toggle-group">Toggle group</a>: pick one, at most one, or many; arrow-key navigation; spaced or joined.</li>
   </ul>
   <h3>Theming and dark mode</h3>
   <ul>
@@ -34,12 +43,13 @@
   <h3>Templates and data</h3>
   <ul>
     <li>Component behaviours initialise inside swapped content via <code>htmx:after:process</code>, including when the swapped element is the component itself.</li>
-    <li>Optional Nunjucks macros for alerts, code blocks, command tabs and icons.</li>
+    <li>Optional Nunjucks macros for alerts, code blocks, command tabs, icons and spinners.</li>
     <li><code>json()</code>, <code>svg()</code> and <code>glob()</code> template functions. See <a href="/docs/templates">Templates &amp; data</a>.</li>
   </ul>
   <h3>Docs</h3>
   <ul>
     <li>Versioned docs: a version switcher, frozen snapshots of older versions under <code>/docs/v&lt;version&gt;</code>, and <code>/docs/versions.json</code>. See <a href="/docs/versions">Versions</a>.</li>
+    <li>Site search (<kbd>Ctrl</kbd> / <kbd>⌘</kbd> + <kbd>K</kbd>): fuzzy-finds pages and sections in the docs version you're reading, and opens the exact section.</li>
   </ul>
   <h3>Package</h3>
   <ul>

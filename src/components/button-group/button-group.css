@@ -1,0 +1,99 @@
+/* Joins related controls into one unit.
+   <div class="btn-group" role="group" aria-label="Text formatting">
+     <button class="btn btn-outline">Bold</button>
+     <button class="btn btn-outline">Italic</button>
+   </div>
+   Children can be buttons, .input / .select, .input-group, .btn-group-text, .btn-group-separator,
+   or a .dropdown / .popover whose trigger is a .btn. A group of groups (a toolbar) spaces them apart. */
+@layer components {
+  .btn-group {
+    @apply flex w-fit items-stretch;
+  }
+  /* Lift the focused child so its outline and border sit above its neighbours */
+  .btn-group > :focus-visible,
+  .btn-group > :focus-within {
+    @apply relative z-10;
+  }
+
+  /* Horizontal: square off the inner corners and overlap the shared borders */
+  .btn-group:not(.btn-group-vertical, :has(> .btn-group)) > :not(:first-child),
+  .btn-group:not(.btn-group-vertical, :has(> .btn-group)) > :not(:first-child) > .btn {
+    @apply rounded-s-none;
+  }
+  .btn-group:not(.btn-group-vertical, :has(> .btn-group)) > :not(:last-child),
+  .btn-group:not(.btn-group-vertical, :has(> .btn-group)) > :not(:last-child) > .btn {
+    @apply rounded-e-none;
+  }
+  .btn-group:not(.btn-group-vertical, :has(> .btn-group))
+    > :not(:first-child, .btn-group-separator, .btn-group-separator + *) {
+    @apply -ms-px;
+  }
+
+  /* Vertical: <div class="btn-group btn-group-vertical"> */
+  .btn-group-vertical {
+    @apply flex-col;
+  }
+  .btn-group-vertical:not(:has(> .btn-group)) > :not(:first-child),
+  .btn-group-vertical:not(:has(> .btn-group)) > :not(:first-child) > .btn {
+    @apply rounded-t-none;
+  }
+  .btn-group-vertical:not(:has(> .btn-group)) > :not(:last-child),
+  .btn-group-vertical:not(:has(> .btn-group)) > :not(:last-child) > .btn {
+    @apply rounded-b-none;
+  }
+  .btn-group-vertical:not(:has(> .btn-group))
+    > :not(:first-child, .btn-group-separator, .btn-group-separator + *) {
+    @apply -mt-px;
+  }
+
+  /* Nested groups become a toolbar */
+  .btn-group:has(> .btn-group) {
+    @apply flex-wrap gap-2;
+  }
+
+  /* Sizes for every child at once */
+  .btn-group-sm > .btn,
+  .btn-group-sm > * > .btn {
+    @apply h-8 gap-1.5 px-3 text-xs;
+  }
+  .btn-group-sm > :is(.input, .select, .btn-group-text) {
+    @apply h-8 px-2.5 text-xs;
+  }
+  .btn-group-sm > .btn-icon,
+  .btn-group-sm > * > .btn-icon {
+    @apply size-8 px-0;
+  }
+  .btn-group-lg > .btn,
+  .btn-group-lg > * > .btn {
+    @apply h-11 px-6 text-base;
+  }
+  .btn-group-lg > :is(.input, .select, .btn-group-text) {
+    @apply h-11 px-4 text-base;
+  }
+  .btn-group-lg > .btn-icon,
+  .btn-group-lg > * > .btn-icon {
+    @apply size-11 px-0;
+  }
+
+  /* Inputs fill the space left by the buttons */
+  .btn-group > :is(.input, .select, .input-group) {
+    @apply w-auto min-w-0 flex-1;
+  }
+
+  /* Static label inside a group: <span class="btn-group-text">https://</span> */
+  .btn-group-text {
+    @apply flex items-center gap-2 rounded-(--radius) border border-border bg-muted px-4 text-sm font-medium
+      text-muted-foreground shadow-xs [&_svg]:size-4 [&_svg]:shrink-0;
+  }
+
+  /* Thin divider between buttons that have no border of their own (secondary, primary...) */
+  .btn-group-separator {
+    @apply w-px shrink-0 self-stretch bg-foreground/15;
+  }
+  .btn-group-vertical > .btn-group-separator {
+    @apply h-px w-auto;
+  }
+  .btn-group > .btn-primary + .btn-group-separator {
+    @apply bg-primary-foreground/30;
+  }
+}

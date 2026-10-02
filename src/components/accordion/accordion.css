@@ -1,0 +1,87 @@
+/* Built on <details>/<summary>: works without JavaScript.
+   <div class="accordion [accordion-bordered]" [data-accordion]>    data-accordion: fully lock disabled items
+     <details class="accordion-item" name="faq" open>          same name = only one open at a time
+       <summary class="accordion-trigger">Question</summary>    leave name out to allow several
+       <div class="accordion-content">Answer</div>
+     </details>
+     <details class="accordion-item" name="faq">
+       <summary class="accordion-trigger" aria-disabled="true" tabindex="-1">Disabled</summary>
+       …
+   </div> */
+@layer components {
+  .accordion {
+    @apply flex w-full flex-col;
+  }
+  .accordion-item {
+    @apply border-b border-border last:border-b-0;
+  }
+  .accordion-trigger {
+    @apply flex w-full cursor-pointer list-none items-center justify-between gap-4 rounded-(--radius) py-4 text-left
+      text-sm font-medium transition-colors select-none hover:underline focus-visible:outline-2
+      focus-visible:outline-offset-2 focus-visible:outline-ring [&::-webkit-details-marker]:hidden
+      [&_svg]:size-4 [&_svg]:shrink-0;
+  }
+  /* Chevron, drawn from the text colour; turns when open */
+  .accordion-trigger::after {
+    @apply size-4 shrink-0 bg-current text-muted-foreground transition-transform duration-200 content-[''];
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")
+      center / contain no-repeat;
+  }
+  .accordion-item[open] > .accordion-trigger::after {
+    @apply rotate-180;
+  }
+  .accordion-trigger[aria-disabled="true"] {
+    @apply pointer-events-none opacity-50;
+  }
+  .accordion-content {
+    @apply pb-4 text-sm text-muted-foreground [&>*+*]:mt-3;
+  }
+
+  /* Bordered: a box around the whole accordion, with padded rows */
+  .accordion-bordered {
+    @apply rounded-[calc(var(--radius)+4px)] border border-border;
+  }
+  .accordion-bordered .accordion-trigger {
+    @apply rounded-none px-4 hover:bg-accent/50 hover:no-underline focus-visible:-outline-offset-2;
+  }
+  .accordion-bordered .accordion-item:first-child .accordion-trigger {
+    @apply rounded-t-[calc(var(--radius)+3px)];
+  }
+  .accordion-bordered .accordion-item:last-child:not([open]) .accordion-trigger {
+    @apply rounded-b-[calc(var(--radius)+3px)];
+  }
+  .accordion-bordered .accordion-content {
+    @apply px-4;
+  }
+
+  /* Separated: each item its own bordered box */
+  .accordion-separated {
+    @apply gap-2;
+  }
+  .accordion-separated .accordion-item {
+    @apply rounded-(--radius) border border-border px-4 last:border-b;
+  }
+}
+
+/* Smooth open/close where the browser can animate to height: auto (Chromium); elsewhere it
+   just snaps. Outside the layer list so browsers without ::details-content skip only this. */
+@supports selector(::details-content) {
+  .accordion-item {
+    interpolate-size: allow-keywords;
+  }
+  .accordion-item::details-content {
+    height: 0;
+    overflow: clip;
+    transition:
+      height 200ms ease,
+      content-visibility 200ms allow-discrete;
+  }
+  .accordion-item[open]::details-content {
+    height: auto;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .accordion-item::details-content {
+      transition: none;
+    }
+  }
+}

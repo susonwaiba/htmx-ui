@@ -28,4 +28,12 @@ export const apiRoutes = {
     await Bun.sleep(1200);
     return html(`<span class="text-success">Saved at ${new Date().toLocaleTimeString()}</span>`);
   },
+
+  // Echoes the submitted values back, for demos that post a choice (toggles, toggle groups).
+  "/api/echo": async (req: Request) => {
+    await Bun.sleep(400);
+    const body = req.method === "GET" ? new URL(req.url).searchParams : await req.formData();
+    const pairs = [...body.entries()].map(([k, v]) => `${k}=${String(v)}`).join(", ") || "nothing";
+    return html(`<span class="text-success">Server received ${Bun.escapeHTML(pairs)}</span>`);
+  },
 };

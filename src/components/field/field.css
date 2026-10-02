@@ -1,0 +1,99 @@
+/* A form control with its label, description and messages.
+   <div class="field">
+     <label class="field-label" for="email">Email</label>
+     <input class="input" id="email" type="email" required aria-describedby="email-help" />
+     <p class="field-description" id="email-help">We'll never share it.</p>
+   </div>
+   The label gets a red asterisk automatically when the field holds a required control.
+   Layout: .field-horizontal / .field-responsive, stacked in a .field-group, columns with .field-grid,
+   grouped under a <fieldset class="fieldset"> with a <legend class="field-legend">. */
+@layer components {
+  .field {
+    @apply flex w-full flex-col gap-2;
+  }
+  /* Label beside the control: inline forms, checkboxes, switches */
+  .field-horizontal {
+    @apply flex-row items-center gap-3 has-[>.field-content]:items-start;
+  }
+  .field-horizontal > :is(.input, .select, .textarea, .input-group, .btn-group) {
+    @apply flex-1;
+  }
+  .field-horizontal > :is(input[type="checkbox"], input[type="radio"]) {
+    @apply mt-0.5 self-start;
+  }
+  /* Stacked in narrow containers, beside the label from 28rem (inside a .field-group) */
+  .field-responsive {
+    @apply @md:flex-row @md:items-center @md:gap-3 @md:has-[>.field-content]:items-start;
+  }
+  .field-responsive > :is(.input, .select, .textarea, .input-group, .btn-group) {
+    @apply @md:flex-1;
+  }
+
+  .field-label {
+    @apply flex w-fit items-center gap-2 text-sm leading-snug font-medium text-foreground select-none
+      [&_svg]:size-4;
+  }
+  /* Label + description side by side with a control in horizontal fields */
+  .field-content {
+    @apply flex flex-1 flex-col gap-1.5 leading-snug;
+  }
+  .field-description {
+    @apply text-sm leading-normal font-normal text-muted-foreground [&_a]:underline [&_a]:underline-offset-4
+      [&_a:hover]:text-primary;
+  }
+
+  /* Messages: <p class="field-error">{{ icon("x-circle") }} Enter a valid email.</p> */
+  .field-error,
+  .field-warning,
+  .field-success {
+    @apply flex items-start gap-1.5 text-sm font-medium [&_svg]:mt-0.5 [&_svg]:size-4 [&_svg]:shrink-0;
+  }
+  .field-error {
+    @apply text-danger;
+  }
+  .field-warning {
+    @apply text-warning;
+  }
+  .field-success {
+    @apply text-success;
+  }
+  .field-error ul {
+    @apply list-disc ps-4 font-normal;
+  }
+
+  /* Required: asterisk after the label */
+  :is(.field:has(:is(input, select, textarea):required) > .field-label, .field:has(:is(input, select, textarea):required) > .field-content > .field-label, .field-label-required)::after {
+    @apply -ms-1 size-2.5 shrink-0 bg-danger content-[''];
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3' stroke-linecap='round'%3E%3Cpath d='M12 4v16M18.9 8 5.1 16M5.1 8l13.8 8'/%3E%3C/svg%3E")
+      center / contain no-repeat;
+  }
+  /* Field states: dim the label when disabled, tint it when invalid */
+  .field:has(:is(input, select, textarea):disabled) :is(.field-label, .field-description) {
+    @apply opacity-50;
+  }
+  .field:has([aria-invalid="true"]) > .field-label {
+    @apply text-danger;
+  }
+
+  /* Layout */
+  .field-group {
+    @apply @container flex w-full flex-col gap-6;
+  }
+  .field-grid {
+    @apply grid w-full gap-x-4 gap-y-6 sm:grid-cols-2;
+  }
+  .fieldset {
+    @apply m-0 flex min-w-0 flex-col gap-6 border-0 p-0;
+  }
+  .field-legend {
+    @apply mb-1 p-0 text-base font-medium;
+  }
+  .field-legend + .field-description {
+    @apply -mt-5;
+  }
+  /* Divider between sections, optionally with text: <div class="field-separator">Or</div> */
+  .field-separator {
+    @apply flex items-center gap-3 text-sm text-muted-foreground before:h-px before:flex-1 before:bg-border
+      before:content-[''] after:h-px after:flex-1 after:bg-border after:content-[''] empty:gap-0;
+  }
+}

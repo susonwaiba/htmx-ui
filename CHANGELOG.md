@@ -10,9 +10,15 @@ First release.
 
 ### Added
 
-- **Components:** alert, badge, button, card, code block, dropdown, icon, sidebar, table, tabs, text.
-- **Behaviours** (`initComponents(root)`): code copy, dismissible, dropdown, sidebar, tabs. They are idempotent and
-  initialise inside htmx-swapped content (`htmx:after:process`).
+- **Components:** accordion, alert, badge, button, button group, card, code block, dropdown, field, icon, input,
+  input group, popover, sidebar, spinner, table, tabs, text, toggle, toggle group.
+- **Forms:** text inputs, textareas, selects and file inputs with disabled, error (`aria-invalid` / `:user-invalid`),
+  warning and success states; fields with labels, descriptions, messages and an automatic required asterisk; inline,
+  responsive and grid layouts; input groups with addons on any side.
+- **Loading states:** spinners from any icon or pure CSS, in buttons, badges, button groups and input groups. An
+  `.htmx-indicator` inside a button, badge or input-group addon takes no space until its request starts.
+- **Behaviours** (`initComponents(root)`): accordion, code copy, dismissible, dropdown, popover, sidebar, tabs, toggle,
+  toggle group. They are idempotent and initialise inside htmx-swapped content (`htmx:after:process`).
 - **Theming:** every colour and the corner radius are CSS variables (`--primary`, `--border`, `--radius`, …) exposed as
   Tailwind colours (`bg-primary`, `text-muted-foreground`, …).
 - **Dark mode:** class-based `dark:` variant, token swaps, and a theme switcher (`htmx-ui/theme`) that follows the OS
@@ -22,7 +28,7 @@ First release.
 - **Scrollbars:** every scrollbar is thin and tinted from the theme (`--scrollbar-thumb`, `--scrollbar-thumb-hover`), in
   light and dark.
 - **Syntax-highlighting colours** (`--code-token-*`) for build-time highlighters using Shiki's CSS-variables theme.
-- **Icons:** 33 SVG icons in `htmx-ui/icons/*`.
+- **Icons:** SVG icons in `htmx-ui/icons/*`.
 
 ### Notes
 

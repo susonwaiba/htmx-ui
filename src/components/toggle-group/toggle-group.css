@@ -1,0 +1,16 @@
+/* <div class="toggle-group [btn-group]" role="group" aria-label="Alignment" data-toggle-group="single">
+     <button class="btn btn-toggle btn-icon" aria-pressed="true" value="left" aria-label="Left">…</button>
+     <button class="btn btn-toggle btn-icon" aria-pressed="false" value="center" aria-label="Center">…</button>
+   </div>
+   Spaced by default; add .btn-group to join the buttons like a button group. */
+@layer components {
+  .toggle-group {
+    @apply flex w-fit items-center gap-1;
+  }
+  .toggle-group.btn-group {
+    @apply items-stretch gap-0;
+  }
+  .toggle-group-vertical {
+    @apply flex-col items-stretch;
+  }
+}

@@ -1,0 +1,68 @@
+{% extends "layouts/docs.html" %}
+{% from "components/icon/icon.html" import icon %}
+{% from "macros/docs.html" import demo, classes %}
+{% set title = "Toggle" %}
+{% set description = "A two-state button that is either on or off. Any button variant can be a toggle." %}
+
+{% block content %}
+  {% call demo() %}
+    <button class="btn btn-toggle btn-icon" data-toggle aria-pressed="false" aria-label="Bold">{{ icon("bold") }}</button>
+  {% endcall %}
+
+  <h2 id="usage">Usage</h2>
+  <ul>
+    <li>Add <code>data-toggle</code> and <code>aria-pressed="false"</code> (or <code>"true"</code> to start on) to any <code>.btn</code>.</li>
+    <li>Each click flips <code>aria-pressed</code>, which screen readers announce as "pressed" or "not pressed". Styles key off the same attribute.</li>
+    <li>The button fires a bubbling <code>toggle:change</code> event with <code>detail.pressed</code>.</li>
+    <li>Keep the label the same in both states. "Bold" pressed reads correctly; switching the text to "Not bold" doesn't.</li>
+  </ul>
+
+  <h2 id="variants">Any button</h2>
+  <p>
+    <code>.btn-toggle</code> is the dedicated look: muted when off, filled when on. Every other variant works too:
+    ghost and outline fill when on, secondary turns the brand colour, and primary and danger are outlined when off
+    and solid when on. Click them:
+  </p>
+  {% call demo() %}
+    <button class="btn btn-toggle" data-toggle aria-pressed="true">{{ icon("italic") }} Toggle</button>
+    <button class="btn btn-ghost" data-toggle aria-pressed="false">Ghost</button>
+    <button class="btn btn-outline" data-toggle aria-pressed="false">{{ icon("star") }} Outline</button>
+    <button class="btn btn-secondary" data-toggle aria-pressed="false">Secondary</button>
+    <button class="btn btn-primary" data-toggle aria-pressed="false">Primary</button>
+    <button class="btn btn-danger" data-toggle aria-pressed="false">Danger</button>
+    <button class="btn btn-link" data-toggle aria-pressed="false">Link</button>
+  {% endcall %}
+
+  <h2 id="sizes">Sizes and shapes</h2>
+  {% call demo() %}
+    <button class="btn btn-toggle btn-outline btn-icon btn-sm" data-toggle aria-pressed="false" aria-label="Underline">{{ icon("underline") }}</button>
+    <button class="btn btn-toggle btn-outline btn-icon" data-toggle aria-pressed="true" aria-label="Underline">{{ icon("underline") }}</button>
+    <button class="btn btn-toggle btn-outline btn-icon btn-lg" data-toggle aria-pressed="false" aria-label="Underline">{{ icon("underline") }}</button>
+    <button class="btn btn-outline btn-rounded btn-sm" data-toggle aria-pressed="false">{{ icon("bookmark") }} Save</button>
+  {% endcall %}
+
+  <h2 id="disabled">Disabled</h2>
+  {% call demo() %}
+    <button class="btn btn-toggle btn-icon" data-toggle aria-pressed="false" aria-label="Bold" disabled>{{ icon("bold") }}</button>
+    <button class="btn btn-toggle btn-icon" data-toggle aria-pressed="true" aria-label="Italic" disabled>{{ icon("italic") }}</button>
+  {% endcall %}
+
+  <h2 id="htmx">Saving with htmx</h2>
+  <p>
+    Trigger the request on <code>toggle:change</code> rather than <code>click</code>, so it runs after
+    <code>aria-pressed</code> has flipped, and send the new state with <code>hx-vals</code>.
+  </p>
+  {% call demo("flex-col") %}
+    <button class="btn btn-outline" data-toggle aria-pressed="false"
+            hx-post="/api/echo" hx-trigger="toggle:change" hx-vals='js:{starred: this.getAttribute("aria-pressed")}'
+            hx-target="#toggle-result">{{ icon("star") }} Star</button>
+    <p id="toggle-result" class="muted" aria-live="polite"></p>
+  {% endcall %}
+
+  <h2 id="reference">Reference</h2>
+  {{ classes([
+    [".btn-toggle", "Toggle look: muted when off, filled when on. Combine with .btn-outline for a bordered one."],
+    ["data-toggle", "Flips aria-pressed on click and fires toggle:change { pressed }."],
+    ["aria-pressed", "\"true\" or \"false\". Drives the pressed style on every button variant."]
+  ], heading="Class / attribute") }}
+{% endblock %}

@@ -2,43 +2,139 @@
 {% from "components/icon/icon.html" import icon %}
 {% from "macros/docs.html" import demo, classes %}
 {% set title = "Card" %}
-{% set description = "A bordered surface that groups related content and actions." %}
+{% set description = "Displays a card with a header, content and footer, plus optional media, a header action and scrolling content." %}
 
 {% block content %}
   {% call demo("bg-muted/40") %}
     <div class="card w-full max-w-sm">
       <div class="card-header">
-        <h3 class="card-title">Create project</h3>
-        <p class="card-description">Deploy your new project in one click.</p>
+        <h3 class="card-title">Log in to your account</h3>
+        <p class="card-description">Enter your email below to log in.</p>
+        <div class="card-action"><a href="#signup" class="btn btn-link">Sign up</a></div>
       </div>
       <div class="card-content">
-        <p class="muted">Pick a template, connect a repository, and you're live.</p>
+        <div class="field">
+          <label class="field-label" for="card-email">Email</label>
+          <input class="input" id="card-email" type="email" placeholder="you@example.com" />
+        </div>
       </div>
-      <div class="card-footer justify-end">
-        <button class="btn btn-ghost">Cancel</button>
-        <button class="btn btn-primary">Deploy</button>
+      <div class="card-footer flex-col">
+        <button class="btn btn-primary w-full">Log in</button>
+        <button class="btn btn-outline w-full">Log in with SSO</button>
       </div>
     </div>
   {% endcall %}
 
   <h2 id="parts">Parts</h2>
   <p>
-    Every part is optional. <code>.card</code> itself has no padding; the header, content and footer
-    each pad themselves, so content like an image or a table can run edge to edge.
+    Every part is optional. <code>.card</code> itself has no padding; the header, content and footer each pad
+    themselves, so media, tables and lists can run edge to edge.
   </p>
+  <ul>
+    <li><code>.card-header</code> holds <code>.card-title</code> and <code>.card-description</code>.</li>
+    <li><code>.card-action</code>, inside the header, sits in its top-right corner beside the title and description.</li>
+    <li><code>.card-content</code> is the body. <code>.card-footer</code> is a row for actions, pinned to the bottom of tall cards.</li>
+  </ul>
   {% call demo("bg-muted/40") %}
-    <div class="card w-full max-w-sm overflow-hidden">
-      <div class="h-32 bg-gradient-to-br from-primary/80 to-primary/30"></div>
-      <div class="card-header pt-5">
-        <div class="flex items-center justify-between">
-          <h3 class="card-title">Team plan</h3>
-          <span class="badge badge-secondary">Popular</span>
+    <div class="card w-full max-w-sm">
+      <div class="card-header">
+        <h3 class="card-title">Notifications</h3>
+        <p class="card-description">You have 3 unread messages.</p>
+        <div class="card-action">
+          <button class="btn btn-ghost btn-icon btn-sm" aria-label="Settings">{{ icon("ellipsis") }}</button>
         </div>
-        <p class="card-description">For growing teams.</p>
       </div>
       <div class="card-content">
-        <p class="h3">$24<span class="muted font-normal"> / month</span></p>
+        <p class="muted">Your call has been confirmed. Your subscription is expiring soon.</p>
       </div>
+      <div class="card-footer justify-end">
+        <button class="btn btn-ghost">Dismiss</button>
+        <button class="btn btn-primary">{{ icon("check") }} Mark all as read</button>
+      </div>
+    </div>
+  {% endcall %}
+
+  <h2 id="image">Image</h2>
+  <p>
+    <code>.card-image</code> on an <code>&lt;img&gt;</code> (or video, or any media block) runs it edge to edge. As the
+    first or last child, its outer corners follow the card's.
+  </p>
+  {% call demo("bg-muted/40 items-start") %}
+    <div class="card w-full max-w-xs">
+      <img class="card-image aspect-video" src="{{ asset('images/landscape.svg') }}" alt="Mountains at dusk" />
+      <div class="card-header pt-5">
+        <h3 class="card-title">Weekend in the mountains</h3>
+        <p class="card-description">Two nights, guided hikes, all meals.</p>
+        <div class="card-action"><span class="badge badge-secondary">New</span></div>
+      </div>
+      <div class="card-footer pt-5">
+        <button class="btn btn-primary w-full">Book now</button>
+      </div>
+    </div>
+    <div class="card w-full max-w-xs">
+      <div class="card-header pb-5">
+        <h3 class="card-title">Image at the bottom</h3>
+        <p class="card-description">Last child, so the bottom corners round.</p>
+      </div>
+      <img class="card-image aspect-video" src="{{ asset('images/landscape.svg') }}" alt="Mountains at dusk" />
+    </div>
+  {% endcall %}
+
+  <h3 id="horizontal">Horizontal</h3>
+  <p>
+    <code>.card-horizontal</code> puts the media beside the text from the <code>sm</code> breakpoint. Wrap the other
+    parts in <code>.card-body</code>.
+  </p>
+  {% call demo("bg-muted/40") %}
+    <div class="card card-horizontal w-full max-w-lg">
+      <img class="card-image aspect-video sm:aspect-auto" src="{{ asset('images/landscape.svg') }}" alt="Mountains at dusk" />
+      <div class="card-body">
+        <div class="card-header">
+          <h3 class="card-title">Alpine route</h3>
+          <p class="card-description">12 km, 800 m of climbing.</p>
+        </div>
+        <div class="card-content"><p class="muted">A full-day loop past three lakes. Start early.</p></div>
+        <div class="card-footer"><button class="btn btn-outline btn-sm">View map</button></div>
+      </div>
+    </div>
+  {% endcall %}
+
+  <h2 id="scroll">Scrolling content</h2>
+  <p>
+    Add <code>.card-scroll</code> to <code>.card-content</code> to give long content its own scrollbar while the header and
+    footer stay put. Limit the height on the card (<code>h-80</code>, <code>max-h-96</code>…) or on the content
+    (<code>max-h-48</code>).
+  </p>
+  {% call demo("bg-muted/40") %}
+    <div class="card h-80 w-full max-w-sm">
+      <div class="card-header">
+        <h3 class="card-title">Terms of service</h3>
+        <p class="card-description">Last updated October 2026.</p>
+      </div>
+      <div class="card-content card-scroll space-y-3 text-sm text-muted-foreground">
+        <p>By using the service you agree to these terms. Please read them carefully.</p>
+        <p>You are responsible for the content you publish and for keeping your account secure.</p>
+        <p>We may change the service at any time. We'll tell you about significant changes in advance.</p>
+        <p>We can suspend accounts that break these terms, after warning you where we reasonably can.</p>
+        <p>The service is provided as is, without warranties of any kind.</p>
+        <p>These terms are governed by the laws of the place where we are registered.</p>
+      </div>
+      <div class="card-footer border-t pt-4 justify-end">
+        <button class="btn btn-ghost">Decline</button>
+        <button class="btn btn-primary">Accept</button>
+      </div>
+    </div>
+  {% endcall %}
+
+  <h2 id="size">Size</h2>
+  <p><code>.card-sm</code> uses tighter padding.</p>
+  {% call demo("bg-muted/40") %}
+    <div class="card card-sm w-full max-w-xs">
+      <div class="card-header">
+        <h3 class="card-title">Small card</h3>
+        <p class="card-description">16px padding instead of 24px.</p>
+      </div>
+      <div class="card-content"><p class="muted text-sm">Good for dense dashboards.</p></div>
     </div>
   {% endcall %}
 
@@ -73,8 +169,13 @@
     [".card-header", "Top section, padded on three sides."],
     [".card-title", "Heading text."],
     [".card-description", "Muted supporting text."],
+    [".card-action", "Inside the header: top-right slot beside the title and description."],
     [".card-content", "Main body, padded on all sides."],
+    [".card-scroll", "On .card-content: scrolls on its own when the card or content has a height limit."],
     [".card-footer", "Bottom row for actions; pinned to the bottom of tall cards."],
+    [".card-image", "Edge-to-edge media; outer corners follow the card's."],
+    [".card-horizontal", "Media beside the content from the sm breakpoint. Wrap the parts in .card-body."],
+    [".card-sm", "Tighter padding."],
     [".card-link", "Hover style for cards that are links."]
   ]) }}
 {% endblock %}

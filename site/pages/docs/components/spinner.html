@@ -1,0 +1,128 @@
+{% extends "layouts/docs.html" %}
+{% from "components/icon/icon.html" import icon %}
+{% from "components/spinner/spinner.html" import spinner %}
+{% from "components/alert/alert.html" import alert %}
+{% from "macros/docs.html" import demo, classes %}
+{% set title = "Spinner" %}
+{% set description = "An indicator that shows a loading state. Any icon can spin, or use a pure-CSS ring when there is no icon to hand." %}
+
+{% block content %}
+  {% call demo() %}
+    {{ spinner() }}
+  {% endcall %}
+
+  <h2 id="usage">Usage</h2>
+  <p>
+    Add <code>.spinner</code> to an SVG icon and it spins. The <code>spinner()</code> macro inlines an icon from
+    <code>src/icons/</code> with the class and accessibility attributes set: <code>role="status"</code> and an
+    <code>aria-label</code> of "Loading".
+  </p>
+  {% call demo() %}
+    {{ spinner(label="Saving") }}
+  {% endcall %}
+
+  <h2 id="icon">Custom icon</h2>
+  <p>Pass any icon name to the macro, or put <code>.spinner</code> on your own SVG.</p>
+  {% call demo() %}
+    {{ spinner("loader") }}
+    {{ spinner("loader-spokes") }}
+    {{ spinner("refresh-cw") }}
+  {% endcall %}
+
+  <h2 id="css-ring">Without an icon</h2>
+  <p>
+    On any element other than an SVG, <code>.spinner</code> draws a ring with CSS. Use it in markup that can't
+    inline icons, such as HTML fragments built by your server.
+  </p>
+  {% call demo() %}
+    <span class="spinner" role="status" aria-label="Loading"></span>
+    <span class="spinner spinner-lg text-primary" role="status" aria-label="Loading"></span>
+  {% endcall %}
+
+  <h2 id="sizes">Sizes</h2>
+  <p>Use <code>.spinner-sm</code> (12px), the default (16px), <code>.spinner-lg</code> (24px) and <code>.spinner-xl</code> (32px), or any <code>size-*</code> utility.</p>
+  {% call demo() %}
+    {{ spinner(class="spinner-sm") }}
+    {{ spinner() }}
+    {{ spinner(class="spinner-lg") }}
+    {{ spinner(class="spinner-xl") }}
+    {{ spinner(class="size-12") }}
+  {% endcall %}
+
+  <h2 id="colour">Colour</h2>
+  <p>Spinners use the current text colour, so <code>text-*</code> utilities recolour them.</p>
+  {% call demo() %}
+    {{ spinner(class="spinner-lg text-primary") }}
+    {{ spinner(class="spinner-lg text-success") }}
+    {{ spinner(class="spinner-lg text-warning") }}
+    {{ spinner(class="spinner-lg text-muted-foreground") }}
+  {% endcall %}
+
+  <h2 id="button">In a button</h2>
+  <p>
+    Inside a <code>.btn</code>, the spinner takes the button's icon size. When the button text already says what's
+    happening, pass <code>label=none</code> so the spinner is hidden from screen readers. <code>aria-busy="true"</code>
+    makes the button ignore clicks without fading it like <code>disabled</code> does.
+  </p>
+  {% call demo() %}
+    <button class="btn btn-primary" aria-busy="true">{{ spinner(label=none) }} Saving</button>
+    <button class="btn btn-outline" disabled>{{ spinner(label=none) }} Please wait</button>
+    <button class="btn btn-secondary btn-sm" disabled>{{ spinner(label=none) }} Loading</button>
+    <button class="btn btn-outline btn-icon" aria-busy="true" aria-label="Refresh">{{ spinner(label=none) }}</button>
+  {% endcall %}
+
+  <h2 id="badge">In a badge</h2>
+  {% call demo() %}
+    <span class="badge badge-secondary">{{ spinner(label=none) }} Syncing</span>
+    <span class="badge badge-outline"><span class="spinner" aria-hidden="true"></span> Deploying</span>
+    <span class="badge badge-info">{{ spinner("refresh-cw", label=none) }} Updating</span>
+  {% endcall %}
+
+  <h2 id="button-group">In a button group</h2>
+  {% call demo() %}
+    <div class="btn-group" role="group" aria-label="Sync">
+      <button class="btn btn-outline" aria-busy="true">{{ spinner(label=none) }} Syncing</button>
+      <button class="btn btn-outline btn-icon" aria-label="Cancel">{{ icon("x") }}</button>
+    </div>
+  {% endcall %}
+
+  <h2 id="input-group">In an input group</h2>
+  {% call demo() %}
+    <div class="input-group max-w-sm">
+      <input class="input" type="search" value="htmx" aria-label="Search" />
+      <span class="input-group-addon">{{ icon("search") }}</span>
+      <span class="input-group-addon input-group-addon-inline-end">{{ spinner() }}</span>
+    </div>
+  {% endcall %}
+
+  <h2 id="htmx">With htmx requests</h2>
+  <p>
+    Add <code>.htmx-indicator</code> to show a spinner only while a request runs. Inside a button, badge or
+    input-group addon it takes no space until then. Add <code>.htmx-indicator-hide</code> to an icon to swap it
+    for the spinner.
+  </p>
+  {% call demo("flex-col") %}
+    <div class="flex flex-wrap items-center gap-3">
+      <button class="btn btn-primary" hx-post="/api/slow" hx-target="#spinner-result" hx-disable="this">
+        {{ spinner(class="htmx-indicator", label=none) }} Save
+      </button>
+      <button class="btn btn-outline" hx-post="/api/slow" hx-target="#spinner-result" hx-disable="this">
+        {{ icon("refresh-cw", "htmx-indicator-hide") }}{{ spinner(class="htmx-indicator", label=none) }} Refresh
+      </button>
+    </div>
+    <p id="spinner-result" class="muted" aria-live="polite"></p>
+  {% endcall %}
+  {% call alert(variant="info") %}
+    The <code class="code">/api/slow</code> endpoint is a mock that only exists under <code class="code">bun run dev</code>.
+  {% endcall %}
+
+  <h2 id="reference">Reference</h2>
+  {{ classes([
+    [".spinner", "Spins an SVG icon. On any other element, draws a CSS ring."],
+    [".spinner-sm / -lg / -xl", "12px, 24px or 32px instead of 16px."],
+    [".htmx-indicator-hide", "Hidden while the htmx request it's inside runs."]
+  ]) }}
+  {{ classes([
+    ["spinner(icon=\"loader\", class=\"\", label=\"Loading\", id=none)", "Inlines src/icons/<icon>.svg as a spinner. label=none hides it from assistive technology."]
+  ], heading="Macro") }}
+{% endblock %}

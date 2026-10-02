@@ -1,0 +1,172 @@
+{% extends "layouts/docs.html" %}
+{% from "components/icon/icon.html" import icon %}
+{% from "components/spinner/spinner.html" import spinner %}
+{% from "macros/docs.html" import demo, classes %}
+{% set title = "Input group" %}
+{% set description = "Icons, text, buttons, menus and spinners inside an input's border, on either side, above or below." %}
+
+{% block content %}
+  {% call demo() %}
+    <div class="input-group max-w-sm">
+      <input class="input" type="search" placeholder="Search…" aria-label="Search" />
+      <span class="input-group-addon">{{ icon("search") }}</span>
+      <span class="input-group-addon input-group-addon-inline-end">12 results</span>
+    </div>
+  {% endcall %}
+
+  <h2 id="usage">Usage</h2>
+  <ul>
+    <li>Wrap a <code>.input</code>, <code>.textarea</code> or <code>.select</code> in <code>.input-group</code>. The group draws the border and the focus ring; the control drops its own.</li>
+    <li>Add each addon as a <code>.input-group-addon</code>. Put addons <strong>after</strong> the control in the source. CSS places them, so <kbd class="kbd">Tab</kbd> reaches the control first.</li>
+    <li>States come from the control: <code>aria-invalid="true"</code> turns the whole group red and <code>disabled</code> fades it.</li>
+  </ul>
+
+  <h2 id="align">Align</h2>
+  <p>
+    An addon goes at the inline start by default. <code>.input-group-addon-inline-end</code> puts it at the end,
+    <code>.input-group-addon-block-start</code> above the control and <code>.input-group-addon-block-end</code> below it.
+  </p>
+  {% call demo("flex-col") %}
+    <div class="input-group max-w-sm">
+      <input class="input" placeholder="Inline start" aria-label="Inline start" />
+      <span class="input-group-addon">{{ icon("search") }}</span>
+    </div>
+    <div class="input-group max-w-sm">
+      <input class="input" type="password" placeholder="Inline end" aria-label="Password" />
+      <span class="input-group-addon input-group-addon-inline-end">{{ icon("eye") }}</span>
+    </div>
+    <div class="input-group max-w-sm">
+      <input class="input" id="ig-block-start" placeholder="Block start" />
+      <label class="input-group-addon input-group-addon-block-start" for="ig-block-start">Full name</label>
+    </div>
+    <div class="input-group max-w-sm">
+      <input class="input" placeholder="Block end" aria-label="Amount" />
+      <span class="input-group-addon input-group-addon-block-end"><span class="input-group-text">Billed in USD</span></span>
+    </div>
+  {% endcall %}
+
+  <h2 id="icons-text">Icons and text</h2>
+  <p>Addons hold icons, text or both. <code>.input-group-text</code> styles plain text inside a busier addon.</p>
+  {% call demo("flex-col") %}
+    <div class="input-group max-w-sm">
+      <input class="input" type="email" placeholder="you@example.com" aria-label="Email" />
+      <span class="input-group-addon">{{ icon("mail") }}</span>
+    </div>
+    <div class="input-group max-w-sm">
+      <input class="input" placeholder="example.com" aria-label="Website" />
+      <span class="input-group-addon">https://</span>
+      <span class="input-group-addon input-group-addon-inline-end">.com</span>
+    </div>
+    <div class="input-group max-w-sm">
+      <input class="input" type="number" placeholder="0.00" aria-label="Price" />
+      <span class="input-group-addon">$</span>
+      <span class="input-group-addon input-group-addon-inline-end">USD</span>
+    </div>
+  {% endcall %}
+
+  <h2 id="buttons">Buttons</h2>
+  <p>Buttons inside an addon shrink to fit (24px tall). Use any variant; ghost and secondary sit most naturally.</p>
+  {% call demo("flex-col") %}
+    <div class="input-group max-w-sm">
+      <input class="input" value="https://htmx-ui.dev/r/3f9a" readonly aria-label="Share link" />
+      <span class="input-group-addon input-group-addon-inline-end">
+        <button class="btn btn-ghost btn-icon" aria-label="Copy">{{ icon("copy") }}</button>
+      </span>
+    </div>
+    <div class="input-group max-w-sm">
+      <input class="input" type="search" placeholder="Search the docs…" aria-label="Search" />
+      <span class="input-group-addon">{{ icon("search") }}</span>
+      <span class="input-group-addon input-group-addon-inline-end">
+        <button class="btn btn-secondary">Search</button>
+      </span>
+    </div>
+  {% endcall %}
+
+  <h2 id="badges">Badges</h2>
+  {% call demo() %}
+    <div class="input-group max-w-sm">
+      <input class="input" placeholder="Add a label…" aria-label="Labels" />
+      <span class="input-group-addon">
+        <span class="badge badge-info">bug</span>
+        <span class="badge badge-secondary">ui</span>
+      </span>
+    </div>
+  {% endcall %}
+
+  <h2 id="dropdown">Dropdown</h2>
+  <p>A <a href="/docs/components/dropdown">dropdown</a> in an addon, for picking a unit or scope.</p>
+  {% call demo("min-h-64 items-start") %}
+    <div class="input-group max-w-sm">
+      <input class="input" placeholder="Search…" aria-label="Search" />
+      <span class="input-group-addon input-group-addon-inline-end">
+        <span class="dropdown" data-dropdown>
+          <button class="btn btn-ghost" data-dropdown-trigger aria-haspopup="menu" aria-expanded="false">All files {{ icon("chevron-down") }}</button>
+          <span class="dropdown-menu dropdown-menu-end" role="menu" hidden>
+            <button class="dropdown-item" role="menuitem">All files</button>
+            <button class="dropdown-item" role="menuitem">Pages</button>
+            <button class="dropdown-item" role="menuitem">Components</button>
+          </span>
+        </span>
+      </span>
+    </div>
+  {% endcall %}
+
+  <h2 id="spinner">Spinner</h2>
+  <p>
+    A <a href="/docs/components/spinner">spinner</a> shows work in progress. With <code>.htmx-indicator</code> it appears
+    only while a request runs: type below to search the mock server.
+  </p>
+  {% call demo("flex-col") %}
+    <div class="input-group max-w-sm">
+      <input class="input" type="search" placeholder="Saving…" disabled aria-label="Saving" />
+      <span class="input-group-addon input-group-addon-inline-end">{{ spinner() }}</span>
+    </div>
+    <div class="input-group max-w-sm">
+      <input class="input" type="search" name="q" placeholder="Search…" aria-label="Search"
+             hx-get="/api/echo" hx-trigger="input changed delay:300ms" hx-target="#ig-search-result" hx-indicator="#ig-search-spinner" />
+      <span class="input-group-addon">{{ icon("search") }}</span>
+      <span class="input-group-addon input-group-addon-inline-end">{{ spinner(class="htmx-indicator", label="Searching", id="ig-search-spinner") }}</span>
+    </div>
+    <p id="ig-search-result" class="muted text-sm" aria-live="polite"></p>
+  {% endcall %}
+
+  <h2 id="textarea">Textarea</h2>
+  <p>Block addons above or below a textarea make a compose box. A <code>border-t</code> or <code>border-b</code> utility on the addon draws a divider.</p>
+  {% call demo() %}
+    <div class="input-group max-w-md">
+      <textarea class="textarea" placeholder="Ask, search or chat…" aria-label="Prompt"></textarea>
+      <span class="input-group-addon input-group-addon-block-start border-b">{{ icon("file-text") }} <span class="input-group-text">button.css</span></span>
+      <span class="input-group-addon input-group-addon-block-end">
+        <button class="btn btn-outline btn-icon btn-rounded" aria-label="Attach">{{ icon("plus") }}</button>
+        <span class="input-group-text ms-auto">52% used</span>
+        <button class="btn btn-primary btn-icon btn-rounded" aria-label="Send">{{ icon("send") }}</button>
+      </span>
+    </div>
+  {% endcall %}
+
+  <h2 id="states">States</h2>
+  {% call demo("flex-col") %}
+    <div class="field max-w-sm">
+      <label class="field-label" for="ig-invalid">Username</label>
+      <div class="input-group">
+        <input class="input" id="ig-invalid" value="ada lovelace" aria-invalid="true" aria-describedby="ig-invalid-msg" />
+        <span class="input-group-addon">@</span>
+      </div>
+      <p class="field-error" id="ig-invalid-msg">Usernames can't contain spaces.</p>
+    </div>
+    <div class="input-group max-w-sm">
+      <input class="input" placeholder="Disabled" disabled aria-label="Disabled" />
+      <span class="input-group-addon">{{ icon("mail") }}</span>
+    </div>
+  {% endcall %}
+
+  <h2 id="reference">Reference</h2>
+  {{ classes([
+    [".input-group", "Border and focus ring around a control and its addons."],
+    [".input-group-addon", "Addon at the inline start. Holds icons, text, badges, buttons, menus or spinners."],
+    [".input-group-addon-inline-end", "Addon at the end of the row."],
+    [".input-group-addon-block-start", "Full-width addon above the control."],
+    [".input-group-addon-block-end", "Full-width addon below the control."],
+    [".input-group-text", "Plain muted text inside an addon."]
+  ]) }}
+{% endblock %}

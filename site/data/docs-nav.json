@@ -25,17 +25,26 @@
       "title": "Components",
       "items": [
         { "title": "Overview", "href": "/docs/components", "description": "Every component at a glance." },
+        { "title": "Accordion", "href": "/docs/components/accordion", "description": "Stacked headings that reveal sections; one or many open, no JavaScript.", "component": true },
         { "title": "Alert", "href": "/docs/components/alert", "description": "Callouts for info, success, warnings and errors.", "component": true },
         { "title": "Badge", "href": "/docs/components/badge", "description": "Small status labels and counters.", "component": true },
-        { "title": "Button", "href": "/docs/components/button", "description": "Actions in every variant, size and state.", "component": true },
-        { "title": "Card", "href": "/docs/components/card", "description": "Grouped content with header, body and footer.", "component": true },
+        { "title": "Button", "href": "/docs/components/button", "description": "Actions in every variant, size and state, including loading.", "component": true },
+        { "title": "Button group", "href": "/docs/components/button-group", "description": "Join buttons, inputs and menus: split buttons, toolbars, vertical groups.", "component": true },
+        { "title": "Card", "href": "/docs/components/card", "description": "Header, content and footer, with media, an action slot and scrolling content.", "component": true },
         { "title": "Code block", "href": "/docs/components/code-block", "description": "Highlighted source with a copy button and package-manager tabs.", "component": true },
         { "title": "Dropdown", "href": "/docs/components/dropdown", "description": "A menu of links or actions that opens from a button.", "component": true },
+        { "title": "Field", "href": "/docs/components/field", "description": "Labels, help text and messages for controls; inline, responsive and grid forms.", "component": true },
         { "title": "Icon", "href": "/docs/components/icon", "description": "SVG icons inlined at build time, or linked as images.", "component": true },
+        { "title": "Input", "href": "/docs/components/input", "description": "Text inputs, textareas, selects and file pickers with every state.", "component": true },
+        { "title": "Input group", "href": "/docs/components/input-group", "description": "Icons, text, buttons, menus and spinners inside an input's border.", "component": true },
+        { "title": "Popover", "href": "/docs/components/popover", "description": "A floating panel of rich content that opens from a button.", "component": true },
         { "title": "Sidebar", "href": "/docs/components/sidebar", "description": "Responsive navigation column with off-canvas mode.", "component": true },
+        { "title": "Spinner", "href": "/docs/components/spinner", "description": "Loading indicator from any icon or pure CSS; works in buttons, badges and inputs.", "component": true },
         { "title": "Table", "href": "/docs/components/table", "description": "Readable data tables with optional hover rows.", "component": true },
         { "title": "Tabs", "href": "/docs/components/tabs", "description": "Switch between panels; optionally synced and remembered.", "component": true },
-        { "title": "Text", "href": "/docs/components/text", "description": "Long-form content with .prose (Tailwind Typography), plus helpers for single elements.", "component": true }
+        { "title": "Text", "href": "/docs/components/text", "description": "Long-form content with .prose (Tailwind Typography), plus helpers for single elements.", "component": true },
+        { "title": "Toggle", "href": "/docs/components/toggle", "description": "A two-state button, on or off, in any button style.", "component": true },
+        { "title": "Toggle group", "href": "/docs/components/toggle-group", "description": "A set of toggle buttons: pick one, at most one, or many.", "component": true }
       ]
     },
     {

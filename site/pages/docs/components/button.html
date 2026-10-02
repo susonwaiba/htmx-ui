@@ -1,5 +1,6 @@
 {% extends "layouts/docs.html" %}
 {% from "components/icon/icon.html" import icon %}
+{% from "components/spinner/spinner.html" import spinner %}
 {% from "components/alert/alert.html" import alert %}
 {% from "macros/docs.html" import demo, classes %}
 {% set title = "Button" %}
@@ -23,18 +24,40 @@
 
   <h2 id="sizes">Sizes</h2>
   {% call demo() %}
-    <button class="btn btn-primary btn-sm">Small</button>
-    <button class="btn btn-primary">Default</button>
-    <button class="btn btn-primary btn-lg">Large</button>
+    <button class="btn btn-outline btn-xs">Extra small</button>
+    <button class="btn btn-outline btn-sm">Small</button>
+    <button class="btn btn-outline">Default</button>
+    <button class="btn btn-outline btn-lg">Large</button>
   {% endcall %}
 
-  <h2 id="icons">With icons</h2>
-  <p>Inline SVGs are sized to 16px automatically. Use <code>.btn-icon</code> for square, icon-only buttons and give them an <code>aria-label</code>.</p>
+  <h2 id="icon">Icon</h2>
+  <p>
+    <code>.btn-icon</code> makes a square button for a single icon. It combines with every size. Give it an
+    <code>aria-label</code>, since there's no visible text.
+  </p>
+  {% call demo() %}
+    <button class="btn btn-outline btn-icon btn-xs" aria-label="Add">{{ icon("plus") }}</button>
+    <button class="btn btn-outline btn-icon btn-sm" aria-label="Add">{{ icon("plus") }}</button>
+    <button class="btn btn-outline btn-icon" aria-label="Add">{{ icon("plus") }}</button>
+    <button class="btn btn-outline btn-icon btn-lg" aria-label="Add">{{ icon("plus") }}</button>
+    <button class="btn btn-ghost btn-icon" aria-label="Delete">{{ icon("trash") }}</button>
+  {% endcall %}
+
+  <h2 id="with-icon">With icon</h2>
+  <p>Inline SVGs next to the text are sized to match the button (16px, 12px for <code>.btn-xs</code>).</p>
   {% call demo() %}
     <button class="btn btn-primary">{{ icon("download") }} Download</button>
     <button class="btn btn-outline">Next {{ icon("arrow-right") }}</button>
-    <button class="btn btn-outline btn-icon" aria-label="Add">{{ icon("plus") }}</button>
-    <button class="btn btn-ghost btn-icon btn-sm" aria-label="Delete">{{ icon("trash") }}</button>
+    <button class="btn btn-secondary btn-sm">{{ icon("mail") }} Email</button>
+    <button class="btn btn-ghost btn-xs">{{ icon("plus") }} Add row</button>
+  {% endcall %}
+
+  <h2 id="rounded">Rounded</h2>
+  <p><code>.btn-rounded</code> gives fully rounded ends; an icon button becomes a circle.</p>
+  {% call demo() %}
+    <button class="btn btn-primary btn-rounded">Get started</button>
+    <button class="btn btn-outline btn-rounded">{{ icon("star") }} Star</button>
+    <button class="btn btn-secondary btn-icon btn-rounded" aria-label="Add">{{ icon("plus") }}</button>
   {% endcall %}
 
   <h2 id="links">As a link</h2>
@@ -49,30 +72,38 @@
     <a class="btn btn-outline" aria-disabled="true">Disabled link</a>
   {% endcall %}
 
-  <h2 id="loading">Loading with htmx</h2>
+  <h2 id="loading">Loading</h2>
   <p>
-    Put an <code>.htmx-indicator</code> inside the button. htmx adds <code>.htmx-request</code> while
-    the request is in flight, which reveals it. <code>hx-disabled-elt="this"</code> prevents double submits.
+    Put a <a href="/docs/components/spinner">spinner</a> in the button. <code>aria-busy="true"</code> blocks clicks
+    while keeping full colour; <code>disabled</code> blocks them and fades the button.
   </p>
   {% call demo() %}
-    <button class="btn btn-primary" hx-post="/api/slow" hx-target="next .result" hx-disabled-elt="this">
-      <span class="htmx-indicator">{{ icon("loader", "animate-spin") }}</span>
-      Save
+    <button class="btn btn-primary" aria-busy="true">{{ spinner(label=none) }} Saving</button>
+    <button class="btn btn-outline" disabled>{{ spinner(label=none) }} Please wait</button>
+    <button class="btn btn-secondary btn-icon" aria-busy="true" aria-label="Loading">{{ spinner(label=none) }}</button>
+  {% endcall %}
+
+  <h3 id="loading-htmx">While an htmx request runs</h3>
+  <p>
+    Give the spinner <code>.htmx-indicator</code>. htmx adds <code>.htmx-request</code> to the button during the request,
+    which reveals it; until then it takes no space. <code>hx-disable="this"</code> prevents double submits.
+  </p>
+  {% call demo() %}
+    <button class="btn btn-primary" hx-post="/api/slow" hx-target="next .result" hx-disable="this">
+      {{ spinner(class="htmx-indicator", label=none) }} Save
     </button>
-    <span class="result muted"></span>
+    <span class="result muted" aria-live="polite"></span>
   {% endcall %}
   {% call alert(variant="info") %}
     The <code class="code">/api/slow</code> endpoint is a mock that only exists under <code class="code">bun run dev</code>.
   {% endcall %}
 
-  <h2 id="group">Button group</h2>
-  {% call demo() %}
-    <div class="btn-group" role="group" aria-label="View">
-      <button class="btn btn-outline">Day</button>
-      <button class="btn btn-outline">Week</button>
-      <button class="btn btn-outline">Month</button>
-    </div>
-  {% endcall %}
+  <h2 id="more">Groups and toggles</h2>
+  <p>
+    Join buttons with a <a href="/docs/components/button-group">button group</a>, make one switch on and off with
+    <a href="/docs/components/toggle">toggle</a>, or pick between options with a
+    <a href="/docs/components/toggle-group">toggle group</a>.
+  </p>
 
   <h2 id="reference">Reference</h2>
   {{ classes([
@@ -83,8 +114,9 @@
     [".btn-ghost", "No border or fill until hovered."],
     [".btn-danger", "Destructive actions."],
     [".btn-link", "Looks like a text link, keeps button semantics."],
-    [".btn-sm / .btn-lg", "Smaller (32px) or larger (44px) than the default 36px."],
-    [".btn-icon", "Square button for a single icon. Combine with .btn-sm."],
-    [".btn-group", "Wrapper that joins adjacent buttons."]
+    [".btn-xs / .btn-sm / .btn-lg", "24px, 32px or 44px tall instead of the default 36px."],
+    [".btn-icon", "Square button for a single icon. Combine with a size."],
+    [".btn-rounded", "Fully rounded ends; a circle with .btn-icon."],
+    ["aria-busy=\"true\"", "Loading: ignores clicks without fading."]
   ]) }}
 {% endblock %}

@@ -1,0 +1,96 @@
+/* An input (or textarea / select) with addons around it, inside one border.
+   <div class="input-group">
+     <input class="input" placeholder="Search…" />
+     <span class="input-group-addon">{{ icon("search") }}</span>                    inline start (default)
+     <span class="input-group-addon input-group-addon-inline-end">12 results</span>
+   </div>
+   Put addons after the control in the source: they are placed by CSS order, so keyboard
+   order stays control-first. Other alignments: -block-start (above), -block-end (below). */
+@layer components {
+  .input-group {
+    @apply relative flex min-h-9 w-full min-w-0 flex-wrap items-center rounded-(--radius) border border-border
+      bg-transparent shadow-xs transition-[color,box-shadow,border-color];
+  }
+  .input-group:has(> :is(input, textarea, select):focus-visible) {
+    @apply border-ring ring-3;
+  }
+  .input-group:has(> :is(input, textarea, select):focus-visible):not(:has([aria-invalid="true"])) {
+    @apply ring-ring/30;
+  }
+  .input-group:has(> [aria-invalid="true"]) {
+    @apply border-danger;
+  }
+  .input-group:has(> [aria-invalid="true"]:focus-visible) {
+    @apply ring-danger/20;
+  }
+  .input-group:has(> :disabled) {
+    @apply cursor-not-allowed opacity-50;
+  }
+
+  /* The control drops its own frame and fills the row */
+  .input-group > :is(.input, .textarea, .select) {
+    @apply h-[calc(--spacing(9)-2px)] flex-1 rounded-none border-0 bg-transparent shadow-none ring-0
+      focus-visible:ring-0 disabled:opacity-100;
+  }
+  .input-group > .textarea {
+    @apply h-auto resize-none py-3;
+  }
+  .input-group:has(> .input-group-addon:not(.input-group-addon-inline-end, .input-group-addon-block-start, .input-group-addon-block-end))
+    > :is(.input, .textarea, .select) {
+    @apply ps-2;
+  }
+  .input-group:has(> .input-group-addon-inline-end) > :is(.input, .textarea, .select) {
+    @apply pe-2;
+  }
+
+  /* Addons. Placed with order: block-start, inline-start, control, inline-end, block-end. */
+  .input-group-addon {
+    @apply order-[-1] flex h-auto cursor-text items-center justify-center gap-2 py-1.5 ps-3 text-sm font-medium
+      text-muted-foreground select-none [&_svg]:size-4 [&_svg]:shrink-0;
+  }
+  .input-group-addon-inline-end {
+    @apply order-1 ps-0 pe-3;
+  }
+  .input-group-addon-block-start,
+  .input-group-addon-block-end {
+    @apply basis-full justify-start px-3;
+  }
+  .input-group-addon-block-start {
+    @apply order-[-2] pt-2.5;
+  }
+  .input-group-addon-block-end {
+    @apply order-2 pb-2.5;
+  }
+  /* Block addons with a border-b / border-t utility get even padding on both sides */
+  .input-group-addon-block-start.border-b {
+    @apply pb-2.5;
+  }
+  .input-group-addon-block-end.border-t {
+    @apply pt-2.5;
+  }
+
+  /* Compact buttons (and dropdown / popover triggers) inside addons */
+  .input-group-addon > .btn,
+  .input-group-addon > * > .btn {
+    @apply h-6 gap-1 rounded-[calc(var(--radius)-3px)] px-2 text-xs shadow-none;
+  }
+  .input-group-addon > .btn-icon,
+  .input-group-addon > * > .btn-icon {
+    @apply size-6 px-0;
+  }
+  .input-group-addon > .btn-rounded,
+  .input-group-addon > * > .btn-rounded {
+    @apply rounded-full;
+  }
+  .input-group-addon:not(.input-group-addon-block-start, .input-group-addon-block-end):has(> .btn, > * > .btn) {
+    @apply ps-1.5;
+  }
+  .input-group-addon-inline-end:has(> .btn, > * > .btn) {
+    @apply ps-0 pe-1.5;
+  }
+
+  /* Plain text inside an addon, e.g. a character count */
+  .input-group-text {
+    @apply flex items-center gap-2 text-sm font-normal text-muted-foreground [&_svg]:size-4;
+  }
+}

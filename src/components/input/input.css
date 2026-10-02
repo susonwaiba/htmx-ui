@@ -1,0 +1,74 @@
+/* <input class="input" type="email" placeholder="you@example.com" />
+   <textarea class="textarea"></textarea>       <select class="select">…</select>
+   States: disabled, aria-invalid="true" (error), .input-warning, .input-success. Sizes: .input-sm / .input-lg.
+   Labels, help text and messages: see field.css. Addons and buttons inside: see input-group.css. */
+@layer components {
+  .input,
+  .textarea,
+  .select {
+    @apply w-full min-w-0 rounded-(--radius) border border-border bg-transparent px-3 text-sm text-foreground shadow-xs
+      transition-[color,box-shadow,border-color] outline-none placeholder:text-muted-foreground
+      focus-visible:border-ring focus-visible:ring-3 disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  /* readonly text (selects and file inputs always match :read-only, so leave them out) */
+  :is(.input:not([type="file"]), .textarea):read-only:not(:disabled, .input-group > *) {
+    @apply bg-muted/40;
+  }
+  .input,
+  .select {
+    @apply flex h-9 py-1;
+  }
+  /* Grows with its content where supported (field-sizing) */
+  .textarea {
+    @apply field-sizing-content min-h-16 py-2;
+  }
+  .select {
+    @apply cursor-pointer appearance-none bg-[length:1rem] bg-[position:right_0.625rem_center] bg-no-repeat pe-9;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2371717a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  }
+  .select[multiple],
+  .select[size] {
+    @apply h-auto bg-none py-2 pe-3;
+  }
+
+  /* File inputs: the native "Choose file" button, restyled */
+  .input[type="file"] {
+    @apply cursor-pointer p-1 text-muted-foreground file:me-3 file:h-full file:cursor-pointer
+      file:rounded-[calc(var(--radius)-3px)] file:border-0 file:bg-muted file:px-3 file:text-sm file:font-medium
+      file:text-foreground hover:file:bg-accent;
+  }
+
+  /* Focus ring and state colours. One color-mix() per rule (see components/alert). */
+  :is(.input, .textarea, .select):focus-visible {
+    @apply ring-ring/30;
+  }
+  :is(.input, .textarea, .select):is([aria-invalid="true"], :user-invalid) {
+    @apply border-danger;
+  }
+  :is(.input, .textarea, .select):is([aria-invalid="true"], :user-invalid):focus-visible {
+    @apply ring-danger/20;
+  }
+  .input-warning {
+    @apply border-warning;
+  }
+  .input-warning:focus-visible {
+    @apply ring-warning/20;
+  }
+  .input-success {
+    @apply border-success;
+  }
+  .input-success:focus-visible {
+    @apply ring-success/20;
+  }
+
+  /* Sizes, matching .btn-sm / .btn-lg so they line up in a .btn-group */
+  .input-sm {
+    @apply h-8 px-2.5 text-xs;
+  }
+  .input-lg {
+    @apply h-11 px-4 text-base;
+  }
+  .select.input-sm {
+    @apply pe-8;
+  }
+}

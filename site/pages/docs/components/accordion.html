@@ -1,0 +1,137 @@
+{% extends "layouts/docs.html" %}
+{% from "macros/docs.html" import demo, classes %}
+{% set title = "Accordion" %}
+{% set description = "A vertically stacked set of headings that each reveal a section of content. Built on <details>, so it works without JavaScript." %}
+
+{% block content %}
+  {% call demo() %}
+    <div class="accordion max-w-lg">
+      <details class="accordion-item" name="faq-basic" open>
+        <summary class="accordion-trigger">Is it accessible?</summary>
+        <div class="accordion-content">
+          <p>Yes. It's a native <code>&lt;details&gt;</code> element, so keyboards and screen readers handle it out of the box.</p>
+        </div>
+      </details>
+      <details class="accordion-item" name="faq-basic">
+        <summary class="accordion-trigger">Does it need JavaScript?</summary>
+        <div class="accordion-content">
+          <p>No. Opening, closing and "one at a time" are all done by the browser. An optional behaviour fully locks disabled items.</p>
+        </div>
+      </details>
+      <details class="accordion-item" name="faq-basic">
+        <summary class="accordion-trigger">Can it load content from the server?</summary>
+        <div class="accordion-content">
+          <p>Yes, with htmx. See the example further down.</p>
+        </div>
+      </details>
+    </div>
+  {% endcall %}
+
+  <h2 id="markup">Markup</h2>
+  <ul>
+    <li>Each item is a <code>&lt;details class="accordion-item"&gt;</code> with a <code>&lt;summary class="accordion-trigger"&gt;</code> heading and a <code>.accordion-content</code> body. Wrap the items in <code>.accordion</code>.</li>
+    <li>Add <code>open</code> to an item to show it expanded on load.</li>
+    <li>On older browsers that can't animate to <code>height: auto</code>, items open instantly instead of sliding.</li>
+  </ul>
+
+  <h2 id="single">One open at a time</h2>
+  <p>
+    Give every item the same <code>name</code>. Opening one closes the others, as in the example above. Use a
+    different name for each accordion on the page.
+  </p>
+
+  <h2 id="multiple">Multiple open</h2>
+  <p>Leave <code>name</code> out, and each item opens and closes on its own.</p>
+  {% call demo() %}
+    <div class="accordion max-w-lg">
+      <details class="accordion-item" open>
+        <summary class="accordion-trigger">Shipping</summary>
+        <div class="accordion-content"><p>Orders ship within two business days.</p></div>
+      </details>
+      <details class="accordion-item" open>
+        <summary class="accordion-trigger">Returns</summary>
+        <div class="accordion-content"><p>Return anything within 30 days for a full refund.</p></div>
+      </details>
+      <details class="accordion-item">
+        <summary class="accordion-trigger">Warranty</summary>
+        <div class="accordion-content"><p>Two years on every product, parts and labour.</p></div>
+      </details>
+    </div>
+  {% endcall %}
+
+  <h2 id="disabled">Disabled</h2>
+  <p>
+    Add <code>aria-disabled="true"</code> and <code>tabindex="-1"</code> to the summary: it fades, ignores pointer clicks
+    and drops out of the tab order. Screen readers and scripts can still activate a <code>&lt;summary&gt;</code>, so also
+    put <code>data-accordion</code> on the wrapper. Its one-line behaviour stops a disabled summary from opening its item.
+  </p>
+  {% call demo() %}
+    <div class="accordion max-w-lg" data-accordion>
+      <details class="accordion-item" name="faq-disabled">
+        <summary class="accordion-trigger">Available</summary>
+        <div class="accordion-content"><p>This one opens.</p></div>
+      </details>
+      <details class="accordion-item" name="faq-disabled">
+        <summary class="accordion-trigger" aria-disabled="true" tabindex="-1">Locked until you upgrade</summary>
+        <div class="accordion-content"><p>Hidden content.</p></div>
+      </details>
+      <details class="accordion-item" name="faq-disabled">
+        <summary class="accordion-trigger">Also available</summary>
+        <div class="accordion-content"><p>So does this one.</p></div>
+      </details>
+    </div>
+  {% endcall %}
+
+  <h2 id="borders">Borders</h2>
+  <p><code>.accordion-bordered</code> draws a box around the accordion. <code>.accordion-separated</code> gives each item its own box.</p>
+  {% call demo("flex-col") %}
+    <div class="accordion accordion-bordered max-w-lg">
+      <details class="accordion-item" name="faq-bordered" open>
+        <summary class="accordion-trigger">Billing</summary>
+        <div class="accordion-content"><p>Invoices go out on the first of each month.</p></div>
+      </details>
+      <details class="accordion-item" name="faq-bordered">
+        <summary class="accordion-trigger">Security</summary>
+        <div class="accordion-content"><p>All data is encrypted at rest and in transit.</p></div>
+      </details>
+      <details class="accordion-item" name="faq-bordered">
+        <summary class="accordion-trigger">Integrations</summary>
+        <div class="accordion-content"><p>Connect over webhooks or the REST API.</p></div>
+      </details>
+    </div>
+    <div class="accordion accordion-separated max-w-lg">
+      <details class="accordion-item" name="faq-separated">
+        <summary class="accordion-trigger">Separated item</summary>
+        <div class="accordion-content"><p>Each item is its own box.</p></div>
+      </details>
+      <details class="accordion-item" name="faq-separated">
+        <summary class="accordion-trigger">Another item</summary>
+        <div class="accordion-content"><p>With space between them.</p></div>
+      </details>
+    </div>
+  {% endcall %}
+
+  <h2 id="htmx">Loading content with htmx</h2>
+  <p>
+    <code>&lt;details&gt;</code> fires a <code>toggle</code> event when it opens. <code>hx-trigger="toggle once"</code>
+    fetches the body the first time the item is opened.
+  </p>
+  {% call demo() %}
+    <div class="accordion max-w-lg">
+      <details class="accordion-item" hx-get="/api/hello" hx-trigger="toggle once" hx-target="find .accordion-content">
+        <summary class="accordion-trigger">Server message</summary>
+        <div class="accordion-content"><p>Loading…</p></div>
+      </details>
+    </div>
+  {% endcall %}
+
+  <h2 id="reference">Reference</h2>
+  {{ classes([
+    [".accordion", "Wrapper around the items. Add data-accordion when any item is disabled."],
+    [".accordion-item", "On <details>. Same name on several items: only one open at a time."],
+    [".accordion-trigger", "On <summary>. Draws the chevron. aria-disabled=\"true\" + tabindex=\"-1\" disables it."],
+    [".accordion-content", "The revealed body."],
+    [".accordion-bordered", "Box around the whole accordion, with padded rows."],
+    [".accordion-separated", "Each item in its own box."]
+  ]) }}
+{% endblock %}

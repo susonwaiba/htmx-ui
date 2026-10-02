@@ -160,16 +160,25 @@
   --color-danger-foreground: var(--danger-foreground);
 }
 
+@import "./components/accordion/accordion.css";
 @import "./components/alert/alert.css";
 @import "./components/badge/badge.css";
 @import "./components/button/button.css";
+@import "./components/button-group/button-group.css";
 @import "./components/card/card.css";
 @import "./components/code/code.css";
 @import "./components/dropdown/dropdown.css";
+@import "./components/field/field.css";
+@import "./components/input/input.css";
+@import "./components/input-group/input-group.css";
+@import "./components/popover/popover.css";
 @import "./components/sidebar/sidebar.css";
+@import "./components/spinner/spinner.css";
 @import "./components/table/table.css";
 @import "./components/tabs/tabs.css";
 @import "./components/text/text.css";
+@import "./components/toggle/toggle.css";
+@import "./components/toggle-group/toggle-group.css";
 
 /* htmx request indicator */
 .htmx-indicator {

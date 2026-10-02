@@ -1,0 +1,190 @@
+{% extends "layouts/docs.html" %}
+{% from "components/icon/icon.html" import icon %}
+{% from "components/spinner/spinner.html" import spinner %}
+{% from "macros/docs.html" import demo, classes %}
+{% set title = "Button group" %}
+{% set description = "A container that joins related buttons, inputs and menus into one unit with shared borders." %}
+
+{% block content %}
+  {% call demo() %}
+    <div class="btn-group" role="group" aria-label="Message actions">
+      <button class="btn btn-outline">Archive</button>
+      <button class="btn btn-outline">Report</button>
+      <button class="btn btn-outline">Snooze</button>
+    </div>
+  {% endcall %}
+
+  <p>
+    Use a button group for buttons that <strong>perform actions</strong>. For buttons that switch a state on and off
+    (bold, italic, text alignment), use a <a href="/docs/components/toggle-group">toggle group</a>.
+  </p>
+
+  <h2 id="accessibility">Accessibility</h2>
+  <p>
+    Give the container <code>role="group"</code> and an <code>aria-label</code> so assistive technology announces the
+    buttons as a set. For a group of groups, use <code>role="toolbar"</code> on the outer one.
+  </p>
+
+  <h2 id="orientation">Orientation</h2>
+  <p>Add <code>.btn-group-vertical</code> to stack the buttons.</p>
+  {% call demo() %}
+    <div class="btn-group btn-group-vertical" role="group" aria-label="Zoom">
+      <button class="btn btn-outline btn-icon" aria-label="Zoom in">{{ icon("plus") }}</button>
+      <button class="btn btn-outline btn-icon" aria-label="Zoom out">{{ icon("minus") }}</button>
+    </div>
+    <div class="btn-group btn-group-vertical" role="group" aria-label="Views">
+      <button class="btn btn-outline">Day</button>
+      <button class="btn btn-outline">Week</button>
+      <button class="btn btn-outline">Month</button>
+    </div>
+  {% endcall %}
+
+  <h2 id="size">Size</h2>
+  <p><code>.btn-group-sm</code> and <code>.btn-group-lg</code> resize every button, input and text in the group, so you don't size them one by one.</p>
+  {% call demo("flex-col") %}
+    <div class="btn-group btn-group-sm" role="group" aria-label="Small">
+      <button class="btn btn-outline">Small</button>
+      <button class="btn btn-outline">Group</button>
+      <button class="btn btn-outline btn-icon" aria-label="Add">{{ icon("plus") }}</button>
+    </div>
+    <div class="btn-group" role="group" aria-label="Default">
+      <button class="btn btn-outline">Default</button>
+      <button class="btn btn-outline">Group</button>
+      <button class="btn btn-outline btn-icon" aria-label="Add">{{ icon("plus") }}</button>
+    </div>
+    <div class="btn-group btn-group-lg" role="group" aria-label="Large">
+      <button class="btn btn-outline">Large</button>
+      <button class="btn btn-outline">Group</button>
+      <button class="btn btn-outline btn-icon" aria-label="Add">{{ icon("plus") }}</button>
+    </div>
+  {% endcall %}
+
+  <h2 id="icons">Icons</h2>
+  {% call demo() %}
+    <div class="btn-group" role="group" aria-label="Post">
+      <button class="btn btn-outline">{{ icon("star") }} Star</button>
+      <button class="btn btn-outline">{{ icon("bookmark") }} Save</button>
+      <button class="btn btn-outline btn-icon" aria-label="Copy link">{{ icon("link") }}</button>
+    </div>
+  {% endcall %}
+
+  <h2 id="separator">Separator</h2>
+  <p>
+    Buttons without a border of their own (secondary, primary) run into each other. Put a
+    <code>.btn-group-separator</code> between them.
+  </p>
+  {% call demo() %}
+    <div class="btn-group" role="group" aria-label="Clipboard">
+      <button class="btn btn-secondary">Copy</button>
+      <div class="btn-group-separator" role="separator"></div>
+      <button class="btn btn-secondary">Paste</button>
+    </div>
+    <div class="btn-group btn-group-vertical" role="group" aria-label="Order">
+      <button class="btn btn-secondary btn-icon" aria-label="Move up">{{ icon("chevron-up") }}</button>
+      <div class="btn-group-separator" role="separator"></div>
+      <button class="btn btn-secondary btn-icon" aria-label="Move down">{{ icon("chevron-down") }}</button>
+    </div>
+  {% endcall %}
+
+  <h2 id="nested">Nested</h2>
+  <p>Groups inside a group are spaced apart instead of joined: a toolbar.</p>
+  {% call demo() %}
+    <div class="btn-group" role="toolbar" aria-label="Pagination">
+      <div class="btn-group" role="group" aria-label="Pages">
+        <button class="btn btn-outline btn-sm">1</button>
+        <button class="btn btn-outline btn-sm">2</button>
+        <button class="btn btn-outline btn-sm">3</button>
+      </div>
+      <div class="btn-group" role="group" aria-label="Step">
+        <button class="btn btn-outline btn-sm btn-icon" aria-label="Previous">{{ icon("arrow-left") }}</button>
+        <button class="btn btn-outline btn-sm btn-icon" aria-label="Next">{{ icon("arrow-right") }}</button>
+      </div>
+    </div>
+  {% endcall %}
+
+  <h2 id="input">With an input</h2>
+  <p>Inputs and selects join the group and fill the space left by the buttons.</p>
+  {% call demo("flex-col") %}
+    <div class="btn-group w-full max-w-sm" role="group" aria-label="Search">
+      <input class="input" type="search" placeholder="Search…" aria-label="Search" />
+      <button class="btn btn-outline btn-icon" aria-label="Search">{{ icon("search") }}</button>
+    </div>
+    <div class="btn-group w-full max-w-sm" role="group" aria-label="Website">
+      <span class="btn-group-text">https://</span>
+      <input class="input" placeholder="example.com" aria-label="Website" />
+      <select class="select w-auto flex-none" aria-label="Domain">
+        <option>.com</option>
+        <option>.org</option>
+      </select>
+    </div>
+  {% endcall %}
+
+  <h3 id="input-group">With an input group</h3>
+  <p>An <a href="/docs/components/input-group">input group</a> can sit in a button group too, with addons of its own.</p>
+  {% call demo() %}
+    <div class="btn-group w-full max-w-md" role="group" aria-label="Message">
+      <button class="btn btn-outline btn-icon" aria-label="Attach">{{ icon("plus") }}</button>
+      <div class="input-group">
+        <input class="input" placeholder="Send a message…" aria-label="Message" />
+        <span class="input-group-addon input-group-addon-inline-end">{{ spinner() }}</span>
+      </div>
+      <button class="btn btn-primary btn-icon" aria-label="Send">{{ icon("send") }}</button>
+    </div>
+  {% endcall %}
+
+  <h2 id="split">Split button</h2>
+  <p>
+    A main action plus a <a href="/docs/components/dropdown">dropdown</a> of related ones. The
+    <code>.dropdown</code> wrapper joins the group like a button.
+  </p>
+  {% call demo("min-h-64 items-start") %}
+    <div class="btn-group" role="group" aria-label="Merge">
+      <button class="btn btn-primary">Merge pull request</button>
+      <div class="btn-group-separator" role="separator"></div>
+      <div class="dropdown" data-dropdown>
+        <button class="btn btn-primary btn-icon" data-dropdown-trigger aria-haspopup="menu" aria-expanded="false" aria-label="More merge options">{{ icon("chevron-down") }}</button>
+        <div class="dropdown-menu dropdown-menu-end" role="menu" hidden>
+          <button class="dropdown-item" role="menuitem">Squash and merge</button>
+          <button class="dropdown-item" role="menuitem">Rebase and merge</button>
+        </div>
+      </div>
+    </div>
+    <div class="btn-group" role="group" aria-label="Follow">
+      <button class="btn btn-outline">Follow</button>
+      <div class="dropdown" data-dropdown>
+        <button class="btn btn-outline btn-icon" data-dropdown-trigger aria-haspopup="menu" aria-expanded="false" aria-label="More">{{ icon("ellipsis") }}</button>
+        <div class="dropdown-menu dropdown-menu-end" role="menu" hidden>
+          <button class="dropdown-item" role="menuitem">Mute conversation</button>
+          <button class="dropdown-item" role="menuitem">Copy link</button>
+          <div class="dropdown-separator" role="separator"></div>
+          <button class="dropdown-item text-danger" role="menuitem">Report</button>
+        </div>
+      </div>
+    </div>
+  {% endcall %}
+
+  <h2 id="popover">Popover</h2>
+  <p>A <a href="/docs/components/popover">popover</a> trigger works the same way, for content that isn't a menu.</p>
+  {% call demo("min-h-72 items-start") %}
+    <div class="btn-group" role="group" aria-label="Copilot">
+      <button class="btn btn-outline">{{ icon("bot") }} Copilot</button>
+      <div class="popover" data-popover>
+        <button class="btn btn-outline btn-icon" data-popover-trigger aria-expanded="false" aria-label="Open popover">{{ icon("chevron-down") }}</button>
+        <div class="popover-content popover-content-end" data-popover-content hidden>
+          <p class="popover-title">Start a new task</p>
+          <p class="popover-description">Describe what you want done.</p>
+          <textarea class="textarea mt-3" placeholder="Fix the flaky test in…" aria-label="Task" autofocus></textarea>
+        </div>
+      </div>
+    </div>
+  {% endcall %}
+
+  <h2 id="reference">Reference</h2>
+  {{ classes([
+    [".btn-group", "Joins its children: inner corners squared, shared borders overlapped. Groups inside it are spaced instead."],
+    [".btn-group-vertical", "Stacks the children."],
+    [".btn-group-sm / -lg", "Resizes every button, input and text in the group."],
+    [".btn-group-text", "Static label styled to sit in a group, like https://."],
+    [".btn-group-separator", "1px divider between buttons that have no border."]
+  ]) }}
+{% endblock %}

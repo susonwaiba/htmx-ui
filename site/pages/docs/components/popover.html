@@ -1,0 +1,70 @@
+{% extends "layouts/docs.html" %}
+{% from "components/icon/icon.html" import icon %}
+{% from "macros/docs.html" import demo, classes %}
+{% set title = "Popover" %}
+{% set description = "A floating panel of rich content, such as text or a small form, that opens from a button." %}
+
+{% block content %}
+  {% call demo("min-h-80 items-start") %}
+    <div class="popover" data-popover>
+      <button class="btn btn-outline" data-popover-trigger aria-expanded="false">Dimensions</button>
+      <div class="popover-content" data-popover-content hidden>
+        <p class="popover-title">Dimensions</p>
+        <p class="popover-description">Set the dimensions for the layer.</p>
+        <div class="field-group mt-4 gap-3">
+          <div class="field field-horizontal">
+            <label class="field-label w-16" for="pop-width">Width</label>
+            <input class="input input-sm" id="pop-width" value="100%" autofocus />
+          </div>
+          <div class="field field-horizontal">
+            <label class="field-label w-16" for="pop-height">Height</label>
+            <input class="input input-sm" id="pop-height" value="25px" />
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endcall %}
+
+  <h2 id="markup">Markup</h2>
+  <ul>
+    <li>Wrap the trigger and panel in <code>.popover</code> with <code>data-popover</code>.</li>
+    <li>The trigger gets <code>data-popover-trigger</code> and <code>aria-expanded="false"</code>. The behaviour links it to the panel with <code>aria-controls</code>.</li>
+    <li>The panel gets <code>.popover-content</code>, <code>data-popover-content</code> and starts <code>hidden</code>.</li>
+    <li>Focus stays on the trigger when it opens, unless an element in the panel has <code>autofocus</code>.</li>
+    <li>For a list of actions, use a <a href="/docs/components/dropdown">dropdown</a> instead: it adds menu semantics and arrow-key navigation.</li>
+  </ul>
+
+  <h2 id="keyboard">Closing</h2>
+  <p><kbd class="kbd">Esc</kbd> closes the popover and returns focus to the trigger. Clicking outside or tabbing out of it also closes it.</p>
+
+  <h2 id="alignment">Alignment</h2>
+  <p>The panel opens below the trigger, aligned to its left edge. <code>.popover-content-center</code> and <code>.popover-content-end</code> align it to the centre or right edge; <code>.popover-content-up</code> opens it above.</p>
+  {% call demo("min-h-56 items-end justify-center") %}
+    <div class="popover" data-popover>
+      <button class="btn btn-ghost btn-icon" data-popover-trigger aria-expanded="false" aria-label="About this metric">{{ icon("info") }}</button>
+      <div class="popover-content popover-content-center popover-content-up w-60" data-popover-content hidden>
+        <p class="popover-description mt-0">Active users counts everyone who signed in during the last 28 days.</p>
+      </div>
+    </div>
+  {% endcall %}
+
+  <h2 id="htmx">Content from the server</h2>
+  <p>The panel is an ordinary element, so htmx can fill it. This one loads its content the first time it's opened:</p>
+  {% call demo("min-h-64 items-start") %}
+    <div class="popover" data-popover>
+      <button class="btn btn-outline" data-popover-trigger aria-expanded="false"
+              hx-get="/api/hello" hx-trigger="click once" hx-target="next [data-popover-content]">Server message</button>
+      <div class="popover-content w-80 p-2" data-popover-content hidden><p class="p-2 muted">Loading…</p></div>
+    </div>
+  {% endcall %}
+
+  <h2 id="reference">Reference</h2>
+  {{ classes([
+    [".popover", "Positioning wrapper around the trigger and panel. Add data-popover."],
+    [".popover-content", "The floating panel. Add data-popover-content and hidden."],
+    [".popover-content-center / -end", "Centre the panel on the trigger, or align it to the right edge."],
+    [".popover-content-up", "Open above the trigger."],
+    [".popover-title", "Heading text in the panel."],
+    [".popover-description", "Muted supporting text."]
+  ]) }}
+{% endblock %}
