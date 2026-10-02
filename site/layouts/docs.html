@@ -1,0 +1,98 @@
+{# Docs pages. Set these at the top of the page:
+     {% set title = "Button" %}
+     {% set description = "One-line summary shown under the title." %}
+     {% set prose = false %}   optional: don't wrap the content in .prose (for pages
+                                that demo prose itself; wrap text sections yourself)
+   Navigation, the active link and prev/next come from site/data/docs-nav.json. #}
+{% extends "layouts/base.html" %}
+{% set sections = json("data/docs-nav.json").sections %}
+{% set versions = json("data/versions.json") %}
+{% from "components/icon/icon.html" import icon %}
+{% set has_sidebar = true %}
+{# Pages rendered from source are always the latest docs version; older versions are frozen snapshots (bun/versions.ts). #}
+{% set version = versions.latest %}
+
+{# Flatten the nav for prev/next, and find this page's section. #}
+{% set pages = [] %}
+{% set section = "Docs" %}
+{% for group in sections %}
+  {% for item in group.items %}
+    {% set _ = pages.push(item) %}
+    {% if item.href == url or url.startsWith(item.href + "/") %}{% set section = group.title %}{% endif %}
+  {% endfor %}
+{% endfor %}
+
+{% block title %}{{ title }} · HTMX UI{% endblock %}
+
+{% block head %}
+  <meta name="description" content="{{ description }}" />
+{% endblock %}
+
+{% block body %}
+  {% include "partials/header.html" %}
+  <div class="mx-auto flex w-full max-w-7xl gap-12 px-4 sm:px-6 lg:px-8">
+    <aside id="docs-nav" class="sidebar" data-sidebar aria-label="Documentation">
+      <div class="mb-6 flex items-center justify-between lg:hidden">
+        <span class="font-semibold">Documentation</span>
+        <button type="button" class="btn btn-ghost btn-icon btn-sm" data-sidebar-toggle aria-controls="docs-nav" aria-label="Close navigation">{{ icon("x") }}</button>
+      </div>
+      {% include "partials/version-switcher.html" %}
+      {% for group in sections %}
+        <nav class="sidebar-group">
+          <p class="sidebar-label">{{ group.title }}</p>
+          {% for item in group.items %}
+            {% set active = item.href == url or (item.href != "/docs" and item.href != "/docs/components" and url.startsWith(item.href + "/")) %}
+            <a href="{{ item.href }}" class="sidebar-link"{% if active %} aria-current="page"{% endif %}>
+              {{ item.title }}
+            </a>
+          {% endfor %}
+        </nav>
+      {% endfor %}
+    </aside>
+    <div class="sidebar-backdrop" data-sidebar-close></div>
+
+    <main class="min-w-0 flex-1 pt-8 pb-16 lg:pt-12">
+      <article class="mx-auto max-w-3xl">
+        {# Filled in on older versions by site/features/versions.ts #}
+        <div data-version-banner data-md-skip hidden></div>
+        <header class="mb-10 space-y-3 border-b border-border pb-8">
+          <p class="eyebrow">{{ section }}</p>
+          <h1 class="h1">{{ title }}</h1>
+          {% if description %}<p class="lead">{{ description }}</p>{% endif %}
+          <div class="flex flex-wrap gap-2 pt-2">
+            <button type="button" class="btn btn-outline btn-sm" data-markdown-copy="{{ url }}.md">
+              {{ icon("copy") }} <span data-markdown-copy-label>Copy Markdown</span>
+            </button>
+            <a href="{{ url }}.md" class="btn btn-ghost btn-sm" title="This page as Markdown, for AI agents">{{ icon("file-text") }} View .md</a>
+          </div>
+        </header>
+
+        <div data-docs-content class="{{ 'space-y-6' if (prose is defined and not prose) else 'prose docs-prose max-w-none' }}">
+          {% block content %}{% endblock %}
+        </div>
+
+        {% for item in pages %}
+          {% if item.href == url %}
+            {% set prev = pages[loop.index0 - 1] if not loop.first else none %}
+            {% set next = pages[loop.index0 + 1] if not loop.last else none %}
+            <nav class="mt-16 grid gap-4 border-t border-border pt-8 sm:grid-cols-2" aria-label="Pagination">
+              {% if prev %}
+                <a href="{{ prev.href }}" class="card card-link p-4">
+                  <span class="muted inline-flex items-center gap-1">{{ icon("arrow-left", "size-3.5") }} Previous</span>
+                  <span class="mt-1 font-medium">{{ prev.title }}</span>
+                </a>
+              {% else %}<span></span>{% endif %}
+              {% if next %}
+                <a href="{{ next.href }}" class="card card-link p-4 text-right sm:col-start-2">
+                  <span class="muted inline-flex items-center justify-end gap-1">Next {{ icon("arrow-right", "size-3.5") }}</span>
+                  <span class="mt-1 font-medium">{{ next.title }}</span>
+                </a>
+              {% endif %}
+            </nav>
+          {% endif %}
+        {% endfor %}
+      </article>
+    </main>
+  </div>
+  {% include "partials/footer.html" %}
+{% endblock %}

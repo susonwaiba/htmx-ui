@@ -1,0 +1,9 @@
+{
+  "releases": [
+    {
+      "version": "0.1.0",
+      "date": "2026-10-02",
+      "summary": "First release: design tokens, light and dark themes, eleven components, syntax highlighting, versioned and agent-ready docs."
+    }
+  ]
+}

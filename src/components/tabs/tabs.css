@@ -1,0 +1,28 @@
+/* <div class="tabs" data-tabs [data-tabs-sync="key"]>
+     <div class="tabs-list" role="tablist"><button class="tabs-trigger" role="tab" data-tab="a" aria-selected="true">A</button>…</div>
+     <div class="tabs-panel" role="tabpanel" data-tab-panel="a">…</div>
+     <div class="tabs-panel" role="tabpanel" data-tab-panel="b" hidden>…</div>
+   </div> */
+@layer components {
+  .tabs-list {
+    @apply inline-flex items-center gap-1 rounded-(--radius) bg-muted p-1 text-muted-foreground;
+  }
+  .tabs-trigger {
+    @apply inline-flex h-7 cursor-pointer items-center justify-center gap-1.5 rounded-[calc(var(--radius)-2px)] px-3
+      text-sm font-medium whitespace-nowrap transition-colors hover:text-foreground
+      focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring
+      aria-selected:bg-background aria-selected:text-foreground aria-selected:shadow-xs [&_svg]:size-4;
+  }
+  .tabs-panel {
+    @apply mt-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring;
+  }
+
+  /* Underlined variant: <div class="tabs-list tabs-line"> */
+  .tabs-line {
+    @apply gap-4 rounded-none border-b border-border bg-transparent p-0;
+  }
+  .tabs-line .tabs-trigger {
+    @apply -mb-px h-9 rounded-none border-b-2 border-transparent px-1 aria-selected:border-primary
+      aria-selected:bg-transparent aria-selected:shadow-none;
+  }
+}

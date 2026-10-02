@@ -1,0 +1,21 @@
+{% extends "layouts/site.html" %}
+
+{% block title %}About · HTMX UI{% endblock %}
+
+{% block content %}
+  <section class="mx-auto max-w-2xl px-4 py-20 sm:px-6">
+    <p class="eyebrow">About</p>
+    <h1 class="h1 mt-2">About this project</h1>
+    <div class="prose mt-8">
+      <p>
+        HTMX UI is a component library for server-rendered apps that use htmx. Components are plain HTML
+        styled with Tailwind CSS, plus a few small behaviours that survive htmx swaps.
+      </p>
+      <p>
+        This site is built with the library itself: each file in <code>site/pages</code> is a route,
+        rendered with Nunjucks at build time and bundled by Bun.
+      </p>
+      <p><a href="/docs">Read the documentation</a> or <a href="/docs/components">browse the components</a>.</p>
+    </div>
+  </section>
+{% endblock %}

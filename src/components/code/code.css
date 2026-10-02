@@ -1,0 +1,42 @@
+@layer components {
+  .code-block {
+    @apply relative overflow-hidden rounded-(--radius) border border-border bg-(--code-background) text-(--code-foreground);
+  }
+  .code-block-header {
+    @apply flex h-10 items-center justify-between gap-2 border-b border-border px-4 text-xs text-muted-foreground;
+  }
+  .code-block pre {
+    @apply overflow-x-auto p-4 font-mono text-[13px] leading-6;
+  }
+  .code-block pre[hidden] {
+    @apply hidden;
+  }
+  .code-block pre code {
+    @apply block min-w-fit;
+  }
+  /* No header: float the copy button over the code */
+  .code-block > .code-copy {
+    @apply absolute top-2 right-2;
+  }
+  .code-copy {
+    @apply inline-flex h-7 shrink-0 cursor-pointer items-center gap-1.5 rounded-md px-2 text-xs text-muted-foreground
+      hover:bg-accent hover:text-foreground [&_svg]:size-3.5;
+  }
+  .code-copy .code-copied,
+  .code-copy[data-copied] .code-copy-idle {
+    @apply hidden;
+  }
+  .code-copy[data-copied] .code-copied {
+    @apply inline-flex text-success;
+  }
+
+  /* Tabs inside a code block header (package managers, files) */
+  .code-tabs {
+    @apply -mb-px flex h-10 items-stretch self-stretch overflow-x-auto;
+  }
+  .code-tab {
+    @apply cursor-pointer border-b-2 border-transparent px-3 font-mono text-xs text-muted-foreground transition-colors
+      hover:text-foreground focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring
+      aria-selected:border-primary aria-selected:text-foreground;
+  }
+}

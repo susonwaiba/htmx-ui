@@ -1,0 +1,30 @@
+{# Docs-only helpers. Not part of the library.
+   {% from "macros/docs.html" import demo, classes %} #}
+{% from "components/code/code.html" import code_block %}
+
+{# Live preview of the call body, with its source underneath.
+   {% call demo() %}<button class="btn btn-primary">Hi</button>{% endcall %}
+   isolate=false drops not-prose from the wrapper: needed for previews that contain
+   .prose themselves (typography skips everything under a not-prose ancestor). Only
+   use it on pages that set `prose = false`. #}
+{% macro demo(class="", source=true, isolate=true) %}
+{% set body = caller() %}
+<div class="demo{% if isolate %} not-prose{% endif %} overflow-hidden rounded-[calc(var(--radius)+4px)] border border-border [&_.code-block]:rounded-none [&_.code-block]:border-0">
+  <div class="flex min-h-40 flex-wrap items-center justify-center gap-3 bg-background p-6 sm:p-10 {{ class }}" data-md-skip>{{ body }}</div>
+  {% if source %}<div class="border-t border-border">{{ code_block(body) }}</div>{% endif %}
+</div>
+{%- endmacro %}
+
+{# Reference table: rows are [name, description] pairs. #}
+{% macro classes(rows, heading="Class") %}
+<div class="table-wrap not-prose">
+  <table class="table">
+    <thead><tr><th>{{ heading }}</th><th>Description</th></tr></thead>
+    <tbody>
+      {% for row in rows %}
+      <tr><td class="whitespace-nowrap"><code class="code">{{ row[0] }}</code></td><td class="text-muted-foreground">{{ row[1] }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{%- endmacro %}

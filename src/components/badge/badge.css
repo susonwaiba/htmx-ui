@@ -1,0 +1,44 @@
+@layer components {
+  .badge {
+    @apply inline-flex w-fit shrink-0 items-center gap-1 rounded-full border border-transparent px-2.5 py-0.5
+      text-xs font-medium whitespace-nowrap [&_svg]:size-3;
+  }
+
+  .badge-primary {
+    @apply bg-primary text-primary-foreground;
+  }
+  .badge-secondary {
+    @apply bg-secondary text-secondary-foreground;
+  }
+  .badge-outline {
+    @apply border-border text-foreground;
+  }
+  /* Status tints. Written as plain color-mix() in separate rules on purpose:
+     Tailwind's optimiser lowers color-mix(..., transparent) into a solid fallback
+     plus an @supports override, and keeps only one override per rule. Putting
+     border and background in one rule (or one @apply) leaves the other solid. */
+  .badge-info {
+    --badge-tone: var(--info);
+  }
+  .badge-success {
+    --badge-tone: var(--success);
+  }
+  .badge-warning {
+    --badge-tone: var(--warning);
+  }
+  .badge-danger {
+    --badge-tone: var(--danger);
+  }
+  :is(.badge-info, .badge-success, .badge-warning, .badge-danger) {
+    border-color: color-mix(in oklab, var(--badge-tone) 25%, transparent);
+  }
+  .badge:is(.badge-info, .badge-success, .badge-warning, .badge-danger) {
+    background-color: color-mix(in oklab, var(--badge-tone) 10%, transparent);
+    color: var(--badge-tone);
+  }
+
+  /* Leading status dot: <span class="badge badge-success badge-dot">Live</span> */
+  .badge-dot {
+    @apply before:size-1.5 before:rounded-full before:bg-current;
+  }
+}

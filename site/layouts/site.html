@@ -1,0 +1,10 @@
+{# Marketing pages: header, full-width content, footer. Pages own their containers. #}
+{% extends "layouts/base.html" %}
+
+{% block body %}
+  {% include "partials/header.html" %}
+  <main>
+    {% block content %}{% endblock %}
+  </main>
+  {% include "partials/footer.html" %}
+{% endblock %}

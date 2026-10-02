@@ -1,0 +1,121 @@
+{% extends "layouts/docs.html" %}
+{% from "components/code/code.html" import code, cli %}
+{% from "components/alert/alert.html" import alert %}
+{% set title = "Installation" %}
+{% set description = "Add HTMX UI to a new project or an existing app that already uses Tailwind CSS v4 and htmx." %}
+
+{% block content %}
+  <p>Commands are shown for npm, pnpm, yarn and bun. Pick yours once; every command block on the site remembers the choice.</p>
+
+  <h2 id="requirements">Requirements</h2>
+  <div class="table-wrap not-prose">
+    <table class="table">
+      <thead><tr><th>Dependency</th><th>Version</th><th>Why</th></tr></thead>
+      <tbody>
+        <tr><td><a class="link" href="https://tailwindcss.com">Tailwind CSS</a></td><td><span class="badge badge-secondary">4.x</span></td><td class="text-muted-foreground">Component styles use <code class="code">@apply</code> and <code class="code">@theme</code>.</td></tr>
+        <tr><td><a class="link" href="https://htmx.org">htmx</a></td><td><span class="badge badge-secondary">4.x</span></td><td class="text-muted-foreground">Fragment swaps; components initialise inside new content.</td></tr>
+        <tr><td>A bundler that handles TypeScript and CSS imports</td><td><span class="badge badge-secondary">any</span></td><td class="text-muted-foreground">Bun, Vite and others work. The guide below uses Bun's built-in bundler.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2 id="new-project">New project</h2>
+
+  <h3>1. Create the project and install</h3>
+  {{ cli("mkdir my-app && cd my-app
+init
+add htmx-ui htmx.org
+add-dev tailwindcss") }}
+
+  <h3>2. Connect Tailwind to your bundler</h3>
+  <p>With Bun's dev server, install the Tailwind plugin and register it for HTML imports:</p>
+  {{ cli("add-dev bun-plugin-tailwind") }}
+  {% call code("toml", title="bunfig.toml") %}
+    [serve.static]
+    plugins = ["bun-plugin-tailwind"]
+  {% endcall %}
+  <p>Using Vite or another bundler? Follow <a href="https://tailwindcss.com/docs/installation">Tailwind's guide for it</a> instead. The remaining steps are the same.</p>
+
+  <h3>3. Import the styles</h3>
+  <p>Import Tailwind first, then the library. The <code>@source</code> line tells Tailwind where your own markup lives.</p>
+  {% call code("css", title="src/styles.css") %}
+    @import "tailwindcss";
+    @import "htmx-ui/styles.css";
+
+    @source "./";
+  {% endcall %}
+
+  <h3>4. Initialise components</h3>
+  {% call code("ts", title="src/app.ts") %}
+    import "htmx.org";
+    import "./styles.css";
+    import { initComponents } from "htmx-ui";
+    import { initTheme } from "htmx-ui/theme";
+
+    document.addEventListener("DOMContentLoaded", () => {
+      initTheme();
+      initComponents(document);
+    });
+
+    // htmx 4 fires htmx:after:process on each newly inserted element
+    document.addEventListener("htmx:after:process", (e) => {
+      initComponents((e.target as ParentNode) ?? document);
+    });
+  {% endcall %}
+
+  <h3>5. Add a page and serve it</h3>
+  {% call code("html", title="src/index.html") %}
+    <!doctype html>
+    <html lang="en">
+      <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <script type="module" src="./app.ts"></script>
+      </head>
+      <body class="bg-background text-foreground">
+        <button class="btn btn-primary">It works</button>
+      </body>
+    </html>
+  {% endcall %}
+  {% call code("ts", title="server.ts") %}
+    import index from "./src/index.html";
+
+    Bun.serve({ routes: { "/": index }, development: { hmr: true } });
+  {% endcall %}
+  {% call code("bash", title="Terminal") %}bun --hot server.ts{% endcall %}
+
+  <h2 id="existing-project">Existing project</h2>
+  <p>If the app already has Tailwind v4 and htmx:</p>
+  {{ cli("add htmx-ui") }}
+  <ol>
+    <li>Add <code>@import "htmx-ui/styles.css";</code> directly after <code>@import "tailwindcss";</code>.</li>
+    <li>Call <code>initComponents()</code> on load and on <code>htmx:after:process</code>, as in step 4.</li>
+  </ol>
+
+  {% call alert("Clashing variable names", variant="warning") %}
+    The library defines CSS variables such as <code class="code">--primary</code>, <code class="code">--border</code> and <code class="code">--radius</code> on <code class="code">:root</code>,
+    and Tailwind colours with the same names. If your app already defines these, the definition loaded last wins. Rename yours,
+    or set them to the values you want (see <a class="link" href="/docs/theming">Theming</a>).
+  {% endcall %}
+
+  <h3>Already using the dark: variant?</h3>
+  <p>
+    The library switches Tailwind's <code>dark:</code> variant from the OS media query to a
+    <code>.dark</code> class on <code>&lt;html&gt;</code>. If your app relies on the media-query
+    behaviour, read <a href="/docs/dark-mode">Dark mode</a> before upgrading.
+  </p>
+
+  <h2 id="exports">What the package exports</h2>
+  <p>JavaScript ships as ES modules with TypeScript types. <code>htmx.org</code> and <code>tailwindcss</code> are peer dependencies, so your app controls their versions.</p>
+  <div class="table-wrap not-prose">
+    <table class="table">
+      <thead><tr><th>Import</th><th>Contents</th></tr></thead>
+      <tbody>
+        <tr><td><code class="code">htmx-ui</code></td><td class="text-muted-foreground"><code class="code">initComponents(root)</code>: wires up every component's behaviour under <code class="code">root</code>.</td></tr>
+        <tr><td><code class="code">htmx-ui/styles.css</code></td><td class="text-muted-foreground">Design tokens, the dark variant, <code class="code">.prose</code> (Tailwind Typography, installed with the package), syntax-highlighting colours and every component's styles.</td></tr>
+        <tr><td><code class="code">htmx-ui/theme</code></td><td class="text-muted-foreground"><code class="code">initTheme()</code> and <code class="code">getTheme()</code> for the light/dark switcher.</td></tr>
+        <tr><td><code class="code">htmx-ui/icons/&lt;name&gt;.svg</code></td><td class="text-muted-foreground">The SVG icons, for your own templates or <code class="code">&lt;img&gt;</code> tags.</td></tr>
+      </tbody>
+    </table>
+  </div>
+{% endblock %}

@@ -1,0 +1,9 @@
+{
+  "default": "npm",
+  "managers": [
+    { "id": "npm", "label": "npm", "init": "npm init -y", "add": "npm install", "add-dev": "npm install -D", "run": "npm run", "exec": "npx", "create": "npm create" },
+    { "id": "pnpm", "label": "pnpm", "init": "pnpm init", "add": "pnpm add", "add-dev": "pnpm add -D", "run": "pnpm run", "exec": "pnpm dlx", "create": "pnpm create" },
+    { "id": "yarn", "label": "yarn", "init": "yarn init -y", "add": "yarn add", "add-dev": "yarn add -D", "run": "yarn run", "exec": "yarn dlx", "create": "yarn create" },
+    { "id": "bun", "label": "bun", "init": "bun init -y", "add": "bun add", "add-dev": "bun add -d", "run": "bun run", "exec": "bunx", "create": "bun create" }
+  ]
+}

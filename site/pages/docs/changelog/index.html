@@ -1,0 +1,34 @@
+{% extends "layouts/docs.html" %}
+{% from "components/icon/icon.html" import icon %}
+{% set releases = json("data/changelog.json").releases %}
+{% set title = "Changelog" %}
+{% set description = "Every release of HTMX UI, newest first. The project follows semantic versioning." %}
+
+{% block content %}
+  <ol class="not-prose relative space-y-6 border-l border-border pl-8">
+    {% for r in releases %}
+      <li class="relative">
+        <span class="absolute top-6 -left-[calc(2rem+5px)] size-2.5 rounded-full {{ 'bg-primary' if loop.first else 'bg-border' }} ring-4 ring-background"></span>
+        <a href="/docs/changelog/{{ r.version }}" class="card card-link">
+          <div class="card-header">
+            <div class="flex flex-wrap items-center gap-2">
+              <h2 class="card-title text-lg">v{{ r.version }}</h2>
+              {% if loop.first %}<span class="badge badge-primary">Latest</span>{% endif %}
+              <time datetime="{{ r.date }}" class="muted ml-auto">{{ r.date }}</time>
+            </div>
+          </div>
+          <div class="card-content flex items-end justify-between gap-4">
+            <p class="muted leading-6">{{ r.summary }}</p>
+            <span class="shrink-0 text-primary">{{ icon("arrow-right") }}</span>
+          </div>
+        </a>
+      </li>
+    {% endfor %}
+  </ol>
+
+  <h2 id="versioning">Versioning</h2>
+  <p>
+    Versions follow <a href="https://semver.org">semantic versioning</a>. Before 1.0, minor versions
+    (0.<em>x</em>.0) may rename classes or tokens; each release page lists what to change.
+  </p>
+{% endblock %}

@@ -1,0 +1,80 @@
+{% extends "layouts/docs.html" %}
+{% from "components/icon/icon.html" import icon %}
+{% from "macros/docs.html" import demo, classes %}
+{% set title = "Dropdown" %}
+{% set description = "A menu of links or actions that opens from a button. Keyboard and screen-reader friendly. The docs version switcher in the sidebar is one." %}
+
+{% block content %}
+  {% call demo("min-h-64 items-start") %}
+    <div class="dropdown" data-dropdown>
+      <button type="button" class="btn btn-outline" data-dropdown-trigger aria-haspopup="menu" aria-expanded="false">
+        Options {{ icon("chevron-down") }}
+      </button>
+      <div class="dropdown-menu" role="menu" hidden>
+        <p class="dropdown-label">My account</p>
+        <a class="dropdown-item" role="menuitem" href="#profile">Profile</a>
+        <a class="dropdown-item" role="menuitem" href="#billing">Billing <span class="badge badge-secondary">Pro</span></a>
+        <div class="dropdown-separator" role="separator"></div>
+        <button type="button" class="dropdown-item text-danger" role="menuitem">{{ icon("trash") }} Delete account</button>
+      </div>
+    </div>
+  {% endcall %}
+
+  <h2 id="markup">Markup</h2>
+  <ul>
+    <li>Wrap the trigger and menu in <code>.dropdown</code> with <code>data-dropdown</code>.</li>
+    <li>The trigger gets <code>data-dropdown-trigger</code>, <code>aria-haspopup="menu"</code> and <code>aria-expanded="false"</code>.</li>
+    <li>The menu gets <code>role="menu"</code> and starts <code>hidden</code>. Each entry is a link or button with <code>role="menuitem"</code>.</li>
+    <li>Mark the selected entry with <code>aria-current="true"</code>, and unavailable ones with <code>aria-disabled="true"</code>.</li>
+  </ul>
+
+  <h2 id="keyboard">Keyboard</h2>
+  <div class="table-wrap not-prose">
+    <table class="table">
+      <thead><tr><th>Key</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr><td><kbd class="kbd">↓</kbd> <kbd class="kbd">↑</kbd> on the trigger</td><td class="text-muted-foreground">Open on the first / last item</td></tr>
+        <tr><td><kbd class="kbd">↓</kbd> <kbd class="kbd">↑</kbd> <kbd class="kbd">Home</kbd> <kbd class="kbd">End</kbd></td><td class="text-muted-foreground">Move between items</td></tr>
+        <tr><td><kbd class="kbd">Esc</kbd></td><td class="text-muted-foreground">Close and return focus to the trigger</td></tr>
+        <tr><td><kbd class="kbd">Tab</kbd>, click outside, choose an item</td><td class="text-muted-foreground">Close</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2 id="alignment">Alignment</h2>
+  <p>The menu opens below the trigger, aligned to its left edge. Add <code>.dropdown-menu-end</code> to align it to the right edge, or <code>.dropdown-menu-up</code> to open it above the trigger.</p>
+  {% call demo("min-h-56 items-start justify-end") %}
+    <div class="dropdown" data-dropdown>
+      <button type="button" class="btn btn-ghost btn-icon" data-dropdown-trigger aria-haspopup="menu" aria-expanded="false" aria-label="More">{{ icon("menu") }}</button>
+      <div class="dropdown-menu dropdown-menu-end" role="menu" hidden>
+        <a class="dropdown-item" role="menuitem" href="#edit">Edit</a>
+        <a class="dropdown-item" role="menuitem" href="#duplicate">Duplicate</a>
+        <a class="dropdown-item" role="menuitem" href="#archive" aria-disabled="true">Archive</a>
+      </div>
+    </div>
+  {% endcall %}
+
+  <h2 id="htmx">Actions with htmx</h2>
+  <p>Menu items can make htmx requests like any other button. The menu closes when an item is chosen.</p>
+  {% call demo("min-h-56 flex-col items-start gap-4") %}
+    <div class="dropdown" data-dropdown>
+      <button type="button" class="btn btn-primary" data-dropdown-trigger aria-haspopup="menu" aria-expanded="false">Export {{ icon("chevron-down") }}</button>
+      <div class="dropdown-menu" role="menu" hidden>
+        <button type="button" class="dropdown-item" role="menuitem" hx-post="/api/slow" hx-target="#export-result">CSV</button>
+        <button type="button" class="dropdown-item" role="menuitem" hx-post="/api/slow" hx-target="#export-result">JSON</button>
+      </div>
+    </div>
+    <span id="export-result" class="muted"></span>
+  {% endcall %}
+
+  <h2 id="reference">Reference</h2>
+  {{ classes([
+    [".dropdown", "Positioning wrapper (relative, inline-block)."],
+    [".dropdown-menu", "The floating panel. Opens below, left-aligned."],
+    [".dropdown-menu-end / .dropdown-menu-up", "Align to the right edge / open above."],
+    [".dropdown-item", "Link or button inside the menu. aria-current and aria-disabled are styled."],
+    [".dropdown-label", "Small muted heading inside the menu."],
+    [".dropdown-separator", "Divider line."],
+    ["[data-dropdown] / [data-dropdown-trigger]", "Behaviour: open/close, keyboard navigation, outside click."]
+  ]) }}
+{% endblock %}

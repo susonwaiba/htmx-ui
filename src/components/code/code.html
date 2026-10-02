@@ -1,0 +1,71 @@
+{# Code blocks (behaviour: code.ts, tabs.ts). Source is dedented, highlighted at
+   build time and escaped; braces are encoded so output never contains template syntax.
+
+   {% from "components/code/code.html" import code, code_block, code_tabs, cli %}
+   {% call code("ts", title="app.ts") %}…{% endcall %}      body as source; wrap Nunjucks syntax in {% raw %}
+   {{ code_block(source, "html", title="index.html") }}      source from a string
+   {{ code_tabs([{id: "html", label: "index.html", lang: "html", source: a}, …]) }}
+   {{ cli("add htmx-ui htmx.org") }}                          one tab per package manager (components/code/package-managers.json)
+
+   cli(): each line starting with an action (init, add, add-dev, run, exec, create)
+   is translated per manager; other lines are shown as written. #}
+{% from "components/icon/icon.html" import icon %}
+
+{% macro copy_button() %}
+<button type="button" class="code-copy" data-copy aria-label="Copy code">
+  <span class="code-copy-idle inline-flex items-center gap-1.5">{{ icon("copy") }}<span data-copy-label>Copy</span></span>
+  <span class="code-copied items-center gap-1.5" aria-live="polite">{{ icon("check") }}Copied</span>
+</button>
+{%- endmacro %}
+
+{% macro _pre(source, lang, attrs="") %}
+<pre{{ attrs | safe }}><code data-lang="{{ lang }}">{{ source | dedent | highlight(lang) | replace("{", "&#123;") }}</code></pre>
+{%- endmacro %}
+
+{% macro code_block(source, lang="html", title=none) %}
+<div class="code-block not-prose" data-code>
+  <div class="code-block-header">
+    <span class="font-mono">{{ title or lang }}</span>
+    {{ copy_button() }}
+  </div>
+  {{ _pre(source, lang) }}
+</div>
+{%- endmacro %}
+
+{% macro code(lang="html", title=none) %}{{ code_block(caller(), lang, title) }}{% endmacro %}
+
+{# tabs: [{id, label, lang, source}]. sync: tab groups sharing a key switch together and remember the choice. #}
+{% macro code_tabs(tabs, sync=none, selected=none) %}
+<div class="code-block not-prose" data-code data-tabs{% if sync %} data-tabs-sync="{{ sync }}"{% endif %}>
+  <div class="code-block-header pl-1">
+    <div class="code-tabs" role="tablist">
+      {% for t in tabs %}
+        <button type="button" class="code-tab" role="tab" data-tab="{{ t.id }}" aria-selected="{{ 'true' if (t.id == selected if selected else loop.first) else 'false' }}">{{ t.label }}</button>
+      {% endfor %}
+    </div>
+    {{ copy_button() }}
+  </div>
+  {% for t in tabs %}
+    {{ _pre(t.source, t.lang, ' role="tabpanel" data-tab-panel="' + t.id + '"' + ('' if (t.id == selected if selected else loop.first) else ' hidden')) }}
+  {% endfor %}
+</div>
+{%- endmacro %}
+
+{% macro cli(commands) %}
+{% set pm = json("components/code/package-managers.json") %}
+{% set lines = commands.split("\n") if commands is string else commands %}
+{% set tabs = [] %}
+{% for m in pm.managers %}
+  {% set out = [] %}
+  {% for line in lines %}
+    {% set words = line.trim().split(" ") %}
+    {% if m[words[0]] is defined %}
+      {% set _ = out.push([m[words[0]]].concat(words.slice(1)).join(" ")) %}
+    {% else %}
+      {% set _ = out.push(line.trim()) %}
+    {% endif %}
+  {% endfor %}
+  {% set _ = tabs.push({ id: m.id, label: m.label, lang: "bash", source: out.join("\n") }) %}
+{% endfor %}
+{{ code_tabs(tabs, sync="pm", selected=pm.default) }}
+{%- endmacro %}

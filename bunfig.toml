@@ -1,5 +1,5 @@
 # Plugins for HTML imports served by Bun.serve() (dev server).
-# html-compose runs first so Tailwind scans fully composed markup.
+# html-plugin (Nunjucks) runs first so Tailwind scans fully rendered markup.
 [serve.static]
 plugins = ["./bun/html-plugin.ts", "bun-plugin-tailwind"]
 

@@ -1,0 +1,27 @@
+{# Docs version switcher (Dropdown component). Needs `versions` (data/versions.json)
+   and `version` (this page's version) from the docs layout.
+
+   The links rendered here go to each version's root. At runtime
+   site/features/versions.ts rebuilds them from /docs/versions.json so they point at
+   the same page in each version and include versions released after this page was
+   built. Links carry data-version-link so archiving leaves them alone. #}
+{% from "components/icon/icon.html" import icon %}
+<div class="dropdown mb-6 w-full" data-dropdown data-version-switcher data-version="{{ version }}" data-versions-src="/docs/versions.json">
+  <button type="button" class="btn btn-outline w-full justify-between" data-dropdown-trigger aria-haspopup="menu" aria-expanded="false">
+    <span class="flex items-center gap-2 text-muted-foreground">{{ icon("history") }} Version</span>
+    <span class="flex items-center gap-1.5"><span class="font-mono">v{{ version }}</span>{{ icon("chevron-down") }}</span>
+  </button>
+  <div class="dropdown-menu w-full" role="menu" aria-label="Documentation version" hidden>
+    <p class="dropdown-label">Documentation versions</p>
+    <div data-version-items>
+      {% for v in versions.versions %}
+        <a role="menuitem" class="dropdown-item" data-version-link href="{{ '/docs' if v.id == versions.latest else '/docs/v' + v.id }}"{% if v.id == version %} aria-current="true"{% endif %}>
+          <span class="font-mono">{{ v.label }}</span>
+          {% if v.id == versions.latest %}<span class="badge badge-primary">Latest</span>{% endif %}
+        </a>
+      {% endfor %}
+    </div>
+    <div class="dropdown-separator" role="separator"></div>
+    <a role="menuitem" class="dropdown-item" data-version-link href="/docs/changelog">Changelog {{ icon("arrow-right") }}</a>
+  </div>
+</div>

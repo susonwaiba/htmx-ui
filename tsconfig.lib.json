@@ -1,0 +1,15 @@
+{
+  // Type declarations for the published package (bun run build:lib -> lib/*.d.ts).
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "allowImportingTsExtensions": false,
+    "rootDir": "./src",
+    "outDir": "./lib",
+    "types": []
+  },
+  "include": ["src/index.ts", "src/theme.ts"],
+  "exclude": ["src/**/*.test.ts"]
+}

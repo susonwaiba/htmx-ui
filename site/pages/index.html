@@ -1,0 +1,109 @@
+{% extends "layouts/site.html" %}
+{% from "components/icon/icon.html" import icon %}
+{% from "components/code/code.html" import cli %}
+{% set releases = json("data/changelog.json").releases %}
+
+{% block title %}HTMX UI · Server-driven components for htmx{% endblock %}
+{% block head %}
+  <meta name="description" content="Tailwind CSS components for htmx apps. Plain HTML, themeable with CSS variables, dark mode built in." />
+{% endblock %}
+
+{% set features = [
+  { icon: "code", title: "Just HTML", text: "Components are CSS classes and data attributes. No virtual DOM, no client framework, no build-time JSX." },
+  { icon: "zap", title: "htmx-aware", text: "Behaviour initialises on new content after every htmx swap, so components work inside server-rendered fragments." },
+  { icon: "palette", title: "Themeable by variables", text: "Every colour and radius is a CSS variable mapped into Tailwind v4. Override a few and the whole kit follows." },
+  { icon: "moon", title: "Dark mode built in", text: "A class-based dark variant, token swaps and a no-flash theme switcher that follows the OS until you choose." },
+  { icon: "layers", title: "Tailwind v4 native", text: "Built with @apply in @layer components, so your utilities still win and unused styles are tree-shaken." },
+  { icon: "box", title: "Small and idempotent", text: "Each behaviour is a few lines of TypeScript that marks what it touched, so running it twice is harmless." }
+] %}
+
+{% block content %}
+  {# Hero #}
+  <section class="relative overflow-hidden border-b border-border">
+    <div class="hero-grid pointer-events-none absolute inset-0"></div>
+    <div class="relative mx-auto max-w-4xl px-4 py-24 text-center sm:px-6 sm:py-32">
+      <a href="/docs/changelog/{{ releases[0].version }}" class="badge badge-outline mb-6 gap-2 bg-background py-1 pr-3 pl-1 text-sm transition-colors hover:bg-accent">
+        <span class="badge badge-primary">New</span> v{{ releases[0].version }} is out {{ icon("chevron-right", "size-3.5") }}
+      </a>
+      <h1 class="h1 sm:text-6xl">Server-driven UI components for <span class="text-primary">htmx</span></h1>
+      <p class="lead mx-auto mt-6 max-w-2xl">
+        A small Tailwind CSS component library for apps where the server renders HTML. Copy the markup,
+        swap fragments with htmx, and theme everything with a handful of CSS variables.
+      </p>
+      <div class="mt-10 flex flex-wrap items-center justify-center gap-3">
+        <a href="/docs/installation" class="btn btn-primary btn-lg">Get started {{ icon("arrow-right") }}</a>
+        <a href="/docs/components" class="btn btn-outline btn-lg">Browse components</a>
+      </div>
+      <div class="mx-auto mt-12 max-w-md text-left">
+        {{ cli("add htmx-ui htmx.org") }}
+      </div>
+    </div>
+  </section>
+
+  {# Features #}
+  <section class="mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-2xl text-center">
+      <p class="eyebrow">Why HTMX UI</p>
+      <h2 class="h2 mt-2">Components that respect the server</h2>
+      <p class="lead mt-4">Everything you need to ship a polished hypermedia app, and nothing that fights it.</p>
+    </div>
+    <div class="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      {% for f in features %}
+        <div class="card">
+          <div class="card-header">
+            <span class="mb-3 grid size-10 place-items-center rounded-(--radius) bg-primary/10 text-primary">{{ icon(f.icon, "size-5") }}</span>
+            <h3 class="card-title">{{ f.title }}</h3>
+          </div>
+          <div class="card-content pt-3"><p class="muted leading-6">{{ f.text }}</p></div>
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  {# Live demo #}
+  <section class="border-y border-border bg-muted/40">
+    <div class="mx-auto grid max-w-7xl items-center gap-12 px-4 py-24 sm:px-6 lg:grid-cols-2 lg:px-8">
+      <div>
+        <p class="eyebrow">Live</p>
+        <h2 class="h2 mt-2">Fragments in, components ready</h2>
+        <p class="lead mt-4">
+          The button below asks the server for an HTML fragment. When it lands, htmx swaps it in and
+          htmx-ui wires up any components inside it. That includes the dismissible alert it returns.
+        </p>
+        <div class="mt-8 flex gap-3">
+          <a href="/docs" class="btn btn-secondary">Read the docs</a>
+          <a href="/docs/components/button" class="btn btn-ghost">Button docs {{ icon("arrow-right") }}</a>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <div class="flex items-center justify-between">
+            <h3 class="card-title">htmx request</h3>
+            <span class="badge badge-success badge-dot">Dev server</span>
+          </div>
+          <p class="card-description">hx-get="/api/hello" → hx-target="#hello"</p>
+        </div>
+        <div class="card-content space-y-4">
+          <button class="btn btn-primary" hx-get="/api/hello" hx-target="#hello">
+            Load fragment
+            <span class="htmx-indicator">{{ icon("loader", "size-4 animate-spin") }}</span>
+          </button>
+          <div id="hello" class="min-h-16"></div>
+        </div>
+        <div class="card-footer">
+          <p class="muted">Mock endpoints only run under <code class="code">bun run dev</code>.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  {# CTA #}
+  <section class="mx-auto max-w-4xl px-4 py-24 text-center sm:px-6">
+    <h2 class="h2">Start building in a couple of minutes</h2>
+    <p class="lead mx-auto mt-4 max-w-xl">Install the package, import one stylesheet, and call one function.</p>
+    <div class="mt-8 flex flex-wrap justify-center gap-3">
+      <a href="/docs/installation" class="btn btn-primary btn-lg">Installation guide</a>
+      <a href="/docs/theming" class="btn btn-outline btn-lg">Make it yours</a>
+    </div>
+  </section>
+{% endblock %}

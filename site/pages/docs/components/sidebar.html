@@ -1,0 +1,82 @@
+{% extends "layouts/docs.html" %}
+{% from "components/icon/icon.html" import icon %}
+{% from "components/code/code.html" import code %}
+{% from "macros/docs.html" import demo, classes %}
+{% set title = "Sidebar" %}
+{% set description = "A navigation column that sticks beside the content on large screens and slides in over it on small ones. The navigation on this page is one." %}
+
+{% block content %}
+  <h2 id="preview">Preview</h2>
+  <p>The links and labels, shown in a fixed-size frame:</p>
+  {% call demo("block p-0") %}
+    <div class="flex h-72 text-left">
+      <nav class="w-56 shrink-0 overflow-y-auto border-r border-border p-4">
+        <div class="sidebar-group">
+          <p class="sidebar-label">Workspace</p>
+          <a href="#preview" class="sidebar-link" aria-current="page">Dashboard</a>
+          <a href="#preview" class="sidebar-link">Projects <span class="badge badge-secondary">4</span></a>
+          <a href="#preview" class="sidebar-link">Deployments</a>
+        </div>
+        <div class="sidebar-group">
+          <p class="sidebar-label">Account</p>
+          <a href="#preview" class="sidebar-link">Settings</a>
+          <a href="#preview" class="sidebar-link">Billing</a>
+        </div>
+      </nav>
+      <div class="flex-1 p-6"><p class="muted">Page content</p></div>
+    </div>
+  {% endcall %}
+
+  <h2 id="responsive">Responsive layout</h2>
+  <p>
+    Put <code>.sidebar</code> on an <code>&lt;aside&gt;</code> next to your content. From the
+    <code>lg</code> breakpoint up it's a sticky column under a 56px header. Below that it hides
+    off-screen until a toggle opens it. Resize this window to try it with the docs navigation.
+  </p>
+  {% call code("html", title="layout.html") %}
+    <header class="sticky top-0 h-14 border-b">
+      <button class="btn btn-ghost btn-icon lg:hidden"
+              data-sidebar-toggle aria-controls="nav" aria-expanded="false" aria-label="Open navigation">
+        <!-- menu icon -->
+      </button>
+    </header>
+
+    <div class="mx-auto flex max-w-7xl gap-12 px-4">
+      <aside id="nav" class="sidebar" data-sidebar>
+        <nav class="sidebar-group">
+          <p class="sidebar-label">Getting started</p>
+          <a href="/docs" class="sidebar-link" aria-current="page">Introduction</a>
+          <a href="/docs/installation" class="sidebar-link">Installation</a>
+        </nav>
+      </aside>
+      <div class="sidebar-backdrop" data-sidebar-close></div>
+
+      <main class="min-w-0 flex-1">…</main>
+    </div>
+  {% endcall %}
+
+  <h2 id="behaviour">Behaviour</h2>
+  <ul>
+    <li>A <code>[data-sidebar-toggle]</code> opens or closes the sidebar named by its <code>aria-controls</code>, and keeps <code>aria-expanded</code> in sync.</li>
+    <li>The open sidebar has a <code>data-open</code> attribute, which slides it in and shows the backdrop.</li>
+    <li>It closes on <kbd class="kbd">Esc</kbd>, a click on <code>[data-sidebar-close]</code>, or a click on any link inside it.</li>
+  </ul>
+
+  <h2 id="active">Marking the current page</h2>
+  <p>Set <code>aria-current="page"</code> on the active link. It's both the style hook and what screen readers announce.</p>
+  {% call code("jinja", title="Nunjucks") %}
+    {% raw %}<a href="{{ item.href }}" class="sidebar-link"
+       {% if item.href == url %}aria-current="page"{% endif %}>{{ item.title }}</a>{% endraw %}
+  {% endcall %}
+
+  <h2 id="reference">Reference</h2>
+  {{ classes([
+    [".sidebar", "Off-canvas panel below lg; sticky 240px column at lg and up."],
+    [".sidebar-backdrop", "Dimmed overlay shown while the sidebar is open on small screens."],
+    [".sidebar-group", "A block of links; adds space between groups."],
+    [".sidebar-label", "Small uppercase group heading."],
+    [".sidebar-link", "Navigation link. Styled as active with aria-current=\"page\"."],
+    ["[data-sidebar-toggle]", "Behaviour: opens/closes the sidebar named in aria-controls."],
+    ["[data-sidebar-close]", "Behaviour: closes the sidebar (use on the backdrop)."]
+  ]) }}
+{% endblock %}

@@ -1,0 +1,88 @@
+{% extends "layouts/docs.html" %}
+{% from "macros/docs.html" import demo, classes %}
+{% set title = "Tabs" %}
+{% set description = "Switch between panels of related content. Groups can sync with each other and remember the reader's choice." %}
+
+{% block content %}
+  {% call demo("block") %}
+    <div class="tabs mx-auto max-w-md" data-tabs>
+      <div class="tabs-list" role="tablist" aria-label="Account">
+        <button type="button" class="tabs-trigger" role="tab" data-tab="account" aria-selected="true">Account</button>
+        <button type="button" class="tabs-trigger" role="tab" data-tab="password" aria-selected="false">Password</button>
+      </div>
+      <div class="tabs-panel" role="tabpanel" data-tab-panel="account">
+        <p class="muted">Change your name and email address.</p>
+      </div>
+      <div class="tabs-panel" role="tabpanel" data-tab-panel="password" hidden>
+        <p class="muted">Change your password. You'll be signed out on other devices.</p>
+      </div>
+    </div>
+  {% endcall %}
+
+  <h2 id="markup">Markup</h2>
+  <ul>
+    <li>Each <code>[data-tab]</code> button shows the <code>[data-tab-panel]</code> with the same value and hides the others.</li>
+    <li>Mark the initial tab with <code>aria-selected="true"</code> and add <code>hidden</code> to the other panels, so the page is right before JavaScript runs.</li>
+    <li>The behaviour fills in <code>id</code>, <code>aria-controls</code> and <code>aria-labelledby</code>, and moves focus with <kbd class="kbd">←</kbd> <kbd class="kbd">→</kbd> <kbd class="kbd">Home</kbd> <kbd class="kbd">End</kbd>.</li>
+  </ul>
+
+  <h2 id="line">Underlined</h2>
+  {% call demo("block") %}
+    <div class="tabs mx-auto max-w-md" data-tabs>
+      <div class="tabs-list tabs-line" role="tablist">
+        <button type="button" class="tabs-trigger" role="tab" data-tab="overview" aria-selected="true">Overview</button>
+        <button type="button" class="tabs-trigger" role="tab" data-tab="activity" aria-selected="false">Activity</button>
+        <button type="button" class="tabs-trigger" role="tab" data-tab="settings" aria-selected="false">Settings</button>
+      </div>
+      <div class="tabs-panel" role="tabpanel" data-tab-panel="overview"><p class="muted">Overview panel</p></div>
+      <div class="tabs-panel" role="tabpanel" data-tab-panel="activity" hidden><p class="muted">Activity panel</p></div>
+      <div class="tabs-panel" role="tabpanel" data-tab-panel="settings" hidden><p class="muted">Settings panel</p></div>
+    </div>
+  {% endcall %}
+
+  <h2 id="sync">Synced and remembered</h2>
+  <p>
+    Give groups the same <code>data-tabs-sync</code> key and they switch together. The choice is saved to
+    <code>localStorage</code> (key <code>tabs:&lt;key&gt;</code>), restored on the next visit, and followed
+    in other open browser tabs. The package-manager tabs on code blocks use <code>data-tabs-sync="pm"</code>.
+    Switch one of these two:
+  </p>
+  {% call demo("flex-col items-stretch gap-6") %}
+    {% for n in [1, 2] %}
+      <div class="tabs" data-tabs data-tabs-sync="demo-lang">
+        <div class="tabs-list" role="tablist" aria-label="Language {{ n }}">
+          <button type="button" class="tabs-trigger" role="tab" data-tab="html" aria-selected="true">HTML</button>
+          <button type="button" class="tabs-trigger" role="tab" data-tab="css" aria-selected="false">CSS</button>
+        </div>
+        <div class="tabs-panel" role="tabpanel" data-tab-panel="html"><p class="muted">Group {{ n }}: HTML panel</p></div>
+        <div class="tabs-panel" role="tabpanel" data-tab-panel="css" hidden><p class="muted">Group {{ n }}: CSS panel</p></div>
+      </div>
+    {% endfor %}
+  {% endcall %}
+
+  <h2 id="htmx">Lazy panels with htmx</h2>
+  <p>Load a panel's content the first time it's shown with <code>hx-trigger="intersect once"</code>:</p>
+  {% call demo("block", source=true) %}
+    <div class="tabs mx-auto max-w-md" data-tabs>
+      <div class="tabs-list" role="tablist">
+        <button type="button" class="tabs-trigger" role="tab" data-tab="local" aria-selected="true">Local</button>
+        <button type="button" class="tabs-trigger" role="tab" data-tab="server" aria-selected="false">From server</button>
+      </div>
+      <div class="tabs-panel" role="tabpanel" data-tab-panel="local"><p class="muted">Rendered with the page.</p></div>
+      <div class="tabs-panel" role="tabpanel" data-tab-panel="server" hidden>
+        <div hx-get="/api/hello" hx-trigger="intersect once"><p class="muted">Loading…</p></div>
+      </div>
+    </div>
+  {% endcall %}
+
+  <h2 id="reference">Reference</h2>
+  {{ classes([
+    [".tabs-list", "Segmented control holding the tab buttons."],
+    [".tabs-trigger", "Tab button; selected style comes from aria-selected=\"true\"."],
+    [".tabs-panel", "Panel spacing and focus ring."],
+    [".tabs-line", "Underlined variant of .tabs-list."],
+    ["[data-tabs]", "Behaviour: wires up a tab group."],
+    ["[data-tab] / [data-tab-panel]", "Matching values pair a tab with its panel."],
+    ["[data-tabs-sync=\"key\"]", "Sync groups with the same key and remember the choice."]
+  ]) }}
+{% endblock %}

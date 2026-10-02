@@ -1,0 +1,49 @@
+{
+  "sections": [
+    {
+      "title": "Getting started",
+      "items": [
+        { "title": "Introduction", "href": "/docs", "description": "What htmx-ui is and how it fits together." },
+        { "title": "Installation", "href": "/docs/installation", "description": "Add htmx-ui to a new or existing project." }
+      ]
+    },
+    {
+      "title": "Customization",
+      "items": [
+        { "title": "Theming", "href": "/docs/theming", "description": "Design tokens, overrides and custom themes." },
+        { "title": "Dark mode", "href": "/docs/dark-mode", "description": "How light and dark work, and the theme switcher." }
+      ]
+    },
+    {
+      "title": "Guides",
+      "items": [
+        { "title": "Templates & data", "href": "/docs/templates", "description": "Nunjucks templates, JSON data, icons and SVG." },
+        { "title": "AI agents", "href": "/docs/ai-agents", "description": "Markdown pages, llms.txt and sitemaps for agents." }
+      ]
+    },
+    {
+      "title": "Components",
+      "items": [
+        { "title": "Overview", "href": "/docs/components", "description": "Every component at a glance." },
+        { "title": "Alert", "href": "/docs/components/alert", "description": "Callouts for info, success, warnings and errors.", "component": true },
+        { "title": "Badge", "href": "/docs/components/badge", "description": "Small status labels and counters.", "component": true },
+        { "title": "Button", "href": "/docs/components/button", "description": "Actions in every variant, size and state.", "component": true },
+        { "title": "Card", "href": "/docs/components/card", "description": "Grouped content with header, body and footer.", "component": true },
+        { "title": "Code block", "href": "/docs/components/code-block", "description": "Highlighted source with a copy button and package-manager tabs.", "component": true },
+        { "title": "Dropdown", "href": "/docs/components/dropdown", "description": "A menu of links or actions that opens from a button.", "component": true },
+        { "title": "Icon", "href": "/docs/components/icon", "description": "SVG icons inlined at build time, or linked as images.", "component": true },
+        { "title": "Sidebar", "href": "/docs/components/sidebar", "description": "Responsive navigation column with off-canvas mode.", "component": true },
+        { "title": "Table", "href": "/docs/components/table", "description": "Readable data tables with optional hover rows.", "component": true },
+        { "title": "Tabs", "href": "/docs/components/tabs", "description": "Switch between panels; optionally synced and remembered.", "component": true },
+        { "title": "Text", "href": "/docs/components/text", "description": "Long-form content with .prose (Tailwind Typography), plus helpers for single elements.", "component": true }
+      ]
+    },
+    {
+      "title": "Project",
+      "items": [
+        { "title": "Changelog", "href": "/docs/changelog", "description": "What changed in each release." },
+        { "title": "Versions", "href": "/docs/versions", "description": "Docs for older releases and the versioning policy." }
+      ]
+    }
+  ]
+}

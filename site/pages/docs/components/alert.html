@@ -1,0 +1,81 @@
+{% extends "layouts/docs.html" %}
+{% from "components/icon/icon.html" import icon %}
+{% from "components/code/code.html" import code %}
+{% from "components/alert/alert.html" import alert %}
+{% from "macros/docs.html" import demo, classes %}
+{% set title = "Alert" %}
+{% set description = "A callout for information the reader should notice: tips, confirmations, warnings and errors." %}
+
+{% block content %}
+  {% call demo("flex-col items-stretch") %}
+    <div class="alert" role="status">
+      <div class="alert-title">Heads up</div>
+      <div class="alert-description">You can add components to your app using the CLI.</div>
+    </div>
+  {% endcall %}
+
+  <h2 id="variants">Variants with icons</h2>
+  <p>Put an <code>&lt;svg&gt;</code> first and the text lines up beside it. Variant classes tint the border, background, icon and title.</p>
+  {% call demo("flex-col items-stretch") %}
+    <div class="alert alert-info" role="status">
+      {{ icon("info") }}
+      <div class="alert-title">New version available</div>
+      <div class="alert-description">v0.1.0 adds dark mode and five new components.</div>
+    </div>
+    <div class="alert alert-success" role="status">
+      {{ icon("check-circle") }}
+      <div class="alert-title">Payment received</div>
+      <div class="alert-description">A receipt is on its way to your inbox.</div>
+    </div>
+    <div class="alert alert-warning" role="status">
+      {{ icon("alert-triangle") }}
+      <div class="alert-title">Your trial ends in 3 days</div>
+      <div class="alert-description">Add a payment method to keep your projects online.</div>
+    </div>
+    <div class="alert alert-danger" role="alert">
+      {{ icon("x-circle") }}
+      <div class="alert-title">Deploy failed</div>
+      <div class="alert-description">The build exited with code 1. Check the logs for details.</div>
+    </div>
+  {% endcall %}
+
+  <h2 id="dismissible">Dismissible</h2>
+  <p>
+    Add <code>data-dismissible</code> to the alert and <code>data-dismiss</code> to a button inside it.
+    Clicking the button removes the alert. This also works for alerts that arrive in htmx fragments.
+  </p>
+  {% call demo("flex-col items-stretch") %}
+    <div class="alert alert-info" role="status" data-dismissible>
+      {{ icon("info") }}
+      <div class="alert-title">Cookies</div>
+      <div class="alert-description">We only use essential cookies.</div>
+      <button type="button" class="alert-close" data-dismiss aria-label="Dismiss">{{ icon("x") }}</button>
+    </div>
+  {% endcall %}
+
+  <h2 id="macro">Nunjucks macro</h2>
+  <p>If your templates use Nunjucks, the <code>alert</code> macro picks the icon and ARIA role for you:</p>
+  {% call code("jinja", title="page.html") %}
+    {% raw %}{% from "components/alert/alert.html" import alert %}
+
+    {% call alert("Deploy failed", variant="danger", dismissible=true) %}
+      The build exited with code 1.
+    {% endcall %}{% endraw %}
+  {% endcall %}
+
+  <h2 id="accessibility">Accessibility</h2>
+  <ul>
+    <li>Use <code>role="alert"</code> for urgent, time-sensitive messages (screen readers announce it right away), and <code>role="status"</code> for everything else.</li>
+    <li>Give icon-only close buttons an <code>aria-label</code>.</li>
+  </ul>
+
+  <h2 id="reference">Reference</h2>
+  {{ classes([
+    [".alert", "Container. A leading <svg> becomes the icon column."],
+    [".alert-title", "Bold first line."],
+    [".alert-description", "Body text in the muted colour."],
+    [".alert-info / -success / -warning / -danger", "Status tint for border, background, icon and title."],
+    [".alert-close", "Top-right close button. Pair with data-dismiss."],
+    ["[data-dismissible] + [data-dismiss]", "Behaviour: clicking [data-dismiss] removes the [data-dismissible] element."]
+  ]) }}
+{% endblock %}

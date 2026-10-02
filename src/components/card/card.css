@@ -1,0 +1,24 @@
+@layer components {
+  .card {
+    @apply flex flex-col rounded-[calc(var(--radius)+4px)] border border-border bg-surface text-foreground shadow-xs;
+  }
+  .card-header {
+    @apply flex flex-col gap-1.5 p-6 pb-0;
+  }
+  .card-title {
+    @apply leading-none font-semibold;
+  }
+  .card-description {
+    @apply text-sm text-muted-foreground;
+  }
+  .card-content {
+    @apply p-6;
+  }
+  .card-footer {
+    @apply mt-auto flex items-center gap-2 p-6 pt-0;
+  }
+  /* Whole card is a link: <a class="card card-link" href="..."> */
+  .card-link {
+    @apply transition-colors hover:border-primary/40 hover:bg-accent/40;
+  }
+}

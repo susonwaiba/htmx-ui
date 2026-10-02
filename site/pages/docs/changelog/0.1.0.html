@@ -1,0 +1,56 @@
+{% extends "layouts/docs.html" %}
+{% from "components/icon/icon.html" import icon %}
+{% set title = "v0.1.0" %}
+{% set description = json("data/changelog.json").releases[0].summary %}
+
+{% block content %}
+  <div class="not-prose flex flex-wrap items-center gap-3">
+    <a href="/docs/changelog" class="btn btn-ghost btn-sm -ml-3">{{ icon("arrow-left") }} All releases</a>
+    <span class="badge badge-primary">Latest</span>
+    <time datetime="2026-10-02" class="muted">2026-10-02</time>
+  </div>
+
+  <h2 id="added">Added</h2>
+  <h3>Components</h3>
+  <ul>
+    <li><a href="/docs/components/alert">Alert</a>: neutral, info, success, warning and danger, with an optional dismiss button.</li>
+    <li><a href="/docs/components/badge">Badge</a>: solid, outline and soft status variants, plus a status dot.</li>
+    <li><a href="/docs/components/button">Button</a>: primary, secondary, outline, ghost, danger and link variants; small, large and icon sizes; button groups.</li>
+    <li><a href="/docs/components/card">Card</a>: header, title, description, content and footer parts, and a clickable card link.</li>
+    <li><a href="/docs/components/code-block">Code block</a>: build-time syntax highlighting, copy button, file tabs and npm/pnpm/yarn/bun command tabs.</li>
+    <li><a href="/docs/components/dropdown">Dropdown</a>: accessible menu with keyboard navigation; powers the docs version switcher.</li>
+    <li><a href="/docs/components/icon">Icon</a>: SVG files inlined at build time, or linked as images.</li>
+    <li><a href="/docs/components/sidebar">Sidebar</a>: sticky on desktop, off-canvas with a backdrop on mobile.</li>
+    <li><a href="/docs/components/table">Table</a>: bordered wrapper, muted header and hover rows.</li>
+    <li><a href="/docs/components/tabs">Tabs</a>: accessible tab groups that can sync with each other and remember the reader's choice.</li>
+    <li><a href="/docs/components/text">Text</a>: <code>@tailwindcss/typography</code> (<code>.prose</code>) mapped onto the design tokens, plus heading, lead, muted, link, inline code and kbd helpers.</li>
+  </ul>
+  <h3>Theming and dark mode</h3>
+  <ul>
+    <li>Design tokens as CSS variables, exposed as Tailwind colours with <code>@theme inline</code>. See <a href="/docs/theming">Theming</a>.</li>
+    <li>Thin, theme-tinted scrollbars everywhere (<code>--scrollbar-thumb</code>). See <a href="/docs/theming#scrollbars">Theming</a>.</li>
+    <li>Class-based dark mode with a theme switcher that follows the OS until the user picks. See <a href="/docs/dark-mode">Dark mode</a>.</li>
+  </ul>
+  <h3>Templates and data</h3>
+  <ul>
+    <li>Component behaviours initialise inside swapped content via <code>htmx:after:process</code>, including when the swapped element is the component itself.</li>
+    <li>Optional Nunjucks macros for alerts, code blocks, command tabs and icons.</li>
+    <li><code>json()</code>, <code>svg()</code> and <code>glob()</code> template functions. See <a href="/docs/templates">Templates &amp; data</a>.</li>
+  </ul>
+  <h3>Docs</h3>
+  <ul>
+    <li>Versioned docs: a version switcher, frozen snapshots of older versions under <code>/docs/v&lt;version&gt;</code>, and <code>/docs/versions.json</code>. See <a href="/docs/versions">Versions</a>.</li>
+  </ul>
+  <h3>Package</h3>
+  <ul>
+    <li>ES modules with TypeScript types for <code>htmx-ui</code> and <code>htmx-ui/theme</code>; CSS, icons and macros ship as source.</li>
+    <li><code>htmx.org</code> 4 and <code>tailwindcss</code> 4 are peer dependencies; <code>@tailwindcss/typography</code> is installed with the package.</li>
+    <li>Nunjucks macros are included but not yet a public API.</li>
+  </ul>
+  <h3>For AI agents</h3>
+  <ul>
+    <li>Every docs page as Markdown at <code>&lt;url&gt;.md</code>, plus <code>/llms.txt</code>, <code>/llms-full.txt</code>, <code>/sitemap.json</code> (with section text for search, and per-version sitemaps) and <code>/sitemap.xml</code>. See <a href="/docs/ai-agents">AI agents</a>.</li>
+    <li>Every docs heading has a <code>#</code> link, so sections can be shared and opened directly.</li>
+    <li>Prompt examples and a ready-made agent skill that point at <code>/llms.txt</code>.</li>
+  </ul>
+{% endblock %}

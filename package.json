@@ -1,23 +1,76 @@
 {
   "name": "htmx-ui",
+  "version": "0.1.0",
+  "description": "Tailwind CSS v4 components for htmx apps: plain HTML, themeable with CSS variables, dark mode built in.",
+  "keywords": [
+    "htmx",
+    "tailwindcss",
+    "tailwind",
+    "components",
+    "ui",
+    "hypermedia",
+    "css",
+    "dark-mode"
+  ],
+  "license": "MIT",
+  "author": "Suson Waiba",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/susonwaiba/htmx-ui.git"
+  },
+  "bugs": "https://github.com/susonwaiba/htmx-ui/issues",
+  "homepage": "https://github.com/susonwaiba/htmx-ui#readme",
   "type": "module",
-  "private": true,
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "exports": {
+    ".": {
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./theme": {
+      "types": "./lib/theme.d.ts",
+      "default": "./lib/theme.js"
+    },
+    "./styles.css": "./src/styles.css",
+    "./components/*": "./src/components/*",
+    "./icons/*": "./src/icons/*",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "src",
+    "!src/**/*.test.ts",
+    "CHANGELOG.md"
+  ],
   "scripts": {
-    "dev": "bun --hot src/server/dev.ts",
+    "dev": "bun --hot site/server/dev.ts",
     "build": "bun run build.ts",
+    "build:lib": "bun run bun/build-lib.ts",
     "preview": "bunx serve dist",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "docs:archive": "bun run bun/archive.ts",
+    "release:check": "bun run bun/release-check.ts",
+    "prepublishOnly": "bun run release:check",
+    "component:new": "bun run bun/new-component.ts"
+  },
+  "dependencies": {
+    "@tailwindcss/typography": "^0.5.20"
+  },
+  "peerDependencies": {
+    "htmx.org": "^4.0.0",
+    "tailwindcss": "^4.0.0"
   },
   "devDependencies": {
     "@happy-dom/global-registrator": "^20.14.5",
     "@types/bun": "latest",
+    "@types/nunjucks": "^3.2.6",
     "bun-plugin-tailwind": "^0.1.2",
-    "tailwindcss": "^4.3.3"
-  },
-  "dependencies": {
-    "htmx.org": "^4.0.0"
-  },
-  "peerDependencies": {
+    "htmx.org": "^4.0.0",
+    "nunjucks": "^3.2.4",
+    "shiki": "^4.5.0",
+    "tailwindcss": "^4.3.3",
     "typescript": "^5"
   }
 }

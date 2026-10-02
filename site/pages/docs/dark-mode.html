@@ -1,0 +1,113 @@
+{% extends "layouts/docs.html" %}
+{% from "components/code/code.html" import code %}
+{% from "components/alert/alert.html" import alert %}
+{% from "components/icon/icon.html" import icon %}
+{% from "macros/docs.html" import demo %}
+{% set title = "Dark mode" %}
+{% set description = "Light and dark are two sets of token values, switched by a .dark class on <html>. The theme switcher follows the OS until the user picks, and never flashes the wrong theme." %}
+
+{% block content %}
+  <h2 id="how-it-works">How it works</h2>
+  <ol>
+    <li><strong>A class, not a media query.</strong> Tailwind v4's <code>dark:</code> variant normally follows <code>prefers-color-scheme</code>, which a button can't change. The library redefines it to match a <code>.dark</code> class instead.</li>
+    <li><strong>Tokens swap.</strong> <code>:root.dark</code> redefines every colour variable, so components don't need <code>dark:</code> classes at all.</li>
+    <li><strong>Native widgets follow.</strong> <code>color-scheme</code> switches too, so scrollbars and form controls match.</li>
+  </ol>
+  {% call code("css", title="htmx-ui/styles.css (excerpt)") %}
+    @custom-variant dark (&:where(.dark, .dark *));
+
+    @layer base {
+      :root      { color-scheme: light; --background: var(--color-white); /* … */ }
+      :root.dark { color-scheme: dark;  --background: var(--color-zinc-950); /* … */ }
+    }
+  {% endcall %}
+
+  <h2 id="switcher">Theme switcher</h2>
+  <p>Any element with <code>data-theme-toggle</code> becomes a toggle. Try this one; it's the same toggle as the one in the header.</p>
+  {% call demo() %}
+    <button type="button" class="btn btn-outline" data-theme-toggle aria-pressed="false">
+      <span class="dark:hidden">{{ icon("sun") }}</span>
+      <span class="hidden dark:inline">{{ icon("moon") }}</span>
+      Theme: <span data-theme-label>light</span>
+    </button>
+  {% endcall %}
+  <p>When clicked, <code>initTheme()</code> from <code>htmx-ui/theme</code>:</p>
+  <ul>
+    <li>flips the <code>.dark</code> class on <code>&lt;html&gt;</code>,</li>
+    <li>saves the choice to <code>localStorage</code> under the key <code>theme</code>,</li>
+    <li>sets <code>aria-pressed="true"</code> on every toggle while dark is active, and</li>
+    <li>writes the current theme (<code>light</code> or <code>dark</code>) into any <code>[data-theme-label]</code> inside a toggle.</li>
+  </ul>
+  {% call code("ts", title="src/app.ts") %}
+    import { initTheme } from "htmx-ui/theme";
+
+    document.addEventListener("DOMContentLoaded", () => initTheme());
+  {% endcall %}
+
+  <h3>Following the OS</h3>
+  <p>
+    Until the user clicks a toggle, the theme follows <code>prefers-color-scheme</code> and updates live
+    when the OS changes. After a click, the stored choice wins. To go back to following the OS, clear it:
+  </p>
+  {% call code("ts") %}localStorage.removeItem("theme");{% endcall %}
+
+  <h2 id="no-flash">Avoiding a flash of the wrong theme</h2>
+  <p>
+    Module scripts run after the first paint, so on a dark-mode visit the page would briefly render
+    light. Put this tiny inline script in <code>&lt;head&gt;</code>, before your stylesheet and app script,
+    so the class is set before anything is drawn:
+  </p>
+  {% call code("html", title="<head>") %}
+    <script>
+      (() => {
+        const stored = localStorage.getItem("theme");
+        const dark = stored ? stored === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+        document.documentElement.classList.toggle("dark", dark);
+      })();
+    </script>
+  {% endcall %}
+  {% call alert("Keep it in sync", variant="warning") %}
+    This script repeats the logic in <code class="code">initTheme()</code>. If you change the storage key or the class name, change both.
+  {% endcall %}
+
+  <h2 id="dark-variant">Writing dark styles</h2>
+  <p>Prefer tokens: <code>bg-surface</code> and <code>text-muted-foreground</code> already adapt. For one-off tweaks, use the <code>dark:</code> variant as usual:</p>
+  {% call demo() %}
+    <div class="rounded-(--radius) bg-amber-100 px-4 py-3 text-sm text-amber-900 dark:bg-amber-400/10 dark:text-amber-300">
+      Amber in light, a soft glow in dark.
+    </div>
+  {% endcall %}
+
+  <h2 id="force">Forcing a theme</h2>
+  <p>
+    To keep part of the page dark (a code sample, a hero) whatever the global theme, add the
+    <code>dark</code> class to that element. Everything inside picks up the dark variant. Note that
+    <code>:root.dark</code> tokens only apply at the root, so set the tokens you need on the element too:
+  </p>
+  {% call code("css") %}
+    .force-dark {
+      --background: var(--color-zinc-950);
+      --foreground: var(--color-zinc-50);
+      --border: var(--color-zinc-800);
+      color-scheme: dark;
+    }
+  {% endcall %}
+  {% call code("html") %}<section class="dark force-dark bg-background text-foreground">…</section>{% endcall %}
+
+  <h2 id="custom-switcher">Building your own switcher</h2>
+  <p><code>getTheme()</code> returns the active theme. A light/dark/system menu, for example, only needs to set or remove the stored value and toggle the class:</p>
+  {% call code("ts") %}
+    import { getTheme } from "htmx-ui/theme";
+
+    function setTheme(choice: "light" | "dark" | "system") {
+      if (choice === "system") localStorage.removeItem("theme");
+      else localStorage.setItem("theme", choice);
+      const dark = choice === "system"
+        ? matchMedia("(prefers-color-scheme: dark)").matches
+        : choice === "dark";
+      document.documentElement.classList.toggle("dark", dark);
+    }
+
+    console.log(getTheme()); // "light" | "dark"
+  {% endcall %}
+{% endblock %}

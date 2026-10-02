@@ -1,0 +1,165 @@
+{% extends "layouts/docs.html" %}
+{% from "components/code/code.html" import code %}
+{% from "components/alert/alert.html" import alert %}
+{% from "components/icon/icon.html" import icon %}
+{% set title = "AI agents" %}
+{% set description = "Every docs page is published as Markdown, with an llms.txt index and JSON sitemaps, so coding agents can read the docs as specs." %}
+
+{% set indexes = [
+  { path: "/llms.txt", what: "llms.txt index (llmstxt.org): every docs page as a Markdown link with its description, grouped by section. Start here." },
+  { path: "/llms-full.txt", what: "Every docs page's Markdown in one file, for loading the whole library into context." },
+  { path: "/sitemap.json", what: "Every page with URL, Markdown URL, title, description, section, heading outline and section text, plus the list of docs versions. The index for site search." },
+  { path: "/docs/sitemap.json", what: "The same for the latest docs only. Each older version has its own, e.g. /docs/v0.1/sitemap.json." },
+  { path: "/docs/versions.json", what: "Every docs version with its URL prefix, its sitemap and the pages it contains." },
+  { path: "/sitemap.xml", what: "Standard XML sitemap for search engines." },
+  { path: "/robots.txt", what: "Allows crawling and points at the sitemap." }
+] %}
+
+{% block content %}
+  <h2 id="markdown">Markdown pages</h2>
+  <p>
+    Add <code>.md</code> to any docs URL to get the page as Markdown: <a href="/docs/components/button.md" target="_blank" rel="noopener">/docs/components/button.md</a>,
+    <a href="/docs.md" target="_blank" rel="noopener">/docs.md</a>. Each file starts with frontmatter (title, description, URL, section). Live
+    examples become their source code, and reference tables become Markdown tables. The
+    <strong>Copy Markdown</strong> button at the top of every page copies it for pasting into a chat.
+  </p>
+  {% call code("md", title="/docs/components/badge.md") %}
+    ---
+    title: "Badge"
+    description: "A small label for status, counts or categories."
+    url: "/docs/components/badge"
+    section: "Components"
+    ---
+
+    # Badge
+
+    A small label for status, counts or categories.
+
+    ```html
+    <span class="badge badge-primary">New</span>
+    ```
+  {% endcall %}
+
+  <h2 id="indexes">Indexes</h2>
+  <p>Each opens in a new tab.</p>
+  <div class="table-wrap not-prose">
+    <table class="table">
+      <thead><tr><th>URL</th><th>Contents</th></tr></thead>
+      <tbody>
+        {% for i in indexes %}
+          <tr>
+            <td class="whitespace-nowrap">
+              <a class="link inline-flex items-center gap-1 font-mono text-sm" href="{{ i.path }}" target="_blank" rel="noopener">{{ i.path }}{{ icon("external-link", "size-3.5") }}</a>
+            </td>
+            <td class="text-muted-foreground">{{ i.what }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% call code("json", title="/sitemap.json (excerpt)") %}
+    {
+      "name": "HTMX UI",
+      "url": "https://example.com",
+      "version": "0.1",
+      "versions": [
+        { "id": "0.1", "label": "v0.1", "path": "/docs", "latest": true, "sitemap": "/docs/sitemap.json" }
+      ],
+      "pages": [
+        {
+          "url": "/docs/components/tabs",
+          "markdown": "/docs/components/tabs.md",
+          "title": "Tabs",
+          "section": "Components",
+          "headings": [{ "level": 2, "id": "markup", "text": "Markup" }],
+          "sections": [{ "id": "markup", "title": "Markup", "text": "Each [data-tab] button shows the [data-tab-panel]…" }]
+        }
+      ]
+    }
+  {% endcall %}
+  <p>
+    Every <code>sections[].id</code> is a heading anchor, so <code>url + "#" + id</code> opens that exact section.
+    An MCP server or a search box can list pages from these files and link straight to the right place.
+  </p>
+
+  <h2 id="prompts">Prompts</h2>
+  <p>These work with any agent that can fetch URLs (Claude, ChatGPT, Cursor, Copilot and others). Copy, then replace the task.</p>
+
+  <h3 id="prompt-llms-txt">Use the docs for one task</h3>
+  {% call code("text", title="Prompt") %}
+    Read {{ origin }}/llms.txt. It indexes the htmx-ui docs; every link is a Markdown page.
+    Fetch the pages relevant to the task below and follow their markup and class names exactly.
+    Use htmx-ui's design tokens (bg-primary, text-muted-foreground, border-border) instead of raw colours.
+
+    Task: build a settings page with tabs for Profile and Billing, and a danger-zone card with a delete button.
+  {% endcall %}
+
+  <h3 id="prompt-specific-pages">Point at specific pages</h3>
+  {% call code("text", title="Prompt") %}
+    Build a settings page using htmx-ui. Follow these specs exactly:
+    {{ origin }}/docs/components/card.md
+    {{ origin }}/docs/components/tabs.md
+  {% endcall %}
+
+  <h2 id="skill">Make it a skill</h2>
+  <p>
+    Save the lookup steps as a skill so your agent uses the docs automatically, every time you work on UI, without
+    pasting URLs again. Ask your agent to create it:
+  </p>
+  {% call code("text", title="Prompt") %}
+    Create a skill named "htmx-ui" for this project (for Claude Code: .claude/skills/htmx-ui/SKILL.md).
+    It should trigger whenever I build or change UI with htmx-ui components, classes, theming or dark mode.
+    The skill must tell you to:
+    1. Fetch {{ origin }}/llms.txt to find the relevant docs pages.
+    2. Fetch those pages as Markdown ({{ origin }}/docs/<page>.md) and follow their markup exactly.
+    3. Check the htmx-ui version in package.json; if it's older than the latest docs, read
+       {{ origin }}/docs/versions.json and use that version's pages instead.
+    4. Prefer design tokens over raw Tailwind colours, and call initComponents() for new htmx content.
+    Keep the skill short and link to the docs rather than copying them.
+  {% endcall %}
+  <p>Or create the file yourself:</p>
+  {% call code("md", title=".claude/skills/htmx-ui/SKILL.md") %}
+    ---
+    name: htmx-ui
+    description: Build UI with the htmx-ui component library (Tailwind CSS v4 + htmx). Use when adding or changing buttons, cards, alerts, tabs, dropdowns, tables, prose, theming or dark mode in this project.
+    ---
+
+    # htmx-ui
+
+    The docs are written for agents. Don't guess class names; look them up.
+
+    1. Fetch the index: {{ origin }}/llms.txt
+    2. Fetch the pages you need as Markdown, e.g. {{ origin }}/docs/components/tabs.md
+    3. Match the docs to the installed version: read "htmx-ui" in package.json. If it's older than the
+       latest docs, use the matching version from {{ origin }}/docs/versions.json (pages live under its "path").
+    4. Search for a topic in {{ origin }}/sitemap.json: `pages[].sections[]` hold the text of every section.
+
+    Rules:
+    - Copy markup and class names from the docs exactly.
+    - Use design tokens (bg-primary, text-muted-foreground, border-border), not raw palette colours.
+    - Wrap long-form text in .prose; give components inside it not-prose.
+    - After htmx inserts new content, components initialise via initComponents() on htmx:after:process.
+  {% endcall %}
+  {% call alert("Other agents", variant="info") %}
+    The same text works as a Cursor rule (<code class="code">.cursor/rules/htmx-ui.mdc</code>), a GitHub Copilot instruction file
+    (<code class="code">.github/copilot-instructions.md</code>) or a section in <code class="code">AGENTS.md</code>.
+  {% endcall %}
+
+  <h2 id="how">How it's generated</h2>
+  <p>
+    Nothing is written by hand. At build time <code>bun/site.ts</code> renders every page, converts the article
+    body to Markdown (<code>bun/markdown.ts</code>), and writes the indexes. The dev server generates the same files on request.
+  </p>
+  <ul>
+    <li>Page order follows the docs navigation in <code>site/data/docs-nav.json</code>.</li>
+    <li>Absolute URLs (and the URLs in the prompts above) use the <code>SITE_URL</code> environment variable, falling back to <code>url</code> in <code>site/data/site.json</code>.</li>
+    <li>Every docs heading gets an id and a <code>#</code> link, so sections can be linked directly.</li>
+    <li>Add <code>data-md-skip</code> to an element to leave it out of the Markdown and the search text (purely visual blocks).</li>
+  </ul>
+  {% call code("bash", title="Terminal") %}SITE_URL=https://htmx-ui.example bun run build{% endcall %}
+
+  {% call alert("Write for both readers", variant="success") %}
+    Agents read exactly what people read, so a clear page works for both. Show the full markup in every example,
+    say what each class does in the reference table, and describe behaviour in words, not just in a live demo.
+  {% endcall %}
+{% endblock %}

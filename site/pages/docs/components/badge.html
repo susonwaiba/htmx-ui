@@ -1,0 +1,48 @@
+{% extends "layouts/docs.html" %}
+{% from "components/icon/icon.html" import icon %}
+{% from "macros/docs.html" import demo, classes %}
+{% set title = "Badge" %}
+{% set description = "A small label for status, counts or categories." %}
+
+{% block content %}
+  {% call demo() %}
+    <span class="badge badge-primary">New</span>
+  {% endcall %}
+
+  <h2 id="variants">Variants</h2>
+  {% call demo() %}
+    <span class="badge badge-primary">Primary</span>
+    <span class="badge badge-secondary">Secondary</span>
+    <span class="badge badge-outline">Outline</span>
+  {% endcall %}
+
+  <h2 id="status">Status</h2>
+  <p>Soft, tinted variants for status. They use the <code>--info</code>, <code>--success</code>, <code>--warning</code> and <code>--danger</code> tokens.</p>
+  {% call demo() %}
+    <span class="badge badge-info">Info</span>
+    <span class="badge badge-success">Success</span>
+    <span class="badge badge-warning">Warning</span>
+    <span class="badge badge-danger">Danger</span>
+  {% endcall %}
+
+  <h2 id="dot">With a dot or icon</h2>
+  {% call demo() %}
+    <span class="badge badge-success badge-dot">Operational</span>
+    <span class="badge badge-warning badge-dot">Degraded</span>
+    <span class="badge badge-outline">{{ icon("check") }} Verified</span>
+  {% endcall %}
+
+  <h2 id="in-context">In context</h2>
+  {% call demo() %}
+    <button class="btn btn-outline">Inbox <span class="badge badge-primary">12</span></button>
+    <h3 class="h4 flex items-center gap-2">Billing <span class="badge badge-secondary">Beta</span></h3>
+  {% endcall %}
+
+  <h2 id="reference">Reference</h2>
+  {{ classes([
+    [".badge", "Base class."],
+    [".badge-primary / -secondary / -outline", "Neutral and brand styles."],
+    [".badge-info / -success / -warning / -danger", "Soft status colours."],
+    [".badge-dot", "Adds a leading dot in the badge's text colour."]
+  ]) }}
+{% endblock %}

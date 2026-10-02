@@ -1,0 +1,44 @@
+@layer components {
+  .alert {
+    @apply relative grid grid-cols-[auto_1fr] items-start gap-x-3 gap-y-1 rounded-(--radius) border border-border
+      bg-surface p-4 text-sm text-foreground
+      [&>svg]:mt-0.5 [&>svg]:size-4 [&>svg]:text-current [&>:not(svg)]:col-start-2;
+  }
+  .alert:not(:has(> svg)) {
+    @apply grid-cols-1 [&>*]:col-start-1;
+  }
+  .alert-title {
+    @apply font-medium tracking-tight;
+  }
+  .alert-description {
+    @apply text-muted-foreground [&_p]:leading-relaxed;
+  }
+  .alert-close {
+    @apply absolute top-2.5 right-2.5 inline-flex size-6 cursor-pointer items-center justify-center rounded-md
+      text-muted-foreground hover:bg-accent hover:text-foreground [&_svg]:size-4;
+  }
+
+  /* Status tints. Written as plain color-mix() in separate rules on purpose:
+     Tailwind's optimiser lowers color-mix(..., transparent) into a solid fallback
+     plus an @supports override, and keeps only one override per rule. Putting
+     border and background in one rule (or one @apply) leaves the other solid. */
+  .alert-info {
+    --alert-tone: var(--info);
+  }
+  .alert-success {
+    --alert-tone: var(--success);
+  }
+  .alert-warning {
+    --alert-tone: var(--warning);
+  }
+  .alert-danger {
+    --alert-tone: var(--danger);
+  }
+  :is(.alert-info, .alert-success, .alert-warning, .alert-danger) {
+    border-color: color-mix(in oklab, var(--alert-tone) 30%, transparent);
+  }
+  .alert:is(.alert-info, .alert-success, .alert-warning, .alert-danger) {
+    background-color: color-mix(in oklab, var(--alert-tone) 5%, transparent);
+    @apply [&_.alert-title]:text-(--alert-tone) [&>svg]:text-(--alert-tone);
+  }
+}

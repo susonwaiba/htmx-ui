@@ -1,0 +1,80 @@
+{% extends "layouts/docs.html" %}
+{% from "components/icon/icon.html" import icon %}
+{% from "macros/docs.html" import demo, classes %}
+{% set title = "Card" %}
+{% set description = "A bordered surface that groups related content and actions." %}
+
+{% block content %}
+  {% call demo("bg-muted/40") %}
+    <div class="card w-full max-w-sm">
+      <div class="card-header">
+        <h3 class="card-title">Create project</h3>
+        <p class="card-description">Deploy your new project in one click.</p>
+      </div>
+      <div class="card-content">
+        <p class="muted">Pick a template, connect a repository, and you're live.</p>
+      </div>
+      <div class="card-footer justify-end">
+        <button class="btn btn-ghost">Cancel</button>
+        <button class="btn btn-primary">Deploy</button>
+      </div>
+    </div>
+  {% endcall %}
+
+  <h2 id="parts">Parts</h2>
+  <p>
+    Every part is optional. <code>.card</code> itself has no padding; the header, content and footer
+    each pad themselves, so content like an image or a table can run edge to edge.
+  </p>
+  {% call demo("bg-muted/40") %}
+    <div class="card w-full max-w-sm overflow-hidden">
+      <div class="h-32 bg-gradient-to-br from-primary/80 to-primary/30"></div>
+      <div class="card-header pt-5">
+        <div class="flex items-center justify-between">
+          <h3 class="card-title">Team plan</h3>
+          <span class="badge badge-secondary">Popular</span>
+        </div>
+        <p class="card-description">For growing teams.</p>
+      </div>
+      <div class="card-content">
+        <p class="h3">$24<span class="muted font-normal"> / month</span></p>
+      </div>
+    </div>
+  {% endcall %}
+
+  <h2 id="link">Clickable card</h2>
+  <p>Make the whole card an <code>&lt;a&gt;</code> and add <code>.card-link</code> for a hover state.</p>
+  {% call demo("bg-muted/40") %}
+    <a href="/docs/components" class="card card-link w-full max-w-sm">
+      <div class="card-header pb-6">
+        <h3 class="card-title flex items-center justify-between">All components {{ icon("arrow-right") }}</h3>
+        <p class="card-description">Browse every component in the library.</p>
+      </div>
+    </a>
+  {% endcall %}
+
+  <h2 id="htmx">Loading content with htmx</h2>
+  <p>Cards make good swap targets. This one fetches its body from the server:</p>
+  {% call demo("bg-muted/40") %}
+    <div class="card w-full max-w-sm">
+      <div class="card-header">
+        <h3 class="card-title">Server message</h3>
+        <p class="card-description">Fetched with hx-get.</p>
+      </div>
+      <div class="card-content" id="card-body">
+        <button class="btn btn-outline btn-sm" hx-get="/api/hello" hx-target="#card-body">Load</button>
+      </div>
+    </div>
+  {% endcall %}
+
+  <h2 id="reference">Reference</h2>
+  {{ classes([
+    [".card", "Container: border, surface colour, radius and shadow."],
+    [".card-header", "Top section, padded on three sides."],
+    [".card-title", "Heading text."],
+    [".card-description", "Muted supporting text."],
+    [".card-content", "Main body, padded on all sides."],
+    [".card-footer", "Bottom row for actions; pinned to the bottom of tall cards."],
+    [".card-link", "Hover style for cards that are links."]
+  ]) }}
+{% endblock %}

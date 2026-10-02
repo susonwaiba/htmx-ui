@@ -1,0 +1,17 @@
+{# Alert / callout.
+   {% from "components/alert/alert.html" import alert %}
+   {% call alert("Heads up", variant="info") %}Body markup{% endcall %}
+   variant: none | "info" | "success" | "warning" | "danger"
+   dismissible=true adds a close button (behaviour: dismissible.ts). #}
+{% from "components/icon/icon.html" import icon %}
+
+{% set icons = { "info": "info", "success": "check-circle", "warning": "alert-triangle", "danger": "x-circle" } %}
+
+{% macro alert(title=none, variant=none, dismissible=false) %}
+<div class="alert{% if variant %} alert-{{ variant }}{% endif %}" role="{{ 'alert' if variant == 'danger' else 'status' }}"{% if dismissible %} data-dismissible{% endif %}>
+  {% if variant %}{{ icon(icons[variant]) }}{% endif %}
+  {% if title %}<div class="alert-title">{{ title }}</div>{% endif %}
+  <div class="alert-description">{{ caller() }}</div>
+  {% if dismissible %}<button type="button" class="alert-close" data-dismiss aria-label="Dismiss">{{ icon("x") }}</button>{% endif %}
+</div>
+{%- endmacro %}

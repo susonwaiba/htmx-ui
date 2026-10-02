@@ -1,20 +1,20 @@
-// Bun plugin: composes .html templates (layouts + includes) before Bun's HTML bundler.
+// Bun plugin: renders .html pages with Nunjucks before Bun's HTML bundler.
 //
 // Load order matters. This must run BEFORE bun-plugin-tailwind so Tailwind scans
-// the fully composed markup and sees every class from layouts and partials.
+// the fully rendered markup and sees every class from layouts and partials.
 //
 // Registered in:
 //   bunfig.toml  -> [serve.static] plugins (dev server)
 //   build.ts     -> Bun.build({ plugins })
 
 import type { BunPlugin } from "bun";
-import { compose } from "./compose";
+import { renderPage } from "./render";
 
 const plugin: BunPlugin = {
-  name: "html-compose",
+  name: "html-nunjucks",
   setup(build) {
-    build.onLoad({ filter: /\.html$/ }, async ({ path }) => {
-      return { contents: await compose(path), loader: "html" };
+    build.onLoad({ filter: /\.html$/ }, ({ path }) => {
+      return { contents: renderPage(path), loader: "html" };
     });
   },
 };

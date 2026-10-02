@@ -1,0 +1,182 @@
+/* htmx-ui: design tokens, dark mode and component styles.
+   Import after Tailwind:  @import "tailwindcss";  @import "htmx-ui/styles.css";
+
+   Every colour a component uses is a CSS variable below. Override them on
+   :root (or any element) to theme the library; see /docs/theming. */
+
+/* Long-form content styles (.prose); customised for htmx-ui in components/text/text.css */
+@plugin "@tailwindcss/typography";
+
+/* Drive dark: variants off the .dark class on <html>, not the OS media query,
+   so the theme toggle works. See src/theme.ts. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  :root {
+    color-scheme: light;
+    --radius: 0.5rem;
+
+    --background: var(--color-white);
+    --foreground: var(--color-zinc-950);
+    --surface: var(--color-white);
+    --muted: var(--color-zinc-100);
+    --muted-foreground: var(--color-zinc-500);
+    --accent: var(--color-zinc-100);
+    --accent-foreground: var(--color-zinc-900);
+    --border: var(--color-zinc-200);
+    --ring: var(--color-indigo-500);
+
+    --primary: var(--color-indigo-600);
+    --primary-foreground: var(--color-white);
+    --secondary: var(--color-zinc-100);
+    --secondary-foreground: var(--color-zinc-900);
+
+    --info: var(--color-sky-600);
+    --success: var(--color-emerald-600);
+    --warning: var(--color-amber-600);
+    --danger: var(--color-red-600);
+    --danger-foreground: var(--color-white);
+
+    /* Syntax highlighting colours, used by code blocks highlighted with Shiki's css-variables theme */
+    --code-background: color-mix(in oklab, var(--color-zinc-100) 50%, var(--color-white));
+    --code-foreground: var(--color-zinc-800);
+    --code-token-comment: var(--color-zinc-400);
+    --code-token-keyword: var(--color-rose-600);
+    --code-token-string: var(--color-emerald-700);
+    --code-token-string-expression: var(--color-emerald-700);
+    --code-token-constant: var(--color-blue-600);
+    --code-token-function: var(--color-violet-600);
+    --code-token-parameter: var(--color-amber-700);
+    --code-token-punctuation: var(--color-zinc-500);
+    --code-token-link: var(--color-blue-600);
+    --code-token-inserted: var(--color-emerald-600);
+    --code-token-deleted: var(--color-red-600);
+  }
+
+  :root.dark {
+    color-scheme: dark;
+
+    --background: var(--color-zinc-950);
+    --foreground: var(--color-zinc-50);
+    --surface: var(--color-zinc-900);
+    --muted: var(--color-zinc-800);
+    --muted-foreground: var(--color-zinc-400);
+    --accent: var(--color-zinc-800);
+    --accent-foreground: var(--color-zinc-50);
+    --border: var(--color-zinc-800);
+    --ring: var(--color-indigo-400);
+
+    --primary: var(--color-indigo-500);
+    --primary-foreground: var(--color-white);
+    --secondary: var(--color-zinc-800);
+    --secondary-foreground: var(--color-zinc-50);
+
+    --info: var(--color-sky-400);
+    --success: var(--color-emerald-400);
+    --warning: var(--color-amber-400);
+    --danger: var(--color-red-500);
+    --danger-foreground: var(--color-white);
+
+    --code-background: color-mix(in oklab, var(--color-zinc-900) 60%, var(--color-zinc-950));
+    --code-foreground: var(--color-zinc-200);
+    --code-token-comment: var(--color-zinc-500);
+    --code-token-keyword: var(--color-rose-400);
+    --code-token-string: var(--color-emerald-400);
+    --code-token-string-expression: var(--color-emerald-400);
+    --code-token-constant: var(--color-sky-400);
+    --code-token-function: var(--color-violet-400);
+    --code-token-parameter: var(--color-amber-300);
+    --code-token-punctuation: var(--color-zinc-400);
+    --code-token-link: var(--color-sky-400);
+    --code-token-inserted: var(--color-emerald-400);
+    --code-token-deleted: var(--color-red-400);
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  /* Scrollbars: thin, transparent track, thumb tinted from the text colour so it
+     blends into any theme in light and dark. Override --scrollbar-thumb(-hover)
+     to restyle, or set `scrollbar-color: auto` on an element for native bars. */
+  /* One color-mix() per rule, on distinct selectors: Tailwind's optimiser keeps
+     only one color-mix() per rule and drops the rest (see components/alert). */
+  :root {
+    --scrollbar-thumb: color-mix(in oklab, var(--foreground) 16%, transparent);
+  }
+  html {
+    --scrollbar-thumb-hover: color-mix(in oklab, var(--foreground) 32%, transparent);
+  }
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) transparent;
+  }
+  *:hover {
+    scrollbar-color: var(--scrollbar-thumb-hover) transparent;
+  }
+  /* Browsers without scrollbar-color (Safari) */
+  @supports not (scrollbar-color: auto) {
+    ::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+    }
+    ::-webkit-scrollbar-track,
+    ::-webkit-scrollbar-corner {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      border: 3px solid transparent;
+      border-radius: 9999px;
+      background-color: var(--scrollbar-thumb);
+      background-clip: content-box;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background-color: var(--scrollbar-thumb-hover);
+    }
+  }
+}
+
+/* Expose the variables as Tailwind colours: bg-primary, text-muted-foreground,
+   border-border, ring-ring, bg-danger/10 ... `inline` makes utilities read the
+   variable at runtime, so overriding --primary restyles everything. */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-info: var(--info);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --color-danger-foreground: var(--danger-foreground);
+}
+
+@import "./components/alert/alert.css";
+@import "./components/badge/badge.css";
+@import "./components/button/button.css";
+@import "./components/card/card.css";
+@import "./components/code/code.css";
+@import "./components/dropdown/dropdown.css";
+@import "./components/sidebar/sidebar.css";
+@import "./components/table/table.css";
+@import "./components/tabs/tabs.css";
+@import "./components/text/text.css";
+
+/* htmx request indicator */
+.htmx-indicator {
+  opacity: 0;
+  transition: opacity 150ms ease-in;
+}
+.htmx-request .htmx-indicator,
+.htmx-request.htmx-indicator {
+  opacity: 1;
+}

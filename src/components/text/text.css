@@ -1,0 +1,113 @@
+/* Text.
+   Long-form content: wrap it in .prose (@tailwindcss/typography). The block
+   below maps prose onto htmx-ui's tokens, so it follows theming and dark mode
+   with no `dark:prose-invert`, and swaps the backtick-style inline code for a pill.
+   Single elements in UI chrome (a page title, a muted hint) use the helper
+   classes further down instead. */
+
+@utility prose {
+  --tw-prose-body: var(--foreground);
+  --tw-prose-headings: var(--foreground);
+  --tw-prose-lead: var(--muted-foreground);
+  --tw-prose-links: var(--primary);
+  --tw-prose-bold: var(--foreground);
+  --tw-prose-counters: var(--muted-foreground);
+  --tw-prose-bullets: var(--muted-foreground);
+  --tw-prose-hr: var(--border);
+  --tw-prose-quotes: var(--foreground);
+  --tw-prose-quote-borders: var(--border);
+  --tw-prose-captions: var(--muted-foreground);
+  --tw-prose-kbd: var(--foreground);
+  --tw-prose-kbd-shadows: color-mix(in oklab, var(--foreground) 15%, transparent);
+  --tw-prose-code: var(--foreground);
+  --tw-prose-pre-code: var(--code-foreground);
+  --tw-prose-pre-bg: var(--code-background);
+  --tw-prose-th-borders: var(--border);
+  --tw-prose-td-borders: var(--border);
+
+  /* Inline code as a pill instead of `backticks` */
+  & :where(code):not(:where([class~="not-prose"], [class~="not-prose"] *, pre *)) {
+    border-radius: calc(var(--radius) - 2px);
+    background-color: var(--muted);
+    padding: 0.15em 0.4em;
+    font-size: 0.875em;
+    font-weight: 500;
+  }
+  & :where(code):not(:where([class~="not-prose"], [class~="not-prose"] *, pre *))::before,
+  & :where(code):not(:where([class~="not-prose"], [class~="not-prose"] *, pre *))::after {
+    content: none;
+  }
+
+  /* Quieter underline that firms up on hover */
+  & :where(a):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
+    font-weight: 500;
+    text-decoration-color: color-mix(in oklab, var(--primary) 35%, transparent);
+    text-underline-offset: 4px;
+  }
+  & :where(a):not(:where([class~="not-prose"], [class~="not-prose"] *)):hover {
+    text-decoration-color: currentColor;
+  }
+
+  /* Keep linked headings clear of a sticky header */
+  & :where(h1, h2, h3, h4):not(:where([class~="not-prose"], [class~="not-prose"] *)) {
+    scroll-margin-top: 5rem;
+  }
+
+  /* Heading "#" links (.heading-anchor) stay quiet inside prose too */
+  & :where(.heading-anchor) {
+    color: var(--muted-foreground);
+    font-weight: 400;
+    text-decoration: none;
+  }
+
+  /* Components dropped into prose (alerts, code blocks, tables) opt out with
+     .not-prose; give them the same vertical rhythm as paragraphs. */
+  & > :where([class~="not-prose"]) {
+    margin-top: 1.5em;
+    margin-bottom: 1.5em;
+  }
+}
+
+@layer components {
+  .h1 {
+    @apply text-4xl font-bold tracking-tight text-balance sm:text-5xl;
+  }
+  .h2 {
+    @apply text-3xl font-semibold tracking-tight;
+  }
+  .h3 {
+    @apply text-2xl font-semibold tracking-tight;
+  }
+  .h4 {
+    @apply text-lg font-semibold tracking-tight;
+  }
+  .lead {
+    @apply text-lg text-pretty text-muted-foreground sm:text-xl;
+  }
+  .muted {
+    @apply text-sm text-muted-foreground;
+  }
+  .eyebrow {
+    @apply text-sm font-medium text-primary;
+  }
+  .link {
+    @apply font-medium text-primary underline decoration-primary/30 underline-offset-4 hover:decoration-primary;
+  }
+  .code {
+    @apply rounded-md bg-muted px-1.5 py-0.5 font-mono text-[0.875em];
+  }
+  /* "#" link inside a heading: <h2 id="x">Title<a class="heading-anchor" href="#x">#</a></h2>.
+     Hidden until the heading is hovered or the link is focused. */
+  .heading-anchor {
+    @apply ml-2 font-normal text-muted-foreground no-underline opacity-0 transition-opacity hover:text-primary
+      focus-visible:opacity-100;
+  }
+  :where(h1, h2, h3, h4, h5, h6):hover > .heading-anchor {
+    @apply opacity-100;
+  }
+
+  .kbd {
+    @apply inline-flex h-5 min-w-5 items-center justify-center rounded border border-border bg-muted px-1 font-mono
+      text-[0.75rem] text-muted-foreground shadow-[0_1px_0_var(--border)];
+  }
+}

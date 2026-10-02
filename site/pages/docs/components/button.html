@@ -1,0 +1,90 @@
+{% extends "layouts/docs.html" %}
+{% from "components/icon/icon.html" import icon %}
+{% from "components/alert/alert.html" import alert %}
+{% from "macros/docs.html" import demo, classes %}
+{% set title = "Button" %}
+{% set description = "Triggers an action or an htmx request. Works on <button>, <a> and <input type=\"submit\">." %}
+
+{% block content %}
+  {% call demo() %}
+    <button class="btn btn-primary">Save changes</button>
+  {% endcall %}
+
+  <h2 id="variants">Variants</h2>
+  <p>Combine <code>.btn</code> with one variant class.</p>
+  {% call demo() %}
+    <button class="btn btn-primary">Primary</button>
+    <button class="btn btn-secondary">Secondary</button>
+    <button class="btn btn-outline">Outline</button>
+    <button class="btn btn-ghost">Ghost</button>
+    <button class="btn btn-danger">Danger</button>
+    <button class="btn btn-link">Link</button>
+  {% endcall %}
+
+  <h2 id="sizes">Sizes</h2>
+  {% call demo() %}
+    <button class="btn btn-primary btn-sm">Small</button>
+    <button class="btn btn-primary">Default</button>
+    <button class="btn btn-primary btn-lg">Large</button>
+  {% endcall %}
+
+  <h2 id="icons">With icons</h2>
+  <p>Inline SVGs are sized to 16px automatically. Use <code>.btn-icon</code> for square, icon-only buttons and give them an <code>aria-label</code>.</p>
+  {% call demo() %}
+    <button class="btn btn-primary">{{ icon("download") }} Download</button>
+    <button class="btn btn-outline">Next {{ icon("arrow-right") }}</button>
+    <button class="btn btn-outline btn-icon" aria-label="Add">{{ icon("plus") }}</button>
+    <button class="btn btn-ghost btn-icon btn-sm" aria-label="Delete">{{ icon("trash") }}</button>
+  {% endcall %}
+
+  <h2 id="links">As a link</h2>
+  {% call demo() %}
+    <a href="/docs/installation" class="btn btn-secondary">Read the guide</a>
+  {% endcall %}
+
+  <h2 id="disabled">Disabled</h2>
+  <p>Use the <code>disabled</code> attribute on buttons, or <code>aria-disabled="true"</code> on links.</p>
+  {% call demo() %}
+    <button class="btn btn-primary" disabled>Disabled</button>
+    <a class="btn btn-outline" aria-disabled="true">Disabled link</a>
+  {% endcall %}
+
+  <h2 id="loading">Loading with htmx</h2>
+  <p>
+    Put an <code>.htmx-indicator</code> inside the button. htmx adds <code>.htmx-request</code> while
+    the request is in flight, which reveals it. <code>hx-disabled-elt="this"</code> prevents double submits.
+  </p>
+  {% call demo() %}
+    <button class="btn btn-primary" hx-post="/api/slow" hx-target="next .result" hx-disabled-elt="this">
+      <span class="htmx-indicator">{{ icon("loader", "animate-spin") }}</span>
+      Save
+    </button>
+    <span class="result muted"></span>
+  {% endcall %}
+  {% call alert(variant="info") %}
+    The <code class="code">/api/slow</code> endpoint is a mock that only exists under <code class="code">bun run dev</code>.
+  {% endcall %}
+
+  <h2 id="group">Button group</h2>
+  {% call demo() %}
+    <div class="btn-group" role="group" aria-label="View">
+      <button class="btn btn-outline">Day</button>
+      <button class="btn btn-outline">Week</button>
+      <button class="btn btn-outline">Month</button>
+    </div>
+  {% endcall %}
+
+  <h2 id="reference">Reference</h2>
+  {{ classes([
+    [".btn", "Base class. Required on every button."],
+    [".btn-primary", "Solid brand colour, for the main action."],
+    [".btn-secondary", "Muted fill, for secondary actions."],
+    [".btn-outline", "Bordered, transparent background."],
+    [".btn-ghost", "No border or fill until hovered."],
+    [".btn-danger", "Destructive actions."],
+    [".btn-link", "Looks like a text link, keeps button semantics."],
+    [".btn-sm / .btn-lg", "Smaller (32px) or larger (44px) than the default 36px."],
+    [".btn-icon", "Square button for a single icon. Combine with .btn-sm."],
+    [".btn-group", "Wrapper that joins adjacent buttons."]
+  ]) }}
+{% endblock %}

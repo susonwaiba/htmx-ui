@@ -1,0 +1,88 @@
+{% extends "layouts/docs.html" %}
+{% from "components/icon/icon.html" import icon %}
+{% from "components/code/code.html" import code %}
+{% from "components/alert/alert.html" import alert %}
+{% from "macros/docs.html" import demo %}
+{% set title = "Introduction" %}
+{% set description = "HTMX UI is a set of Tailwind CSS components for apps where the server renders HTML and htmx swaps it into the page." %}
+
+{% set start = [
+  { icon: "download", title: "Installation", href: "/docs/installation", text: "Add the package to a new or existing Bun project." },
+  { icon: "palette", title: "Theming", href: "/docs/theming", text: "Override design tokens or build a custom theme." },
+  { icon: "moon", title: "Dark mode", href: "/docs/dark-mode", text: "How dark mode works and how to add a switcher." },
+  { icon: "box", title: "Components", href: "/docs/components", text: "Browse every component with live examples." }
+] %}
+
+{% block content %}
+  <div class="not-prose grid gap-4 sm:grid-cols-2">
+    {% for s in start %}
+      <a href="{{ s.href }}" class="card card-link">
+        <div class="card-header pb-6">
+          <span class="mb-2 grid size-9 place-items-center rounded-(--radius) bg-primary/10 text-primary">{{ icon(s.icon) }}</span>
+          <h2 class="card-title">{{ s.title }}</h2>
+          <p class="card-description">{{ s.text }}</p>
+        </div>
+      </a>
+    {% endfor %}
+  </div>
+
+  <h2 id="what">What it is</h2>
+  <p>
+    Most component libraries assume a JavaScript framework owns the page. HTMX UI assumes the
+    opposite: your server returns HTML, htmx swaps it in, and components need to look right and keep
+    working when they arrive inside a fragment.
+  </p>
+  <p>So every component is:</p>
+  <ul>
+    <li><strong>Markup and classes.</strong> A button is <code>&lt;button class="btn btn-primary"&gt;</code>. Any server language can render it.</li>
+    <li><strong>Styled with Tailwind v4.</strong> Component classes live in <code>@layer components</code>, so a utility class on the same element always wins.</li>
+    <li><strong>Themed with CSS variables.</strong> Colours and radius are variables like <code>--primary</code> and <code>--radius</code>, exposed to Tailwind as <code>bg-primary</code>, <code>text-muted-foreground</code> and so on.</li>
+    <li><strong>Behaviour only where needed.</strong> Things like copy buttons and the mobile sidebar are tiny TypeScript modules that re-run after every htmx swap.</li>
+  </ul>
+
+  <h2 id="example">A quick look</h2>
+  <p>Components compose like plain HTML. This card uses the card, badge and button components together:</p>
+  {% call demo() %}
+    <div class="card w-full max-w-sm">
+      <div class="card-header pb-6">
+        <div class="flex items-center justify-between">
+          <h3 class="card-title">Deploy preview</h3>
+          <span class="badge badge-success badge-dot">Ready</span>
+        </div>
+        <p class="card-description">Built from main in 42 seconds.</p>
+      </div>
+      <div class="card-footer pt-6">
+        <button class="btn btn-primary btn-sm">Open preview</button>
+        <button class="btn btn-ghost btn-sm">View logs</button>
+      </div>
+    </div>
+  {% endcall %}
+
+  <h2 id="htmx">Working with htmx</h2>
+  <p>
+    The entry script calls <code>initComponents(document)</code> once the page loads, and again with
+    each newly inserted element on the <code>htmx:after:process</code> event. Each initialiser only touches
+    elements it hasn't seen yet (it marks them with <code>data-init</code>), so a fragment's
+    components come alive without anything running twice.
+  </p>
+  {% call code("ts", title="app.ts") %}
+    import "htmx.org";
+    import { initComponents } from "htmx-ui";
+
+    document.addEventListener("DOMContentLoaded", () => initComponents(document));
+    document.addEventListener("htmx:after:process", (e) => initComponents(e.target ?? document));
+  {% endcall %}
+
+  {% call alert("Why not htmx:after:swap?", variant="info") %}
+    In htmx 4, <code class="code">htmx:after:swap</code> is dispatched on the element that made the request, so its target is not the new content.
+    <code class="code">htmx:after:process</code> fires on each element htmx inserts, which is exactly what needs initialising.
+  {% endcall %}
+
+  <h2 id="stack">What it's built on</h2>
+  <ul>
+    <li><a href="https://htmx.org">htmx 4</a> for requests and swaps.</li>
+    <li><a href="https://tailwindcss.com">Tailwind CSS v4</a> for styling and tokens.</li>
+    <li><a href="https://bun.sh">Bun</a> for bundling, the dev server and tests.</li>
+    <li><a href="https://mozilla.github.io/nunjucks/">Nunjucks</a> macros (optional) for less repetitive markup.</li>
+  </ul>
+{% endblock %}

@@ -1,0 +1,67 @@
+{% extends "layouts/docs.html" %}
+{% from "components/icon/icon.html" import icon %}
+{% from "components/code/code.html" import code %}
+{% set title = "Versions" %}
+{% set description = "Docs for every release stay online. Use the version switcher at the top of the sidebar, or the links below." %}
+{% set all = json("data/versions.json") %}
+
+{% block content %}
+  <div class="table-wrap not-prose">
+    <table class="table">
+      <thead><tr><th>Version</th><th>Released</th><th>Status</th><th class="text-right">Docs</th></tr></thead>
+      <tbody>
+        {% for v in all.versions %}
+          {% set path = "/docs" if v.id == all.latest else "/docs/v" + v.id %}
+          <tr>
+            <td class="font-mono font-medium">{{ v.label }}</td>
+            <td class="text-muted-foreground">{{ v.released or "Unreleased" }}</td>
+            <td>
+              {% if v.id == all.latest %}<span class="badge badge-primary">Latest</span>
+              {% else %}<span class="badge badge-secondary">Archived</span>{% endif %}
+            </td>
+            <td class="text-right"><a class="link" href="{{ path }}" data-version-link>{{ path }}</a></td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <h2 id="urls">URLs</h2>
+  <p>The latest docs live at <code>/docs</code>. Each older version keeps its own copy under <code>/docs/v&lt;version&gt;</code>:</p>
+  {% call code("text") %}
+    /docs/components/button          latest
+    /docs/v0.1/components/button     v0.1
+    /docs/v0.1/components/button.md  v0.1 as Markdown
+  {% endcall %}
+  <p>
+    Older versions are frozen exactly as they were published, including their styles and scripts, so their
+    examples keep working after later releases change the components. They show a notice linking to the
+    same page in the latest version, and ask search engines not to index them.
+  </p>
+
+  <h2 id="switching">Switching versions</h2>
+  <p>
+    The switcher keeps you on the same page when it exists in the version you pick, and goes to that
+    version's introduction otherwise. Older versions list newer releases too, because the list is read
+    from <a href="/docs/versions.json" data-version-link>/docs/versions.json</a> when the page loads.
+  </p>
+
+  <h2 id="policy">Versioning policy</h2>
+  <ul>
+    <li>Releases follow <a href="https://semver.org">semantic versioning</a>. Docs are versioned per minor release (0.1, 0.2, …) before 1.0, and per major release after.</li>
+    <li>Patch releases update the docs of their version in place.</li>
+    <li>Every release's changes and migration notes are in the <a href="/docs/changelog">changelog</a>.</li>
+  </ul>
+
+  <h2 id="agents">For tools and agents</h2>
+  <p><a href="/docs/versions.json" data-version-link>/docs/versions.json</a> lists every version with its URL prefix, its own sitemap (with section text, for search) and the pages it contains:</p>
+  {% call code("json", title="/docs/versions.json") %}
+    {
+      "latest": "0.2",
+      "versions": [
+        { "id": "0.2", "label": "v0.2", "path": "/docs", "latest": true, "sitemap": "/docs/sitemap.json", "pages": ["", "/installation", "…"] },
+        { "id": "0.1", "label": "v0.1", "path": "/docs/v0.1", "latest": false, "sitemap": "/docs/v0.1/sitemap.json", "pages": ["", "…"] }
+      ]
+    }
+  {% endcall %}
+{% endblock %}

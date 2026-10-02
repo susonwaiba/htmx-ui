@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{% block title %}HTMX UI{% endblock %}</title>
+    {% block head %}{% endblock %}
+    <script>
+      // Apply the stored theme before first paint to avoid a flash of the wrong
+      // colors. Kept inline and tiny on purpose; src/theme.ts takes over
+      // once app.ts loads.
+      (() => {
+        const stored = localStorage.getItem("theme");
+        const dark = stored ? stored === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+        document.documentElement.classList.toggle("dark", dark);
+      })();
+    </script>
+    <script type="module" src="{{ asset('app.ts') }}"></script>
+  </head>
+  <body class="min-h-dvh bg-background text-foreground antialiased">
+    {% block body %}{% endblock %}
+  </body>
+</html>

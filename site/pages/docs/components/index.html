@@ -1,0 +1,33 @@
+{% extends "layouts/docs.html" %}
+{% from "components/icon/icon.html" import icon %}
+{% set sections = json("data/docs-nav.json").sections %}
+{% set title = "Components" %}
+{% set description = "Every component is a set of CSS classes, plus a small behaviour where one is needed. Pick one to see live examples and the full class reference." %}
+
+{% block content %}
+  <div class="not-prose grid gap-4 sm:grid-cols-2">
+    {% for group in sections %}
+      {% for item in group.items %}
+        {% if item.component %}
+          <a href="{{ item.href }}" class="card card-link group">
+            <div class="card-header pb-6">
+              <div class="flex items-center justify-between">
+                <h2 class="card-title">{{ item.title }}</h2>
+                <span class="text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary">{{ icon("arrow-right") }}</span>
+              </div>
+              <p class="card-description">{{ item.description }}</p>
+            </div>
+          </a>
+        {% endif %}
+      {% endfor %}
+    {% endfor %}
+  </div>
+
+  <h2 id="anatomy">Anatomy of a component</h2>
+  <p>Each component has its own directory, <code>src/components/&lt;name&gt;/</code> (<code>htmx-ui/components/&lt;name&gt;/</code> in the package), holding:</p>
+  <ul>
+    <li><code>&lt;name&gt;.css</code>: classes in <code>@layer components</code>, built from token utilities with <code>@apply</code>.</li>
+    <li><code>&lt;name&gt;.ts</code> (optional): an <code>init&lt;Name&gt;(root)</code> function that wires up <code>[data-&lt;name&gt;]</code> elements once each, with <code>&lt;name&gt;.test.ts</code> beside it.</li>
+    <li><code>&lt;name&gt;.html</code> (optional): a Nunjucks macro for markup that is tedious to write by hand.</li>
+  </ul>
+{% endblock %}

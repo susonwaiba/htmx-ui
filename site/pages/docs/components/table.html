@@ -1,0 +1,68 @@
+{% extends "layouts/docs.html" %}
+{% from "macros/docs.html" import demo, classes %}
+{% set title = "Table" %}
+{% set description = "Readable data tables with a bordered, horizontally scrollable wrapper." %}
+
+{% set invoices = [
+  ["INV-001", "Paid", "Credit card", "$250.00"],
+  ["INV-002", "Pending", "Bank transfer", "$150.00"],
+  ["INV-003", "Overdue", "Credit card", "$350.00"],
+  ["INV-004", "Paid", "PayPal", "$450.00"]
+] %}
+{% set status = { "Paid": "success", "Pending": "warning", "Overdue": "danger" } %}
+
+{% block content %}
+  {% call demo("block p-4 sm:p-6") %}
+    <div class="table-wrap">
+      <table class="table table-hover">
+        <caption>Recent invoices</caption>
+        <thead>
+          <tr><th>Invoice</th><th>Status</th><th>Method</th><th class="text-right">Amount</th></tr>
+        </thead>
+        <tbody>
+          {% for row in invoices %}
+          <tr>
+            <td class="font-medium">{{ row[0] }}</td>
+            <td><span class="badge badge-{{ status[row[1]] }}">{{ row[1] }}</span></td>
+            <td>{{ row[2] }}</td>
+            <td class="text-right tabular-nums">{{ row[3] }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% endcall %}
+
+  <h2 id="usage">Usage</h2>
+  <ul>
+    <li>Wrap the table in <code>.table-wrap</code> for the border, rounded corners and horizontal scrolling on narrow screens.</li>
+    <li>Add <code>.table-hover</code> to highlight rows under the pointer.</li>
+    <li>Align numbers with <code>text-right tabular-nums</code>.</li>
+    <li>A <code>&lt;caption&gt;</code> renders below the table as muted text.</li>
+  </ul>
+
+  <h2 id="htmx">Rows from the server</h2>
+  <p>
+    Have the server return <code>&lt;tr&gt;</code> fragments and append them to the
+    <code>&lt;tbody&gt;</code> with <code>hx-swap="beforeend"</code>. Badges in the new rows are plain
+    classes, so they need no initialisation.
+  </p>
+  {% call demo("block p-4 sm:p-6") %}
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>Invoice</th><th>Status</th><th class="text-right">Amount</th></tr></thead>
+        <tbody id="invoice-rows">
+          <tr><td class="font-medium">INV-001</td><td><span class="badge badge-success">Paid</span></td><td class="text-right tabular-nums">$250.00</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <button class="btn btn-outline btn-sm mt-4" hx-get="/api/invoices" hx-target="#invoice-rows" hx-swap="beforeend">Load more</button>
+  {% endcall %}
+
+  <h2 id="reference">Reference</h2>
+  {{ classes([
+    [".table-wrap", "Bordered, rounded, horizontally scrollable wrapper."],
+    [".table", "Base table styles: header row, cell padding, row dividers."],
+    [".table-hover", "Highlights the row under the pointer."]
+  ]) }}
+{% endblock %}

@@ -1,0 +1,208 @@
+{% extends "layouts/docs.html" %}
+{% from "components/code/code.html" import code %}
+{% from "components/alert/alert.html" import alert %}
+{% set title = "Theming" %}
+{% set description = "Every colour and corner in HTMX UI comes from a CSS variable. Override the variables to restyle the whole library; scope them to restyle part of a page." %}
+
+{% set tokens = [
+  ["--background", "bg-background", "Page background", "white", "zinc-950"],
+  ["--foreground", "text-foreground", "Default text", "zinc-950", "zinc-50"],
+  ["--surface", "bg-surface", "Cards, alerts, raised panels", "white", "zinc-900"],
+  ["--muted", "bg-muted", "Subtle fills: code, table heads", "zinc-100", "zinc-800"],
+  ["--muted-foreground", "text-muted-foreground", "Secondary text", "zinc-500", "zinc-400"],
+  ["--accent", "bg-accent", "Hover and selected backgrounds", "zinc-100", "zinc-800"],
+  ["--accent-foreground", "text-accent-foreground", "Text on accent", "zinc-900", "zinc-50"],
+  ["--border", "border-border", "Borders and dividers (the default border colour)", "zinc-200", "zinc-800"],
+  ["--ring", "outline-ring", "Focus rings", "indigo-500", "indigo-400"],
+  ["--primary", "bg-primary", "Brand colour: primary buttons, links", "indigo-600", "indigo-500"],
+  ["--primary-foreground", "text-primary-foreground", "Text on primary", "white", "white"],
+  ["--secondary", "bg-secondary", "Secondary buttons and badges", "zinc-100", "zinc-800"],
+  ["--secondary-foreground", "text-secondary-foreground", "Text on secondary", "zinc-900", "zinc-50"],
+  ["--info", "text-info", "Info alerts and badges", "sky-600", "sky-400"],
+  ["--success", "text-success", "Success alerts and badges", "emerald-600", "emerald-400"],
+  ["--warning", "text-warning", "Warning alerts and badges", "amber-600", "amber-400"],
+  ["--danger", "bg-danger", "Destructive buttons, error alerts", "red-600", "red-500"],
+  ["--danger-foreground", "text-danger-foreground", "Text on danger", "white", "white"],
+  ["--scrollbar-thumb", "(scrollbars)", "Scrollbar thumb; every scrollbar is thin with a transparent track", "foreground at 16%", "foreground at 16%"],
+  ["--scrollbar-thumb-hover", "(scrollbars)", "Scrollbar thumb while hovering the scroll area", "foreground at 32%", "foreground at 32%"]
+] %}
+
+{% block content %}
+  <h2 id="how-it-works">How it works</h2>
+  <p>Theming happens in two layers, both in <code>htmx-ui/styles.css</code>:</p>
+  <ol>
+    <li><strong>Variables.</strong> Plain custom properties on <code>:root</code> hold the actual values, with a second set under <code>:root.dark</code>.</li>
+    <li><strong>Tailwind colours.</strong> A <code>@theme inline</code> block maps each variable to a Tailwind colour, so <code>--primary</code> becomes <code>bg-primary</code>, <code>text-primary</code>, <code>border-primary/30</code> and so on.</li>
+  </ol>
+  {% call code("css", title="htmx-ui/styles.css (excerpt)") %}
+    :root {
+      --radius: 0.5rem;
+      --primary: var(--color-indigo-600);
+      --primary-foreground: var(--color-white);
+      /* … */
+    }
+
+    :root.dark {
+      --primary: var(--color-indigo-500);
+      /* … */
+    }
+
+    @theme inline {
+      --color-primary: var(--primary);
+      --color-primary-foreground: var(--primary-foreground);
+      /* … */
+    }
+  {% endcall %}
+  <p>
+    Because the mapping is <code>inline</code>, the generated utilities read the variable at runtime:
+    <code>.bg-primary</code> compiles to <code>background-color: var(--primary)</code>. Change the variable
+    anywhere (globally, under <code>.dark</code>, or on one element) and everything using it updates. No rebuild needed.
+  </p>
+
+  <h2 id="tokens">Tokens</h2>
+  <p>Components only use these tokens. Swatches show the current theme; toggle dark mode in the header to compare.</p>
+  <div class="table-wrap not-prose">
+    <table class="table table-hover">
+      <thead><tr><th>Variable</th><th>Utility</th><th class="hidden md:table-cell">Used for</th><th>Light</th><th>Dark</th></tr></thead>
+      <tbody>
+        {% for t in tokens %}
+          <tr>
+            <td class="whitespace-nowrap">
+              <span class="inline-flex items-center gap-2">
+                <span class="size-4 shrink-0 rounded border border-border" style="background: var({{ t[0] }})"></span>
+                <code class="code">{{ t[0] }}</code>
+              </span>
+            </td>
+            <td class="whitespace-nowrap"><code class="code">{{ t[1] }}</code></td>
+            <td class="hidden text-muted-foreground md:table-cell">{{ t[2] }}</td>
+            <td class="whitespace-nowrap text-muted-foreground">{{ t[3] }}</td>
+            <td class="whitespace-nowrap text-muted-foreground">{{ t[4] }}</td>
+          </tr>
+        {% endfor %}
+        <tr>
+          <td><code class="code">--radius</code></td>
+          <td class="whitespace-nowrap"><code class="code">rounded-(--radius)</code></td>
+          <td class="hidden text-muted-foreground md:table-cell">Corner radius for buttons, inputs, alerts; cards add 4px</td>
+          <td class="text-muted-foreground">0.5rem</td>
+          <td class="text-muted-foreground">0.5rem</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Values are Tailwind palette colours, for example <code>var(--color-indigo-600)</code>. Any CSS colour works: hex, <code>rgb()</code>, <code>oklch()</code>.</p>
+
+  <h2 id="override">Overriding tokens</h2>
+  <p>Redefine variables after importing the library. Set both the light and dark values for anything that should differ between them.</p>
+  {% call code("css", title="src/styles.css") %}
+    @import "tailwindcss";
+    @import "htmx-ui/styles.css";
+
+    :root {
+      --primary: oklch(0.6 0.2 30);          /* coral */
+      --primary-foreground: white;
+      --radius: 0.75rem;
+    }
+
+    :root.dark {
+      --primary: oklch(0.7 0.17 30);
+    }
+  {% endcall %}
+
+  {% call alert("Selector specificity", variant="info") %}
+    The library declares its tokens on <code class="code">:root</code> and <code class="code">:root.dark</code> inside <code class="code">@layer base</code>.
+    Unlayered CSS beats layered CSS, so overrides written outside any layer (as above) always win, whatever the import order.
+  {% endcall %}
+
+  <h2 id="custom-themes">Custom themes</h2>
+  <p>
+    A theme is just a selector that redefines tokens. Scope one to an attribute and you can apply it to
+    a whole page or a single section. These previews use the same markup, with a different
+    <code>data-theme</code> on each wrapper:
+  </p>
+  <div class="demo not-prose grid gap-4 sm:grid-cols-3">
+    {% for theme in [none, "rose", "emerald"] %}
+      <div {% if theme %}data-theme="{{ theme }}" {% endif %}class="card">
+        <div class="card-header">
+          <div class="flex items-center justify-between">
+            <h3 class="card-title capitalize">{{ theme or "default" }}</h3>
+            <span class="badge badge-primary">Pro</span>
+          </div>
+          <p class="card-description">Same markup, different tokens.</p>
+        </div>
+        <div class="card-footer pt-6">
+          <button class="btn btn-primary btn-sm">Upgrade</button>
+          <button class="btn btn-outline btn-sm">Later</button>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+  {% call code("css", title="src/styles.css") %}
+    [data-theme="rose"] {
+      --primary: var(--color-rose-600);
+      --ring: var(--color-rose-500);
+      --radius: 1rem;
+    }
+    .dark [data-theme="rose"] {
+      --primary: var(--color-rose-500);
+    }
+  {% endcall %}
+  {% call code("html") %}
+    <!-- Whole page -->
+    <html data-theme="rose">
+
+    <!-- Or one section -->
+    <section data-theme="rose">…</section>
+  {% endcall %}
+
+  <h2 id="scrollbars">Scrollbars</h2>
+  <p>
+    The library styles every scrollbar to match: thin, with a transparent track and a thumb tinted from
+    <code>--foreground</code>, so it blends into any theme and follows dark mode. Browsers without
+    <code>scrollbar-color</code> (Safari) get the same look through <code>::-webkit-scrollbar</code>.
+  </p>
+  {% call code("css", title="src/styles.css") %}
+    :root {
+      --scrollbar-thumb: color-mix(in oklab, var(--primary) 30%, transparent);
+    }
+
+    /* Native scrollbars for one element */
+    .native-scrollbars { scrollbar-color: auto; scrollbar-width: auto; }
+  {% endcall %}
+
+  <h2 id="new-tokens">Adding your own tokens</h2>
+  <p>Follow the same two steps to add a colour that Tailwind utilities can use:</p>
+  {% call code("css", title="src/styles.css") %}
+    :root      { --brand-gradient-from: var(--color-fuchsia-500); }
+    :root.dark { --brand-gradient-from: var(--color-fuchsia-400); }
+
+    @theme inline {
+      --color-brand-from: var(--brand-gradient-from);
+    }
+  {% endcall %}
+  <p>Now <code>from-brand-from</code>, <code>text-brand-from</code> and the rest are available, and they follow dark mode.</p>
+
+  <h2 id="components">Customising components</h2>
+  <p>Component classes live in <code>@layer components</code>, which sits below utilities. You can restyle them two ways:</p>
+  <ul>
+    <li><strong>One element:</strong> add utilities. <code>&lt;button class="btn btn-primary rounded-full px-8"&gt;</code> gets a pill shape because utilities win.</li>
+    <li><strong>Everywhere:</strong> extend the class in your own <code>@layer components</code> block.</li>
+  </ul>
+  {% call code("css", title="src/styles.css") %}
+    @layer components {
+      .btn {
+        @apply font-semibold tracking-tight;
+      }
+      .card {
+        @apply shadow-md;
+      }
+    }
+  {% endcall %}
+
+  <h2 id="in-your-markup">Using tokens in your own markup</h2>
+  <p>Use the token utilities instead of raw palette colours, and your own UI themes and switches modes with the library:</p>
+  {% call code("html") %}
+    <aside class="rounded-(--radius) border border-border bg-surface p-4 text-muted-foreground">
+      Follows the theme and dark mode automatically.
+    </aside>
+  {% endcall %}
+{% endblock %}

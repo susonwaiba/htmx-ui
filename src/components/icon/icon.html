@@ -1,0 +1,20 @@
+{# Icons from src/icons/<name>.svg (24×24, stroke = currentColor).
+   {% from "components/icon/icon.html" import icon %}
+   {{ icon("sun") }}                         inlined <svg>, sized by class, inherits text colour
+   {{ icon("menu", "size-5") }}
+   {{ icon("info", label="Information") }}   meaningful icon: role="img" + aria-label
+   {{ icon("sun", mode="img") }}             <img> instead of inlining; Bun copies + hashes the file
+   A missing file fails the build. Any other SVG: {{ svg("logo.svg", {class: "h-6"}) }}. #}
+
+{% macro icon(name, class="size-4", mode="inline", label=none) %}
+{% if mode == "img" %}
+<img src="{{ asset('icons/' + name + '.svg') }}" class="{{ class }} dark:invert" width="24" height="24" alt="{{ label or '' }}"{% if not label %} aria-hidden="true"{% endif %} />
+{%- else %}
+{{ svg("icons/" + name + ".svg", {
+  class: class,
+  "aria-hidden": none if label else "true",
+  "aria-label": label,
+  role: "img" if label else none
+}) }}
+{%- endif %}
+{%- endmacro %}

@@ -1,0 +1,124 @@
+{% extends "layouts/docs.html" %}
+{% from "components/code/code.html" import code, code_block, code_tabs, cli %}
+{% from "macros/docs.html" import demo, classes %}
+{% set title = "Code block" %}
+{% set description = "Syntax-highlighted source with a copy button, file tabs, and package-manager tabs that remember the reader's choice. Every snippet in these docs uses it." %}
+
+{% block content %}
+  {% call code("ts", title="src/app.ts") %}
+    import { initComponents } from "htmx-ui";
+
+    // Wire up components inside content htmx inserts
+    document.addEventListener("htmx:after:process", (e) => {
+      initComponents((e.target as ParentNode) ?? document);
+    });
+  {% endcall %}
+
+  <h2 id="highlighting">Syntax highlighting</h2>
+  <p>
+    Code is highlighted <strong>at build time</strong> by <a href="https://shiki.style">Shiki</a>, so pages
+    ship coloured HTML and no highlighting JavaScript. Supported languages: <code>html</code>,
+    <code>css</code>, <code>ts</code>/<code>js</code>, <code>json</code>, <code>bash</code>,
+    <code>toml</code>, <code>md</code>, <code>xml</code>/<code>svg</code> and <code>jinja</code>
+    (Nunjucks). Anything else is shown escaped, uncoloured.
+  </p>
+  <p>
+    Colours are CSS variables, <code>--code-token-keyword</code>, <code>--code-token-string</code> and so on,
+    defined for light and dark next to the other <a href="/docs/theming">tokens</a>. Override them to
+    restyle every code block.
+  </p>
+  {% call code("css", title="src/styles.css") %}
+    :root {
+      --code-token-keyword: var(--color-fuchsia-600);
+      --code-token-string: var(--color-teal-700);
+    }
+  {% endcall %}
+
+  <h2 id="package-managers">Package-manager commands</h2>
+  <p>
+    Install commands come in npm, pnpm, yarn and bun flavours. Switch tabs here and every command
+    block on every page follows. The choice is saved in <code>localStorage</code> and restored on your
+    next visit.
+  </p>
+  {{ cli("add htmx-ui htmx.org
+add-dev tailwindcss") }}
+  <p>With the Nunjucks macro, write each line with an action and it's translated for each manager:</p>
+  {% call code("jinja", title="page.html") %}
+    {% raw %}{% from "components/code/code.html" import cli %}
+
+    {{ cli("add htmx-ui htmx.org
+    add-dev tailwindcss
+    run dev") }}{% endraw %}
+  {% endcall %}
+  {{ classes([
+    ["init", "npm init -y · pnpm init · yarn init -y · bun init -y"],
+    ["add", "npm install · pnpm add · yarn add · bun add"],
+    ["add-dev", "npm install -D · pnpm add -D · yarn add -D · bun add -d"],
+    ["run", "npm run · pnpm run · yarn run · bun run"],
+    ["exec", "npx · pnpm dlx · yarn dlx · bunx"],
+    ["create", "npm create · pnpm create · yarn create · bun create"],
+    ["anything else", "Shown unchanged on every tab, e.g. mkdir my-app && cd my-app"]
+  ], heading="Action") }}
+  <p>The commands live in <code>src/components/code/package-managers.json</code>; add a manager or change the default there.</p>
+
+  <h2 id="file-tabs">File tabs</h2>
+  <p>Show related files side by side:</p>
+  {% set html_src %}
+<button class="btn btn-primary" hx-post="/save">Save</button>
+  {% endset %}
+  {% set css_src %}
+@layer components {
+  .btn { @apply font-semibold; }
+}
+  {% endset %}
+  {{ code_tabs([
+    { id: "html", label: "index.html", lang: "html", source: html_src },
+    { id: "css", label: "styles.css", lang: "css", source: css_src }
+  ]) }}
+
+  <h2 id="markup">Markup</h2>
+  <p>
+    Add <code>data-code</code> to the block and <code>data-copy</code> to a button inside it. Clicking
+    the button copies the text of the visible <code>&lt;code&gt;</code>. Inside the button,
+    <code>.code-copy-idle</code> shows normally and <code>.code-copied</code> shows for 1.5 seconds after copying.
+  </p>
+  {% call demo("block p-4 sm:p-6") %}
+    <div class="code-block" data-code>
+      <div class="code-block-header">
+        <span class="font-mono">app.ts</span>
+        <button type="button" class="code-copy" data-copy>
+          <span class="code-copy-idle">Copy</span><span class="code-copied">Copied</span>
+        </button>
+      </div>
+      <pre><code>initComponents(document);</code></pre>
+    </div>
+  {% endcall %}
+  <p>
+    For tabs, put <code>data-tabs</code> on the block (plus <code>data-tabs-sync="key"</code> to sync),
+    <code>.code-tab</code> buttons with <code>data-tab</code> in the header, and one
+    <code>&lt;pre data-tab-panel&gt;</code> per tab. See <a href="/docs/components/tabs">Tabs</a>.
+  </p>
+
+  <h2 id="macros">Nunjucks macros</h2>
+  {% call code("jinja", title="page.html") %}
+    {% raw %}{% from "components/code/code.html" import code, code_block, code_tabs, cli %}
+
+    {% call code("html", title="index.html") %}
+      <button class="btn btn-primary">Save</button>
+    {% endcall %}
+
+    {{ code_block(some_string, "ts") }}
+    {{ code_tabs([{ id: "a", label: "a.ts", lang: "ts", source: a }], sync="files") }}{% endraw %}
+  {% endcall %}
+  <p>Bodies are de-indented and escaped. Wrap Nunjucks syntax in <code>&#123;% raw %&#125;</code> so it's shown, not run.</p>
+
+  <h2 id="reference">Reference</h2>
+  {{ classes([
+    [".code-block", "Container: border, code background and the <pre> inside."],
+    [".code-block-header", "Top bar for a file name, tabs and the copy button."],
+    [".code-copy", "Small copy button. Children .code-copy-idle / .code-copied swap after copying."],
+    [".code-tabs / .code-tab", "Tab strip inside the header."],
+    ["[data-code] + [data-copy]", "Behaviour: copies the visible <code> text."],
+    ["--code-background / --code-foreground / --code-token-*", "Highlighting colours (CSS variables)."]
+  ]) }}
+{% endblock %}
