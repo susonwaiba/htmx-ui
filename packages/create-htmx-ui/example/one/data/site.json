@@ -1,0 +1,8 @@
+{
+  "name": "My htmx-ui site",
+  "nav": [
+    { "title": "Home", "href": "/" },
+    { "title": "About", "href": "/about" },
+    { "title": "Contact", "href": "/contact" }
+  ]
+}

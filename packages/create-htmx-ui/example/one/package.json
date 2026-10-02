@@ -1,0 +1,19 @@
+{
+  "name": "one",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "htmx-ui dev",
+    "build": "htmx-ui build",
+    "preview": "htmx-ui preview"
+  },
+  "dependencies": {
+    "htmx-ui": "workspace:*",
+    "htmx.org": "^4.0.0"
+  },
+  "devDependencies": {
+    "bun-plugin-tailwind": "^0.1.2",
+    "htmx-ui-engine": "workspace:*",
+    "tailwindcss": "^4.3.3"
+  }
+}
