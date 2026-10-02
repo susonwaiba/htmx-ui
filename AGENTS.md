@@ -199,7 +199,7 @@ The functions and `url` are **globals**, so they work inside macros imported wit
 - **Public files** (`public/`, engine sites): link them root-absolute (`href="/favicon.svg"`). Bun's HTML bundler can't leave a local URL alone, so the Bun plugin points such links at the file in dev and at a placeholder origin (`PUBLIC_ORIGIN`) in builds, which `htmx-ui build` strips again.
 - Templates are not cached, so a re-render always reads current layouts/partials. In dev the engine watches the template roots and reloads open pages when a layout, partial, macro or data file changes (Bun: re-imports the pages and sends a server-sent event on `/__htmx-ui/reload`; Node: Vite full reload).
 - **Load order matters:** the htmx-ui plugin must precede the Tailwind plugin so Tailwind scans rendered markup. The engine does this; keep it that way in `bunfig()` and `build()`.
-- **Never let template syntax reach the output:** write literal Nunjucks in prose as `&#123;% … %&#125;`, not `{% raw %}` (which emits `{%`). Code blocks encode braces already.
+- **Never let template syntax reach the output:** write literal Nunjucks in prose as `&#123;% … %&#125;`, not `{% raw %}` (which emits `{%`). Code blocks encode braces already. `raw` resets indent to 0, so, open and close in new lines.
 
 ### 4.7. Agent & Search Outputs (`site/lib/site.ts`)
 Every docs page (route under `/docs`) is also published as Markdown for AI agents. Nothing is hand-written: `site/lib/markdown.ts` converts the rendered article body (`[data-docs-content]`).

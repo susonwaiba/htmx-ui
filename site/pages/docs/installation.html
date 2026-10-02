@@ -5,7 +5,7 @@
 {% set description = "Start a new HTMX UI site with one command, or add the components to an app that already uses Tailwind CSS v4 and htmx." %}
 
 {% block content %}
-  <p>Commands are shown for npm, pnpm, yarn and bun. Pick yours once; every command block on the site remembers the choice.</p>
+  <p>Commands are shown for bun, npm, pnpm and yarn. Pick yours once; every command block on the site remembers the choice.</p>
 
   <h2 id="packages">Packages</h2>
   <div class="table-wrap not-prose">
@@ -95,21 +95,21 @@ add-dev htmx-ui-engine tailwindcss") }}
   <p><code>asset()</code> makes the script path relative to whichever page is rendering, so the bundler finds it from any depth.</p>
   {% call code("jinja", title="layouts/base.html") %}
     {% raw %}<!doctype html>
-    <html lang="en">
-      <head>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>{% block title %}My site{% endblock %}</title>
-        <script type="module" src="{{ asset('app.ts') }}"></script>
-      </head>
-      <body class="bg-background text-foreground">
-        {% block content %}{% endblock %}
-      </body>
-    </html>{% endraw %}
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{% block title %}My site{% endblock %}</title>
+    <script type="module" src="{{ asset('app.ts') }}"></script>
+  </head>
+  <body class="bg-background text-foreground">
+    {% block content %}{% endblock %}
+  </body>
+</html>{% endraw %}
   {% endcall %}
   {% call code("jinja", title="pages/index.html") %}
     {% raw %}{% extends "layouts/base.html" %}
-    {% block content %}<button class="btn btn-primary">It works</button>{% endblock %}{% endraw %}
+{% block content %}<button class="btn btn-primary">It works</button>{% endblock %}{% endraw %}
   {% endcall %}
   {{ cli("run dev") }}
 

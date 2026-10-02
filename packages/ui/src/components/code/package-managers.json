@@ -1,9 +1,9 @@
 {
-  "default": "npm",
+  "default": "bun",
   "managers": [
+    { "id": "bun", "label": "bun", "init": "bun init -y", "install": "bun install", "add": "bun add", "add-dev": "bun add -d", "run": "bun run", "exec": "bunx", "create": "bun create" },
     { "id": "npm", "label": "npm", "init": "npm init -y", "install": "npm install", "add": "npm install", "add-dev": "npm install -D", "run": "npm run", "exec": "npx", "create": "npm create" },
     { "id": "pnpm", "label": "pnpm", "init": "pnpm init", "install": "pnpm install", "add": "pnpm add", "add-dev": "pnpm add -D", "run": "pnpm run", "exec": "pnpm dlx", "create": "pnpm create" },
-    { "id": "yarn", "label": "yarn", "init": "yarn init -y", "install": "yarn install", "add": "yarn add", "add-dev": "yarn add -D", "run": "yarn run", "exec": "yarn dlx", "create": "yarn create" },
-    { "id": "bun", "label": "bun", "init": "bun init -y", "install": "bun install", "add": "bun add", "add-dev": "bun add -d", "run": "bun run", "exec": "bunx", "create": "bun create" }
+    { "id": "yarn", "label": "yarn", "init": "yarn init -y", "install": "yarn install", "add": "yarn add", "add-dev": "yarn add -D", "run": "yarn run", "exec": "yarn dlx", "create": "yarn create" }
   ]
 }

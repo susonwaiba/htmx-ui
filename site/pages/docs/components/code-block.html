@@ -36,7 +36,7 @@
 
   <h2 id="package-managers">Package-manager commands</h2>
   <p>
-    Install commands come in npm, pnpm, yarn and bun flavours. Switch tabs here and every command
+    Install commands come in bun, npm, pnpm and yarn flavours. Switch tabs here and every command
     block on every page follows. The choice is saved in <code>localStorage</code> and restored on your
     next visit.
   </p>
@@ -45,10 +45,7 @@ add-dev tailwindcss") }}
   <p>With the Nunjucks macro, write each line with an action and it's translated for each manager:</p>
   {% call code("jinja", title="page.html") %}
     {% raw %}{% from "components/code/code.html" import cli %}
-
-    {{ cli("add htmx-ui htmx.org
-    add-dev tailwindcss
-    run dev") }}{% endraw %}
+{{ cli("add htmx-ui htmx.org add-dev tailwindcss run dev") }}{% endraw %}
   {% endcall %}
   {{ classes([
     ["init", "npm init -y · pnpm init · yarn init -y · bun init -y"],
@@ -104,12 +101,12 @@ add-dev tailwindcss") }}
   {% call code("jinja", title="page.html") %}
     {% raw %}{% from "components/code/code.html" import code, code_block, code_tabs, cli %}
 
-    {% call code("html", title="index.html") %}
-      <button class="btn btn-primary">Save</button>
-    {% endcall %}
+{% call code("html", title="index.html") %}
+  <button class="btn btn-primary">Save</button>
+{% endcall %}
 
-    {{ code_block(some_string, "ts") }}
-    {{ code_tabs([{ id: "a", label: "a.ts", lang: "ts", source: a }], sync="files") }}{% endraw %}
+{{ code_block(some_string, "ts") }}
+{{ code_tabs([{ id: "a", label: "a.ts", lang: "ts", source: a }], sync="files") }}{% endraw %}
   {% endcall %}
   <p>Bodies are de-indented and escaped. Wrap Nunjucks syntax in <code>&#123;% raw %&#125;</code> so it's shown, not run.</p>
 

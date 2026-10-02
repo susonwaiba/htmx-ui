@@ -27,13 +27,13 @@
   </p>
   {% call code("jinja", title="pages/pricing.html") %}
     {% raw %}{% extends "layouts/site.html" %}
-    {% from "components/alert/alert.html" import alert %}
+{% from "components/alert/alert.html" import alert %}
 
-    {% block title %}Pricing · HTMX UI{% endblock %}
+{% block title %}Pricing · HTMX UI{% endblock %}
 
-    {% block content %}
-      {% call alert("Launch offer", variant="success") %}20% off the first year.{% endcall %}
-    {% endblock %}{% endraw %}
+{% block content %}
+  {% call alert("Launch offer", variant="success") %}20% off the first year.{% endcall %}
+{% endblock %}{% endraw %}
   {% endcall %}
 
   <h2 id="json">JSON data</h2>

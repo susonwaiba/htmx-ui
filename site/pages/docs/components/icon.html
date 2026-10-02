@@ -23,9 +23,9 @@
   {% call code("jinja", title="page.html") %}
     {% raw %}{% from "components/icon/icon.html" import icon %}
 
-    {{ icon("sun") }}                            {# decorative: aria-hidden #}
-    {{ icon("info", "size-5", label="Note") }}   {# meaningful: role="img" + aria-label #}
-    {{ icon("sun", mode="img") }}                {# <img> pointing at a copy of the file #}{% endraw %}
+{{ icon("sun") }}                            {# decorative: aria-hidden #}
+{{ icon("info", "size-5", label="Note") }}   {# meaningful: role="img" + aria-label #}
+{{ icon("sun", mode="img") }}                {# <img> pointing at a copy of the file #}{% endraw %}
   {% endcall %}
 
   <h2 id="inline-vs-img">Inline or image</h2>

@@ -2,7 +2,7 @@
    build time and escaped; braces are encoded so output never contains template syntax.
 
    {% from "components/code/code.html" import code, code_block, code_tabs, cli %}
-   {% call code("ts", title="app.ts") %}…{% endcall %}      body as source; wrap Nunjucks syntax in {% raw %}
+   {% call code("ts", title="app.ts") %}…{% endcall %}      body as source; wrap Nunjucks syntax in {% raw %}, then new line without code prefix, prefix resets upto closing.
    {{ code_block(source, "html", title="index.html") }}      source from a string
    {{ code_tabs([{id: "html", label: "index.html", lang: "html", source: a}, …]) }}
    {{ cli("add htmx-ui htmx.org") }}                          one tab per package manager (components/code/package-managers.json)

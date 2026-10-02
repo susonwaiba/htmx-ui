@@ -11,6 +11,25 @@
         "typescript": "^5",
       },
     },
+    "packages/create-htmx-ui": {
+      "name": "create-htmx-ui",
+      "version": "0.1.0",
+      "bin": {
+        "create-htmx-ui": "./index.js",
+      },
+    },
+    "packages/create-htmx-ui/example/one": {
+      "name": "one",
+      "dependencies": {
+        "htmx-ui": "workspace:*",
+        "htmx.org": "^4.0.0",
+      },
+      "devDependencies": {
+        "bun-plugin-tailwind": "^0.1.2",
+        "htmx-ui-engine": "workspace:*",
+        "tailwindcss": "^4.3.3",
+      },
+    },
     "packages/engine": {
       "name": "htmx-ui-engine",
       "version": "0.1.0",
@@ -229,6 +248,8 @@
 
     "commander": ["commander@5.1.0", "", {}, "sha512-P0CysNDQ7rtVw4QIQtm+MRxV66vKFSvlsQvGYXZWR3qFU0jlMKHZZZgw8e+8DSah4UDKMqnknRDQz+xuQXQ/Zg=="],
 
+    "create-htmx-ui": ["create-htmx-ui@workspace:packages/create-htmx-ui"],
+
     "cssesc": ["cssesc@3.0.0", "", { "bin": { "cssesc": "bin/cssesc" } }, "sha512-/Tb/JcjK111nNScGob5MNtsntNM1aCNUDipB/TkwZFhyDrrE47SOx/18wF2bbjgc3ZzCSKW1T5nt5EbFoAz/Vg=="],
 
     "dequal": ["dequal@2.0.3", "", {}, "sha512-0je+qPKHEMohvfRTCEo3CrPG6cAzAYgmzKyxRiYSSDkS6eGJdyVJm7WaYA5ECaAD9wLB2T4EEeymA5aFVcYXCA=="],
@@ -306,6 +327,8 @@
     "nanoid": ["nanoid@3.3.19", "", { "bin": { "nanoid": "bin/nanoid.cjs" } }, "sha512-Y2tUNy4ouw6tq5oDSKeQYGOyhkUBhNOcGV/02KC+6kd9eDGqdZd++mjMiIDilrBYvjEnCYvVtsuHCuP+okSfug=="],
 
     "nunjucks": ["nunjucks@3.2.4", "", { "dependencies": { "a-sync-waterfall": "^1.0.0", "asap": "^2.0.3", "commander": "^5.1.0" }, "peerDependencies": { "chokidar": "^3.3.0" }, "optionalPeers": ["chokidar"], "bin": { "nunjucks-precompile": "bin/precompile" } }, "sha512-26XRV6BhkgK0VOxfbU5cQI+ICFUtMLixv1noZn1tGU38kQH5A5nmmbk/O45xdyBhD1esk47nKrY0mvQpZIhRjQ=="],
+
+    "one": ["one@workspace:packages/create-htmx-ui/example/one"],
 
     "oniguruma-parser": ["oniguruma-parser@0.12.2", "", {}, "sha512-6HVa5oIrgMC6aA6WF6XyyqbhRPJrKR02L20+2+zpDtO5QAzGHAUGw5TKQvwi5vctNnRHkJYmjAhRVQF2EKdTQw=="],
 

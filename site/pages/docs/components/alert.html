@@ -58,9 +58,9 @@
   {% call code("jinja", title="page.html") %}
     {% raw %}{% from "components/alert/alert.html" import alert %}
 
-    {% call alert("Deploy failed", variant="danger", dismissible=true) %}
-      The build exited with code 1.
-    {% endcall %}{% endraw %}
+{% call alert("Deploy failed", variant="danger", dismissible=true) %}
+  The build exited with code 1.
+{% endcall %}{% endraw %}
   {% endcall %}
 
   <h2 id="accessibility">Accessibility</h2>

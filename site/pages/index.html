@@ -36,7 +36,7 @@
         <a href="/docs/components" class="btn btn-outline btn-lg">Browse components</a>
       </div>
       <div class="mx-auto mt-12 max-w-md text-left">
-        {{ cli("add htmx-ui htmx.org") }}
+        {{ cli("create htmx-ui my-site") }}
       </div>
     </div>
   </section>
@@ -184,7 +184,7 @@
           <button class="btn btn-primary" hx-get="/api/hello" hx-target="#hello" hx-disable="this">
             {{ spinner(class="htmx-indicator", label=none) }} Load fragment
           </button>
-          <div id="hello" class="min-h-16"></div>
+          <div id="hello" class="min-h-32"></div>
         </div>
         <div class="card-footer">
           <p class="muted">Mock endpoints only run under <code class="code">bun run dev</code>.</p>

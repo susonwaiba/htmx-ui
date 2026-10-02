@@ -66,7 +66,7 @@
   <p>Set <code>aria-current="page"</code> on the active link. It's both the style hook and what screen readers announce.</p>
   {% call code("jinja", title="Nunjucks") %}
     {% raw %}<a href="{{ item.href }}" class="sidebar-link"
-       {% if item.href == url %}aria-current="page"{% endif %}>{{ item.title }}</a>{% endraw %}
+{% if item.href == url %}aria-current="page"{% endif %}>{{ item.title }}</a>{% endraw %}
   {% endcall %}
 
   <h2 id="reference">Reference</h2>
