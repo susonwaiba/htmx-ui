@@ -1,7 +1,8 @@
 # Changelog
 
-All notable changes to htmx-ui are listed here. Versions follow [semantic versioning](https://semver.org);
-before 1.0, minor versions may contain breaking changes, each listed with migration notes.
+All notable changes to htmx-ui, htmx-ui-engine and create-htmx-ui are listed here. The three packages are
+released together with one version. Versions follow [semantic versioning](https://semver.org); before 1.0, minor
+versions may contain breaking changes, each listed with migration notes.
 The docs site has a fuller page per release (`/docs/changelog`).
 
 ## 0.1.0 — 2026-10-02
@@ -29,8 +30,15 @@ First release.
   light and dark.
 - **Syntax-highlighting colours** (`--code-token-*`) for build-time highlighters using Shiki's CSS-variables theme.
 - **Icons:** SVG icons in `htmx-ui/icons/*`.
+- **Macros:** Nunjucks macros for alerts, code blocks, command tabs, icons and spinners in
+  `htmx-ui/components/*.html`, resolved by name in htmx-ui-engine sites.
+- **htmx-ui-engine:** `htmx-ui dev`, `build` and `preview` for sites made of Nunjucks pages: file-based routing,
+  Tailwind, hot reload (including layouts, partials and data), mock htmx endpoints (`routes` in
+  `htmx-ui.config.ts`), and static builds. Runs on Bun (Bun.serve, Bun.build, `bun-plugin-tailwind`) or Node (Vite,
+  `@tailwindcss/vite`), chosen from whatever started it, or with `--bun` / `--node`. Also usable as a Bun plugin
+  (`htmx-ui-engine/bun`) or a Vite plugin (`htmx-ui-engine/vite`).
+- **create-htmx-ui:** `npm create htmx-ui`, `pnpm create htmx-ui`, `yarn create htmx-ui`, `bun create htmx-ui`.
 
 ### Notes
 
-- The Nunjucks macros in `htmx-ui/components/*.html` rely on template helpers from the docs site's renderer and are
-  not yet a public API; they may change in any release.
+- Macro parameters may still change in a minor release before 1.0; each change will be listed here.

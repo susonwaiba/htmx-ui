@@ -7,7 +7,7 @@
     {% block head %}{% endblock %}
     <script>
       // Apply the stored theme before first paint to avoid a flash of the wrong
-      // colors. Kept inline and tiny on purpose; src/theme.ts takes over
+      // colors. Kept inline and tiny on purpose; htmx-ui/theme takes over
       // once app.ts loads.
       (() => {
         const stored = localStorage.getItem("theme");

@@ -11,8 +11,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
       - run: bun install --frozen-lockfile
       - run: bun run typecheck
       - run: bun test
       - run: bun run build
       - run: bun run build:lib
+      # The engine's Node CLI loads from the compiled lib/
+      - run: node packages/engine/bin/htmx-ui.js --help

@@ -4,7 +4,8 @@
       "title": "Getting started",
       "items": [
         { "title": "Introduction", "href": "/docs", "description": "What htmx-ui is and how it fits together." },
-        { "title": "Installation", "href": "/docs/installation", "description": "Add htmx-ui to a new or existing project." }
+        { "title": "Installation", "href": "/docs/installation", "description": "Start a new site, or add htmx-ui to an existing project." },
+        { "title": "Engine", "href": "/docs/engine", "description": "htmx-ui-engine: dev server, builds, config and plugins, on Bun or Node." }
       ]
     },
     {

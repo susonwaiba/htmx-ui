@@ -4,18 +4,20 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-htmx-ui is a Tailwind v4 component library for htmx apps (plain HTML + CSS + small TypeScript behaviours), plus the website that documents it. Everything is built and served with Bun. There is no React/JSX — pages are hand-written Nunjucks `.html` templates.
+htmx-ui is a Tailwind v4 component library for htmx apps (plain HTML + CSS + small TypeScript behaviours), an engine that builds sites from Nunjucks pages, a scaffolder, and the website that documents them. It is a Bun workspace; the repo itself is built and served with Bun. There is no React/JSX — pages are hand-written Nunjucks `.html` templates.
 
 | Directory | What it is |
 | :--- | :--- |
-| `src/` | **The package** (`htmx-ui`): exactly what `package.json` `exports` — `index.ts`, `styles.css`, `theme.ts`, `components/`, `icons/`. Nothing site-specific goes here. |
-| `site/` | **The website** (marketing pages + docs): pages, layouts, partials, data, site-only features and styles, dev server, archived docs versions. Not published. |
-| `bun/` | Build tooling: template renderer, highlighting, Markdown/sitemaps, versioning. |
+| `packages/ui/` | **`htmx-ui`**, the component library: `src/` (`index.ts`, `styles.css`, `theme.ts`, `components/`, `icons/`) + `lib/` (compiled). Nothing site-specific goes here. |
+| `packages/engine/` | **`htmx-ui-engine`**: the `htmx-ui` CLI (`dev`/`build`/`preview`), a Bun plugin and a Vite plugin. `src/core/` is runtime-agnostic; `src/bun/` is the Bun adapter (Bun.serve, Bun.build); `src/node/` the Node adapter (Vite). |
+| `packages/create-htmx-ui/` | **`create-htmx-ui`**: `npm/pnpm/yarn/bun create htmx-ui` scaffolder (plain JS) and its `template/`. |
+| `site/` | **The website** (marketing pages + docs), built with the engine (`site/htmx-ui.config.ts`): pages, layouts, partials, data, features, styles, mock API, `lib/` (Markdown, sitemaps, versions), archived docs. Not published. |
+| `scripts/` | Repo scripts: release check, component scaffolding, docs archiving, test DOM setup. |
 
 ## Bun only
 
 - Use `bun`/`bun run`/`bun test`/`bunx`/`bun install` — never node, ts-node, npm, yarn, pnpm, npx, jest, vitest.
-- Bundling is `Bun.build` / HTML imports with `Bun.serve()` — don't add vite, webpack or esbuild.
+- Bundling is `Bun.build` / HTML imports with `Bun.serve()` — don't add vite, webpack or esbuild. **Exception:** the engine's Node adapter (`packages/engine/src/node/`) is built on Vite, an optional peer dependency loaded from the user's project, so that npm/pnpm/yarn users can run sites on Node. Keep Vite there only; `packages/engine/src/core/` must stay free of `Bun.*` (it runs on both runtimes).
 - Use Bun built-ins over packages: `Bun.serve()` (not express), built-in `WebSocket` (not ws), `Bun.file` (over `node:fs` read/write), `` Bun.$`cmd` `` (not execa), and `bun:sqlite` / `Bun.sql` / `Bun.redis` if a database is ever needed.
 - Bun loads `.env` automatically — don't add dotenv.
 - Bun API reference: `node_modules/bun-types/docs/**.mdx`.
@@ -24,28 +26,31 @@ htmx-ui is a Tailwind v4 component library for htmx apps (plain HTML + CSS + sma
 
 ```bash
 bun install
-bun run dev        # site/server/dev.ts with --hot, http://localhost:3000 (PORT overrides)
-bun run build      # build.ts -> dist/ (minified, code-split, linked sourcemaps)
-bun run preview    # serve dist/ statically
+bun run dev        # the site via `htmx-ui dev` (Bun, --hot), http://localhost:3000 (PORT overrides)
+bun run build      # the site via `htmx-ui build` -> dist/ (minified, code-split, linked sourcemaps)
+bun run preview    # serve dist/ with clean URLs
 bun run typecheck  # tsc --noEmit
 bun test           # all tests (single file: bun test path/to/file.test.ts, single test: bun test -t "name")
-bun run build:lib  # compile the package to lib/ (ESM + .d.ts)
-bun run release:check  # everything that must pass before publishing (incl. tarball smoke test)
-bun run component:new <name>  # scaffold src/components/<name>/ + docs page (--behaviour for TS)
+bun run build:lib  # compile packages/ui/lib and packages/engine/lib (ESM + .d.ts; the engine's Node CLI runs from lib/)
+bun run release:check  # everything that must pass before publishing (incl. scaffold+install+build smoke tests with bun/npm/pnpm/yarn)
+bun run component:new <name>  # scaffold packages/ui/src/components/<name>/ + docs page (--behaviour for TS)
 bun run docs:archive <next>  # freeze current docs as an older version, make <next> the latest
 ```
 
-Tests live next to the code they cover (`*.test.ts` in `bun/`, `src/`, `site/`). happy-dom provides a DOM (`bunfig.toml` `[test] preload`).
+Tests live next to the code they cover (`*.test.ts` in `packages/*/`, `site/`). happy-dom provides a DOM (`bunfig.toml` `[test] preload`).
 
 ## Architecture
 
-- **Routing is file-based from `site/pages/**/*.html`.** `index.html` -> `/`, `about.html` -> `/about`, `a/b.html` -> `/a/b`. The dev server (`site/server/dev.ts`) globs pages at startup and registers each as a `Bun.serve` HTML-import route, so new pages require restarting `dev`. `build.ts` globs the same files as `Bun.build` entrypoints with `root: ./site/pages`.
-- **Pages are Nunjucks templates** rendered at build time by `bun/html-plugin.ts` (before Tailwind). They extend `layouts/site.html` or `layouts/docs.html` and read repeated content from `site/data/*.json` with `json()` (no API server needed); the base layout loads the shared entry `site/app.ts` (htmx, Tailwind stylesheet, components, features) via `{{ asset('app.ts') }}`. See the `nunjucks-templates` skill before writing templates.
-- **Tailwind is wired in two places**: `bunfig.toml` (`[serve.static] plugins`) for the dev server, and the `plugins: [tailwind]` option in `build.ts` for production. Keep them in sync if plugins change.
-- **Component library** (`src/components/<name>/`, one directory per component; scaffold with `bun run component:new <name> [--behaviour]`): each component is a `<name>.css` (classes in `@layer components` using `@apply`) plus optional `<name>.ts` behaviour. New CSS must be `@import`ed in `src/styles.css`; new behaviour must be registered in `initComponents` in `src/components/index.ts`.
-- **Component init contract**: `initX(root)` scans `root` for `[data-<component>]:not([data-init])` and marks elements with `data-init` so it is idempotent. `app.ts` calls `init` on `DOMContentLoaded` and again on `htmx:after:process`, which htmx 4 fires on each newly inserted element, so components work inside server-returned fragments. Don't use `htmx:after:swap` for this: in htmx 4 it fires on the requesting element, not the new content. Because the new element is often the component itself, initialisers must use `queryAll(root, selector)` from `src/utils/dom.ts` (includes `root`), not `root.querySelectorAll`.
-- **Site features** (`site/features/`): one module per file, called once from the `DOMContentLoaded` handler in `site/app.ts` (not re-run on swaps). The theme switcher is part of the package (`src/theme.ts`).
-- **Agent-ready docs**: every `/docs` page is also published as Markdown at `<route>.md`, plus `/llms.txt`, `/llms-full.txt`, `/sitemap.xml`, `/sitemap.json` (with section text, for site search) and per-version `<version path>/sitemap.json`, all generated from the rendered pages by `bun/site.ts`; the site's Ctrl/⌘K search (`site/features/search.ts`) fuzzy-matches these sitemaps (written to `dist/` by `build.ts`, served on request by `dev.ts`). Docs h2/h3 get ids and `#` links at build time (`bun/anchors.ts`). Set `SITE_URL` for production builds.
-- **Docs conventions**: package-manager commands use the `cli()` macro (npm/pnpm/yarn/bun tabs), icons use `icon()` backed by `src/icons/*.svg`, and code is highlighted at build time by Shiki (`bun/highlight.ts`). See AGENTS.md §4.6–4.7.
+- **The site is an engine project.** `site/package.json` scripts run `htmx-ui dev|build|preview`; `site/htmx-ui.config.ts` adds the mock API, `/assets/icons/*`, agent files and archived docs (dev `routes`/`fetch`, and a `build.done` hook); `site/lib/engine.ts` holds the render settings (origin, heading-anchor `transform`) shared with `site/lib/site.ts`. Workspace packages resolve to source: tsconfig `paths` (read by Bun's bundler too) and the `bun` export condition, so no `build:lib` is needed for dev.
+- **Routing is file-based from `pages/**/*.html`** (`site/pages` here). `index.html` -> `/`, `about.html` -> `/about`, `a/b.html` -> `/a/b`. The Bun dev server (`packages/engine/src/bun/dev-server.ts`) globs pages at startup and registers each as a `Bun.serve` HTML-import route, so new pages require restarting `dev`. The build uses the same files as `Bun.build` entrypoints with `root` = the pages directory.
+- **Pages are Nunjucks templates** rendered by the engine (`packages/engine/src/core/render.ts` via the Bun or Vite plugin, before Tailwind). Template roots: the project (`site/`), then htmx-ui's `src/`. They extend `layouts/site.html` or `layouts/docs.html` and read repeated content from `site/data/*.json` with `json()` (no API server needed); the base layout loads the shared entry `site/app.ts` (htmx, Tailwind stylesheet, components, features) via `{{ asset('app.ts') }}`. In dev, editing a layout/partial/macro/data file reloads open pages. See the `nunjucks-templates` skill before writing templates.
+- **Tailwind is wired by the engine**: on Bun, `htmx-ui dev` generates a bunfig (`[serve.static] plugins` = htmx-ui plugin, then `bun-plugin-tailwind`) and `htmx-ui build` passes both to `Bun.build`; on Node, `@tailwindcss/vite`. The htmx-ui plugin must run first.
+- **Runtime choice** (`packages/engine/bin/htmx-ui.js`): `--bun`/`--node`, else `$HTMX_UI_RUNTIME`, else Bun when started by Bun (user agent `bun/…` *and* `npm_execpath` is bun), else Node. The Node CLI runs from the compiled `lib/`.
+- **Component library** (`packages/ui/src/components/<name>/`, one directory per component; scaffold with `bun run component:new <name> [--behaviour]`): each component is a `<name>.css` (classes in `@layer components` using `@apply`) plus optional `<name>.ts` behaviour. New CSS must be `@import`ed in `packages/ui/src/styles.css`; new behaviour must be registered in `initComponents` in `packages/ui/src/components/index.ts`.
+- **Component init contract**: `initX(root)` scans `root` for `[data-<component>]:not([data-init])` and marks elements with `data-init` so it is idempotent. `app.ts` calls `init` on `DOMContentLoaded` and again on `htmx:after:process`, which htmx 4 fires on each newly inserted element, so components work inside server-returned fragments. Don't use `htmx:after:swap` for this: in htmx 4 it fires on the requesting element, not the new content. Because the new element is often the component itself, initialisers must use `queryAll(root, selector)` from `packages/ui/src/utils/dom.ts` (includes `root`), not `root.querySelectorAll`.
+- **Site features** (`site/features/`): one module per file, called once from the `DOMContentLoaded` handler in `site/app.ts` (not re-run on swaps). The theme switcher is part of the package (`packages/ui/src/theme.ts`).
+- **Agent-ready docs**: every `/docs` page is also published as Markdown at `<route>.md`, plus `/llms.txt`, `/llms-full.txt`, `/sitemap.xml`, `/sitemap.json` (with section text, for site search) and per-version `<version path>/sitemap.json`, all generated from the rendered pages by `site/lib/site.ts`; the site's Ctrl/⌘K search (`site/features/search.ts`) fuzzy-matches these sitemaps (written to `dist/` by the build hook in `site/htmx-ui.config.ts`, served on request by its dev routes). Docs h2/h3 get ids and `#` links at build time (`site/lib/anchors.ts`). Set `SITE_URL` for production builds.
+- **Docs conventions**: package-manager commands use the `cli()` macro (npm/pnpm/yarn/bun tabs), icons use `icon()` backed by `src/icons/*.svg`, and code is highlighted at build time by Shiki (`packages/engine/src/core/highlight.ts`). See AGENTS.md §4.6–4.7.
 - **Versioned docs**: the latest docs render live at `/docs`. Older versions are frozen *built* snapshots in `site/archive/v<id>/`, served at `/docs/v<id>/`, listed in `site/data/versions.json` and published as `/docs/versions.json` for the sidebar version switcher. Never edit an archive by hand; see AGENTS.md §4.8.
-- **Mock backend** (`site/server/api.ts`): `apiRoutes` maps paths to handlers returning HTML fragments for `hx-get`/`hx-post` targets. These exist only in the dev server; the production build is static and `preview` will not serve them.
+- **Mock backend** (`site/server/api.ts`): `apiRoutes` maps paths to handlers returning HTML fragments for `hx-get`/`hx-post` targets, passed to the engine as `routes`. These exist only in the dev server; the production build is static and `preview` will not serve them.
+- **Releasing**: the three packages share one version; `bun run release:check` must pass; tagging `v<version>` publishes all three (`.github/workflows/release.yml`). See AGENTS.md §5.

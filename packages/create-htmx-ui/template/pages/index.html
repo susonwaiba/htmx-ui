@@ -1,0 +1,22 @@
+{% extends "layouts/base.html" %}
+
+{% block content %}
+<div class="prose">
+  <h1>It works</h1>
+  <p>
+    This page is <code>pages/index.html</code>, a Nunjucks template rendered at build time.
+    Edit it, or add <code>pages/blog/post.html</code> for a <code>/blog/post</code> route.
+  </p>
+</div>
+
+<div class="card not-prose mt-8">
+  <div class="card-header">
+    <h2 class="card-title">Talk to the server</h2>
+    <p class="card-description">The button asks <code>/api/hello</code> (a mock route in <code>htmx-ui.config.ts</code>) for an HTML fragment.</p>
+  </div>
+  <div class="card-content space-y-4">
+    <button class="btn btn-primary" hx-get="/api/hello" hx-target="#reply">Say hello</button>
+    <div id="reply"></div>
+  </div>
+</div>
+{% endblock %}

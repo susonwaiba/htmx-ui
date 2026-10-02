@@ -11,6 +11,13 @@
 
     // Bundler mode
     "moduleResolution": "bundler",
+    // Resolve workspace packages to their TypeScript source, so the site and tests
+    // use the packages as edited (no lib/ build step). Bun's bundler reads these too.
+    "customConditions": ["bun"],
+    "paths": {
+      "htmx-ui": ["./packages/ui/src/index.ts"],
+      "htmx-ui/theme": ["./packages/ui/src/theme.ts"]
+    },
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
     "noEmit": true,
@@ -26,5 +33,6 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "noPropertyAccessFromIndexSignature": false
-  }
+  },
+  "exclude": ["node_modules", "dist", "**/lib", "site/archive", "packages/create-htmx-ui/template"]
 }

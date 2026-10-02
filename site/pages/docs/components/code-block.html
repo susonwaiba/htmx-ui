@@ -52,6 +52,7 @@ add-dev tailwindcss") }}
   {% endcall %}
   {{ classes([
     ["init", "npm init -y · pnpm init · yarn init -y · bun init -y"],
+    ["install", "npm install · pnpm install · yarn install · bun install"],
     ["add", "npm install · pnpm add · yarn add · bun add"],
     ["add-dev", "npm install -D · pnpm add -D · yarn add -D · bun add -d"],
     ["run", "npm run · pnpm run · yarn run · bun run"],
@@ -59,7 +60,7 @@ add-dev tailwindcss") }}
     ["create", "npm create · pnpm create · yarn create · bun create"],
     ["anything else", "Shown unchanged on every tab, e.g. mkdir my-app && cd my-app"]
   ], heading="Action") }}
-  <p>The commands live in <code>src/components/code/package-managers.json</code>; add a manager or change the default there.</p>
+  <p>The commands live in <code>htmx-ui/components/code/package-managers.json</code>; add a manager or change the default there.</p>
 
   <h2 id="file-tabs">File tabs</h2>
   <p>Show related files side by side:</p>

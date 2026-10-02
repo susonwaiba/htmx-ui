@@ -10,21 +10,22 @@
 {% block content %}
   {% call alert("Optional", variant="info") %}
     The components are plain HTML and CSS, and work with any server or template language. This page covers the
-    Nunjucks setup this site uses, which you can copy for a static site of your own.
+    Nunjucks templates of <a class="link" href="/docs/engine">htmx-ui-engine</a>, which this site is built with too.
   {% endcall %}
-  {% call alert("Macros aren't a public API yet", variant="warning") %}
-    The package ships its Nunjucks macros (<code class="code">htmx-ui/components/*.html</code>), but they rely on this site's template
-    helpers (<code class="code">svg()</code>, <code class="code">json()</code>, <code class="code">| dedent</code>, <code class="code">| highlight</code>) and may change in any release.
-    Copy the markup from each component page for now.
+  {% call alert("Macros are new", variant="warning") %}
+    The package's Nunjucks macros (<code class="code">htmx-ui/components/*.html</code>) need the engine's template
+    helpers (<code class="code">svg()</code>, <code class="code">json()</code>, <code class="code">| dedent</code>, <code class="code">| highlight</code>).
+    Their parameters may still change in a minor release before 1.0; each change is listed in the changelog.
   {% endcall %}
 
   <h2 id="pages">Pages and layouts</h2>
   <p>
-    Every <code>.html</code> file in <code>site/pages</code> is a route (<code>docs/theming.html</code> is
-    <code>/docs/theming</code>). A Bun plugin renders it with <a href="https://mozilla.github.io/nunjucks/templating.html">Nunjucks</a>
-    before the bundler sees it, so pages can extend layouts, include partials and call macros:
+    Every <code>.html</code> file in <code>pages/</code> is a route (<code>docs/theming.html</code> is
+    <code>/docs/theming</code>). The engine renders it with <a href="https://mozilla.github.io/nunjucks/templating.html">Nunjucks</a>
+    before the bundler (Bun's or Vite) sees it, so pages can extend layouts, include partials and call macros.
+    Template names resolve from the project root, then from the htmx-ui package (its <code>components/</code> and <code>icons/</code>):
   </p>
-  {% call code("jinja", title="site/pages/pricing.html") %}
+  {% call code("jinja", title="pages/pricing.html") %}
     {% raw %}{% extends "layouts/site.html" %}
     {% from "components/alert/alert.html" import alert %}
 
@@ -58,7 +59,7 @@
   {% endset %}
   {{ code_tabs([
     { id: "tpl", label: "page.html", lang: "jinja", source: tpl_src },
-    { id: "json", label: "site/data/changelog.json", lang: "json", source: data_src }
+    { id: "json", label: "data/changelog.json", lang: "json", source: data_src }
   ]) }}
   <p>That template, live, reading this site's real file:</p>
   <ul>
@@ -72,10 +73,10 @@
     ["data/docs-nav.json", "Docs navigation: sidebar, prev/next, components index, page order for agents."],
     ["data/changelog.json", "Releases, newest first."],
     ["data/versions.json", "Docs versions; the latest is rendered live, older ones are archived."]
-  ], heading="File (under src/)") }}
+  ], heading="File (under site/)") }}
 
   <h3>JSON in the browser too</h3>
-  <p>The same files can be imported by client code. Bun bundles them as plain objects:</p>
+  <p>The same files can be imported by client code. Bun and Vite bundle them as plain objects:</p>
   {% call code("ts") %}
     import nav from "./data/docs-nav.json";
 
@@ -92,18 +93,19 @@
   {% endcall %}
 
   <h2 id="glob">Listing files</h2>
-  <p><code>glob(pattern)</code> returns matching paths under <code>src/</code>, sorted. The icon gallery is generated this way:</p>
+  <p><code>glob(pattern)</code> returns matching paths across the template roots, sorted. The icon gallery is generated this way, from the package's <code>icons/</code>:</p>
   {% call code("jinja") %}
     {% raw %}{% for path in glob("icons/*.svg") %}…{% endfor %}{% endraw %}
   {% endcall %}
 
   <h2 id="reference">Reference</h2>
   {{ classes([
-    ["json(path)", "Parsed JSON file. Path is relative to src/."],
+    ["json(path)", "Parsed JSON file. Paths are relative to a template root (the project, then htmx-ui); first match wins."],
     ["svg(path, attrs)", "Inline SVG with attributes set on the root <svg>."],
-    ["glob(pattern)", "Sorted list of src/-relative paths matching the pattern."],
-    ["asset(path)", "src/-relative path rewritten relative to the current page (for <script src>, <link href>)."],
+    ["glob(pattern)", "Sorted list of root-relative paths matching the pattern."],
+    ["asset(path)", "Root-relative path rewritten relative to the current page (for <script src>, <link href>)."],
     ["url", "The current page's route, e.g. /docs/templates."],
+    ["origin", "The public site URL: url in htmx-ui.config.ts, or $SITE_URL."],
     ["| dedent", "Remove shared indentation."],
     ["| highlight(lang)", "Syntax-highlight a string at build time."]
   ], heading="Function / filter") }}

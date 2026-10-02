@@ -1,0 +1,16 @@
+{
+  // Type declarations for the Node build (bun run build -> lib/**/*.d.ts).
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "allowImportingTsExtensions": false,
+    "customConditions": [],
+    "rootDir": "./src",
+    "outDir": "./lib",
+    "types": ["node"]
+  },
+  "include": ["src/index.ts", "src/node/index.ts", "src/node/vite-plugin.ts"],
+  "exclude": ["src/**/*.test.ts"]
+}

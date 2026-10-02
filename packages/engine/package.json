@@ -1,0 +1,91 @@
+{
+  "name": "htmx-ui-engine",
+  "version": "0.1.0",
+  "description": "Build htmx sites from Nunjucks pages: file-based routing, Tailwind, dev server with HMR and static builds, on Bun or Node.",
+  "keywords": [
+    "htmx",
+    "htmx-ui",
+    "nunjucks",
+    "static-site",
+    "tailwindcss",
+    "bun",
+    "bun-plugin",
+    "vite",
+    "vite-plugin",
+    "cli"
+  ],
+  "license": "MIT",
+  "author": "Suson Waiba",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/susonwaiba/htmx-ui.git",
+    "directory": "packages/engine"
+  },
+  "bugs": "https://github.com/susonwaiba/htmx-ui/issues",
+  "homepage": "https://github.com/susonwaiba/htmx-ui#readme",
+  "type": "module",
+  "bin": {
+    "htmx-ui": "./bin/htmx-ui.js"
+  },
+  "exports": {
+    ".": {
+      "bun": "./src/index.ts",
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./bun": {
+      "bun": "./src/bun/index.ts",
+      "types": "./src/bun/index.ts"
+    },
+    "./vite": {
+      "bun": "./src/node/vite-plugin.ts",
+      "types": "./lib/node/vite-plugin.d.ts",
+      "default": "./lib/node/vite-plugin.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "bin",
+    "lib",
+    "src",
+    "!src/**/*.test.ts"
+  ],
+  "engines": {
+    "node": ">=22.12.0",
+    "bun": ">=1.2.3"
+  },
+  "scripts": {
+    "build": "bun run build.ts",
+    "prepublishOnly": "bun run --cwd ../.. release:check"
+  },
+  "dependencies": {
+    "nunjucks": "^3.2.4",
+    "shiki": "^4.5.0"
+  },
+  "peerDependencies": {
+    "@tailwindcss/vite": "^4.0.0",
+    "bun-plugin-tailwind": ">=0.1.0",
+    "tailwindcss": "^4.0.0",
+    "vite": "^7.0.0 || ^8.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@tailwindcss/vite": {
+      "optional": true
+    },
+    "bun-plugin-tailwind": {
+      "optional": true
+    },
+    "tailwindcss": {
+      "optional": true
+    },
+    "vite": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/node": "^24",
+    "@types/nunjucks": "^3.2.6",
+    "vite": "^8.3.2"
+  }
+}

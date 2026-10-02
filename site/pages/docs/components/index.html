@@ -24,7 +24,7 @@
   </div>
 
   <h2 id="anatomy">Anatomy of a component</h2>
-  <p>Each component has its own directory, <code>src/components/&lt;name&gt;/</code> (<code>htmx-ui/components/&lt;name&gt;/</code> in the package), holding:</p>
+  <p>Each component has its own directory, <code>htmx-ui/components/&lt;name&gt;/</code> (<code>packages/ui/src/components/&lt;name&gt;/</code> in the repository), holding:</p>
   <ul>
     <li><code>&lt;name&gt;.css</code>: classes in <code>@layer components</code>, built from token utilities with <code>@apply</code>.</li>
     <li><code>&lt;name&gt;.ts</code> (optional): an <code>init&lt;Name&gt;(root)</code> function that wires up <code>[data-&lt;name&gt;]</code> elements once each, with <code>&lt;name&gt;.test.ts</code> beside it.</li>

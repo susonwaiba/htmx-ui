@@ -3,7 +3,7 @@
 {% from "components/code/code.html" import code %}
 {% from "macros/docs.html" import demo, classes %}
 {% set title = "Icon" %}
-{% set description = "SVG icons stored as files in src/icons and inlined into the HTML at build time, so they inherit colour and need no requests. They can also be linked as images." %}
+{% set description = "SVG icons stored as files in htmx-ui/icons and inlined into the HTML at build time, so they inherit colour and need no requests. They can also be linked as images." %}
 {% set icons = glob("icons/*.svg") %}
 
 {% block content %}
@@ -48,25 +48,25 @@
     (<code>sun-a1b2c3.svg</code>), so a changed icon is never served stale.
   </p>
   <p>
-    Separately, the build copies <code>src/icons/</code> to <code>dist/assets/icons/</code> with
+    Separately, this site's build copies the package's <code>icons/</code> to <code>dist/assets/icons/</code> with
     <strong>unchanged</strong> names. <code>/assets/icons/&lt;name&gt;.svg</code> is therefore a stable URL
     for linking from other sites, emails or docs, e.g. <a href="/assets/icons/sun.svg">/assets/icons/sun.svg</a>.
   </p>
 
   <h2 id="any-svg">Any SVG</h2>
-  <p>The <code>svg()</code> template function inlines any SVG file under <code>site/</code> or <code>src/</code>, setting or overriding attributes on its root element:</p>
+  <p>The <code>svg()</code> template function inlines any SVG file under a template root (your project, then htmx-ui), setting or overriding attributes on its root element:</p>
   {% call code("jinja") %}
     {% raw %}{{ svg("images/logo.svg", { class: "h-8 w-auto", "aria-label": "HTMX UI", role: "img" }) }}{% endraw %}
   {% endcall %}
 
   <h2 id="adding">Adding an icon</h2>
   <ol>
-    <li>Save a 24×24 SVG with <code>stroke="currentColor"</code> (or <code>fill="currentColor"</code>) as <code>src/icons/&lt;name&gt;.svg</code>. <a href="https://lucide.dev">Lucide</a> icons drop straight in.</li>
+    <li>Save a 24×24 SVG with <code>stroke="currentColor"</code> (or <code>fill="currentColor"</code>) as <code>icons/&lt;name&gt;.svg</code> in your project; your file wins over a package icon of the same name. <a href="https://lucide.dev">Lucide</a> icons drop straight in.</li>
     <li>Use it: <code>&#123;&#123; icon("&lt;name&gt;") &#125;&#125;</code>. A misspelt name fails the build.</li>
   </ol>
 
   <h2 id="all">All icons</h2>
-  <p>{{ icons | length }} icons, listed straight from <code>src/icons/</code> with <code>glob()</code>:</p>
+  <p>{{ icons | length }} icons, listed straight from the package's <code>icons/</code> with <code>glob()</code>:</p>
   <div class="not-prose grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-6" data-md-skip>
     {% for path in icons %}
       {% set name = path.split("/") | last | replace(".svg", "") %}
@@ -80,9 +80,9 @@
 
   <h2 id="reference">Reference</h2>
   {{ classes([
-    ["icon(name, class=\"size-4\")", "Inline src/icons/<name>.svg with a class. aria-hidden by default."],
+    ["icon(name, class=\"size-4\")", "Inline icons/<name>.svg with a class. aria-hidden by default."],
     ["icon(name, label=\"…\")", "Meaningful icon: role=\"img\" and aria-label instead of aria-hidden."],
     ["icon(name, mode=\"img\")", "<img> of a hashed copy of the file instead of inlining."],
-    ["svg(path, attrs)", "Inline any SVG under site/ or src/, setting attributes on the root <svg>."]
+    ["svg(path, attrs)", "Inline any SVG under a template root, setting attributes on the root <svg>."]
   ], heading="Macro / function") }}
 {% endblock %}

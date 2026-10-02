@@ -3,7 +3,7 @@
     {
       "version": "0.1.0",
       "date": "2026-10-02",
-      "summary": "First release: design tokens, light and dark themes, twenty components including forms, toggles and loading states, syntax highlighting, versioned and agent-ready docs."
+      "summary": "First release: design tokens, light and dark themes, twenty components including forms, toggles and loading states, syntax highlighting, versioned and agent-ready docs; plus htmx-ui-engine (dev server and builds on Bun or Node) and create-htmx-ui."
     }
   ]
 }

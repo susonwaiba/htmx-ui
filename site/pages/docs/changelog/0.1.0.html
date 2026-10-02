@@ -55,7 +55,13 @@
   <ul>
     <li>ES modules with TypeScript types for <code>htmx-ui</code> and <code>htmx-ui/theme</code>; CSS, icons and macros ship as source.</li>
     <li><code>htmx.org</code> 4 and <code>tailwindcss</code> 4 are peer dependencies; <code>@tailwindcss/typography</code> is installed with the package.</li>
-    <li>Nunjucks macros are included but not yet a public API.</li>
+    <li>Nunjucks macros for alerts, code blocks, command tabs, icons and spinners, resolved by name in engine sites.</li>
+  </ul>
+  <h3>Engine and project starter</h3>
+  <ul>
+    <li><code>htmx-ui-engine</code>: <code>htmx-ui dev</code>, <code>build</code> and <code>preview</code> for sites made of Nunjucks pages, with file-based routing, Tailwind, hot reload (including layouts, partials and data) and mock htmx endpoints. Runs on Bun (Bun.serve, Bun.build) or Node (Vite), picked from whatever started it. See <a href="/docs/engine">Engine</a>.</li>
+    <li>A Bun plugin (<code>htmx-ui-engine/bun</code>) and a Vite plugin (<code>htmx-ui-engine/vite</code>) for existing build setups.</li>
+    <li><code>create-htmx-ui</code>: <code>npm create htmx-ui</code>, <code>pnpm create htmx-ui</code>, <code>yarn create htmx-ui</code> or <code>bun create htmx-ui</code> scaffolds a site with pages, a layout, a theme toggle and an htmx demo.</li>
   </ul>
   <h3>For AI agents</h3>
   <ul>

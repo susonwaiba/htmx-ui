@@ -1,66 +1,27 @@
 # htmx-ui
 
-Tailwind CSS v4 components for [htmx](https://htmx.org) apps. Plain HTML and CSS classes, a few small
-behaviours that keep working inside htmx-swapped fragments, design tokens for theming, and dark mode built in.
+Tailwind CSS v4 components for [htmx](https://htmx.org) apps, and the engine that builds sites with them.
 
-```html
-<button class="btn btn-primary" hx-post="/save" hx-target="#result">Save</button>
-<div class="alert alert-success" role="status">
-  <div class="alert-title">Saved</div>
-</div>
-```
-
-## Install
+| Package | |
+| :--- | :--- |
+| [`htmx-ui`](packages/ui) | The component library: CSS classes, design tokens, dark mode, small behaviours that work inside htmx swaps |
+| [`htmx-ui-engine`](packages/engine) | `htmx-ui dev` / `build` / `preview`: Nunjucks pages, file-based routing, Tailwind, HMR, mock htmx endpoints. Runs on Bun or Node (Vite); also a Bun plugin and a Vite plugin |
+| [`create-htmx-ui`](packages/create-htmx-ui) | `npm create htmx-ui` / `pnpm create htmx-ui` / `yarn create htmx-ui` / `bun create htmx-ui` |
 
 ```bash
-npm install htmx-ui htmx.org
-npm install -D tailwindcss
+npm create htmx-ui@latest my-site
+cd my-site
+npm install
+npm run dev
 ```
 
-(or `pnpm add`, `yarn add`, `bun add`). Requires Tailwind CSS v4 and htmx 4.
-
-## Use
-
-```css
-/* your stylesheet */
-@import "tailwindcss";
-@import "htmx-ui/styles.css";
-```
-
-```ts
-// your entry script
-import "htmx.org";
-import { initComponents } from "htmx-ui";
-import { initTheme } from "htmx-ui/theme";
-
-document.addEventListener("DOMContentLoaded", () => {
-  initTheme();
-  initComponents(document);
-});
-// htmx 4 fires htmx:after:process on each newly inserted element
-document.addEventListener("htmx:after:process", (e) => initComponents(e.target ?? document));
-```
-
-| Import | Contents |
-| :--- | :--- |
-| `htmx-ui` | `initComponents(root)`: wires up component behaviour under `root` |
-| `htmx-ui/styles.css` | Design tokens, dark mode, `.prose` and every component's styles |
-| `htmx-ui/theme` | `initTheme()`, `getTheme()`: light/dark switcher |
-| `htmx-ui/icons/<name>.svg` | SVG icons |
-
-Theme it by overriding CSS variables:
-
-```css
-:root      { --primary: oklch(0.6 0.2 30); --radius: 0.75rem; }
-:root.dark { --primary: oklch(0.7 0.17 30); }
-```
-
-Full documentation, with live examples, theming and dark mode guides, is on the docs site. Every docs page is
-also available as Markdown for AI agents (`/docs/<page>.md`, `/llms.txt`).
+Already have a build? Install just the components: `npm install htmx-ui htmx.org` and see
+[packages/ui](packages/ui/README.md).
 
 ## Development
 
-This repo holds the package (`src/`), the docs website (`site/`) and build tooling (`bun/`). It uses [Bun](https://bun.sh).
+A [Bun](https://bun.sh) workspace: the packages in `packages/`, the docs website in `site/` (built with the engine,
+like any user site), and repo scripts in `scripts/`.
 
 ```bash
 bun install

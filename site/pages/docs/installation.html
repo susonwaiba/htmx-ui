@@ -2,10 +2,22 @@
 {% from "components/code/code.html" import code, cli %}
 {% from "components/alert/alert.html" import alert %}
 {% set title = "Installation" %}
-{% set description = "Add HTMX UI to a new project or an existing app that already uses Tailwind CSS v4 and htmx." %}
+{% set description = "Start a new HTMX UI site with one command, or add the components to an app that already uses Tailwind CSS v4 and htmx." %}
 
 {% block content %}
   <p>Commands are shown for npm, pnpm, yarn and bun. Pick yours once; every command block on the site remembers the choice.</p>
+
+  <h2 id="packages">Packages</h2>
+  <div class="table-wrap not-prose">
+    <table class="table">
+      <thead><tr><th>Package</th><th>What it is</th></tr></thead>
+      <tbody>
+        <tr><td><code class="code">htmx-ui</code></td><td class="text-muted-foreground">The components: CSS classes, design tokens, dark mode and small behaviours. Works with any bundler.</td></tr>
+        <tr><td><code class="code">htmx-ui-engine</code></td><td class="text-muted-foreground">Builds a site from Nunjucks pages: <code class="code">htmx-ui dev</code>, <code class="code">build</code> and <code class="code">preview</code>, on Bun or Node. See <a class="link" href="/docs/engine">Engine</a>.</td></tr>
+        <tr><td><code class="code">create-htmx-ui</code></td><td class="text-muted-foreground">Scaffolds a new site that uses both.</td></tr>
+      </tbody>
+    </table>
+  </div>
 
   <h2 id="requirements">Requirements</h2>
   <div class="table-wrap not-prose">
@@ -14,31 +26,47 @@
       <tbody>
         <tr><td><a class="link" href="https://tailwindcss.com">Tailwind CSS</a></td><td><span class="badge badge-secondary">4.x</span></td><td class="text-muted-foreground">Component styles use <code class="code">@apply</code> and <code class="code">@theme</code>.</td></tr>
         <tr><td><a class="link" href="https://htmx.org">htmx</a></td><td><span class="badge badge-secondary">4.x</span></td><td class="text-muted-foreground">Fragment swaps; components initialise inside new content.</td></tr>
-        <tr><td>A bundler that handles TypeScript and CSS imports</td><td><span class="badge badge-secondary">any</span></td><td class="text-muted-foreground">Bun, Vite and others work. The guide below uses Bun's built-in bundler.</td></tr>
+        <tr><td><a class="link" href="https://bun.sh">Bun</a> or <a class="link" href="https://nodejs.org">Node</a></td><td><span class="badge badge-secondary">Bun 1.2.3+ / Node 22.12+</span></td><td class="text-muted-foreground">For the engine. With your own bundler, any that handles TypeScript and CSS imports works.</td></tr>
       </tbody>
     </table>
   </div>
 
   <h2 id="new-project">New project</h2>
+  <p>Create a site, install it and start the dev server:</p>
+  {{ cli("create htmx-ui my-site
+cd my-site
+install
+run dev") }}
+  <p>
+    You get <code>pages/</code> (one file per route), a layout with a theme toggle, Tailwind with the library's styles,
+    an htmx button talking to a mock endpoint, and <code>dev</code>, <code>build</code> and <code>preview</code> scripts.
+    A site created with bun runs on Bun; with npm, pnpm or yarn it runs on Node, with Vite. Open
+    <code>http://localhost:3000</code> and edit <code>pages/index.html</code>.
+  </p>
 
-  <h3>1. Create the project and install</h3>
-  {{ cli("mkdir my-app && cd my-app
-init
-add htmx-ui htmx.org
-add-dev tailwindcss") }}
+  <h2 id="engine-by-hand">Add the engine to a project</h2>
+  <h3>1. Install</h3>
+  {{ cli("add htmx-ui htmx.org
+add-dev htmx-ui-engine tailwindcss") }}
+  <p>Then the Tailwind integration for the runtime you'll build with. On Bun:</p>
+  {% call code("bash", title="Terminal") %}bun add -d bun-plugin-tailwind{% endcall %}
+  <p>On Node (npm, pnpm or yarn), Vite and its Tailwind plugin:</p>
+  {{ cli("add-dev vite @tailwindcss/vite") }}
 
-  <h3>2. Connect Tailwind to your bundler</h3>
-  <p>With Bun's dev server, install the Tailwind plugin and register it for HTML imports:</p>
-  {{ cli("add-dev bun-plugin-tailwind") }}
-  {% call code("toml", title="bunfig.toml") %}
-    [serve.static]
-    plugins = ["bun-plugin-tailwind"]
+  <h3>2. Add the scripts</h3>
+  {% call code("json", title="package.json") %}
+    {
+      "scripts": {
+        "dev": "htmx-ui dev",
+        "build": "htmx-ui build",
+        "preview": "htmx-ui preview"
+      }
+    }
   {% endcall %}
-  <p>Using Vite or another bundler? Follow <a href="https://tailwindcss.com/docs/installation">Tailwind's guide for it</a> instead. The remaining steps are the same.</p>
 
   <h3>3. Import the styles</h3>
   <p>Import Tailwind first, then the library. The <code>@source</code> line tells Tailwind where your own markup lives.</p>
-  {% call code("css", title="src/styles.css") %}
+  {% call code("css", title="styles.css") %}
     @import "tailwindcss";
     @import "htmx-ui/styles.css";
 
@@ -46,7 +74,7 @@ add-dev tailwindcss") }}
   {% endcall %}
 
   <h3>4. Initialise components</h3>
-  {% call code("ts", title="src/app.ts") %}
+  {% call code("ts", title="app.ts") %}
     import "htmx.org";
     import "./styles.css";
     import { initComponents } from "htmx-ui";
@@ -63,33 +91,34 @@ add-dev tailwindcss") }}
     });
   {% endcall %}
 
-  <h3>5. Add a page and serve it</h3>
-  {% call code("html", title="src/index.html") %}
-    <!doctype html>
+  <h3>5. Add a layout and a page</h3>
+  <p><code>asset()</code> makes the script path relative to whichever page is rendering, so the bundler finds it from any depth.</p>
+  {% call code("jinja", title="layouts/base.html") %}
+    {% raw %}<!doctype html>
     <html lang="en">
       <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <script type="module" src="./app.ts"></script>
+        <title>{% block title %}My site{% endblock %}</title>
+        <script type="module" src="{{ asset('app.ts') }}"></script>
       </head>
       <body class="bg-background text-foreground">
-        <button class="btn btn-primary">It works</button>
+        {% block content %}{% endblock %}
       </body>
-    </html>
+    </html>{% endraw %}
   {% endcall %}
-  {% call code("ts", title="server.ts") %}
-    import index from "./src/index.html";
-
-    Bun.serve({ routes: { "/": index }, development: { hmr: true } });
+  {% call code("jinja", title="pages/index.html") %}
+    {% raw %}{% extends "layouts/base.html" %}
+    {% block content %}<button class="btn btn-primary">It works</button>{% endblock %}{% endraw %}
   {% endcall %}
-  {% call code("bash", title="Terminal") %}bun --hot server.ts{% endcall %}
+  {{ cli("run dev") }}
 
   <h2 id="existing-project">Existing project</h2>
-  <p>If the app already has Tailwind v4 and htmx:</p>
+  <p>If the app already has Tailwind v4, htmx and a bundler, it only needs the components:</p>
   {{ cli("add htmx-ui") }}
   <ol>
     <li>Add <code>@import "htmx-ui/styles.css";</code> directly after <code>@import "tailwindcss";</code>.</li>
-    <li>Call <code>initComponents()</code> on load and on <code>htmx:after:process</code>, as in step 4.</li>
+    <li>Call <code>initComponents()</code> on load and on <code>htmx:after:process</code>, as in step 4 above.</li>
   </ol>
 
   {% call alert("Clashing variable names", variant="warning") %}
@@ -115,6 +144,7 @@ add-dev tailwindcss") }}
         <tr><td><code class="code">htmx-ui/styles.css</code></td><td class="text-muted-foreground">Design tokens, the dark variant, <code class="code">.prose</code> (Tailwind Typography, installed with the package), syntax-highlighting colours and every component's styles.</td></tr>
         <tr><td><code class="code">htmx-ui/theme</code></td><td class="text-muted-foreground"><code class="code">initTheme()</code> and <code class="code">getTheme()</code> for the light/dark switcher.</td></tr>
         <tr><td><code class="code">htmx-ui/icons/&lt;name&gt;.svg</code></td><td class="text-muted-foreground">The SVG icons, for your own templates or <code class="code">&lt;img&gt;</code> tags.</td></tr>
+        <tr><td><code class="code">htmx-ui/components/&lt;name&gt;/&lt;name&gt;.html</code></td><td class="text-muted-foreground">Nunjucks macros (icon, code, alert, spinner). The engine resolves them by name: <code class="code">&#123;% from "components/icon/icon.html" import icon %&#125;</code>.</td></tr>
       </tbody>
     </table>
   </div>

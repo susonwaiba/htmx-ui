@@ -147,8 +147,8 @@
 
   <h2 id="how">How it's generated</h2>
   <p>
-    Nothing is written by hand. At build time <code>bun/site.ts</code> renders every page, converts the article
-    body to Markdown (<code>bun/markdown.ts</code>), and writes the indexes. The dev server generates the same files on request.
+    Nothing is written by hand. At build time the site's engine config (<code>site/htmx-ui.config.ts</code>) renders every page, converts the article
+    body to Markdown (<code>site/lib/markdown.ts</code>), and writes the indexes (<code>site/lib/site.ts</code>). The dev server generates the same files on request.
   </p>
   <ul>
     <li>Page order follows the docs navigation in <code>site/data/docs-nav.json</code>.</li>

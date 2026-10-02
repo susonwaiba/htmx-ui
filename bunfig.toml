@@ -1,9 +1,8 @@
-# Plugins for HTML imports served by Bun.serve() (dev server).
-# html-plugin (Nunjucks) runs first so Tailwind scans fully rendered markup.
-[serve.static]
-plugins = ["./bun/html-plugin.ts", "bun-plugin-tailwind"]
+# The dev server's bundler plugins (htmx-ui, then Tailwind) are set up by
+# htmx-ui-engine: `htmx-ui dev` generates a bunfig for them. See
+# packages/engine/src/bun/dev.ts.
 
 # Give the test runner a DOM (document, matchMedia, localStorage) so feature
 # modules can be tested without a browser.
 [test]
-preload = ["./bun/dom-setup.ts"]
+preload = ["./scripts/dom-setup.ts"]

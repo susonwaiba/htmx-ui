@@ -1,0 +1,21 @@
+{
+  "name": "htmx-ui-site",
+  "private": true,
+  "type": "module",
+  "description": "The htmx-ui website (marketing pages + docs), built with htmx-ui-engine. Not published.",
+  "scripts": {
+    "dev": "htmx-ui dev",
+    "build": "htmx-ui build",
+    "preview": "htmx-ui preview"
+  },
+  "dependencies": {
+    "htmx-ui": "workspace:*",
+    "htmx-ui-engine": "workspace:*",
+    "htmx.org": "^4.0.0"
+  },
+  "devDependencies": {
+    "bun-plugin-tailwind": "^0.1.2",
+    "happy-dom": "^20.14.5",
+    "tailwindcss": "^4.3.3"
+  }
+}

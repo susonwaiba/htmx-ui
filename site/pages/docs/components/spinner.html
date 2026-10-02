@@ -14,7 +14,7 @@
   <h2 id="usage">Usage</h2>
   <p>
     Add <code>.spinner</code> to an SVG icon and it spins. The <code>spinner()</code> macro inlines an icon from
-    <code>src/icons/</code> with the class and accessibility attributes set: <code>role="status"</code> and an
+    <code>icons/</code> with the class and accessibility attributes set: <code>role="status"</code> and an
     <code>aria-label</code> of "Loading".
   </p>
   {% call demo() %}
@@ -123,6 +123,6 @@
     [".htmx-indicator-hide", "Hidden while the htmx request it's inside runs."]
   ]) }}
   {{ classes([
-    ["spinner(icon=\"loader\", class=\"\", label=\"Loading\", id=none)", "Inlines src/icons/<icon>.svg as a spinner. label=none hides it from assistive technology."]
+    ["spinner(icon=\"loader\", class=\"\", label=\"Loading\", id=none)", "Inlines icons/<icon>.svg as a spinner. label=none hides it from assistive technology."]
   ], heading="Macro") }}
 {% endblock %}

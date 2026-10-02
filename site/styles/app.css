@@ -1,10 +1,9 @@
 /* Stylesheet for the website (marketing pages + docs). The library itself is
-   src/styles.css; this file adds Tailwind, source scanning and site-only styles. */
+   htmx-ui/styles.css (packages/ui); this file adds Tailwind, source scanning and site-only styles. */
 @import "tailwindcss";
 
-/* Scan site templates and the package's macros/behaviours for class names */
+/* Scan site templates for class names (htmx-ui/styles.css scans the package's own macros) */
 @source "../";
-@source "../../src";
 
-@import "../../src/styles.css";
+@import "htmx-ui/styles.css";
 @import "./docs.css";

@@ -1,0 +1,27 @@
+{# Every page extends this. asset() makes paths relative to the page, so the
+   bundler finds app.ts from any depth. #}
+{% set site = json("data/site.json") %}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{% block title %}{{ site.name }}{% endblock %}</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <script>
+      // Apply the stored theme before first paint (htmx-ui/theme takes over once app.ts loads).
+      (() => {
+        const stored = localStorage.getItem("theme");
+        const dark = stored ? stored === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+        document.documentElement.classList.toggle("dark", dark);
+      })();
+    </script>
+    <script type="module" src="{{ asset('app.ts') }}"></script>
+  </head>
+  <body class="min-h-dvh bg-background text-foreground antialiased">
+    {% include "partials/header.html" %}
+    <main class="mx-auto max-w-3xl px-4 py-12">
+      {% block content %}{% endblock %}
+    </main>
+  </body>
+</html>

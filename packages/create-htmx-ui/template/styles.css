@@ -1,0 +1,9 @@
+@import "tailwindcss";
+@import "htmx-ui/styles.css";
+
+/* Scan this project's templates and scripts for class names */
+@source "./";
+
+/* Theme overrides: any htmx-ui token, e.g.
+:root { --primary: var(--color-emerald-600); }
+.dark { --primary: var(--color-emerald-500); } */

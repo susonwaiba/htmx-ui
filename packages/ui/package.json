@@ -1,0 +1,65 @@
+{
+  "name": "htmx-ui",
+  "version": "0.1.0",
+  "description": "Tailwind CSS v4 components for htmx apps: plain HTML, themeable with CSS variables, dark mode built in.",
+  "keywords": [
+    "htmx",
+    "tailwindcss",
+    "tailwind",
+    "components",
+    "ui",
+    "hypermedia",
+    "css",
+    "dark-mode"
+  ],
+  "license": "MIT",
+  "author": "Suson Waiba",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/susonwaiba/htmx-ui.git",
+    "directory": "packages/ui"
+  },
+  "bugs": "https://github.com/susonwaiba/htmx-ui/issues",
+  "homepage": "https://github.com/susonwaiba/htmx-ui#readme",
+  "type": "module",
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "exports": {
+    ".": {
+      "bun": "./src/index.ts",
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./theme": {
+      "bun": "./src/theme.ts",
+      "types": "./lib/theme.d.ts",
+      "default": "./lib/theme.js"
+    },
+    "./styles.css": "./src/styles.css",
+    "./components/*": "./src/components/*",
+    "./icons/*": "./src/icons/*",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "src",
+    "!src/**/*.test.ts"
+  ],
+  "scripts": {
+    "build": "bun run build.ts",
+    "prepublishOnly": "bun run --cwd ../.. release:check"
+  },
+  "dependencies": {
+    "@tailwindcss/typography": "^0.5.20"
+  },
+  "peerDependencies": {
+    "htmx.org": "^4.0.0",
+    "tailwindcss": "^4.0.0"
+  },
+  "devDependencies": {
+    "bun-plugin-tailwind": "^0.1.2",
+    "htmx.org": "^4.0.0",
+    "tailwindcss": "^4.3.3"
+  }
+}

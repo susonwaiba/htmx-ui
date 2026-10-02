@@ -9,7 +9,7 @@
 {% set versions = json("data/versions.json") %}
 {% from "components/icon/icon.html" import icon %}
 {% set has_sidebar = true %}
-{# Pages rendered from source are always the latest docs version; older versions are frozen snapshots (bun/versions.ts). #}
+{# Pages rendered from source are always the latest docs version; older versions are frozen snapshots (site/lib/versions.ts). #}
 {% set version = versions.latest %}
 
 {# Flatten the nav for prev/next, and find this page's section. #}

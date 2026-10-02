@@ -1,0 +1,40 @@
+{
+  "name": "create-htmx-ui",
+  "version": "0.1.0",
+  "description": "Start a new htmx-ui site: npm create htmx-ui, pnpm create htmx-ui, yarn create htmx-ui, bun create htmx-ui.",
+  "keywords": [
+    "htmx",
+    "htmx-ui",
+    "create",
+    "scaffold",
+    "starter",
+    "template"
+  ],
+  "license": "MIT",
+  "author": "Suson Waiba",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/susonwaiba/htmx-ui.git",
+    "directory": "packages/create-htmx-ui"
+  },
+  "bugs": "https://github.com/susonwaiba/htmx-ui/issues",
+  "homepage": "https://github.com/susonwaiba/htmx-ui#readme",
+  "type": "module",
+  "bin": {
+    "create-htmx-ui": "./index.js"
+  },
+  "exports": {
+    ".": "./index.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "index.js",
+    "template"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "prepublishOnly": "bun run --cwd ../.. release:check"
+  }
+}

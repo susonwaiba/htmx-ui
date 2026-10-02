@@ -1,0 +1,154 @@
+{% extends "layouts/docs.html" %}
+{% from "components/code/code.html" import code, code_tabs, cli %}
+{% from "components/alert/alert.html" import alert %}
+{% from "macros/docs.html" import classes %}
+{% set title = "Engine" %}
+{% set description = "htmx-ui-engine builds a site from Nunjucks pages: file-based routing, Tailwind, a dev server with hot reload and mock htmx endpoints, and static builds, on Bun or Node." %}
+
+{% block content %}
+  <p>
+    <code>htmx-ui-engine</code> is the build tool behind <code>npm create htmx-ui</code> and this website. It turns a
+    folder of HTML pages into a static site: each page is rendered with Nunjucks, then bundled (scripts and styles
+    hashed and minified, Tailwind compiled from every class the page uses). The same engine runs on two runtimes:
+  </p>
+  <div class="table-wrap not-prose">
+    <table class="table">
+      <thead><tr><th>Runtime</th><th>Dev server</th><th>Build</th><th>Tailwind</th></tr></thead>
+      <tbody>
+        <tr><td>Bun</td><td class="text-muted-foreground"><code class="code">Bun.serve</code> with HMR</td><td class="text-muted-foreground"><code class="code">Bun.build</code></td><td class="text-muted-foreground"><code class="code">bun-plugin-tailwind</code></td></tr>
+        <tr><td>Node</td><td class="text-muted-foreground">Vite with HMR</td><td class="text-muted-foreground">Vite</td><td class="text-muted-foreground"><code class="code">@tailwindcss/vite</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>Both render pages with the same code, so a site builds the same way on either.</p>
+
+  <h2 id="cli">Commands</h2>
+  {% call code("json", title="package.json") %}
+    {
+      "scripts": {
+        "dev": "htmx-ui dev",
+        "build": "htmx-ui build",
+        "preview": "htmx-ui preview"
+      }
+    }
+  {% endcall %}
+  {{ classes([
+    ["htmx-ui dev", "Dev server at http://localhost:3000 with hot reload: scripts and styles update in place; pages reload when a layout, partial, macro or data file changes."],
+    ["htmx-ui build", "Builds every page into dist/ and copies public/ next to it."],
+    ["htmx-ui preview", "Serves dist/ with the same clean URLs (/about for about.html)."],
+    ["--port <n>", "Port for dev and preview. $PORT works too."],
+    ["--root <dir>", "Project root, if not the current directory."],
+    ["--bun, --node", "Pick the runtime (also HTMX_UI_RUNTIME=bun|node)."]
+  ], heading="Command / option") }}
+  <p>
+    The runtime follows whatever started the command: <code>bun run dev</code> and <code>bunx htmx-ui</code> run on Bun;
+    <code>npm run</code>, <code>pnpm</code>, <code>yarn</code> and <code>npx</code> run on Node. Install the Tailwind
+    integration for the one you use:
+  </p>
+  {{ code_tabs([
+    { id: "bun", label: "Bun", lang: "bash", source: "bun add -d htmx-ui-engine tailwindcss bun-plugin-tailwind" },
+    { id: "node", label: "Node", lang: "bash", source: "npm install -D htmx-ui-engine tailwindcss vite @tailwindcss/vite" }
+  ]) }}
+
+  <h2 id="layout">Project layout</h2>
+  {% call code("text", title="my-site/") %}
+    pages/index.html          -> /
+    pages/about.html          -> /about
+    pages/docs/index.html     -> /docs
+    pages/docs/setup.html     -> /docs/setup
+    layouts/  partials/       shared templates
+    data/*.json               read from templates with json()
+    public/                   served at / and copied to dist/ as-is
+    app.ts  styles.css        client entry and stylesheet
+    htmx-ui.config.ts         optional
+  {% endcall %}
+  <p>
+    Pages, layouts and partials are covered in <a href="/docs/templates">Templates &amp; data</a>. With
+    <code>htmx-ui</code> installed, its macros and icons resolve by name, after your own files:
+    <code>&#123;% from "components/icon/icon.html" import icon %&#125;</code>.
+  </p>
+  <p>
+    Link files in <code>public/</code> with a root-absolute URL (<code>href="/favicon.svg"</code>); they keep their names.
+    Link everything else with <code>asset()</code>, so the bundler can hash it.
+  </p>
+
+  <h2 id="config">Configuration</h2>
+  <p>Every option is optional, and a project without <code>htmx-ui.config.ts</code> uses the defaults.</p>
+  {% call code("ts", title="htmx-ui.config.ts") %}
+    import { defineConfig } from "htmx-ui-engine";
+
+    export default defineConfig({
+      pages: "pages",
+      templates: ["."],
+      outDir: "dist",
+      publicDir: "public",
+      url: "https://example.com",
+      port: 3000,
+    });
+  {% endcall %}
+  {{ classes([
+    ["pages", "Routes directory. Default \"pages\"."],
+    ["templates", "Template roots, searched in order. Default [\".\"]; htmx-ui's src/ is added last (ui: false turns that off)."],
+    ["outDir", "Build output. Default \"dist\"."],
+    ["publicDir", "Copied as-is. Default \"public\"; false to disable."],
+    ["url", "Public site URL, the origin template global. $SITE_URL overrides it."],
+    ["port", "Dev and preview port. Default 3000; $PORT overrides it."],
+    ["globals, filters", "Extra Nunjucks globals and filters."],
+    ["transform(html, page)", "Post-process every rendered page, in dev and build."],
+    ["routes", "Dev-only request handlers (see below)."],
+    ["fetch(req)", "Dev-only fallback for anything else; return null for a 404."],
+    ["build.minify, build.sourcemap, build.define", "Production bundling options."],
+    ["build.done(ctx)", "Runs after a build with { outDir, pages }, e.g. to write a sitemap."],
+    ["vite", "Node only: extra Vite config, merged over the engine's."]
+  ], heading="Option") }}
+
+  <h2 id="mock-endpoints">Mock htmx endpoints</h2>
+  <p>
+    While you build the front end, <code>routes</code> answers <code>hx-get</code> and <code>hx-post</code> with HTML
+    fragments, so no backend is needed. Handlers take a web <code>Request</code> and return a <code>Response</code>, with
+    Bun.serve's route syntax, on either runtime:
+  </p>
+  {% call code("ts", title="htmx-ui.config.ts") %}
+    import { defineConfig } from "htmx-ui-engine";
+
+    const html = (body: string) => new Response(body, { headers: { "Content-Type": "text/html" } });
+
+    export default defineConfig({
+      routes: {
+        "/api/users/:id": (req) => html(`<p>User ${req.params.id}</p>`),
+        "/api/search": async (req) => {
+          const q = new URL(req.url).searchParams.get("q") ?? "";
+          return html(`<li>Results for ${q}</li>`);
+        },
+      },
+    });
+  {% endcall %}
+  {% call alert("Dev server only", variant="info") %}
+    The build is static, so these routes don't exist in production. Point the same URLs at your real backend there.
+  {% endcall %}
+
+  <h2 id="plugins">Use the plugins directly</h2>
+  <p>Already have a build script or a Vite config? Use the engine's plugin and skip the CLI:</p>
+  {{ code_tabs([
+    { id: "bun", label: "build.ts (Bun)", lang: "ts", source: 'import { htmxUi } from "htmx-ui-engine/bun";
+import tailwind from "bun-plugin-tailwind";
+
+await Bun.build({
+  entrypoints: ["./pages/index.html", "./pages/about.html"],
+  root: "./pages",
+  outdir: "./dist",
+  plugins: [await htmxUi(), tailwind], // htmx-ui first, so Tailwind sees rendered markup
+});' },
+    { id: "vite", label: "vite.config.ts (Node)", lang: "ts", source: 'import { htmxUi } from "htmx-ui-engine/vite";
+import tailwindcss from "@tailwindcss/vite";
+
+export default {
+  plugins: [htmxUi(), tailwindcss()],
+};' }
+  ]) }}
+  <p>
+    The package root, <code>htmx-ui-engine</code>, exports the runtime-independent core for your own tooling:
+    <code>defineConfig</code>, <code>loadConfig</code>, <code>render</code>, <code>renderPage</code>,
+    <code>findPages</code>, <code>routeFor</code> and <code>highlight</code>.
+  </p>
+{% endblock %}

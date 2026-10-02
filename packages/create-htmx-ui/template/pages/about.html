@@ -1,0 +1,15 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}About · {{ super() }}{% endblock %}
+
+{% block content %}
+<div class="prose">
+  <h1>About</h1>
+  <p>Built with <a href="https://github.com/susonwaiba/htmx-ui">htmx-ui</a>: Tailwind components for htmx, and an engine that turns <code>pages/</code> into a site.</p>
+  <ul>
+    <li><code>layouts/</code> and <code>partials/</code> hold shared markup.</li>
+    <li><code>data/*.json</code> is readable from any template with <code>json()</code>.</li>
+    <li><code>public/</code> is served and copied as-is.</li>
+  </ul>
+</div>
+{% endblock %}
