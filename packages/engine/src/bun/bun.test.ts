@@ -5,7 +5,9 @@ import { mkdtemp, mkdir, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { resolveConfig } from "../core/config";
+import { readdirSync } from "node:fs";
 import { build } from "./build";
+import { forwardTarget, staticImports } from "./chunks";
 import { bunfig } from "./dev";
 
 async function project(files: Record<string, string>): Promise<string> {
@@ -50,6 +52,53 @@ describe("bun adapter", () => {
     expect(await Bun.file(join(dir, "dist/favicon.svg")).exists()).toBe(true);
     expect(done).toEqual(["/", "/docs/intro"]);
   }, 30_000);
+
+  test("pages share one script and stylesheet in assets/; a page's own script imports the shared code with a modulepreload", async () => {
+    const dir = await project({
+      "layout.html": `<!doctype html><html><head><script type="module" src="{{ asset('app.ts') }}"></script>{% block head %}{% endblock %}</head><body>{% block content %}{% endblock %}</body></html>`,
+      "app.ts": "import { shared } from './shared'; shared();",
+      "shared.ts": "export const shared = () => console.log('shared ' + Math.random());",
+      "chart.ts": "import { shared } from './shared'; shared(); console.log('chart');",
+      "pages/index.html": '{% extends "layout.html" %}{% block content %}a{% endblock %}',
+      "pages/about.html": '{% extends "layout.html" %}{% block content %}b{% endblock %}',
+      "pages/docs/deep.html": '{% extends "layout.html" %}{% block content %}c{% endblock %}',
+      "pages/chart.html": `{% extends "layout.html" %}{% block head %}<script type="module" src="{{ asset('chart.ts') }}"></script>{% endblock %}{% block content %}d{% endblock %}`,
+    });
+    const log = console.log;
+    console.log = () => {};
+    try {
+      expect(await build(resolveConfig({ ui: false }, dir))).toBe(true);
+    } finally {
+      console.log = log;
+    }
+    const read = (page: string) => Bun.file(join(dir, "dist", page)).text();
+    const srcs = async (page: string) => [...(await read(page)).matchAll(/<script[^>]*src="([^"]+)"/g)].map((m) => m[1]!);
+
+    const home = await srcs("index.html");
+    const about = await srcs("about.html");
+    const deep = await srcs("docs/deep.html");
+    expect(home).toHaveLength(1);
+    expect(home[0]).toMatch(/^\.\/assets\/[\w-]+\.js$/);
+    expect(about).toEqual(home); // the same file, not a per-page stub
+    expect(deep).toEqual([home[0]!.replace("./", "../")]);
+
+    const js = readdirSync(join(dir, "dist/assets")).filter((f) => f.endsWith(".js"));
+    for (const f of js) expect(forwardTarget(await Bun.file(join(dir, "dist/assets", f)).text()), f).toBeNull(); // no stubs left
+    expect(readdirSync(join(dir, "dist")).filter((f) => f.endsWith(".js"))).toEqual([]); // nothing at the root
+
+    // chart.html: its own entry, which imports shared code, preloaded instead of discovered late
+    const chart = await read("chart.html");
+    const preloads = [...chart.matchAll(/rel="modulepreload"[^>]*href="([^"]+)"/g)].map((m) => m[1]);
+    expect(preloads.length).toBeGreaterThan(0);
+    for (const href of preloads) expect(await Bun.file(join(dir, "dist", href!)).exists()).toBe(true);
+  }, 30_000);
+
+  test("chunk parsing: forwarders and static imports", () => {
+    expect(forwardTarget('import"./index-1a2b.js";\n\n//# debugId=X\n//# sourceMappingURL=a.js.map\n')).toBe("./index-1a2b.js");
+    expect(forwardTarget('import"./a.js";console.log(1)')).toBeNull();
+    expect(forwardTarget('import"./a.js";import"./b.js";')).toBeNull();
+    expect(staticImports('import{a as b}from"./x-1.js";import"./y.js";const z=import("./lazy.js");')).toEqual(["./x-1.js", "./y.js"]);
+  });
 
   test("the generated bunfig loads the htmx-ui plugin first, then Tailwind and the project's own plugins", async () => {
     const dir = await project({ "bunfig.toml": '[serve.static]\nplugins = ["./my-plugin.ts", "bun-plugin-tailwind"]\nenv = "PUBLIC_*"\n' });

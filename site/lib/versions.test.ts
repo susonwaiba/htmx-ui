@@ -49,13 +49,17 @@ describe("archiveDocs", () => {
     return fixture({
       "chunk-a.js": "js",
       "chunk-b.css": "css",
+      "assets/app-c.js": "app",
+      "assets/icons/sun.svg": "<svg/>",
       "index.html": "<html><head></head><body>home</body></html>",
       "sitemap.json": "{}",
       "docs.md": '---\nurl: "/docs"\n---\n[x](/docs/x)\n',
       "docs/index.html":
         '<html><head><link rel="stylesheet" href="../chunk-b.css"></head><body>' +
         '<a href="/docs/x">x</a><a href="/docs/versions" data-version-link>v</a><script src="../chunk-a.js"></script></body></html>',
-      "docs/x.html": '<html><head></head><body><button data-markdown-copy="/docs/x.md"></button></body></html>',
+      "docs/x.html":
+        '<html><head><link rel="modulepreload" href="../assets/app-c.js"></head><body><button data-markdown-copy="/docs/x.md"></button>' +
+        '<script type="module" src="../assets/app-c.js"></script></body></html>',
       "docs/x.md": "[home](/docs)\n",
       "docs/versions.json": "{}",
       "docs/sitemap.json": JSON.stringify({ url: "https://x.dev", version: "0.1", pages: [{ url: "/docs/x", absoluteUrl: "https://x.dev/docs/x", markdown: "/docs/x.md", sections: [] }] }),
@@ -78,7 +82,13 @@ describe("archiveDocs", () => {
     expect(index).toContain('href="/docs/versions" data-version-link'); // switcher links untouched
     expect(index).toContain('<meta name="robots" content="noindex" />');
 
-    expect(await Bun.file(join(archive, "v0.1/x.html")).text()).toContain('data-markdown-copy="/docs/v0.1/x.md"');
+    const x = await Bun.file(join(archive, "v0.1/x.html")).text();
+    expect(x).toContain('data-markdown-copy="/docs/v0.1/x.md"');
+    // The engine's assets/ directory flattens into _assets/; its icons/ copy stays out
+    expect(x).toContain('src="/docs/v0.1/_assets/app-c.js"');
+    expect(x).toContain('<link rel="modulepreload" href="/docs/v0.1/_assets/app-c.js">');
+    expect(await Bun.file(join(archive, "v0.1/_assets/app-c.js")).text()).toBe("app");
+    expect(await Bun.file(join(archive, "v0.1/_assets/sun.svg")).exists()).toBe(false);
     expect(await Bun.file(join(archive, "v0.1/x.md")).text()).toBe("[home](/docs/v0.1)\n");
     expect(await Bun.file(join(archive, "v0.1.md")).text()).toContain('url: "/docs/v0.1"');
     expect(await Bun.file(join(archive, "v0.1/_assets/chunk-a.js")).text()).toBe("js");

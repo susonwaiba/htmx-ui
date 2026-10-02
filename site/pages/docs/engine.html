@@ -34,7 +34,7 @@
   {% endcall %}
   {{ classes([
     ["htmx-ui dev", "Dev server at http://localhost:3000 with hot reload: scripts and styles update in place; pages reload when a layout, partial, macro or data file changes."],
-    ["htmx-ui build", "Builds every page into dist/ and copies public/ next to it."],
+    ["htmx-ui build", "Builds every page into dist/ (same paths as pages/), with scripts, styles and images in dist/assets/, content-hashed and shared by every page that uses them. Copies public/ next to it."],
     ["htmx-ui preview", "Serves dist/ with the same clean URLs (/about for about.html)."],
     ["--port <n>", "Port for dev and preview. $PORT works too."],
     ["--root <dir>", "Project root, if not the current directory."],

@@ -39,7 +39,9 @@ htmx-ui.config.ts         optional
 ```
 
 Pages are [Nunjucks](https://mozilla.github.io/nunjucks/) templates rendered before bundling, so scripts and
-styles they reference are bundled, hashed and minified, and Tailwind sees every class. Template helpers:
+styles they reference are bundled, hashed and minified, and Tailwind sees every class. The build keeps page paths
+(`dist/docs/index.html`) and puts scripts, styles and images in `dist/assets/`, shared by every page that uses
+them: a site whose layout loads one `app.ts` ships one JS and one CSS file, on either runtime. Template helpers:
 
 | Helper | |
 | :--- | :--- |

@@ -110,7 +110,7 @@ A Bun workspace (`package.json` `workspaces`). One rule: **`packages/ui/src/` is
   - `pages/nested/page.html` $\rightarrow$ `/nested/page`
 - **Layouts & Partials:** Pages are templates, not full documents. They `{% extends %}` a layout and the layout owns `<html>`/`<head>`/`<body>` plus the nav, main frame and footer. See §4.6.
 - **Dev server:** `htmx-ui dev` (Bun: `packages/engine/src/bun/dev-server.ts`) globs pages on startup. **Creating a new `.html` page requires restarting `bun run dev`** to register the route. (The Node adapter rescans on its own.)
-- **Production Build:** `htmx-ui build` (Bun: `packages/engine/src/bun/build.ts`) uses every page as a `Bun.build` entrypoint with `root` = the pages directory, into `dist/`.
+- **Production Build:** `htmx-ui build` (Bun: `packages/engine/src/bun/build.ts`) uses every page as a `Bun.build` entrypoint with `root` = the pages directory, into `dist/`. Pages keep their paths; scripts, styles and images go to `dist/assets/` with content hashes. Bun emits a one-line forwarding entry chunk per page; `packages/engine/src/bun/chunks.ts` points pages straight at the shared chunk, deletes the stubs and adds `modulepreload` for remaining static imports, so every page shares one JS and one CSS file (as Vite does on Node).
 
 ### 4.2. Component Architecture & Lifecycle
 Components are partitioned into CSS classes and optional TypeScript behaviors.

@@ -14,6 +14,7 @@
 // `bun run docs:archive <next>` (scripts/archive.ts) snapshots the latest version and
 // makes <next> the new latest.
 
+import { existsSync } from "node:fs";
 import { cp, mkdir, readdir, rm } from "node:fs/promises";
 import { dirname, join, posix, relative, resolve, sep } from "node:path";
 import { ARCHIVE, SITE } from "./paths";
@@ -83,13 +84,13 @@ export async function archiveFile(pathname: string, archive = ARCHIVE): Promise<
 /** Attributes that may hold URLs to rewrite. */
 const URL_ATTRS = ["href", "src", "poster", "data-markdown-copy"];
 
-/** Files at the dist root that pages reference (chunks, images). Everything else is a page or an index. */
+/** Files pages reference (chunks, styles, images). Everything else is a page or an index. */
 const isAsset = (name: string) => !/\.(html|md|txt|xml|json|map)$/.test(name);
 
 /**
  * Rewrite a URL found in an archived page.
  *   /docs/...          -> /docs/v<id>/...   (stay inside the snapshot)
- *   ../chunk-x.css     -> /docs/v<id>/_assets/chunk-x.css
+ *   ../assets/x.css    -> /docs/v<id>/_assets/x.css   (also ../chunk-x.css from older builds)
  * Left alone: other versions (/docs/v...), /docs/versions.json, other paths, external URLs.
  */
 export function rewriteUrl(value: string, id: string, fileDir: string, assets: Set<string>): string {
@@ -101,7 +102,7 @@ export function rewriteUrl(value: string, id: string, fileDir: string, assets: S
   if (/^([a-z][a-z0-9+.-]*:|\/|#)/i.test(value) || !value) return value;
   const [path, suffix = ""] = value.split(/(?=[?#])/);
   const target = posix.normalize(posix.join(fileDir, path!));
-  return assets.has(target) ? `/docs/v${id}/_assets/${target}${suffix}` : value;
+  return assets.has(target) ? `/docs/v${id}/_assets/${posix.basename(target)}${suffix}` : value;
 }
 
 /** Rewrite /docs links in Markdown links and frontmatter (code blocks are left alone). */
@@ -132,15 +133,19 @@ export async function archiveDocs({ dist, id, archive = ARCHIVE }: { dist: strin
   await rm(out, { recursive: true, force: true });
   await mkdir(join(out, "_assets"), { recursive: true });
 
-  // Shared assets (code-split chunks, CSS, hashed images) live at the dist root.
-  const assets = new Set((await readdir(dist, { withFileTypes: true })).filter((e) => e.isFile() && isAsset(e.name)).map((e) => e.name));
-  for (const name of assets) await cp(join(dist, name), join(out, "_assets", name));
+  // Shared assets (code-split chunks, CSS, hashed images) live in dist/assets/ (the
+  // engine's layout; dist/assets/icons/ is the unhashed icon copy and stays out) or,
+  // in older builds, at the dist root. Names are content-hashed, so they flatten into _assets/.
+  const files = async (dir: string, prefix = "") =>
+    existsSync(dir) ? (await readdir(dir, { withFileTypes: true })).filter((e) => e.isFile() && isAsset(e.name)).map((e) => prefix + e.name) : [];
+  const assets = new Set([...(await files(dist)), ...(await files(join(dist, "assets"), "assets/"))]);
+  for (const path of assets) await cp(join(dist, path), join(out, "_assets", posix.basename(path)));
 
   const docsDir = join(dist, "docs");
   const pages: string[] = [];
-  const files = [...(await walk(docsDir)), join(dist, "docs.md")];
+  const docFiles = [...(await walk(docsDir)), join(dist, "docs.md")];
 
-  for (const file of files) {
+  for (const file of docFiles) {
     if (!(await Bun.file(file).exists())) continue;
     const rel = relative(docsDir, file).split(sep).join("/"); // "components/button.html", "../docs.md"
     if (/^v\d/.test(rel) || rel === "versions.json") continue; // older snapshots and the manifest are not part of this version
