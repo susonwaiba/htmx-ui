@@ -15,7 +15,10 @@
     "typecheck": "tsc --noEmit",
     "docs:archive": "bun run scripts/archive.ts",
     "release:check": "bun run scripts/release-check.ts",
-    "component:new": "bun run scripts/new-component.ts"
+    "component:new": "bun run scripts/new-component.ts",
+    "deploy:prepare": "bun run scripts/prepare-for-github-pages.ts",
+    "deploy:check": "bun run scripts/check-github-pages.ts",
+    "deploy": "SITE_URL=${SITE_URL:-https://susonwaiba.github.io/htmx-ui} bun run build && bun run deploy:prepare && bun run deploy:check"
   },
   "devDependencies": {
     "@happy-dom/global-registrator": "^20.14.5",

@@ -27,17 +27,32 @@ jobs:
       - uses: oven-sh/setup-bun@v2
 
       - name: Setup Pages
+        id: pages
         uses: actions/configure-pages@v5
 
       - run: bun install --frozen-lockfile
-      - run: bun run build
-      - run: bun run scripts/prepare-for-github-pages.ts
+
+      # The published path, e.g. https://<owner>.github.io/<repo> for a project
+      # site. The build bakes absolute URLs from $SITE_URL (sitemaps,
+      # robots.txt, llms.txt), so the whole deploy needs it. Compose it from the
+      # action's output instead of hardcoding, so a rename of the repository
+      # cannot silently break every URL.
+      - name: Resolve the public site URL
+        id: site
+        run: echo "url=${{ steps.pages.outputs.base_url }}" >> "$GITHUB_OUTPUT"
+
+      # The same command as locally: build with $SITE_URL, rewrite dist/ for the
+      # subdirectory, then verify it. The check is the last step, so a dist with
+      # a relative URL, a dev-server origin, a dead link or a missing clean-URL
+      # route fails the job before anything is uploaded.
+      - name: Build, prepare and check
+        run: bun run deploy
+        env:
+          SITE_URL: ${{ steps.site.outputs.url }}
 
       - name: Upload Artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # "." targets the root of your repository.
-          # Change to "./dist" or "./public" if your static files are inside a subfolder.
           path: "./dist"
 
       - name: Deploy to GitHub Pages

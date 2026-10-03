@@ -62,8 +62,11 @@ export async function initVersions() {
 
   const current = manifest.versions.find((v) => v.id === switcher.dataset.version);
   if (!current) return;
+  // A deployed version's path may be absolute (or carry the subdirectory the site
+  // is published under), so compare against its pathname, not the raw string.
   // This page's path inside its version: "/docs/v0.1/components/button" -> "/components/button"
-  const sub = location.pathname.startsWith(current.path) ? location.pathname.slice(current.path.length).replace(/\/$/, "") : "";
+  const path = new URL(current.path, location.href).pathname;
+  const sub = location.pathname.startsWith(path) ? location.pathname.slice(path.length).replace(/\/$/, "") : "";
   const hrefIn = (v: Manifest["versions"][number]) => v.path + (v.pages.includes(sub) ? sub : "");
 
   switcher
