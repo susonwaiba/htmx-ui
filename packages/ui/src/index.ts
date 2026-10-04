@@ -6,3 +6,6 @@
 // from a package with a "sideEffects" list, leaving lib/index.js empty. The
 // release check imports lib/ to catch that.
 export * from "./components";
+
+// Utilities for advanced usage
+export { queryAll } from "./utils/dom";

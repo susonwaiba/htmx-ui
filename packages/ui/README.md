@@ -13,11 +13,11 @@ behaviours that keep working inside htmx-swapped fragments, design tokens for th
 ## Install
 
 ```bash
-npm install htmx-ui htmx.org
-npm install -D tailwindcss
+bun add htmx-ui htmx.org
+bun add -D tailwindcss
 ```
 
-(or `pnpm add`, `yarn add`, `bun add`). Requires Tailwind CSS v4 and htmx 4.
+(or `npm install`, `pnpm add`, `yarn add`). Requires Tailwind CSS v4 and htmx 4.
 
 ## Use
 
@@ -56,7 +56,8 @@ Theme it by overriding CSS variables:
 :root.dark { --primary: oklch(0.7 0.17 30); }
 ```
 
-Starting a new site? `npm create htmx-ui@latest` sets up pages, layouts, Tailwind and a dev server with
+Starting a new site? `bun create htmx-ui@latest` (or `npm create`, `pnpm create`, `yarn create`) sets up pages,
+layouts, Tailwind and a dev server with
 [htmx-ui-engine](https://www.npmjs.com/package/htmx-ui-engine).
 
 Full documentation, with live examples, theming and dark mode guides, is on the docs site. Every docs page is

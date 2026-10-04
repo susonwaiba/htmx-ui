@@ -2,7 +2,7 @@
 // remembers the choice in localStorage. The chosen theme is applied as a "dark"
 // class on <html>; see the @custom-variant rule in src/styles.css.
 
-type Theme = "light" | "dark";
+export type Theme = "light" | "dark";
 
 const STORAGE_KEY = "theme";
 
