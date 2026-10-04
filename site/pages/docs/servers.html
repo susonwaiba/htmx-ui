@@ -1,0 +1,316 @@
+{% extends "layouts/docs.html" %}
+{% from "components/code/code.html" import code, code_tabs, cli %}
+{% from "components/alert/alert.html" import alert %}
+{% from "macros/docs.html" import classes %}
+{% set title = "Server frameworks" %}
+{% set description = "Serve a built htmx-ui site from your own backend: Express, Elysia, Hono, or any framework built on node:http or the Web platform." %}
+
+{% block content %}
+  <p>
+    A built htmx-ui site is just files: pages at their routes, hashed scripts and styles, whatever you put in
+    <code>public/</code>. Nothing about it needs a particular server. <code>htmx-ui-engine</code> ships adapters that mount
+    those files on <a href="/docs/servers/elysia">Elysia</a> (the one to start with),
+    <a href="/docs/servers/express">Express</a> and <a href="/docs/servers/hono">Hono</a>, plus
+    <code>createSite()</code> for anything else — so your backend can own <code>/api</code> and the pages, or the other
+    way round, in one process.
+  </p>
+
+  <h2 id="static-or-dynamic">Static or dynamic?</h2>
+  <p>
+    A page in <code>pages/</code> is rendered once, by <code>htmx-ui build</code>, and served as a file from
+    <code>dist/</code>. That is what a page route is: the same bytes for everyone, cacheable anywhere, no server
+    involved. So anything that depends on <em>who is asking</em> does not belong in the built page &mdash; it belongs
+    in a fragment your server renders per request.
+  </p>
+  <p>
+    That is the whole division: pages are static and come from the build; the per-user part is a
+    <code>site.fragment()</code> answering an htmx request.
+  </p>
+
+  <h3 id="per-user">When the HTML depends on who is asking</h3>
+  <p>
+    A template decides what to show from its context, and at build time there is no request, so no user. Here is the
+    piece that usually needs it &mdash; a sign-in link for a visitor, a name and a sign-out button for a member:
+  </p>
+  {% call code("jinja", title="partials/user-menu.html") %}
+{% raw %}{% if user %}
+  <span class="text-sm">{{ user.name }}</span>
+  <form method="post" action="/logout"><button class="btn btn-sm">Sign out</button></form>
+{% else %}
+  <a class="btn btn-sm" href="/login">Sign in</a>
+{% endif %}{% endraw %}
+  {% endcall %}
+  <p>
+    The page keeps its place in the layout and asks for that fragment; your server renders it against the request
+    and htmx swaps it in:
+  </p>
+  {% call code("html", title="pages/dashboard.html") %}
+{% raw %}<div hx-get="/api/user-menu" hx-swap="outerHTML">…</div>{% endraw %}
+  {% endcall %}
+  {% call code("ts", title="server.ts") %}
+    const html = (body: string) => new Response(body, { headers: { "Content-Type": "text/html; charset=utf-8" } });
+
+    app.get("/api/user-menu", ({ request }) =>
+      html(site.fragment("partials/user-menu.html", { user: currentUser(request) })),
+    );
+  {% endcall %}
+  <p>
+    The page stays a static file anyone can cache, the fragment is small, and the markup lives in one template
+    either way. This is the shape for a header, a nav, a sidebar, or any list of the visitor's own rows.
+  </p>
+  {% call alert("Only the render needs the user", variant="info") %}
+    Your <code>routes</code> and the framework's own middleware see the request first, so <code>currentUser()</code>
+    can be a cookie, a session or a token &mdash; anything you already have. Templates get it as a context value,
+    never by reading the request themselves.
+  {% endcall %}
+  <p>
+    Not sure which branch answered a request, or why a page never finishes loading? Set <code>debug</code> in
+    <code>htmx-ui.config.ts</code> and the engine logs every request in, what answered it and how long each render
+    took &mdash; see <a href="/docs/engine#debug">Debugging</a>.
+  </p>
+
+  <h2 id="how-it-works">What the adapters do</h2>
+  <p>
+    <code>htmx-ui build</code> renders every page and writes the site to <code>dist/</code>. An adapter is a thin layer
+    over that output:
+  </p>
+  <ol>
+    <li>The config's <code>routes</code> answer <code>hx-get</code> and <code>hx-post</code> (see <a href="/docs/engine#mock-endpoints">Mock htmx endpoints</a>).</li>
+    <li><code>dist/</code> answers everything else: a page at its route, an asset, a <code>public/</code> file, then your built <code>404.html</code>.</li>
+    <li>Anything still unmatched is yours: the adapter passes the request on.</li>
+  </ol>
+  {{ code_tabs([
+    { id: "elysia", label: "Elysia", lang: "ts", source: 'import { Elysia } from "elysia";
+import { htmxUi } from "htmx-ui-engine/elysia";
+
+new Elysia()
+  .get("/api/ping", () => ({ ok: true }))
+  .use(htmxUi())             // everything else is the built site
+  .listen(3000);' },
+    { id: "express", label: "Express", lang: "ts", source: 'import express from "express";
+import { htmxUi } from "htmx-ui-engine/express";
+
+const app = express();
+app.get("/api/ping", (req, res) => res.json({ ok: true }));
+app.use(htmxUi());            // last: everything else is the built site
+app.listen(3000);' },
+    { id: "hono", label: "Hono", lang: "ts", source: 'import { Hono } from "hono";
+import { htmxUi } from "htmx-ui-engine/hono";
+
+const app = new Hono();
+app.get("/api/ping", (c) => c.json({ ok: true }));
+app.use(htmxUi());            // last: everything else is the built site' }
+  ]) }}
+  {% call alert("Mount it last", variant="info") %}
+    Every adapter is a fallback: register your own routes and middleware <em>before</em> it, so they keep the paths they
+    want and htmx-ui answers the rest. Elysia is the exception — a specific route always beats the plugin's catch-all, so
+    order doesn't matter there.
+  {% endcall %}
+  <p>
+    Add the adapter to the project next to the pages, alongside <code>htmx-ui</code> itself:
+  </p>
+  {{ cli("add htmx-ui htmx.org\nadd-dev htmx-ui-engine tailwindcss\nadd elysia") }}
+  <p>
+    Adapters import nothing from their framework, so they only add types and runtime methods — never a second copy of
+    Express, Elysia or Hono, and nothing to install for the ones you don't use.
+  </p>
+
+  <h2 id="scripts">Scripts</h2>
+  {% call code("json", title="package.json") %}
+    {
+      "scripts": {
+        "dev": "htmx-ui dev",
+        "build": "htmx-ui build",
+        "start": "node server.js"
+      }
+    }
+  {% endcall %}
+  <p>
+    Templates are rendered when you <strong>build</strong>, so run <code>htmx-ui build</code> before starting your
+    server. While you work on pages, <code>htmx-ui dev</code> is the faster loop: hot reload for scripts and styles, a
+    reload when a layout, partial, macro or data file changes, and the mock endpoints from your config to build against.
+  </p>
+
+  <h2 id="createSite">createSite()</h2>
+  <p>
+    The adapters are thin, so anything they do is available directly — and it is what you reach for when your server
+    isn't one of the three, or when you want to render a page or a fragment yourself.
+  </p>
+  {% call code("ts", title="server.ts") %}
+    import { createSite } from "htmx-ui-engine";
+
+    const site = await createSite();
+
+    // Anything the built site doesn't have: your own API, auth, redirects…
+    const server = Bun.serve({
+      async fetch(request) {
+        return (await site.handle(request)) ?? new Response("Not found", { status: 404 });
+      },
+    });
+    console.log(server.url);
+  {% endcall %}
+  {{ classes([
+    ["createSite(options?)", "Reads htmx-ui.config.ts (or options.config) and indexes pages. Resolves once, at startup."],
+    ["site.config", "The resolved config: roots, outDir, origin, and your globals and filters."],
+    ["site.pages", "Every page, with its file and route, sorted by route. Found once, so a new page needs a restart."],
+    ["site.render(url, context?)", "Render the page at a route with the site's context plus context. Throws when there is no such page."],
+    ["site.fragment(path, context?)", "Render any template — a partial, a macro — as an HTML fragment. No document shell and no transform()."],
+    ["site.handle(request, context?)", "Answer one request: routes, then the built site, then fetch, then 404.html. Null when nothing matched."],
+    ["options.root", "Project root. Default: process.cwd()."],
+    ["options.config", "A UserConfig or ResolvedConfig to use instead of reading htmx-ui.config.ts."],
+    ["options.context", "Values for every render, on top of the config's globals."],
+    ["options.asset(file, page)", "URL for asset() in render() and fragment(). Default: root-absolute from the project root, which your server only serves for files under dist/ — set this when a fragment links a project file, or prefer svg() and icon(), which inline their markup."],
+    ["options.cache", "Keep compiled templates between requests, and compile them at startup instead of on the first render. Default true; false re-reads every template on every render."]
+  ], heading="Option") }}
+  {% call alert("render() and fragment() need asset URLs", variant="info") %}
+    Built pages already carry hashed asset URLs, so <code>handle()</code> never calls <code>asset()</code>. When you
+    render at request time, <code>asset()</code> returns <code>/app.ts</code>-style URLs by default — what a server that
+    bundles its own assets wants. Point it somewhere else with <code>options.asset</code> if yours are hashed in
+    <code>dist/assets/</code>.
+  {% endcall %}
+
+  <h2 id="fragments">Fragments with htmx</h2>
+  <p>
+    htmx swaps HTML, not JSON, so your API returns fragments. Put them in templates next to your pages and render them
+    with <code>site.fragment()</code>: same macros, same components, same <code>asset()</code>, and no duplicated markup.
+  </p>
+  {% call code("jinja", title="partials/invoice-row.html") %}
+{% raw %}<tr>
+  <td>{{ invoice.number }}</td>
+  <td>{{ invoice.total }}</td>
+  <td><button class="btn btn-sm" hx-get="/api/invoices/{{ invoice.id }}/refund">Refund</button></td>
+</tr>{% endraw %}
+  {% endcall %}
+  {% call code("ts", title="server.ts") %}
+    import { Elysia } from "elysia";
+    import { createSite } from "htmx-ui-engine";
+    import { htmxUi } from "htmx-ui-engine/elysia";
+
+    const app = new Elysia();
+    const site = await createSite();
+
+    app.get("/api/invoices/:id/refund", ({ params }) => {
+      refund(params.id);
+      return site.fragment("partials/invoice-row.html", { invoice: invoices.get(params.id) });
+    });
+
+    app.use(htmxUi({ site }));   // the same site, so templates stay in one place
+    app.listen(3000);
+  {% endcall %}
+  <p>
+    Any template works, not just partials: a page shell, a component wrapper, a whole page you want to push into a
+    modal. Return it with the content type htmx expects:
+  </p>
+  {% call code("ts", title="A fragment as a Response") %}
+    const html = site.fragment("partials/invoice-row.html", { invoice });
+
+    return new Response(html, { headers: { "Content-Type": "text/html; charset=utf-8" } });
+  {% endcall %}
+
+  <h2 id="render-per-request">Render a page per request</h2>
+  <p>
+    To build a page from request data — a user's name, a filtered list — render it yourself and send it. The result is
+    still the built page for that route, with your context merged in. See
+    <a href="/docs/servers#per-user">when the HTML depends on who is asking</a> for when this is the right shape and
+    when a fragment is enough.
+  </p>
+  {% call code("ts", title="server.ts") %}
+    app.get("/", ({ request }) => site.render("/", { user: currentUser(request) }));
+  {% endcall %}
+  <p>
+    Put the values in the page's context, not in a global, and remember that <code>transform()</code> from your config
+    still runs (heading anchors, and so on) — it is the same renderer the build uses.
+  </p>
+
+  <h2 id="deploying">Deploying</h2>
+  <p>
+    An adapter serves static files, so the deployment is your server's: build during the release, then run it.
+    Which routes your server has to answer is the only real choice, and there are three shapes.
+  </p>
+
+  <h3 id="static-only">1. Static only</h3>
+  <p>
+    <code>htmx-ui build</code>, then ship <code>dist/</code> to a static host, a CDN or an object store. No server, no
+    config to change. This needs the pages themselves to be the same for everyone &mdash; the config's
+    <code>routes</code> and <code>fetch</code> are not in the build, as
+    <a href="/docs/engine#mock-endpoints">Mock htmx endpoints</a> explains, so anything htmx asks for has to be
+    another host.
+  </p>
+  {% call code("bash", title="Terminal") %}
+    htmx-ui build
+  {% endcall %}
+
+  <h3 id="static-and-dynamic">2. Static pages, dynamic fragments</h3>
+  <p>
+    The usual shape. Page routes are always static &mdash; they are built and served from <code>dist/</code> &mdash;
+    and the per-user part is a fragment rendered per request, so it arrives as a request instead of being baked
+    into the HTML. That means your server needs the <strong>Nunjucks templates</strong>, which
+    <code>htmx-ui build</code> does not copy: it writes built pages and hashed assets, and nothing else.
+  </p>
+  <p>
+    Ship the source tree next to <code>dist/</code> and there is nothing to configure &mdash; the defaults already
+    point at <code>pages/</code> and the project root. To ship less, copy the templates you render from into the
+    deployment and repoint the config:
+  </p>
+  {% call code("bash", title="Terminal") %}
+    htmx-ui build
+    mkdir -p dist/_templates
+    cp -r layouts partials pages dist/_templates/
+    cp -r data dist/_templates/
+  {% endcall %}
+  <p>
+    Copy whichever of these you have &mdash; <code>macros/</code> and <code>components/</code> too if your templates
+    import from them &mdash; and everything a template reaches at render time, which is what
+    <code>json()</code> and <code>svg()</code> read.
+  </p>
+  {% call code("ts", title="htmx-ui.config.ts") %}
+    import { defineConfig } from "htmx-ui-engine";
+
+    export default defineConfig({
+      // This deployment renders templates at runtime: check at startup that they arrived.
+      render: true,
+      // Where the copy landed: "." stays the project root, the copy is searched second.
+      roots: [".", "dist/_templates"],
+      pages: "dist/_templates/pages",
+    });
+  {% endcall %}
+  {% call code("ts", title="server.ts") %}
+    const site = await createSite(); // reads the config above, from the deployment directory
+
+    new Elysia().use(htmxUi({ site })).listen(3000);
+  {% endcall %}
+  <p>
+    <code>render</code> is what turns a packaging mistake into a failed start rather than a 500 later: with it on,
+    <code>createSite()</code> checks the template roots and the pages directory at startup and tells you what to copy
+    if they are missing. Without it a deployment that forgot its templates starts happily, finds no pages, and only
+    fails on the first htmx request.
+  </p>
+  {% call alert("asset() in a fragment", variant="warning") %}
+    A fragment usually needs no URLs &mdash; <code>svg()</code> and the <code>icon()</code> macro inline their markup,
+    so there is no file to fetch. When one does need a project image, <code>asset()</code> returns a path from the
+    project root, which your server only serves if that file is under <code>dist/</code>. Either link to the built
+    asset directly, or map the files yourself with
+    <a href="/docs/servers#createSite"><code>options.asset</code></a>.
+  {% endcall %}
+
+  <h3 id="all-dynamic">3. Everything from your server</h3>
+  <p>
+    Nothing is served as a static file: your server answers each route, rendering the page or a fragment for it,
+    with data that is never the same twice. Same shape as above &mdash; ship the templates, set <code>render</code>
+    &mdash; with the addition that you register the routes instead of relying on <code>dist/</code>:
+  </p>
+  {% call code("ts", title="server.ts") %}
+    app.get("/dashboard", ({ request }) => html(site.render("/dashboard", { user: currentUser(request) })));
+    app.get("/api/team", ({ params }) => html(site.fragment("partials/team.html", { team: teams.get(params.id) })));
+  {% endcall %}
+  <p>
+    You are now responsible for caching: hashed assets in <code>dist/assets/</code> can still be cached forever, but
+    a page rendered per request is yours to send <code>Cache-Control</code> for, per visitor.
+  </p>
+
+  <h3 id="caching">Cache headers</h3>
+  <p>
+    The adapters set content types and nothing else, so your server adds cache headers and compression. The usual
+    split: hashed assets in <code>dist/assets/</code> forever, HTML not at all.
+  </p>
+{% endblock %}

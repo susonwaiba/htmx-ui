@@ -1,0 +1,85 @@
+{% extends "layouts/docs.html" %}
+{% from "components/code/code.html" import code, cli %}
+{% from "components/alert/alert.html" import alert %}
+{% from "macros/docs.html" import classes %}
+{% set title = "Hono" %}
+{% set description = "Mount a built htmx-ui site as Hono middleware, and render pages and fragments from your handlers." %}
+
+{% block content %}
+  <p>
+    <code>htmx-ui-engine/hono</code> exports one function: <code>htmxUi()</code> returns middleware that answers the
+    paths your own handlers don't. Hono is Web-standard, so it runs on Node, Bun, Deno, workers and edge runtimes.
+  </p>
+  {{ cli("add hono") }}
+
+  <h2 id="mount">Mount it</h2>
+  <p>
+    Hono runs middleware in registration order and stops at the first handler that answers, so register htmx-ui
+    <strong>last</strong>:
+  </p>
+  {% call code("ts", title="server.ts") %}
+    import { Hono } from "hono";
+    import { htmxUi } from "htmx-ui-engine/hono";
+
+    const app = new Hono();
+
+    app.get("/api/invoices", (c) => c.json(invoices.list()));
+    app.post("/api/invoices", async (c) => c.json(await invoices.create(await c.req.json()), 201));
+
+    app.use(htmxUi()); // pages at their routes, assets, public files, 404.html
+
+    export default app;
+  {% endcall %}
+  <p>
+    Paths that match nothing get the built <code>404.html</code>, or Hono's own 404 when you didn't build one. With
+    <code>app.request()</code> or a test client, the same app answers in-process.
+  </p>
+
+  <h2 id="options">Options</h2>
+  <p>
+    <code>htmxUi()</code> takes the same options as
+    <a href="/docs/servers#createSite"><code>createSite()</code></a>:
+  </p>
+  {% call code("ts", title="server.ts") %}
+    import { createSite } from "htmx-ui-engine";
+    import { htmxUi } from "htmx-ui-engine/hono";
+
+    const site = await createSite({ root: "../marketing" });
+
+    app.use(htmxUi({ site }));
+  {% endcall %}
+  {{ classes([
+    ["root", "Project root, where htmx-ui.config.ts and pages/ live. Default: process.cwd()."],
+    ["config", "A UserConfig or ResolvedConfig to use instead of reading htmx-ui.config.ts."],
+    ["context", "Values for every render, on top of the config's globals."],
+    ["asset(file, page)", "URL for asset() in site.render() and site.fragment()."],
+    ["site", "A site from createSite(), to render pages and fragments from the same instance."],
+    ["cache", "Keep compiled templates between requests. Default true; false re-reads every template on every render."]
+  ], heading="Option") }}
+
+  <h2 id="fragments">Fragments</h2>
+  <p>
+    htmx swaps HTML, so return HTML. <code>site.fragment()</code> renders a template — with your macros, components and
+    <code>asset()</code> — without a document shell:
+  </p>
+  {% call code("ts", title="server.ts") %}
+    app.get("/api/invoices/:id/refund", (c) => {
+      refund(c.req.param("id"));
+      return c.html(site.fragment("partials/invoice-row.html", { invoice: invoices.get(c.req.param("id")) }));
+    });
+  {% endcall %}
+  <p>
+    To render a whole page from request data, use <code>site.render(url, context)</code> and
+    <code>c.html()</code> it — see <a href="/docs/servers#render-per-request">Server frameworks</a> for the whole
+    picture.
+  </p>
+
+  <h2 id="build">Build first</h2>
+  <p>
+    The middleware serves <code>dist/</code>, not your templates, so render the site before starting the server. While
+    you work on pages, <code>htmx-ui dev</code> is the quicker loop, with hot reload and mock endpoints:
+  </p>
+  {% call code("bash", title="Terminal") %}
+    htmx-ui build && node server.js
+  {% endcall %}
+{% endblock %}

@@ -23,6 +23,15 @@
       ]
     },
     {
+      "title": "Servers",
+      "items": [
+        { "title": "Server frameworks", "href": "/docs/servers", "description": "Serve the built site from your own backend, and render pages and fragments." },
+        { "title": "Elysia", "href": "/docs/servers/elysia", "description": "The recommended adapter: a plugin with createSite() behind it." },
+        { "title": "Express", "href": "/docs/servers/express", "description": "Middleware serving dist/, mounted last." },
+        { "title": "Hono", "href": "/docs/servers/hono", "description": "Middleware serving dist/, mounted last." }
+      ]
+    },
+    {
       "title": "Components",
       "items": [
         { "title": "Overview", "href": "/docs/components", "description": "Every component at a glance." },

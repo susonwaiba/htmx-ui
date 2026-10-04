@@ -1,0 +1,87 @@
+{% extends "layouts/docs.html" %}
+{% from "components/code/code.html" import code, cli %}
+{% from "components/alert/alert.html" import alert %}
+{% from "macros/docs.html" import classes %}
+{% set title = "Elysia" %}
+{% set description = "Mount a built htmx-ui site as an Elysia plugin (the recommended adapter), and render pages and fragments from your handlers." %}
+
+{% block content %}
+  <p>
+    <code>htmx-ui-engine/elysia</code> exports one function: <code>htmxUi()</code> returns a plugin that answers the
+    paths your own routes don't. This is the adapter to start with: a specific route always beats the plugin's
+    catch-all, so your API and pages can live in either order, and the plugin runs on Bun, Node, Deno and workers.
+  </p>
+  {{ cli("add elysia") }}
+
+  <h2 id="mount">Mount it</h2>
+  {% call code("ts", title="server.ts") %}
+    import { Elysia } from "elysia";
+    import { htmxUi } from "htmx-ui-engine/elysia";
+
+    const app = new Elysia()
+      .get("/api/invoices", () => db.invoices.list())
+      .post("/api/invoices", ({ body }) => db.invoices.create(body))
+      .use(htmxUi()) // pages at their routes, assets, public files, 404.html
+      .listen(3000);
+  {% endcall %}
+  <p>
+    The plugin returns the instance it was given, so <code>.use(htmxUi()).listen(3000)</code> chains as usual. Order
+    doesn't matter: Elysia prefers a specific route over a wildcard, so your own handlers always win over the
+    plugin's catch-all.
+  </p>
+  <p>
+    Paths that match nothing get the built <code>404.html</code>, or a plain <code>404 Not found</code> when you
+    didn't build one.
+  </p>
+
+  <h2 id="options">Options</h2>
+  <p>
+    <code>htmxUi()</code> takes the same options as
+    <a href="/docs/servers#createSite"><code>createSite()</code></a>:
+  </p>
+  {% call code("ts", title="server.ts") %}
+    import { createSite } from "htmx-ui-engine";
+    import { htmxUi } from "htmx-ui-engine/elysia";
+
+    const site = await createSite({ root: "../marketing" });
+
+    new Elysia().use(htmxUi({ site })).listen(3000);
+  {% endcall %}
+  {{ classes([
+    ["root", "Project root, where htmx-ui.config.ts and pages/ live. Default: process.cwd()."],
+    ["config", "A UserConfig or ResolvedConfig to use instead of reading htmx-ui.config.ts."],
+    ["context", "Values for every render, on top of the config's globals."],
+    ["asset(file, page)", "URL for asset() in site.render() and site.fragment()."],
+    ["site", "A site from createSite(), to render pages and fragments from the same instance."],
+    ["cache", "Keep compiled templates between requests. Default true; false re-reads every template on every render."]
+  ], heading="Option") }}
+
+  <h2 id="fragments">Fragments</h2>
+  <p>
+    htmx swaps HTML, so return HTML. Elysia sends a <code>Response</code> as-is, and <code>site.fragment()</code>
+    renders a template — with your macros, components and <code>asset()</code> — without a document shell:
+  </p>
+  {% call code("ts", title="server.ts") %}
+    const site = await createSite();
+
+    new Elysia().get("/api/invoices/:id/refund", ({ params }) => {
+      refund(params.id);
+      return new Response(site.fragment("partials/invoice-row.html", { invoice: invoices.get(params.id) }), {
+        headers: { "Content-Type": "text/html; charset=utf-8" },
+      });
+    });
+  {% endcall %}
+  <p>
+    To render a whole page from request data, use <code>site.render(url, context)</code> and return it — see
+    <a href="/docs/servers#render-per-request">Server frameworks</a> for the whole picture.
+  </p>
+
+  <h2 id="build">Build first</h2>
+  <p>
+    The plugin serves <code>dist/</code>, not your templates, so render the site before starting the server. While you
+    work on pages, <code>htmx-ui dev</code> is the quicker loop, with hot reload and mock endpoints:
+  </p>
+  {% call code("bash", title="Terminal") %}
+    htmx-ui build && bun server.ts
+  {% endcall %}
+{% endblock %}

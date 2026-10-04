@@ -42,6 +42,21 @@
       "types": "./lib/node/vite-plugin.d.ts",
       "default": "./lib/node/vite-plugin.js"
     },
+    "./express": {
+      "bun": "./src/express.ts",
+      "types": "./lib/express.d.ts",
+      "default": "./lib/express.js"
+    },
+    "./elysia": {
+      "bun": "./src/elysia.ts",
+      "types": "./lib/elysia.d.ts",
+      "default": "./lib/elysia.js"
+    },
+    "./hono": {
+      "bun": "./src/hono.ts",
+      "types": "./lib/hono.d.ts",
+      "default": "./lib/hono.js"
+    },
     "./package.json": "./package.json"
   },
   "files": [
@@ -84,8 +99,12 @@
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.3",
+    "@types/express": "^5.0.6",
     "@types/node": "^24",
     "@types/nunjucks": "^3.2.6",
+    "elysia": "^1.4.30",
+    "express": "^5.2.1",
+    "hono": "^4.13.12",
     "vite": "^8.3.2"
   }
 }

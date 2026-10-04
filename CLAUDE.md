@@ -10,7 +10,7 @@ htmx-ui is a Tailwind v4 component library for htmx apps (plain HTML + CSS + sma
 | :--- | :--- |
 | `packages/ui/` | **`htmx-ui`**, the component library: `src/` (`index.ts`, `styles.css`, `theme.ts`, `components/`, `icons/`) + `lib/` (compiled). Nothing site-specific goes here. |
 | `packages/engine/` | **`htmx-ui-engine`**: the `htmx-ui` CLI (`dev`/`build`/`preview`), a Bun plugin and a Vite plugin. `src/core/` is runtime-agnostic; `src/bun/` is the Bun adapter (Bun.serve, Bun.build); `src/node/` the Node adapter (Vite). |
-| `packages/create-htmx-ui/` | **`create-htmx-ui`**: `npm/pnpm/yarn/bun create htmx-ui` scaffolder (plain JS) and its `template/`. |
+| `packages/create-htmx-ui/` | **`create-htmx-ui`**: `bun/npm/pnpm/yarn create htmx-ui` scaffolder (plain JS) and its `template/`. |
 | `site/` | **The website** (marketing pages + docs), built with the engine (`site/htmx-ui.config.ts`): pages, layouts, partials, data, features, styles, mock API, `lib/` (Markdown, sitemaps, versions), archived docs. Not published. |
 | `scripts/` | Repo scripts: release check, component scaffolding, docs archiving, test DOM setup. |
 
@@ -32,7 +32,7 @@ bun run preview    # serve dist/ with clean URLs
 bun run typecheck  # tsc --noEmit
 bun test           # all tests (single file: bun test path/to/file.test.ts, single test: bun test -t "name")
 bun run build:lib  # compile packages/ui/lib and packages/engine/lib (ESM + .d.ts; the engine's Node CLI runs from lib/)
-bun run release:check  # everything that must pass before publishing (incl. scaffold+install+build smoke tests with bun/npm/pnpm/yarn)
+bun run release:check  # everything that must pass before publishing (incl. scaffold+install+build smoke tests with bun, npm, pnpm and yarn)
 bun run component:new <name>  # scaffold packages/ui/src/components/<name>/ + docs page (--behaviour for TS)
 bun run docs:archive <next>  # freeze current docs as an older version, make <next> the latest
 ```
@@ -50,7 +50,7 @@ Tests live next to the code they cover (`*.test.ts` in `packages/*/`, `site/`). 
 - **Component init contract**: `initX(root)` scans `root` for `[data-<component>]:not([data-init])` and marks elements with `data-init` so it is idempotent. `app.ts` calls `init` on `DOMContentLoaded` and again on `htmx:after:process`, which htmx 4 fires on each newly inserted element, so components work inside server-returned fragments. Don't use `htmx:after:swap` for this: in htmx 4 it fires on the requesting element, not the new content. Because the new element is often the component itself, initialisers must use `queryAll(root, selector)` from `packages/ui/src/utils/dom.ts` (includes `root`), not `root.querySelectorAll`.
 - **Site features** (`site/features/`): one module per file, called once from the `DOMContentLoaded` handler in `site/app.ts` (not re-run on swaps). The theme switcher is part of the package (`packages/ui/src/theme.ts`).
 - **Agent-ready docs**: every `/docs` page is also published as Markdown at `<route>.md`, plus `/llms.txt`, `/llms-full.txt`, `/sitemap.xml`, `/sitemap.json` (with section text, for site search) and per-version `<version path>/sitemap.json`, all generated from the rendered pages by `site/lib/site.ts`; the site's Ctrl/⌘K search (`site/features/search.ts`) fuzzy-matches these sitemaps (written to `dist/` by the build hook in `site/htmx-ui.config.ts`, served on request by its dev routes). Docs h2/h3 get ids and `#` links at build time (`site/lib/anchors.ts`). Set `SITE_URL` for production builds.
-- **Docs conventions**: package-manager commands use the `cli()` macro (npm/pnpm/yarn/bun tabs), icons use `icon()` backed by `src/icons/*.svg`, and code is highlighted at build time by Shiki (`packages/engine/src/core/highlight.ts`). See AGENTS.md §4.6–4.7.
+- **Docs conventions**: package-manager commands use the `cli()` macro (bun/npm/pnpm/yarn tabs), icons use `icon()` backed by `src/icons/*.svg`, and code is highlighted at build time by Shiki (`packages/engine/src/core/highlight.ts`). See AGENTS.md §4.6–4.7.
 - **Versioned docs**: the latest docs render live at `/docs`. Older versions are frozen *built* snapshots in `site/archive/v<id>/`, served at `/docs/v<id>/`, listed in `site/data/versions.json` and published as `/docs/versions.json` for the sidebar version switcher. Never edit an archive by hand; see AGENTS.md §4.8.
 - **Mock backend** (`site/server/api.ts`): `apiRoutes` maps paths to handlers returning HTML fragments for `hx-get`/`hx-post` targets, passed to the engine as `routes`. These exist only in the dev server; the production build is static and `preview` will not serve them.
 - **Releasing**: the three packages share one version; `bun run release:check` must pass; tagging `v<version>` publishes all three (`.github/workflows/release.yml`). See AGENTS.md §5.
