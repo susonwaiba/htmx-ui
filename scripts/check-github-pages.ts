@@ -265,7 +265,15 @@ function checkJs(file: string, js: string, offset: number, masked: [number, numb
   }
 }
 
+/** A standalone `pages.json` inside a frozen docs version: paths are version-relative, not site-rooted. */
+const VERSION_PAGES_FILE = /^docs\/v[^/]+\/pages\.json$/;
+
 function checkJson(file: string, json: string) {
+  // docs/v*/pages.json holds paths relative to that version's root ("/ai-agents"
+  // means "<version-path>/ai-agents"), not site-absolute paths. Skip them entirely,
+  // the same way versions[n].pages[m] entries in versions.json are skipped below.
+  if (VERSION_PAGES_FILE.test(file)) return;
+
   let parsed: unknown;
   try {
     parsed = JSON.parse(json);
