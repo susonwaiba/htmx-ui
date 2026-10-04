@@ -171,6 +171,7 @@ describe("development: handle() renders the pages the build has not written", ()
     };`,
     "layout.html": "<title>{{ site }}</title>{% block content %}{% endblock %}",
     "pages/index.html": '{% extends "layout.html" %}{% block content %}<h1>Home</h1>{% endblock %}',
+    "pages/about.html": '{% extends "layout.html" %}{% block content %}<p>About</p>{% endblock %}',
     "pages/docs/setup.html": '{% extends "layout.html" %}{% block content %}<p>{{ url }}</p>{% endblock %}',
   };
 
@@ -182,8 +183,8 @@ describe("development: handle() renders the pages the build has not written", ()
       expect(home!.headers.get("Content-Type")).toBe("text/html; charset=utf-8");
       // The site's own context, and the config's transform, as render() does it.
       expect(await home!.text()).toBe("<title>Acme</title><h1>Home</h1><!-- /-->");
-      // Clean URLs, trailing slash and all.
-      expect(await (await site.handle(get("/docs/setup")))!.text()).toBe("<title>Acme</title><p>/docs/setup</p>");
+      // Clean URLs: a trailing slash is stripped before the page lookup.
+      expect(await (await site.handle(get("/about/")))!.text()).toBe("<title>Acme</title><p>About</p><!-- /about-->");
       // Not a page: the caller answers it, as it always did.
       expect(await site.handle(get("/nope"))).toBeNull();
     });
@@ -212,7 +213,7 @@ describe("development: handle() renders the pages the build has not written", ()
       const head = await site.handle(get("/", { method: "HEAD" }));
       expect(head!.status).toBe(200);
       expect(head!.headers.get("Content-Type")).toBe("text/html; charset=utf-8");
-      expect(head!.headers.get("Content-Length")).toBe("42");
+      expect(head!.headers.get("Content-Length")).toBe("41");
       expect(await head!.text()).toBe("");
     });
   });
