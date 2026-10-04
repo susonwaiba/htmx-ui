@@ -1,0 +1,28 @@
+{# Select: a listbox in a popup, opened from a button (behaviour: select.ts).
+   {% from "components/select/select.html" import select %}
+   {{ select("country", [{value: "nz", label: "New Zealand"}, {value: "pt", label: "Portugal"}], value="nz", label="Country") }}
+   {{ select("plan", ["Free", "Pro"], label="Choose a plan") }}   bare strings: value == label
+   options: [{value, label}], or strings. value: preselected option's value. name: adds a hidden
+   field so the choice submits with a form. placeholder: shown while nothing is picked.
+   searchable=true adds a filter box. attrs: any extra attributes on the trigger. #}
+
+{% macro select(id, options, value=none, label=none, name=none, placeholder="Select…", searchable=false, disabled=false, attrs="") %}
+<div class="select" data-select>
+  <button type="button" class="select-trigger" data-select-trigger aria-haspopup="listbox" aria-expanded="false"{% if disabled %} disabled{% endif %}{% if attrs %} {{ attrs | safe }}{% endif %}>
+    <span class="select-value" data-placeholder="{{ placeholder }}"></span>
+    {% from "components/icon/icon.html" import icon %}{{ icon("chevron-down") }}
+  </button>
+  <div class="select-content" role="listbox" aria-label="{{ label or id }}" hidden>
+    {% if searchable %}
+    <div class="select-search"><input class="input input-sm" data-select-search placeholder="Search…" aria-label="Filter options" /></div>
+    {% endif %}
+    {% for o in options %}
+      {% set val = o.value if o.value is defined else o %}
+      {% set text = o.label if o.label is defined else o %}
+    <span class="select-item" role="option" aria-selected="{{ 'true' if val == value else 'false' }}" value="{{ val }}">{{ text }}</span>
+    {% endfor %}
+    <p class="select-empty" data-select-empty hidden>No matches.</p>
+  </div>
+  {% if name %}<input type="hidden" name="{{ name }}" data-select-input />{% endif %}
+</div>
+{%- endmacro %}

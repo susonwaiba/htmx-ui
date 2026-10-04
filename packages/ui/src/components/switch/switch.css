@@ -1,0 +1,61 @@
+/* <input class="switch" type="checkbox" role="switch" id="digest" /> A setting that takes effect
+   at once, as opposed to a checkbox in a form that submits. It is a real checkbox, so it takes a
+   name and a value, submits with the form and needs no JavaScript; role="switch" makes screen
+   readers say "on"/"off" instead of "checked".
+
+   <div class="field field-horizontal">
+     <input class="switch" type="checkbox" role="switch" id="digest" checked />
+     <label class="field-label" for="digest">Weekly digest</label>
+   </div>
+
+   The thumb is painted as a background image (a <input> renders no pseudo-element) and slides from
+   one end to the other when checked. Sizes: .switch-sm / .switch-lg. Labels and messages:
+   field.css. For a box you tick in a form see checkbox.css; for a button that toggles, toggle.css. */
+@layer components {
+  .switch {
+    @apply relative inline-block h-5 w-9 shrink-0 cursor-pointer appearance-none rounded-full border
+      border-transparent bg-muted outline-none transition-[background-color,background-position,box-shadow,border-color]
+      disabled:cursor-not-allowed disabled:opacity-50;
+    /* A --surface disc with a soft edge, sized to the track's inner height. */
+    background-image: radial-gradient(
+      circle closest-side,
+      var(--surface) 0 78%,
+      color-mix(in oklab, var(--foreground) 16%, transparent) 80% 96%,
+      transparent 100%
+    );
+    background-size: 1rem;
+    background-position: 0.125rem center;
+    background-repeat: no-repeat;
+  }
+  .switch:checked {
+    @apply bg-primary;
+    background-position: right 0.125rem center;
+  }
+  /* One color-mix() per rule (see components/alert). */
+  .switch:focus-visible {
+    @apply border-ring ring-3 ring-ring/30;
+  }
+  .switch:is([aria-invalid="true"], :user-invalid) {
+    @apply border-danger;
+  }
+  .switch:is([aria-invalid="true"], :user-invalid):focus-visible {
+    @apply ring-danger/20;
+  }
+  /* Warning or success track, while it is on: off still reads as off. */
+  .switch-warning:is(:checked) {
+    @apply bg-warning;
+  }
+  .switch-success:is(:checked) {
+    @apply bg-success;
+  }
+
+  /* Sizes, matching .input-sm / .input-lg; the thumb follows the track. */
+  .switch-sm {
+    @apply h-[1.125rem] w-8;
+    background-size: 0.875rem;
+  }
+  .switch-lg {
+    @apply h-[1.375rem] w-11;
+    background-size: 1.125rem;
+  }
+}

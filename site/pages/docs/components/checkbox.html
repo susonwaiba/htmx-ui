@@ -1,0 +1,193 @@
+{% extends "layouts/docs.html" %}
+{% from "components/icon/icon.html" import icon %}
+{% from "components/code/code.html" import code %}
+{% from "macros/docs.html" import demo, classes %}
+{% set title = "Checkbox" %}
+{% set description = "A box that toggles between checked and not checked, with sizes, states and every field feature." %}
+
+{% block content %}
+  {% call demo() %}
+    <div class="field field-horizontal max-w-sm">
+      <input class="checkbox" type="checkbox" id="checkbox-reminders" checked />
+      <label class="field-label" for="checkbox-reminders">Email me about new releases</label>
+    </div>
+  {% endcall %}
+
+  <p>
+    A <a href="/docs/components/toggle">toggle</a> is a button that switches something on or off on the spot. A checkbox
+    is part of a form: it takes a <code>name</code> and a <code>value</code>, submits with the rest, and is reset by
+    the form.
+  </p>
+
+  <h2 id="usage">Usage</h2>
+  <ul>
+    <li>Add <code>.checkbox</code> to a native <code>&lt;input type="checkbox"&gt;</code>. Everything else is plain HTML: <code>checked</code>, <code>required</code>, <code>name</code>, <code>value</code>, <code>disabled</code>.</li>
+    <li>Wrap it in a <a href="/docs/components/field">field</a> with <code>.field-horizontal</code>: the box first, then <code>.field-content</code> holding the <code>.field-label</code> and an optional <code>.field-description</code>. The label is clickable, so give it the <code>for</code> that matches the box's <code>id</code>.</li>
+    <li>Put related boxes in a <code>&lt;fieldset class="fieldset"&gt;</code> with a <code>&lt;legend class="field-legend"&gt;</code>, so a screen reader announces the group's question.</li>
+    <li>A <code>required</code> checkbox must be checked to submit, and its label gets the field's asterisk.</li>
+  </ul>
+  {% call demo() %}
+    <fieldset class="fieldset max-w-md">
+      <legend class="field-legend">Notifications</legend>
+      <div class="field field-horizontal">
+        <input class="checkbox" type="checkbox" id="checkbox-mentions" checked />
+        <div class="field-content">
+          <label class="field-label" for="checkbox-mentions">Mentions</label>
+          <p class="field-description">When someone @mentions you.</p>
+        </div>
+      </div>
+      <div class="field field-horizontal">
+        <input class="checkbox" type="checkbox" id="checkbox-digest" />
+        <label class="field-label" for="checkbox-digest">Weekly digest</label>
+      </div>
+    </fieldset>
+  {% endcall %}
+
+  <h2 id="sizes">Sizes</h2>
+  <p><code>.checkbox-sm</code> and <code>.checkbox-lg</code> match the heights of <code>.input-sm</code> and <code>.input-lg</code>.</p>
+  {% call demo() %}
+    <div class="field field-horizontal">
+      <input class="checkbox checkbox-sm" type="checkbox" id="checkbox-sm" aria-label="Small, checked" checked />
+      <label class="field-label text-xs" for="checkbox-sm">Small</label>
+    </div>
+    <div class="field field-horizontal">
+      <input class="checkbox" type="checkbox" id="checkbox-md" aria-label="Default, checked" checked />
+      <label class="field-label" for="checkbox-md">Default</label>
+    </div>
+    <div class="field field-horizontal">
+      <input class="checkbox checkbox-lg" type="checkbox" id="checkbox-lg" aria-label="Large, checked" checked />
+      <label class="field-label text-base" for="checkbox-lg">Large</label>
+    </div>
+  {% endcall %}
+
+  <h2 id="states">States</h2>
+
+  <h3 id="disabled">Disabled</h3>
+  <p><code>disabled</code> fades the box; inside a field the label and description fade with it.</p>
+  {% call demo() %}
+    <div class="field-group max-w-md">
+      <div class="field field-horizontal">
+        <input class="checkbox" type="checkbox" id="checkbox-archived" disabled checked />
+        <label class="field-label" for="checkbox-archived">Archived</label>
+      </div>
+      <div class="field field-horizontal">
+        <input class="checkbox" type="checkbox" id="checkbox-beta" disabled />
+        <div class="field-content">
+          <label class="field-label" for="checkbox-beta">Beta features</label>
+          <p class="field-description">Available on the Pro plan.</p>
+        </div>
+      </div>
+    </div>
+  {% endcall %}
+
+  <h3 id="invalid">Error, warning, success</h3>
+  <p>
+    Set <code>aria-invalid="true"</code> for an error, which turns the border red and the field's label with it, or add
+    <code>.checkbox-warning</code> or <code>.checkbox-success</code> for the softer states. Pair each with a
+    <a href="/docs/components/field#messages">field message</a> linked with <code>aria-describedby</code>.
+  </p>
+  {% call demo() %}
+    <div class="field-group max-w-md">
+      <div class="field field-horizontal">
+        <input class="checkbox" type="checkbox" id="checkbox-terms" aria-invalid="true" aria-describedby="checkbox-terms-msg" />
+        <div class="field-content">
+          <label class="field-label" for="checkbox-terms">I accept the terms</label>
+          <p class="field-error" id="checkbox-terms-msg">{{ icon("x-circle") }} You must accept the terms to continue.</p>
+        </div>
+      </div>
+      <div class="field field-horizontal">
+        <input class="checkbox checkbox-warning" type="checkbox" id="checkbox-2fa" checked aria-describedby="checkbox-2fa-msg" />
+        <div class="field-content">
+          <label class="field-label" for="checkbox-2fa">Two-factor authentication</label>
+          <p class="field-warning" id="checkbox-2fa-msg">{{ icon("alert-triangle") }} Highly recommended for admin accounts.</p>
+        </div>
+      </div>
+      <div class="field field-horizontal">
+        <input class="checkbox checkbox-success" type="checkbox" id="checkbox-strong" checked aria-describedby="checkbox-strong-msg" />
+        <label class="field-label" for="checkbox-strong">Use a strong password</label>
+        <p class="field-success" id="checkbox-strong-msg">{{ icon("check-circle") }} Done.</p>
+      </div>
+    </div>
+  {% endcall %}
+
+  <h2 id="indeterminate">Partly selected</h2>
+  <p>
+    A box that controls a group is <strong>indeterminate</strong> when some, but not all, of its children are checked.
+    The state is a DOM property rather than an attribute, so markup it with <code>data-indeterminate</code>: a small
+    behaviour sets it on load, paints a dash instead of the tick, and clears it when you click the box.
+  </p>
+  {% call demo() %}
+    <fieldset class="fieldset max-w-md">
+      <legend class="field-legend">Services to monitor</legend>
+      <div class="field field-horizontal">
+        <input class="checkbox" type="checkbox" id="checkbox-all" data-indeterminate />
+        <label class="field-label" for="checkbox-all">All services</label>
+      </div>
+      <div class="field field-horizontal ps-6">
+        <input class="checkbox checkbox-sm" type="checkbox" id="checkbox-api" checked />
+        <label class="field-label" for="checkbox-api">API</label>
+      </div>
+      <div class="field field-horizontal ps-6">
+        <input class="checkbox checkbox-sm" type="checkbox" id="checkbox-worker" checked />
+        <label class="field-label" for="checkbox-worker">Worker</label>
+      </div>
+      <div class="field field-horizontal ps-6">
+        <input class="checkbox checkbox-sm" type="checkbox" id="checkbox-db" />
+        <label class="field-label" for="checkbox-db">Database</label>
+      </div>
+    </fieldset>
+  {% endcall %}
+  <p>
+    Nothing checks the children for you: that is server state, so keep the box in step in your own code, or read the
+    children on <code>change</code> and set the property:
+  </p>
+  {% call code("js", title="app.js") %}
+    const all = document.querySelector("#all");
+    const children = [...document.querySelectorAll("[data-child]")];
+
+    const sync = () => {
+      const checked = children.filter((box) => box.checked).length;
+      all.indeterminate = checked > 0 && checked < children.length;
+      all.checked = checked === children.length;
+    };
+
+    all.addEventListener("change", () => children.forEach((box) => (box.checked = all.checked)));
+    children.forEach((box) => box.addEventListener("change", sync));
+  {% endcall %}
+
+  <h2 id="htmx">With htmx</h2>
+  <p>
+    Checkboxes submit like any other input, so trigger on <code>change</code> and send the state in <code>hx-vals</code>:
+  </p>
+  {% call demo("flex-col") %}
+    <div class="field field-horizontal">
+      <input class="checkbox" type="checkbox" id="checkbox-star" name="starred"
+             hx-post="/api/echo" hx-trigger="change" hx-vals='js:{starred: this.checked}' hx-target="#checkbox-result" />
+      <label class="field-label" for="checkbox-star">Star this repository</label>
+    </div>
+    <p id="checkbox-result" class="muted" aria-live="polite"></p>
+  {% endcall %}
+
+  <h2 id="macro">Nunjucks macro</h2>
+  <p>
+    If your templates use Nunjucks, the <code>checkbox</code> macro writes the field markup, with the description
+    optional and every attribute passed through <code>attrs</code>:
+  </p>
+  {% call code("jinja", title="page.html") %}
+    {% raw %}{% from "components/checkbox/checkbox.html" import checkbox %}
+
+{{ checkbox("terms", "I accept the terms", required=true) }}
+{{ checkbox("digest", "Weekly digest", description="A summary every Monday.", checked=true) }}
+{{ checkbox("alerts", "Deploy alerts", size="sm", state="warning", attrs='hx-post="/api/settings"') }}{% endraw %}
+  {% endcall %}
+
+  <h2 id="reference">Reference</h2>
+  {{ classes([
+    [".checkbox", "Native checkbox. Take checked, name, value, required and disabled as usual."],
+    [".checkbox-sm / -lg", "Matches the height of .input-sm / .input-lg."],
+    ["data-indeterminate", "Paints the mixed state (behaviour: checkbox.ts); cleared when the box is clicked."],
+    ["aria-invalid=\"true\"", "Error border, and a red label in a field. So does :user-invalid."],
+    [".checkbox-warning / -success", "Warning or success border."],
+    ["checkbox(id, label, …)", "Macro: the whole field. description, checked, indeterminate, disabled, required, size, state, attrs."]
+  ], heading="Class / attribute") }}
+{% endblock %}

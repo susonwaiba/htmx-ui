@@ -71,7 +71,7 @@
   .field:has(:is(input, select, textarea):disabled) :is(.field-label, .field-description) {
     @apply opacity-50;
   }
-  .field:has([aria-invalid="true"]) > .field-label {
+  :is(.field:has([aria-invalid="true"]) > .field-label, .field:has([aria-invalid="true"]) > .field-content > .field-label) {
     @apply text-danger;
   }
 

@@ -1,0 +1,88 @@
+/* <fieldset class="fieldset">
+     <legend class="field-legend">Plan</legend>
+     <div class="radio-group">
+       <label class="radio-card">
+         <input class="radio" type="radio" name="plan" value="free" checked />
+         <span class="radio-content">
+           <span class="radio-title">Free</span>
+           <span class="radio-description">One project, community support.</span>
+         </span>
+       </label>
+       <label class="radio-card">
+         <input class="radio" type="radio" name="plan" value="pro" />
+         <span class="radio-content">
+           <span class="radio-title">Pro</span>
+           <span class="radio-description">Unlimited projects, email support.</span>
+         </span>
+       </label>
+     </div>
+   </fieldset>
+   Every option is a native radio inside a label, so the browser enforces the whole contract: one
+   checked at a time, arrow keys move between them, Space picks, and the value submits with the form.
+   A bare .radio works in a horizontal field too. Layouts: .radio-group, .radio-group-row.
+   For a group of buttons, see toggle-group.css. */
+@layer components {
+  .radio-group {
+    @apply flex w-full flex-col gap-2;
+  }
+  /* Side by side from the sm breakpoint, each option taking an equal share */
+  .radio-group-row {
+    @apply sm:flex-row;
+  }
+  .radio-group-row > .radio-card {
+    @apply sm:flex-1;
+  }
+
+  /* The whole card is the hit area: the label wraps the radio, so clicking either picks it. */
+  .radio-card {
+    @apply flex cursor-pointer items-start gap-3 rounded-(--radius) border border-border bg-surface p-3 text-sm
+      text-foreground transition-[color,box-shadow,border-color,background-color] hover:bg-accent/40;
+  }
+  /* Picked: primary border and a faint tint. One color-mix() per rule (see components/alert).
+     Disabled comes first, so a checked but disabled option keeps its tint. */
+  .radio-card:has(.radio:disabled) {
+    @apply cursor-not-allowed opacity-50 hover:bg-transparent;
+  }
+  .radio-card:has(.radio:checked) {
+    border-color: var(--primary);
+    background-color: color-mix(in oklab, var(--primary) 5%, transparent);
+  }
+  /* The ring follows focus from the radio inside. */
+  .radio-card:has(.radio:focus-visible) {
+    @apply border-ring ring-3 ring-ring/30;
+  }
+
+  .radio-content {
+    @apply flex min-w-0 flex-1 flex-col gap-0.5;
+  }
+  .radio-title {
+    @apply leading-snug font-medium;
+  }
+  .radio-description {
+    @apply text-sm font-normal text-muted-foreground;
+  }
+
+  /* The dot. Same shape language as .checkbox, with the mark as a gradient rather than an SVG. */
+  .radio {
+    @apply size-4 shrink-0 cursor-pointer appearance-none rounded-full border border-border bg-transparent
+      outline-none transition-[background-color,box-shadow,border-color]
+      disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  .radio:checked {
+    @apply border-primary bg-primary;
+    background-image: radial-gradient(circle closest-side, var(--primary-foreground) 100%, transparent 100%);
+    background-size: 40%;
+    background-position: center;
+    background-repeat: no-repeat;
+  }
+  /* One color-mix() per rule (see components/alert). */
+  .radio:focus-visible {
+    @apply border-ring ring-3 ring-ring/30;
+  }
+  /* An error: aria-invalid on the option, or a required group with nothing picked
+     (:user-invalid) turns every dot in it red. */
+  .radio[aria-invalid="true"],
+  .radio-group:has(.radio:user-invalid) .radio {
+    @apply border-danger;
+  }
+}

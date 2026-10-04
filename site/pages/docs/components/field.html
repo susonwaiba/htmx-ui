@@ -105,24 +105,37 @@
     </div>
   {% endcall %}
 
-  <h3 id="choice">Checkboxes and radios</h3>
+  <h3 id="choice">Checkboxes, radios and switches</h3>
   <p>
     Put the control first. Wrap the label and a description in <code>.field-content</code> to stack them beside it.
-    Native checkboxes take the brand colour with the <code>accent-primary</code> utility.
+    The <a href="/docs/components/checkbox">checkbox</a> and <a href="/docs/components/radio-group">radio group</a>
+    components style native inputs, and the <a href="/docs/components/switch">switch</a> is a checkbox that reads as a
+    preference. A bare <code>.radio</code> in a horizontal field is the smallest useful option, like the ones here.
   </p>
   {% call demo() %}
     <fieldset class="fieldset max-w-md">
       <legend class="field-legend">Notifications</legend>
       <div class="field field-horizontal">
-        <input class="size-4 accent-primary" type="checkbox" id="field-mentions" checked />
+        <input class="checkbox" type="checkbox" id="field-mentions" checked />
         <div class="field-content">
           <label class="field-label" for="field-mentions">Mentions</label>
           <p class="field-description">When someone @mentions you.</p>
         </div>
       </div>
       <div class="field field-horizontal">
-        <input class="size-4 accent-primary" type="checkbox" id="field-digest" />
+        <input class="checkbox" type="checkbox" id="field-digest" />
         <label class="field-label" for="field-digest">Weekly digest</label>
+      </div>
+      <div class="field field-horizontal">
+        <input class="radio" type="radio" name="field-cadence" id="field-daily" checked />
+        <label class="field-label" for="field-daily">Daily email</label>
+      </div>
+      <div class="field field-horizontal">
+        <input class="switch" type="checkbox" role="switch" id="field-push" checked />
+        <div class="field-content">
+          <label class="field-label" for="field-push">Push notifications</label>
+          <p class="field-description">Applies as soon as you flip it.</p>
+        </div>
       </div>
     </fieldset>
   {% endcall %}

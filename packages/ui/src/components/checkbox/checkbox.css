@@ -1,0 +1,82 @@
+/* <input class="checkbox" type="checkbox" /> A native checkbox, styled to sit inside a
+   field next to .input and .textarea. It takes the field features (label, description,
+   required asterisk, disabled fade) and the input states and sizes.
+     <div class="field field-horizontal">
+       <input class="checkbox" type="checkbox" id="terms" data-indeterminate required />
+       <div class="field-content">
+         <label class="field-label" for="terms">Accept terms</label>
+         <p class="field-description">Pick all services to continue.</p>
+       </div>
+     </div>
+   data-indeterminate paints the mixed state of a parent box whose children are partly
+   checked; HTML can't express it as an attribute, so a small behaviour sets it
+   (checkbox.ts). Styles: see input.css and field.css. */
+@layer components {
+  .checkbox {
+    @apply size-4 shrink-0 cursor-pointer appearance-none rounded-[4px] border border-border
+      bg-transparent outline-none transition-[color,box-shadow,background-color,border-color]
+      disabled:cursor-not-allowed disabled:opacity-50;
+  }
+  /* Hover is only for the box you can still click into; the mark below keeps the
+     primary border once checked. */
+  .checkbox:not(:checked, :indeterminate):not(:disabled):hover {
+    @apply border-ring;
+  }
+  /* One color-mix() per rule, on distinct selectors (see components/alert). */
+  .checkbox:focus-visible {
+    @apply border-ring ring-3 ring-ring/30;
+  }
+
+  /* Checked and mixed: filled with the primary colour, mark painted over it.
+     The mark is white, like --primary-foreground in both themes. */
+  .checkbox:is(:checked, :indeterminate) {
+    @apply border-primary bg-primary;
+    background-position: center;
+    background-repeat: no-repeat;
+  }
+  .checkbox:checked {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E");
+    background-size: 78%;
+  }
+  .checkbox:indeterminate {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round'%3E%3Cpath d='M5 12h14'/%3E%3C/svg%3E");
+    background-size: 60%;
+  }
+
+  /* States, as .input: aria-invalid (or native :user-invalid) for an error, and
+     .checkbox-warning / .checkbox-success for the softer ones. */
+  .checkbox:is([aria-invalid="true"], :user-invalid) {
+    @apply border-danger;
+  }
+  .checkbox:is([aria-invalid="true"], :user-invalid):focus-visible {
+    @apply ring-danger/20;
+  }
+  .checkbox-warning {
+    @apply border-warning;
+  }
+  .checkbox-warning:focus-visible {
+    @apply ring-warning/20;
+  }
+  .checkbox-success {
+    @apply border-success;
+  }
+  .checkbox-success:focus-visible {
+    @apply ring-success/20;
+  }
+
+  /* Sizes, matching .input-sm / .input-lg so a box lines up with the control beside it. */
+  .checkbox-sm {
+    @apply size-3.5 rounded-[3px];
+  }
+  .checkbox-lg {
+    @apply size-5 rounded-[5px];
+  }
+
+  /* Browsers with a forced colour palette draw the native control themselves. */
+  @media (forced-colors: active) {
+    .checkbox {
+      @apply appearance-auto;
+      background-image: none;
+    }
+  }
+}

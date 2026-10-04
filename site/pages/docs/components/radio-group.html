@@ -1,0 +1,227 @@
+{% extends "layouts/docs.html" %}
+{% from "components/icon/icon.html" import icon %}
+{% from "macros/docs.html" import demo, classes %}
+{% set title = "Radio group" %}
+{% set description = "A set of radio buttons: pick one option of a few, on a card or inline, submitting with the form." %}
+
+{% block content %}
+  {% call demo() %}
+    <fieldset class="fieldset max-w-lg">
+      <legend class="field-legend">Plan</legend>
+      <div class="radio-group">
+        <label class="radio-card">
+          <input class="radio" type="radio" name="radio-plan" value="free" checked />
+          <span class="radio-content">
+            <span class="radio-title">Free</span>
+            <span class="radio-description">One project, community support.</span>
+          </span>
+        </label>
+        <label class="radio-card">
+          <input class="radio" type="radio" name="radio-plan" value="pro" />
+          <span class="radio-content">
+            <span class="radio-title">Pro</span>
+            <span class="radio-description">Unlimited projects, email support.</span>
+          </span>
+        </label>
+        <label class="radio-card">
+          <input class="radio" type="radio" name="radio-plan" value="team" />
+          <span class="radio-content">
+            <span class="radio-title">Team</span>
+            <span class="radio-description">Shared workspaces and invoicing.</span>
+          </span>
+        </label>
+      </div>
+    </fieldset>
+  {% endcall %}
+
+  <p>
+    A radio group is for a choice between a few options that are all worth showing at once. Every option is a native
+    <code>&lt;input type="radio"&gt;</code>, so the browser enforces the whole contract for free: one is checked at a time,
+    the arrow keys move between them, <kbd class="kbd">Space</kbd> picks, and the value submits with the form. There is no
+    behaviour to wire up.
+  </p>
+
+  <h2 id="markup">Markup</h2>
+  <ul>
+    <li>Put the options in a <code>&lt;fieldset class="fieldset"&gt;</code> with a <code>&lt;legend class="field-legend"&gt;</code>, so a screen reader announces the question before each option.</li>
+    <li>Give every radio the same <code>name</code> — that is what makes them one group — and a <code>value</code> for the form.</li>
+    <li>A <code>.radio</code> is the dot; a <code>.radio-card</code> wraps it, the text and a description in one clickable block. The card is a <code>&lt;label&gt;</code>, so clicking the text picks the option too.</li>
+    <li>Mark the starting option with <code>checked</code>, and put <code>required</code> on one of them to make a choice necessary.</li>
+  </ul>
+
+  <h2 id="inline">Inline</h2>
+  <p>
+    When an option is just a short word, skip the card: a bare <code>.radio</code> in a
+    <a href="/docs/components/field">field</a> with <code>.field-horizontal</code>, like a checkbox.
+  </p>
+  {% call demo() %}
+    <fieldset class="fieldset w-36">
+      <legend class="field-legend">Invoice</legend>
+      <div class="field-group">
+        <div class="field field-horizontal">
+          <input class="radio" type="radio" name="radio-invoice" id="radio-invoice-card" value="card" checked />
+          <label class="field-label" for="radio-invoice-card">Charge a card</label>
+        </div>
+        <div class="field field-horizontal">
+          <input class="radio" type="radio" name="radio-invoice" id="radio-invoice-invoice" value="invoice" />
+          <label class="field-label" for="radio-invoice-invoice">Send an invoice (net 30)</label>
+        </div>
+      </div>
+    </fieldset>
+  {% endcall %}
+
+  <h2 id="layouts">Layouts</h2>
+  <p>
+    <code>.radio-group</code> stacks the options; <code>.radio-group-row</code> puts them side by side from the
+    <code>sm</code> breakpoint, each taking an equal share, so the row below becomes a column on a phone. They take any
+    layout utility too, so <code>grid grid-cols-3</code> works just as well.
+  </p>
+  {% call demo() %}
+    <fieldset class="fieldset max-w-2xl">
+      <legend class="field-legend">Region</legend>
+      <div class="radio-group radio-group-row">
+        <label class="radio-card">
+          <input class="radio" type="radio" name="radio-region" value="eu" checked />
+          <span class="radio-content">
+            <span class="radio-title">Europe</span>
+            <span class="radio-description">Dublin</span>
+          </span>
+        </label>
+        <label class="radio-card">
+          <input class="radio" type="radio" name="radio-region" value="us" />
+          <span class="radio-content">
+            <span class="radio-title">US East</span>
+            <span class="radio-description">Virginia</span>
+          </span>
+        </label>
+        <label class="radio-card">
+          <input class="radio" type="radio" name="radio-region" value="ap" />
+          <span class="radio-content">
+            <span class="radio-title">Asia Pacific</span>
+            <span class="radio-description">Mumbai</span>
+          </span>
+        </label>
+      </div>
+    </fieldset>
+  {% endcall %}
+
+  <h2 id="states">States</h2>
+
+  <h3 id="disabled">Disabled</h3>
+  <p>
+    <code>disabled</code> on the radio takes the whole card out of play: it fades, ignores clicks, and its value is not
+    submitted. Leave it off every other radio of the group, since the browser keeps the group's value on the one that is
+    left.
+  </p>
+  {% call demo() %}
+    <fieldset class="fieldset max-w-lg">
+      <legend class="field-legend">Region</legend>
+      <div class="radio-group">
+        <label class="radio-card">
+          <input class="radio" type="radio" name="radio-region-2" value="eu" checked />
+          <span class="radio-content">
+            <span class="radio-title">Europe (Dublin)</span>
+            <span class="radio-description">4 ms latency.</span>
+          </span>
+        </label>
+        <label class="radio-card">
+          <input class="radio" type="radio" name="radio-region-2" value="us" />
+          <span class="radio-content">
+            <span class="radio-title">US East (Virginia)</span>
+            <span class="radio-description">80 ms latency.</span>
+          </span>
+        </label>
+        <label class="radio-card">
+          <input class="radio" type="radio" name="radio-region-2" value="ap" disabled />
+          <span class="radio-content">
+            <span class="radio-title">Asia Pacific (Mumbai)</span>
+            <span class="radio-description">Sold out this quarter.</span>
+          </span>
+        </label>
+      </div>
+    </fieldset>
+  {% endcall %}
+
+  <h3 id="invalid">Required and error</h3>
+  <p>
+    Put <code>required</code> on one radio: the group then has to have a choice before the form submits, and once the user
+    has tried, <code>:user-invalid</code> turns every dot in the group red. <code>aria-invalid="true"</code> does the same
+    on demand, which is what a server response should set.
+  </p>
+  {% call demo() %}
+    <fieldset class="fieldset max-w-lg" aria-describedby="radio-region-error">
+      <legend class="field-legend">Billing region</legend>
+      <div class="radio-group">
+        <label class="radio-card">
+          <input class="radio" type="radio" name="radio-billing" value="eu" aria-invalid="true" />
+          <span class="radio-content">
+            <span class="radio-title">Europe</span>
+            <span class="radio-description">VAT charged in your local currency.</span>
+          </span>
+        </label>
+        <label class="radio-card">
+          <input class="radio" type="radio" name="radio-billing" value="us" aria-invalid="true" />
+          <span class="radio-content">
+            <span class="radio-title">United States</span>
+            <span class="radio-description">Tax calculated from your state.</span>
+          </span>
+        </label>
+      </div>
+      <p class="field-error" id="radio-region-error">{{ icon("x-circle") }} Choose a billing region.</p>
+    </fieldset>
+  {% endcall %}
+
+  <h2 id="htmx">With htmx</h2>
+  <p>
+    The chosen radio's <code>name</code> and <code>value</code> are posted like any other form value, so a request on
+    <code>change</code> carries the choice.
+  </p>
+  {% call demo("flex-col") %}
+    <form onsubmit="return false" hx-post="/api/echo" hx-trigger="change" hx-target="#radio-result">
+      <fieldset class="fieldset max-w-lg">
+        <legend class="field-legend">Region</legend>
+        <div class="radio-group radio-group-row">
+          <label class="radio-card">
+            <input class="radio" type="radio" name="region" value="eu-west" checked />
+            <span class="radio-content">
+              <span class="radio-title">Dublin</span>
+              <span class="radio-description">eu-west-1</span>
+            </span>
+          </label>
+          <label class="radio-card">
+            <input class="radio" type="radio" name="region" value="us-east" />
+            <span class="radio-content">
+              <span class="radio-title">Virginia</span>
+              <span class="radio-description">us-east-1</span>
+            </span>
+          </label>
+          <label class="radio-card">
+            <input class="radio" type="radio" name="region" value="ap-south" />
+            <span class="radio-content">
+              <span class="radio-title">Mumbai</span>
+              <span class="radio-description">ap-south-1</span>
+            </span>
+          </label>
+        </div>
+      </fieldset>
+    </form>
+    <p id="radio-result" class="muted" aria-live="polite"></p>
+  {% endcall %}
+
+  <h2 id="buttons">Buttons instead of radios?</h2>
+  <p>
+    A radio group is a form control. For a row of buttons that switch a view or a style — text alignment, a filter bar —
+    use a <a href="/docs/components/toggle-group">toggle group</a> with <code>data-toggle-group="single"</code>, which
+    presses one button at a time.
+  </p>
+
+  <h2 id="reference">Reference</h2>
+  {{ classes([
+    [".radio-group", "Stacks the options in a gap-2 column."],
+    [".radio-group-row", "Side by side from the sm breakpoint, each option taking an equal share."],
+    [".radio-card", "The clickable card around a radio, a title and a description. A <label>."],
+    [".radio-content / .radio-title / .radio-description", "The card's text, its title and its muted description."],
+    [".radio", "The dot. Same shape language as .checkbox."],
+    ["aria-invalid=\"true\"", "Error border on the option, or on every option in the group when a required group is empty (:user-invalid)."]
+  ], heading="Class / attribute") }}
+{% endblock %}

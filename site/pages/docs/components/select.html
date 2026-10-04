@@ -1,0 +1,251 @@
+{% extends "layouts/docs.html" %}
+{% from "components/icon/icon.html" import icon %}
+{% from "components/code/code.html" import code %}
+{% from "macros/docs.html" import demo, classes %}
+{% set title = "Select" %}
+{% set description = "A list of options in a popup, opened from a button: searchable, keyboard driven, and styled like an input." %}
+{% set countries = [
+  { value: "au", label: "Australia" },
+  { value: "br", label: "Brazil" },
+  { value: "ca", label: "Canada" },
+  { value: "de", label: "Germany" },
+  { value: "jp", label: "Japan" },
+  { value: "mx", label: "Mexico" },
+  { value: "nz", label: "New Zealand" },
+  { value: "pt", label: "Portugal" },
+  { value: "za", label: "South Africa" }
+] %}
+
+{% block content %}
+  {% call demo("min-h-80 items-start") %}
+    <div class="field w-64">
+      <span class="field-label" id="select-country-label">Country</span>
+      <div class="select" data-select>
+        <button type="button" class="select-trigger" data-select-trigger
+                aria-haspopup="listbox" aria-expanded="false" aria-labelledby="select-country-label"
+                aria-describedby="select-country-help">
+          <span class="select-value" data-placeholder="Choose a country"></span>
+          {{ icon("chevron-down") }}
+        </button>
+        <div class="select-content" role="listbox" aria-labelledby="select-country-label" hidden>
+          <div class="select-search">
+            <input class="input input-sm" data-select-search placeholder="Search countries…" aria-label="Search countries" />
+          </div>
+          {% for c in countries %}
+          <span class="select-item" role="option" aria-selected="{{ 'true' if c.value == 'nz' else 'false' }}" value="{{ c.value }}">
+            {{ c.label }}
+            <span class="select-check">{{ icon("check") }}</span>
+          </span>
+          {% endfor %}
+          <p class="select-empty" data-select-empty hidden>No country matches that.</p>
+        </div>
+      </div>
+      <p class="field-description" id="select-country-help">Where the invoice is billed.</p>
+    </div>
+  {% endcall %}
+
+  <p>
+    A select is a <a href="/docs/components/dropdown">dropdown</a> that picks a value: the trigger takes the label's place in
+    a <a href="/docs/components/field">field</a>, and the chosen option is what the form submits. Reach for it when the
+    native <code>&lt;select&gt;</code> is not enough — filtering, groups, disabled options, markup inside an option — and for
+    a plain <code>&lt;select&gt;</code> that only needs styling, keep the <a href="/docs/components/input">.select</a> input
+    class.
+  </p>
+
+  <h2 id="markup">Markup</h2>
+  <ul>
+    <li>Wrap the trigger and the list in <code>.select</code> with <code>data-select</code>, like a dropdown.</li>
+    <li>The trigger is a <code>button</code> with <code>data-select-trigger</code>, <code>aria-haspopup="listbox"</code> and <code>aria-expanded="false"</code>. Its text goes in an empty <code>.select-value</code> span, with <code>data-placeholder</code> for the text shown until something is picked. Name the button after the field's label with <code>aria-labelledby</code>.</li>
+    <li>The list is a <code>.select-content</code> with <code>role="listbox"</code> that starts <code>hidden</code>. Each entry is a <code>.select-item</code> with <code>role="option"</code>, a <code>value</code>, and <code>aria-selected="true"</code> on the picked one.</li>
+    <li>Add <code>aria-disabled="true"</code> to an option the user can't pick: it is skipped by the keyboard and can't be clicked.</li>
+    <li>To submit the value, put a hidden field inside the select: <code>&lt;input type="hidden" name="country" data-select-input&gt;</code>. A preselected option fills it, and every choice rewrites it.</li>
+    <li>An option holding more than text (a flag, a badge) can carry <code>data-label</code>, the plain text the trigger shows.</li>
+  </ul>
+
+  <h2 id="keyboard">Keyboard</h2>
+  <div class="table-wrap not-prose">
+    <table class="table">
+      <thead><tr><th>Key</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr><td><kbd class="kbd">↓</kbd> <kbd class="kbd">↑</kbd> on the trigger</td><td class="text-muted-foreground">Open on the picked option, or the first / last</td></tr>
+        <tr><td><kbd class="kbd">↓</kbd> <kbd class="kbd">↑</kbd> <kbd class="kbd">Home</kbd> <kbd class="kbd">End</kbd></td><td class="text-muted-foreground">Move between options</td></tr>
+        <tr><td><kbd class="kbd">Enter</kbd> <kbd class="kbd">Space</kbd></td><td class="text-muted-foreground">Pick the focused option and close</td></tr>
+        <tr><td><kbd class="kbd">Esc</kbd></td><td class="text-muted-foreground">Close and return focus to the trigger</td></tr>
+        <tr><td><kbd class="kbd">Tab</kbd>, click outside</td><td class="text-muted-foreground">Close</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2 id="search">Searching</h2>
+  <p>
+    Put an <code>.input</code> in a <code>.select-search</code> wrapper inside the list with <code>data-select-search</code>.
+    Typing filters the options, <kbd class="kbd">↓</kbd> moves into them, and a matching option can carry
+    <code>aria-selected="true"</code> so it comes first. Add a <code>.select-empty</code> with
+    <code>data-select-empty</code> for the "no matches" message: it stays hidden until a search finds nothing, and the
+    filter resets when the list closes.
+  </p>
+  {% call demo("min-h-72 items-start") %}
+    <div class="select w-56" data-select>
+      <button type="button" class="select-trigger" data-select-trigger aria-haspopup="listbox" aria-expanded="false" aria-label="Timezone">
+        <span class="select-value" data-placeholder="Pick a timezone"></span>
+        {{ icon("chevron-down") }}
+      </button>
+      <div class="select-content" role="listbox" aria-label="Timezone" hidden>
+        <div class="select-search">
+          <input class="input input-sm" data-select-search placeholder="Search…" aria-label="Search timezones" />
+        </div>
+        <span class="select-item" role="option" aria-selected="true" value="utc">UTC</span>
+        <span class="select-item" role="option" aria-selected="false" value="cet">Central European Time</span>
+        <span class="select-item" role="option" aria-selected="false" value="jst">Japan Standard Time</span>
+        <span class="select-item" role="option" aria-selected="false" value="pst">Pacific Time</span>
+        <p class="select-empty" data-select-empty hidden>No timezone matches that.</p>
+      </div>
+    </div>
+  {% endcall %}
+
+  <h2 id="groups">Groups</h2>
+  <p>
+    A <code>.select-label</code> heads a run of options and a <code>.select-separator</code> divides them. They are text, not
+    options, so the keyboard skips them.
+  </p>
+  {% call demo("min-h-72 items-start") %}
+    <div class="select w-56" data-select>
+      <button type="button" class="select-trigger" data-select-trigger aria-haspopup="listbox" aria-expanded="false" aria-label="Region">
+        <span class="select-value" data-placeholder="All regions"></span>
+        {{ icon("chevron-down") }}
+      </button>
+      <div class="select-content" role="listbox" aria-label="Region" hidden>
+        <p class="select-label">Americas</p>
+        <span class="select-item" role="option" aria-selected="false" value="na">North America</span>
+        <span class="select-item" role="option" aria-selected="false" value="sa">South America</span>
+        <div class="select-separator" role="separator"></div>
+        <p class="select-label">Europe and Africa</p>
+        <span class="select-item" role="option" aria-selected="false" value="eu">Europe</span>
+        <span class="select-item" role="option" aria-selected="false" value="af">Africa</span>
+        <span class="select-item" role="option" aria-selected="false" value="me" aria-disabled="true">Middle East (coming soon)</span>
+      </div>
+    </div>
+  {% endcall %}
+
+  <h2 id="sizes">Sizes and states</h2>
+  <p>
+    <code>.select-sm</code> and <code>.select-lg</code> match <code>.input-sm</code> and <code>.input-lg</code>.
+    <code>disabled</code> on the trigger, and <code>aria-invalid="true"</code> for an error, work as they do on an input.
+  </p>
+  {% call demo("min-h-64 flex-col items-start gap-4") %}
+    <div class="select w-56">
+      <button type="button" class="select-trigger select-sm" data-select-trigger aria-haspopup="listbox" aria-expanded="false" aria-label="Small">
+        <span class="select-value" data-placeholder="Small"></span>
+        {{ icon("chevron-down") }}
+      </button>
+      <div class="select-content" role="listbox" aria-label="Small" hidden>
+        <span class="select-item" role="option" aria-selected="false" value="a">A</span>
+        <span class="select-item" role="option" aria-selected="false" value="b">B</span>
+      </div>
+    </div>
+    <div class="select w-56">
+      <button type="button" class="select-trigger" data-select-trigger aria-haspopup="listbox" aria-expanded="false" aria-invalid="true" aria-label="Invalid">
+        <span class="select-value" data-placeholder="Invalid"></span>
+        {{ icon("chevron-down") }}
+      </button>
+      <div class="select-content" role="listbox" aria-label="Invalid" hidden>
+        <span class="select-item" role="option" aria-selected="false" value="a">A</span>
+        <span class="select-item" role="option" aria-selected="false" value="b">B</span>
+      </div>
+    </div>
+    <div class="select w-56">
+      <button type="button" class="select-trigger" data-select-trigger aria-haspopup="listbox" aria-expanded="false" disabled aria-label="Disabled">
+        <span class="select-value" data-placeholder="Disabled"></span>
+        {{ icon("chevron-down") }}
+      </button>
+      <div class="select-content" role="listbox" aria-label="Disabled" hidden>
+        <span class="select-item" role="option" aria-selected="false" value="a">A</span>
+      </div>
+    </div>
+  {% endcall %}
+
+  <h2 id="alignment">Alignment</h2>
+  <p>
+    The list opens below the trigger, as wide as the trigger and aligned to its left edge. Add
+    <code>.select-content-end</code> to align it to the right edge, or <code>.select-content-up</code> to open it upwards.
+  </p>
+  {% call demo("min-h-56 items-end justify-end") %}
+    <div class="select w-48">
+      <button type="button" class="select-trigger" data-select-trigger aria-haspopup="listbox" aria-expanded="false" aria-label="Right-aligned">
+        <span class="select-value" data-placeholder="Right-aligned"></span>
+        {{ icon("chevron-down") }}
+      </button>
+      <div class="select-content select-content-end" role="listbox" aria-label="Right-aligned" hidden>
+        <span class="select-item" role="option" aria-selected="false" value="au">Australia</span>
+        <span class="select-item" role="option" aria-selected="false" value="nz">New Zealand</span>
+      </div>
+    </div>
+  {% endcall %}
+
+  <h2 id="htmx">With htmx</h2>
+  <p>
+    Every choice fires a bubbling <code>select:change</code> with <code>detail.value</code> (the option's
+    <code>value</code>), <code>detail.label</code> and <code>detail.option</code>. Trigger requests on it rather than on
+    <code>click</code>, so they run once the value has been set. Inside a form, htmx posts the form's values — the hidden
+    <code>[data-select-input]</code> among them — so the request carries the choice with no extra wiring:
+  </p>
+  {% call demo("min-h-64 flex-col items-start gap-4") %}
+    <form class="select w-56" data-select onsubmit="return false" hx-post="/api/echo" hx-trigger="select:change" hx-target="#select-result">
+      <button type="button" class="select-trigger" data-select-trigger aria-haspopup="listbox" aria-expanded="false" aria-label="Deploy region">
+        <span class="select-value" data-placeholder="Deploy region"></span>
+        {{ icon("chevron-down") }}
+      </button>
+      <div class="select-content" role="listbox" aria-label="Deploy region" hidden>
+        <span class="select-item" role="option" aria-selected="false" value="eu-west">Europe (Dublin)</span>
+        <span class="select-item" role="option" aria-selected="false" value="us-east">US East (Virginia)</span>
+        <span class="select-item" role="option" aria-selected="false" value="ap-south">Mumbai</span>
+      </div>
+      <input type="hidden" name="region" data-select-input />
+    </form>
+    <p id="select-result" class="muted" aria-live="polite"></p>
+  {% endcall %}
+  <p>
+    Outside a form, pass the value yourself with the event: <code>hx-vals='js:{region: event.detail.value}'</code>.
+  </p>
+
+  <h2 id="htmx-load">Loading options with htmx</h2>
+  <p>
+    Swap the option list in on <code>load</code>, or after a request elsewhere: the behaviour looks options up on every
+    event, so a list that arrives from the server keeps filtering and navigating. Mark the picked one with
+    <code>aria-selected="true"</code> and put the value in <code>[data-select-input]</code> in the swapped markup and the
+    new list starts out in step.
+  </p>
+
+  <h2 id="macro">Nunjucks macro</h2>
+  <p>
+    The <code>select</code> macro writes the trigger, the options and the hidden field from a list. Options are
+    <code>[&#123;value, label&#125;]</code> pairs, or plain strings when the value is the label.
+  </p>
+  {% call code("jinja", title="page.html") %}
+    {% raw %}{% from "components/select/select.html" import select %}
+
+<div class="field">
+  <span class="field-label" id="country">Country</span>
+  {{ select("country", json("data/countries.json"), value="nz", name="country", searchable=true, label="Country") }}
+</div>
+
+{{ select("plan", ["Free", "Pro"], value="Free", label="Plan") }}{% endraw %}
+  {% endcall %}
+
+  <h2 id="reference">Reference</h2>
+  {{ classes([
+    [".select", "Positioning wrapper (relative, inline-block)."],
+    [".select-trigger", "The button that opens the list. Looks like an .input."],
+    [".select-sm / .select-lg", "Trigger sizes, matching .input-sm / .input-lg."],
+    [".select-value", "The picked text. Empty, with data-placeholder, until something is picked."],
+    [".select-content", "The listbox. Opens below, as wide as the trigger."],
+    [".select-content-end / .select-content-up", "Align to the right edge / open above."],
+    [".select-search", "Sticky wrapper for a [data-select-search] filter input."],
+    [".select-item", "One option. aria-selected marks the picked one, aria-disabled an unavailable one."],
+    [".select-check", "Icon inside an option, shown only while it is picked."],
+    [".select-label / .select-separator", "Heading and divider inside the list."],
+    [".select-empty", "Shown by the behaviour when a search finds nothing."],
+    ["[data-select] / [data-select-trigger]", "Behaviour: open/close, keyboard, filtering, and select:change { value, label, option }."],
+    ["[data-select-input]", "Hidden field mirroring the picked value, so a form can submit it."]
+  ], heading="Class / attribute") }}
+{% endblock %}

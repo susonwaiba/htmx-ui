@@ -1,0 +1,21 @@
+{# A checkbox field: the box, its label and an optional description.
+   {% from "components/checkbox/checkbox.html" import checkbox %}
+   {{ checkbox("terms", "Accept the terms", required=true) }}
+   {{ checkbox("digest", "Weekly digest", description="A summary every Monday.", checked=true) }}
+   size: "sm" | "lg"     state: "warning" | "success"     indeterminate=true marks a partly
+   selected group (behaviour: checkbox.ts)     attrs: any extra attributes, e.g. name, value,
+   hx-post, aria-describedby. #}
+
+{% macro checkbox(id, label, description=none, checked=false, indeterminate=false, disabled=false, required=false, size=none, state=none, attrs="") %}
+<div class="field field-horizontal">
+  <input class="checkbox{% if size %} checkbox-{{ size }}{% endif %}{% if state %} checkbox-{{ state }}{% endif %}" type="checkbox" id="{{ id }}"{% if checked %} checked{% endif %}{% if indeterminate %} data-indeterminate{% endif %}{% if disabled %} disabled{% endif %}{% if required %} required{% endif %}{% if attrs %} {{ attrs | safe }}{% endif %} />
+  {% if description %}
+  <div class="field-content">
+    <label class="field-label" for="{{ id }}">{{ label }}</label>
+    <p class="field-description">{{ description }}</p>
+  </div>
+  {% else %}
+  <label class="field-label" for="{{ id }}">{{ label }}</label>
+  {% endif %}
+</div>
+{%- endmacro %}
