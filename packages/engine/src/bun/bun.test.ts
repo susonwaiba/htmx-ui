@@ -93,6 +93,32 @@ describe("bun adapter", () => {
     for (const href of preloads) expect(await Bun.file(join(dir, "dist", href!)).exists()).toBe(true);
   }, 30_000);
 
+test("assetVer()'s ?ver= never breaks the build, and lands on the tags Bun passes through", async () => {
+    const dir = await project({
+      "package.json": '{"name":"fixture","version":"1.2.3"}',
+      "layout.html": `<!doctype html><html><head><link rel="stylesheet" href="{{ assetVer('app.css') }}"><script type="module" src="{{ assetVer('app.ts') }}"></script></head><body><img src="{{ assetVer('logo.svg') }}">{% block content %}{% endblock %}</body></html>`,
+      "app.ts": "console.log('app');",
+      "app.css": "body{color:red}",
+      "logo.svg": "<svg/>",
+      "pages/index.html": '{% extends "layout.html" %}{% block content %}home{% endblock %}',
+    });
+    const log = console.log;
+    console.log = () => {};
+    try {
+      expect(await build(resolveConfig({ ui: false }, dir))).toBe(true);
+    } finally {
+      console.log = log;
+    }
+    const html = await Bun.file(join(dir, "dist/index.html")).text();
+    expect(html).not.toContain("data-ver"); // Bun re-serializes the tags it bundles, marker and all
+    expect(html).not.toContain("ver=1.2.3&amp;"); // and the query is gone from the ones it resolved
+    expect([...html.matchAll(/<img[^>]*src="([^"]+)"/g)].map((m) => m[1])).toEqual([expect.stringMatching(/^\.\/assets\/logo-[\w-]+\.svg\?ver=1\.2\.3$/)]);
+    // link and script get no query, because Bun re-serializes those tags; their content-hashed
+    // filenames change with the content, so a build never loads a stale copy either.
+    expect(html).toMatch(/<link[^>]*href="\.\/assets\/[\w-]+\.css"/);
+    expect(html).toMatch(/<script[^>]*src="\.\/assets\/[\w-]+\.js"/);
+  }, 30_000);
+
   test("chunk parsing: forwarders and static imports", () => {
     expect(forwardTarget('import"./index-1a2b.js";\n\n//# debugId=X\n//# sourceMappingURL=a.js.map\n')).toBe("./index-1a2b.js");
     expect(forwardTarget('import"./a.js";console.log(1)')).toBeNull();

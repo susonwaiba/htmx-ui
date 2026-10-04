@@ -18,7 +18,7 @@ describe("config", () => {
     const dir = await fixture({ "public/robots.txt": "" });
     const c = resolveConfig({ ui: false }, dir);
     expect(c.pagesDir).toBe(join(dir, "pages"));
-    expect(c.templateRoots).toEqual([dir]);
+    expect(c.roots).toEqual([{ dir }]);
     expect(c.outDir).toBe(join(dir, "dist"));
     expect(c.publicDir).toBe(join(dir, "public"));
     expect(c.port).toBe(Number(process.env.PORT ?? 3000));
@@ -28,9 +28,9 @@ describe("config", () => {
   test("adds htmx-ui's src/ as the last template root when it is installed", () => {
     // The site depends on htmx-ui (workspace link), so it resolves from there
     const site = resolve(import.meta.dir, "../../../../site");
-    const c = resolveConfig({ templates: [".", "extra"] }, site);
+    const c = resolveConfig({ roots: [".", "extra"] }, site);
     expect(c.uiDir).toMatch(/packages[/\\]ui[/\\]src$/);
-    expect(c.templateRoots).toEqual([site, join(site, "extra"), c.uiDir!]);
+    expect(c.roots.map((r) => r.dir)).toEqual([site, join(site, "extra"), c.uiDir!]);
     expect(resolveConfig({ ui: false }, site).uiDir).toBeNull();
   });
 
@@ -63,5 +63,46 @@ describe("config", () => {
     const c = await loadConfig(dir);
     expect(c.file).toBeNull();
     expect(c.user).toEqual({});
+  });
+});
+
+describe("roots", () => {
+  test("the first entry is the project root: pages, outDir, publicDir and asset URLs follow it", async () => {
+    const dir = await fixture({ "web/public/robots.txt": "" });
+    const c = resolveConfig({ ui: false, roots: ["web", "shared"] }, dir);
+    expect(c.root).toBe(join(dir, "web"));
+    expect(c.pagesDir).toBe(join(dir, "web/pages"));
+    expect(c.outDir).toBe(join(dir, "web/dist"));
+    expect(c.publicDir).toBe(join(dir, "web/public"));
+    expect(c.roots.map((r) => r.dir)).toEqual([join(dir, "web"), join(dir, "shared")]);
+  });
+
+  test("a named root keeps its name and its directory is still absolute", async () => {
+    const dir = await fixture({});
+    const c = resolveConfig({ ui: false, roots: [{ name: "layouts", dir: "new-layouts-2026" }, "web"] }, dir);
+    expect(c.roots[0]).toEqual({ name: "layouts", dir: join(dir, "new-layouts-2026") });
+    expect(c.root).toBe(join(dir, "new-layouts-2026")); // first entry, named or not
+  });
+
+  test("the first entry is primary even when it is named", async () => {
+    // roots has one meaning: the first entry is the project root, whatever it is called.
+    const dir = await fixture({});
+    const c = resolveConfig({ ui: false, roots: ["dist/_templates", "."], pages: "src" }, dir);
+    expect(c.root).toBe(join(dir, "dist/_templates"));
+    expect(c.pagesDir).toBe(join(dir, "dist/_templates/src"));
+  });
+
+  test("refuses an empty roots list rather than resolving every default against nothing", async () => {
+    const dir = await fixture({});
+    expect(() => resolveConfig({ ui: false, roots: [] }, dir)).toThrow(/roots is empty/);
+  });
+
+  test("renders a page through a named root end to end", async () => {
+    const dir = await fixture({
+      "new-layouts/base.html": "<body>{% block content %}{% endblock %}</body>",
+      "pages/index.html": '{% extends "layouts/base.html" %}{% block content %}<p>ok</p>{% endblock %}',
+    });
+    const c = resolveConfig({ ui: false, roots: [{ name: "layouts", dir: "new-layouts" }, "."] }, dir);
+    expect(renderPage(c, join(dir, "pages/index.html"))).toBe("<body><p>ok</p></body>");
   });
 });

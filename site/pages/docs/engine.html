@@ -7,7 +7,7 @@
 
 {% block content %}
   <p>
-    <code>htmx-ui-engine</code> is the build tool behind <code>npm create htmx-ui</code> and this website. It turns a
+    <code>htmx-ui-engine</code> is the build tool behind <code>bun create htmx-ui</code> and this website. It turns a
     folder of HTML pages into a static site: each page is rendered with Nunjucks, then bundled (scripts and styles
     hashed and minified, Tailwind compiled from every class the page uses). The same engine runs on two runtimes:
   </p>
@@ -78,8 +78,8 @@
     import { defineConfig } from "htmx-ui-engine";
 
     export default defineConfig({
+      roots: ["."],
       pages: "pages",
-      templates: ["."],
       outDir: "dist",
       publicDir: "public",
       url: "https://example.com",
@@ -88,19 +88,98 @@
   {% endcall %}
   {{ classes([
     ["pages", "Routes directory. Default \"pages\"."],
-    ["templates", "Template roots, searched in order. Default [\".\"]; htmx-ui's src/ is added last (ui: false turns that off)."],
+    ["roots", "Where templates, data, icons and assets are found, searched in order. A directory, or one with a name. Default [\".\"]; htmx-ui's src/ is added last (ui: false turns that off). See Roots below."],
+    ["render", "This deployment renders templates at runtime. createSite() then checks at startup that the roots and pages are really there, and says what to copy if not. Default false."],
     ["outDir", "Build output. Default \"dist\"."],
     ["publicDir", "Copied as-is. Default \"public\"; false to disable."],
     ["url", "Public site URL, the origin template global. $SITE_URL overrides it."],
     ["port", "Dev and preview port. Default 3000; $PORT overrides it."],
-    ["globals, filters", "Extra Nunjucks globals and filters."],
+    ["debug", "Log what the engine is doing: requests, renders, template compiles and builds. true, or a list of topics. Off by default (see below)."],
+    ["globals, filters", "Extra Nunjucks globals and filters \u2014 your own template helpers, on top of the built-in ones."],
     ["transform(html, page)", "Post-process every rendered page, in dev and build."],
-    ["routes", "Dev-only request handlers (see below)."],
-    ["fetch(req)", "Dev-only fallback for anything else; return null for a 404."],
+    ["routes", "Request handlers for mock endpoints (see below)."],
+    ["fetch(req)", "Fallback for anything else; return null for a 404."],
     ["build.minify, build.sourcemap, build.define", "Production bundling options."],
     ["build.done(ctx)", "Runs after a build with { outDir, pages }, e.g. to write a sitemap."],
     ["vite", "Node only: extra Vite config, merged over the engine's."]
   ], heading="Option") }}
+  <p>
+    <code>globals</code> and <code>filters</code> are where a project adds its own template helpers; see
+    <a href="/docs/templates#custom">custom globals and filters</a>.
+  </p>
+
+  <h2 id="roots">Roots</h2>
+  <p>
+    <code>roots</code> is every directory templates, data, icons and assets are found in, searched in order. It
+    defaults to <code>[\".\"]</code>, the project, which is why nothing has to configure it to get started. The
+    <strong>first entry is the project root</strong>: <code>pages</code>, <code>outDir</code>, <code>publicDir</code>
+    and <code>asset()</code> URLs are all measured from it, and it is the Vite root and Bun's working directory.
+  </p>
+
+  <h3 id="roots-names">Naming a directory</h3>
+  <p>
+    An entry can carry a <strong>name</strong>, which is the prefix templates reach that directory by. Give one to a
+    directory that is likely to move, and the move stops reaching your templates &mdash; rename the directory and the
+    name still resolves it:
+  </p>
+  {% call code("ts", title="htmx-ui.config.ts") %}
+    export default defineConfig({
+      roots: [
+        ".",
+        { name: "layouts", dir: "new-layouts-2026" },
+        { name: "acme", dir: "../acme-ui" },
+      ],
+    });
+  {% endcall %}
+  <p>
+    The layout in <code>new-layouts-2026/</code> is still reached as <code>layouts/</code>, and every page keeps
+    saying so:
+  </p>
+  {% call code("jinja", title="pages/index.html") %}
+{% raw %}{% extends "layouts/base.html" %}{% endblock %}{% endraw %}
+  {% endcall %}
+  <p>
+    A name is a single directory name, not a path, and no two roots may share one &mdash; both are refused at startup
+    rather than resolved by luck of the order. The name works everywhere a template name does:
+    <code>extends</code>, <code>include</code>, <code>import</code>, <code>&#123;% from %&#125;</code>,
+    <code>json()</code>, <code>svg()</code>, <code>glob()</code> and <code>asset()</code>.
+  </p>
+  {% call alert("Names are part of the template namespace", variant="warning") %}
+    <code>name</code> takes that directory's own files. With
+    <code>&#123; name: "layouts", dir: "new-layouts-2026" &#125;</code>, a page asks for
+    <code>layouts/base.html</code>, never <code>layouts/new-layouts-2026/base.html</code>. If two roots are inside one
+    another, list the more specific one first: it is searched first, and it wins.
+  {% endcall %}
+
+  <h3 id="roots-dev-prod">Moving a directory between dev and production</h3>
+  <p>
+    A deployment that renders fragments needs its templates on disk, and
+    <code>htmx-ui build</code> does not copy them. That is a change to <code>roots</code> and nothing else &mdash; the
+    templates are not edited, and no reference to them moves:
+  </p>
+  {% call code("ts", title="htmx-ui.config.ts in the deployment") %}
+    export default defineConfig({
+      render: true,
+      roots: [".", "dist/_templates"], // "." first: the first root is the project root
+      pages: "dist/_templates/pages",
+    });
+  {% endcall %}
+  <p>
+    See <a href="/docs/servers#static-and-dynamic">static pages, dynamic fragments</a> for the copy step, and
+    <code>render</code> for the startup check that says what is missing.
+  </p>
+
+  <h3 id="roots-watch">Watching</h3>
+  <p>
+    The dev server watches the roots and nothing else, and always skips <code>node_modules/</code>,
+    <code>dist/</code> and <code>public/</code>. A project whose roots are its own directories therefore never walks its
+    dependencies to look for templates that are not there. The trade is that a change under a skipped directory no
+    longer reloads the page: a new public asset appears on the next refresh rather than immediately.
+  </p>
+  <p>
+    <code>templates</code> is the older name for the same list of directories and still works, but it does not move the
+    project root and cannot carry names &mdash; prefer <code>roots</code>.
+  </p>
 
   <h2 id="mock-endpoints">Mock htmx endpoints</h2>
   <p>
@@ -123,9 +202,103 @@
       },
     });
   {% endcall %}
-  {% call alert("Dev server only", variant="info") %}
-    The build is static, so these routes don't exist in production. Point the same URLs at your real backend there.
+  {% call alert("Dev server and your own server", variant="info") %}
+    <code>htmx-ui build</code> is static, so a static host never sees these routes. Mount the site on a backend with
+    <a href="/docs/servers">a server adapter</a> and they are served there too, by your own process.
   {% endcall %}
+
+  <h2 id="debug">Debugging</h2>
+  <p>
+    Set <code>debug</code> in <code>htmx-ui.config.ts</code> and the engine logs what it is doing: which requests
+    arrive, what answers them, how long every render took, and which templates it had to compile. It is off by
+    default, so it costs nothing in production.
+  </p>
+  {% call code("ts", title="htmx-ui.config.ts") %}
+    import { defineConfig } from "htmx-ui-engine";
+
+    export default defineConfig({
+      debug: true,
+    });
+  {% endcall %}
+  <p>
+    Every request is logged twice: once when it arrives, once when it is answered, with where the answer came
+    from. That pair is the point. A request whose first line never gets a second one is the request still in
+    flight &mdash; which is what a page that never finishes loading looks like from the server:
+  </p>
+  {% call code("txt", title="Terminal") %}
+    [htmx-ui] GET /api/team/7
+    [htmx-ui] GET /api/team/7 200 via route /api/team/:id 0.0ms
+    [htmx-ui] GET /nope
+    [htmx-ui] GET /nope 404 via 404.html 0.2ms
+  {% endcall %}
+  <p>
+    Where the answer came from is one of: a pattern from <code>routes</code>, <code>dist</code> for a built file,
+    <code>fetch</code> for the config's fallback, <code>404.html</code>, or <code>nothing</code> when the site
+    leaves the path to your host.
+  </p>
+  <p>
+    Narrow the output to what you are looking at by listing topics instead: <code>requests</code>,
+    <code>render</code>, <code>templates</code> and <code>build</code>.
+  </p>
+  {% call code("ts", title="htmx-ui.config.ts") %}
+    export default defineConfig({
+      debug: ["requests", "render"],
+    });
+  {% endcall %}
+  <p>
+    <code>render</code> reports every <code>site.render()</code> and <code>site.fragment()</code> with its output
+    size and duration. <code>templates</code> reports the template cache filling up: one line per template as it
+    compiles, then the warm-up that <code>createSite()</code> does at startup, so nothing compiles on your first
+    request. Any step over a second is also marked <code>SLOW</code>.
+  </p>
+  {% call code("txt", title="Terminal") %}
+    [htmx-ui] compiled pages/docs/components/button.html
+    [htmx-ui] warm: compiled 56 of 56 templates from 42 files in 61.2ms
+    [htmx-ui] render /docs/components/button done 8.4KB 10.6ms cached=true
+    [htmx-ui] fragment partials/row.html done 0.2KB 0.4ms
+  {% endcall %}
+
+  <h2 id="servers">Serving it from a backend</h2>
+  <p>
+    A built site is just files, so any server can host it. <code>createSite()</code> from the package root does the
+    serving — pages, assets, the config's routes and <code>fetch</code>, then your built <code>404.html</code> — and
+    <code>createSite().handle(request)</code> is all it takes to plug it into your own:
+  </p>
+  {% call code("ts", title="server.ts") %}
+    import { createSite } from "htmx-ui-engine";
+
+    const site = await createSite();
+    const server = Bun.serve({
+      fetch: (request) => site.handle(request) ?? new Response("Not found", { status: 404 }),
+    });
+  {% endcall %}
+  <p>
+    There are ready-made adapters for <a href="/docs/servers/elysia">Elysia</a> (recommended),
+    <a href="/docs/servers/express">Express</a> and <a href="/docs/servers/hono">Hono</a>, plus
+    <code>site.render()</code> and <code>site.fragment()</code> for server-rendered pages and htmx fragments:
+  </p>
+  {{ code_tabs([
+    { id: "elysia", label: "Elysia", lang: "ts", source: 'import { Elysia } from "elysia";
+import { htmxUi } from "htmx-ui-engine/elysia";
+
+new Elysia()
+  .get("/api/ping", () => ({ ok: true }))
+  .use(htmxUi())    // everything else is the built site
+  .listen(3000);' },
+    { id: "express", label: "Express", lang: "ts", source: 'import express from "express";
+import { htmxUi } from "htmx-ui-engine/express";
+
+const app = express();
+app.get("/api/ping", (req, res) => res.json({ ok: true }));
+app.use(htmxUi());   // last: everything else is the built site
+app.listen(3000);' },
+    { id: "hono", label: "Hono", lang: "ts", source: 'import { Hono } from "hono";
+import { htmxUi } from "htmx-ui-engine/hono";
+
+const app = new Hono();
+app.get("/api/ping", (c) => c.json({ ok: true }));
+app.use(htmxUi());   // last: everything else is the built site' }
+  ]) }}
 
   <h2 id="plugins">Use the plugins directly</h2>
   <p>Already have a build script or a Vite config? Use the engine's plugin and skip the CLI:</p>

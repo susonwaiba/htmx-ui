@@ -6,7 +6,7 @@ a dev server with hot reload and mock htmx endpoints, and static production buil
 components; works without them.
 
 ```bash
-npm create htmx-ui@latest my-site     # or: pnpm create htmx-ui, yarn create htmx-ui, bun create htmx-ui
+bun create htmx-ui@latest my-site     # or: npm create, pnpm create, yarn create
 ```
 
 ## Install into an existing project
@@ -46,10 +46,14 @@ them: a site whose layout loads one `app.ts` ships one JS and one CSS file, on e
 | Helper | |
 | :--- | :--- |
 | `asset("app.ts")` | path to a project file, relative to the page (use it for `<script src>` / `<link href>` in layouts) |
+| `assetVer("app.css")` | the same, plus `?ver=<package.json version>` (and a random suffix in dev), so a cached copy is never reused |
 | `url` | the page's route, e.g. `/docs/button` (mark the active nav link) |
 | `json(path)`, `svg(path, attrs)`, `glob(pattern)` | read JSON, inline an SVG, list files |
 | `origin` | the public site URL (`url` in the config, or `$SITE_URL`) |
 | `dedent`, `highlight(lang)` filters | strip indentation; syntax-highlight code at build time (Shiki) |
+
+Add your own with `globals` and `filters` in the config \u2014 plain JavaScript, registered before every render,
+so they reach layouts and imported macros too. `markup(html)` wraps a string so a helper can return HTML.
 
 With htmx-ui installed, its macros and icons resolve too: `{% from "components/icon/icon.html" import icon %}`.
 
@@ -61,12 +65,16 @@ import { defineConfig } from "htmx-ui-engine";
 
 export default defineConfig({
   pages: "pages",        // routes directory
-  templates: ["."],      // template roots, searched in order (htmx-ui's src/ is added last)
+  roots: ["."],          // where templates/data/icons are found, in order; roots[0] is the
+                         // project root. An entry may be { name, dir }: the name is the prefix
+                         // templates reach that directory by, so it can move without the
+                         // templates changing. htmx-ui's src/ is added last
   outDir: "dist",
   publicDir: "public",
   url: "https://example.com",
   port: 3000,            // $PORT overrides
-  // Dev-only mock endpoints for hx-get / hx-post (Bun.serve route syntax, web Request -> Response)
+  // Mock endpoints for hx-get / hx-post (Bun.serve route syntax, web Request -> Response),
+  // served by the dev servers and by createSite() / the server adapters
   routes: {
     "/api/users/:id": (req) => new Response(`<p>User ${req.params.id}</p>`, { headers: { "Content-Type": "text/html" } }),
   },
@@ -75,6 +83,40 @@ export default defineConfig({
   vite: {},                                    // Node only: extra Vite config
 });
 ```
+
+## Serve it from a backend
+
+The static build is just files, so any server can host it — and one function does it for you: `createSite()` finds
+`dist/`, answers with the config's `routes` and `fetch`, and falls back to a built `404.html`.
+
+```ts
+import { createSite } from "htmx-ui-engine";
+
+const site = await createSite();                    // dist/, config, pages; no framework required
+const server = Bun.serve({ fetch: (req) => site.handle(req) ?? new Response("Not found", { status: 404 }) });
+```
+
+It also renders, so a backend can serve pages and htmx fragments from the same templates, macros and data as the site:
+
+```ts
+site.render("/docs/index.html", { user });          // a full page, per request
+site.fragment("partials/invoice-row.html", { invoice });   // an HTML fragment for hx-get / hx-post
+```
+
+Ready-made adapters mount it as middleware or a plugin (Elysia first — it's the one that needs no ordering):
+
+```ts
+import { Elysia } from "elysia";
+import { htmxUi } from "htmx-ui-engine/elysia";   // htmx-ui-engine/express, htmx-ui-engine/hono
+
+new Elysia()
+  .get("/api/hello", () => "<p>Hi</p>")
+  .use(htmxUi({ site }))                             // last: everything else is the built site
+  .listen(3000);
+```
+
+`htmxUi(options?)` takes `root`, `config`, `context`, `asset(file, page)` and `site` — the options of `createSite()`.
+All three serve the output of `htmx-ui build`, so run it before starting your server.
 
 ## Use the plugins directly
 
@@ -93,9 +135,9 @@ export default { plugins: [htmxUi(), tailwindcss()] };
 ```
 
 `htmx-ui-engine` itself exports the runtime-agnostic core: `defineConfig`, `loadConfig`, `render`, `renderPage`,
-`routeFor`, `findPages`, `highlight`.
+`routeFor`, `findPages`, `pagesOf`, `highlight`, `createSite`.
 
-Requires Node 22.12+ (Node runtime) or Bun 1.2.3+.
+Requires Bun 1.2.3+ or Node 22.12+ (Node runtime).
 
 ## License
 

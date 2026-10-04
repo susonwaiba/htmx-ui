@@ -13,16 +13,17 @@ Upstream syntax reference (Jinja2-like): https://mozilla.github.io/nunjucks/temp
 
 | Setting | Consequence |
 | :--- | :--- |
-| Template roots: `site/`, then htmx-ui's `src/` (`packages/ui/src`) | Names are root-relative; first match wins. `"layouts/docs.html"`, `"partials/header.html"` and `"macros/docs.html"` come from `site/`; `"components/icon/icon.html"` from the package. Don't write `"../layouts/docs.html"`. |
+| Roots: `site/` (default `roots: ["."]`), then htmx-ui's `src/` (`packages/ui/src`) | Names are root-relative; first match wins. `"layouts/docs.html"`, `"partials/header.html"` and `"macros/docs.html"` come from `site/`; `"components/icon/icon.html"` from the package. Don't write `"../layouts/docs.html"`. A root may carry a `name` (`{ name: "layouts", dir: "..." }`), which is the prefix templates reach it by; this site uses plain directories, so names are for projects that move a directory without moving its references. Resolution goes through `tryLocate()` in `core/render.ts` via `RootsLoader`, so a name works in `extends`/`include`/`import`/`from`, `json()`, `svg()`, `glob()` and `asset()` alike. |
 | `throwOnUndefined: true` | Outputting an undefined value fails the build (see the guards below). |
 | `autoescape: true` | `{{ value }}` is HTML-escaped. Use `| safe` only for markup you wrote. |
 | `trimBlocks` + `lstripBlocks` | A line holding only a `{% tag %}` disappears entirely, so indent tags freely. |
-| `noCache: true` | Every render re-reads templates from disk. |
-| Globals: `asset(path)`, `url` | `asset()` turns a root-relative path into one relative to the page being rendered, and fails the build if the file doesn't exist. `url` is the page's route (`/docs/components/button`), or `""` outside `site/pages`. |
+| `noCache` | The dev default: every render re-reads templates from disk. A server rendering per request sets `cache: true` instead, so each template is compiled once — `createSite()` does that and warms it at startup. |
+| Globals: `asset(path)`, `assetVer(path)`, `url` | `asset()` turns a root-relative path into one relative to the page being rendered, and fails the build if the file doesn't exist. `assetVer()` is the same URL plus `?ver=<package.json version>` (and a random suffix in dev). `url` is the page's route (`/docs/components/button`), or `""` outside `site/pages`. |
 | Globals: `json(path)`, `svg(path, attrs)`, `glob(pattern)` | Read a JSON file; inline an SVG with attributes set on its root; list matching files. Paths are root-relative (`"data/x.json"` → `site/data/x.json`, `"icons/sun.svg"` → `packages/ui/src/icons/sun.svg`). A missing file fails the build with the path in the message. |
 | Filters: `dedent`, `highlight(lang)` | Strip shared indentation; syntax-highlight with Shiki at build time (`packages/engine/src/core/highlight.ts`). |
+| `globals`, `filters` in `htmx-ui.config.ts` | The project's own helpers, registered per render like the built-ins (this site has none). A helper that returns HTML wraps it in `markup()`, exported from `htmx-ui-engine`. |
 
-Every global is visible inside imported macros **without** `with context`. That includes `asset()` and `url`, which are reset before each render.
+Every global is visible inside imported macros **without** `with context`. That includes `asset()`/`assetVer()` and `url`, which are reset before each render.
 
 ## Pages
 
@@ -82,6 +83,8 @@ Bun resolves `<script src>`, `<link href>` and `<img src>` relative to the **pag
 ```
 
 Routes and API URLs are root-absolute and need nothing: `href="/about"`, `hx-get="/api/hello"`. External URLs need nothing either.
+
+`assetVer(path)` is `asset(path)` with `?ver=` appended, for a URL whose name doesn't change with its content (the project's `package.json` version, plus a random suffix in dev). Both bundlers name built assets after their content, so plain `asset()` is enough for ordinary files; reach for `assetVer()` when a URL stays the same — `public/` files, or Vite's un-hashed dev URLs. The bundlers can't resolve a query string, so the engine parks it in a `data-ver` attribute while they work and puts it back on the finished URL (`packages/engine/src/core/ver.ts`).
 
 **Never write a root-absolute local file path** like `<img src="/assets/icons/sun.svg">`. Bun treats a leading `/` as a filesystem path and the build fails with `Could not resolve` (the site has no `public/` directory, which is the only place the engine allows root-absolute file links). (The package's `icons/` is also copied unhashed to `dist/assets/icons/` for linking from *other* sites, but pages must use `asset()`.)
 

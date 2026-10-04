@@ -14,16 +14,20 @@ import { existsSync } from "node:fs";
 import { relative, resolve, sep } from "node:path";
 import { loadConfig, renderPage, resolveConfig, type ResolvedConfig, type UserConfig } from "../core/config";
 import { relativeAsset } from "../core/render";
+import { deferVersions, verToken } from "../core/ver";
 
-const isResolved = (c: UserConfig | ResolvedConfig): c is ResolvedConfig => "templateRoots" in c;
+const isResolved = (c: UserConfig | ResolvedConfig): c is ResolvedConfig => "roots" in c;
 
 /** Server-sent events stream the dev server (./dev-server.ts) uses to reload pages on template changes. */
 export const RELOAD_PATH = "/__htmx-ui/reload";
-const RELOAD_SCRIPT = `<script>new EventSource("${RELOAD_PATH}").onmessage = () => location.reload();</script>`;
+const RELOAD_SCRIPT = `<script id="script:htmx-ui-reload">new EventSource("${RELOAD_PATH}").onmessage = () => location.reload();</script>`;
 
 /** Add the reload listener to a page in dev (`htmx-ui dev` sets HTMX_UI_DEV=1). */
-const withReload = (html: string) =>
-  process.env.HTMX_UI_DEV !== "1" ? html : html.includes("</body>") ? html.replace("</body>", `${RELOAD_SCRIPT}</body>`) : html + RELOAD_SCRIPT;
+const withReload = (html: string) => {
+  if (process.env.HTMX_UI_DEV !== "1") return html;
+  if (html.includes(RELOAD_PATH)) return html;
+  return html.includes("</head>") ? html.replace("</head>", `${RELOAD_SCRIPT}</head>`) : html + RELOAD_SCRIPT;
+};
 
 /** The plugin for a resolved config, a user config (root = cwd), or the project's config file. */
 export async function htmxUi(config?: UserConfig | ResolvedConfig): Promise<BunPlugin> {
@@ -68,12 +72,21 @@ function publicUrls(config: ResolvedConfig, page: string, html: string): string 
 }
 
 export function htmxUiPlugin(config: ResolvedConfig): BunPlugin {
-  const inRoots = (path: string) => config.templateRoots.some((r) => !relative(r, path).startsWith(".."));
+  const inRoots = (path: string) => config.roots.some((r) => !relative(r.dir, path).startsWith(".."));
+  // A dev server must always load the file as it is now, so its assetVer() URLs
+  // carry a fresh random suffix on top of the project version (../core/ver.ts).
+  if (process.env.HTMX_UI_DEV === "1") config.ver = verToken(config.version, true);
   return {
     name: "htmx-ui",
     setup(build) {
       build.onLoad({ filter: /\.html$/ }, async ({ path }) => ({
-        contents: inRoots(path) ? withReload(publicUrls(config, path, renderPage(config, path))) : await Bun.file(path).text(),
+        // assetVer()'s ?ver= has to leave the URL for the bundler, which resolves
+        // the file itself and can't read a query string. Bun re-serializes the tags
+        // it bundles (link, script), dropping the marker with it, and builds no
+        // stale URL to worry about: it names every asset after its content, in a
+        // build and in dev. A build puts the version back on the tags Bun passes
+        // through (./build.ts), so the query is not simply lost.
+        contents: inRoots(path) ? withReload(deferVersions(publicUrls(config, path, renderPage(config, path)))) : await Bun.file(path).text(),
         loader: "html",
       }));
     },

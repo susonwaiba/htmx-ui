@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { mkdtemp, mkdir, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { dedent, inlineSvg, render } from "./render";
+import { dedent, inlineSvg, markup, normalizeRoots, render } from "./render";
 import { routeFor } from "./routes";
 
 async function fixture(files: Record<string, string>): Promise<string> {
@@ -68,6 +68,27 @@ describe("asset()", () => {
     expect(render(join(dir, "pages/index.html"), dir)).toBe('<script src="../app.ts"></script>');
     expect(render(join(dir, "pages/blog/post.html"), dir)).toBe('<script src="../../app.ts"></script>');
     expect(render(join(dir, "root.html"), dir)).toBe('<script src="./app.ts"></script>');
+  });
+});
+
+describe("assetVer()", () => {
+  test("is asset() with the version appended, and without one it is asset()", async () => {
+    const dir = await fixture({
+      "app.ts": "",
+      "page.html": "{{ asset('app.ts') }}|{{ assetVer('app.ts') }}",
+      "unversioned.html": "{{ assetVer('app.ts') }}",
+    });
+    expect(render(join(dir, "page.html"), { roots: [dir], ver: "1.2.3" })).toBe("./app.ts|./app.ts?ver=1.2.3");
+    expect(render(join(dir, "unversioned.html"), dir)).toBe("./app.ts");
+  });
+
+  test("works inside macros imported without context", async () => {
+    const dir = await fixture({
+      "app.ts": "",
+      "m.html": "{% macro m() %}{{ assetVer('app.ts') }}{% endmacro %}",
+      "pages/docs/p.html": "{% from 'm.html' import m %}{{ m() }}",
+    });
+    expect(render(join(dir, "pages/docs/p.html"), { roots: [dir], ver: "1.2.3-abc" })).toBe("../../app.ts?ver=1.2.3-abc");
   });
 });
 
@@ -147,9 +168,100 @@ describe("globals", () => {
     expect(render(join(dir, "pages/docs/p.html"), dir)).toBe("../../app.ts /docs/p");
   });
 
+  test("custom globals and filters from the options, with markup() for HTML", async () => {
+    const dir = await fixture({
+      "pages/index.html": "<p>{{ siteName }}|{{ docsUrl('/api') }}|{{ badge('new') }}|{{ 'Acme Support' | slug }}</p>",
+    });
+    const globals = {
+      siteName: "Acme",
+      docsUrl: (path: string) => `https://docs.acme.com${path}`,
+      badge: (label: string) => markup(`<span class="badge">${label}</span>`),
+    };
+    const html = render(join(dir, "pages/index.html"), {
+      roots: [dir],
+      globals,
+      filters: { slug: (text: unknown) => String(text).toLowerCase().replace(/\s+/g, "-") },
+    });
+    expect(html).toBe('<p>Acme|https://docs.acme.com/api|<span class="badge">new</span>|acme-support</p>');
+  });
+
   test("highlight filter colours known languages and escapes unknown ones", async () => {
     const dir = await fixture({ "a.html": "{{ 'const a = 1' | highlight('ts') }}", "b.html": "{{ '<b>' | highlight('nope') }}" });
     expect(render(join(dir, "a.html"), dir)).toContain("var(--code-token-keyword)");
     expect(render(join(dir, "b.html"), dir)).toBe("&lt;b&gt;");
+  });
+});
+
+describe("named roots", () => {
+  /** The point of a name: the directory moves, the references don't. */
+  test("reaches a root by the name it is given, whatever the directory is called", async () => {
+    const dir = await fixture({
+      "new-layouts-2026/base.html": "<body>{% block content %}{% endblock %}</body>",
+      "pages/index.html": '{% extends "layouts/base.html" %}{% block content %}<p>hi</p>{% endblock %}',
+    });
+    const roots = [{ name: "layouts", dir: join(dir, "new-layouts-2026") }, dir];
+    expect(render(join(dir, "pages/index.html"), roots)).toBe("<body><p>hi</p></body>");
+  });
+
+  test("a layout in a named root reaches a partial in another, and json/svg/glob through a name", async () => {
+    const dir = await fixture({
+      "theme/base.html": `<body>{% block content %}{% endblock %}{{ svg("icons/star.svg") }}{{ json("data/site.json").name }} {{ glob("icons/*.svg") | join(",") }}</body>`,
+      "pages/nav.html": `<nav>{% include "shared/nav.html" %}</nav>`,
+      "pages/index.html": '{% extends "theme/base.html" %}{% block content %}{% include "pages/nav.html" %}{% endblock %}',
+      "shared/nav.html": "<a></a>",
+      "icons/star.svg": "<svg viewBox='0 0 1 1'></svg>",
+      "data/site.json": '{ "name": "Acme" }',
+    });
+    const roots = [
+      { name: "theme", dir: join(dir, "theme") },
+      { name: "shared", dir: join(dir, "shared") },
+      dir,
+    ];
+    const html = render(join(dir, "pages/index.html"), roots);
+    expect(html).toContain("<nav><a></a></nav>");
+    expect(html).toContain("<svg viewBox='0 0 1 1'></svg>");
+    expect(html).toContain("Acme");
+    // glob() hands back names templates could actually use.
+    expect(html).toContain("icons/star.svg");
+  });
+
+  test("a relative include still resolves inside a named root", async () => {
+    const dir = await fixture({
+      "t/row.html": "<tr>{% include './cell.html' %}</tr>",
+      "t/cell.html": "<td></td>",
+      "page.html": '{% include "t/row.html" %}',
+    });
+    expect(render(join(dir, "page.html"), [{ name: "t", dir: join(dir, "t") }, dir])).toBe("<tr><td></td></tr>");
+  });
+
+  test("asset() finds a file through a named root", async () => {
+    const dir = await fixture({
+      "brand/logo.svg": "<svg></svg>",
+      "page.html": '<img src="{{ asset(\'brand/logo.svg\') }}">',
+    });
+    const html = render(join(dir, "page.html"), [{ name: "brand", dir: join(dir, "brand") }, dir]);
+    expect(html).toBe('<img src="./brand/logo.svg">');
+  });
+
+  test("a name that no root has is a miss naming the roots, not a silent empty page", async () => {
+    const dir = await fixture({ "page.html": '{% include "layouts/nope.html" %}' });
+    expect(() => render(join(dir, "page.html"), [{ name: "theme", dir: dir }])).toThrow(/nope\.html/);
+  });
+
+  test("a reference cannot climb out of a root", async () => {
+    const dir = await fixture({ "pages/page.html": '{% include "../secret.html" %}', "secret.html": "no" });
+    expect(() => render(join(dir, "pages/page.html"), [join(dir, "pages")])).toThrow();
+  });
+
+  test("refuses a name that is a path, and two roots sharing one name", async () => {
+    const dir = await fixture({ "a/b.html": "x" });
+    expect(() => normalizeRoots([{ name: "a/b", dir }])).toThrow(/single directory name/);
+    expect(() => normalizeRoots([{ name: "x", dir }, { name: "x", dir }])).toThrow(/both named "x"/);
+  });
+
+  test("names are part of an environment's identity, so one dir addressed two ways stays separate", async () => {
+    const dir = await fixture({ "base.html": "<b>plain</b>", "page.html": '{% include "base.html" %}' });
+    expect(render(join(dir, "page.html"), [{ name: "t", dir }, dir])).toBe("<b>plain</b>");
+    expect(render(join(dir, "page.html"), [dir])).toBe("<b>plain</b>");
   });
 });

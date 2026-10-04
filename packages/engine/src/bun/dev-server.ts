@@ -12,7 +12,8 @@
 // server.reload(), and tells open pages to reload over server-sent events
 // (the plugin adds the listener to every page in dev; see RELOAD_PATH).
 import { existsSync, readdirSync, watch, type FSWatcher } from "node:fs";
-import { basename, resolve, sep } from "node:path";
+import { resolve, sep } from "node:path";
+import { createIgnore } from "./gitignore";
 import { loadConfig, pagesOf } from "../core/config";
 import { RELOAD_PATH } from "./plugin";
 
@@ -65,6 +66,9 @@ async function fallback(req: Request): Promise<Response> {
     const f = Bun.file(file);
     if (file.startsWith(config.publicDir + sep) && (await f.exists())) return new Response(f);
   }
+  // Nothing matched the route table: usually a typo, but the page-load symptom is a
+  // request that never comes back, so say which paths got this far.
+  config.debug.log("requests", `${req.method} ${pathname} unmatched`);
   return (await config.user.fetch?.(req)) ?? notFound();
 }
 
@@ -78,10 +82,7 @@ const server = Bun.serve({
 
 // Template changes: anything under a template root that Bun doesn't already track.
 // Watch each root's own files plus its subdirectories one by one, skipping
-// node_modules, .git and the output directory: a recursive watch of a project root
-// would add a watcher for every directory in node_modules.
-const SKIP = new Set(["node_modules", ".git", ".cache"]);
-const skipped = (dir: string) => SKIP.has(basename(dir)) || dir === config.outDir;
+// Respect .gitignore and avoid watching ignored directories/files
 const isTemplate = (file: string) => !/\.(ts|tsx|js|mjs|css|map)$/.test(file);
 let timer: ReturnType<typeof setTimeout> | undefined;
 const changed = () => {
@@ -90,21 +91,54 @@ const changed = () => {
     state.version++;
     try {
       server.reload({ routes: await routes(), fetch: fallback });
+      config.debug.log("build", `template change, reloading pages (v${state.version})`);
       broadcast("data: reload\n\n");
     } catch (e) {
+      config.debug.log("build", `reload failed: ${e}`);
       console.error(e);
     }
   }, 60);
 };
+const isIgnored = createIgnore(config.root);
 const onEvent = (_: string, name: string | Buffer | null) => {
-  if (name && isTemplate(String(name))) changed();
+  if (!name) return;
+  const file = String(name);
+  // Try to resolve relative to roots if just filename
+  if (isIgnored(resolve(config.root, file)) || isIgnored(file)) return;
+  if (isTemplate(file)) changed();
 };
-for (const root of config.templateRoots) {
+/**
+ * Directories no root watches for, whatever the roots say. A root is usually the
+ * project directory, and the things under it that never change a template are the
+ * bulk of the tree: dependencies, the build output, and files that are served
+ * rather than rendered.
+ *
+ * The trade: a change under one of these no longer reloads the page, so a public
+ * asset shows up on the next refresh rather than immediately. Naming the directories
+ * a project actually renders from avoids needing this at all.
+ */
+const NEVER_WATCHED = new Set(["node_modules", "dist", "public", ".git"]);
+
+for (const { dir: root } of config.roots) {
   if (!existsSync(root)) continue;
-  state.watchers.push(watch(root, onEvent));
-  for (const entry of readdirSync(root, { withFileTypes: true })) {
-    const dir = resolve(root, entry.name);
-    if (entry.isDirectory() && !skipped(dir)) state.watchers.push(watch(dir, { recursive: true }, onEvent));
+  try {
+    state.watchers.push(watch(root, onEvent));
+  } catch (e) {
+    console.warn(`Failed to watch ${root}:`, e);
+  }
+  try {
+    for (const entry of readdirSync(root, { withFileTypes: true })) {
+      const dir = resolve(root, entry.name);
+      if (entry.isDirectory() && !NEVER_WATCHED.has(entry.name) && !isIgnored(dir)) {
+        try {
+          state.watchers.push(watch(dir, { recursive: true }, onEvent));
+        } catch (e) {
+          console.warn(`Failed to watch ${dir}:`, e);
+        }
+      }
+    }
+  } catch (e) {
+    console.warn(`Failed to scan ${root}:`, e);
   }
 }
 setInterval(() => broadcast(": ping\n\n"), 15_000).unref();

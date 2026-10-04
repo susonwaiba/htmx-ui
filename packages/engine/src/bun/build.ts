@@ -5,6 +5,7 @@
 import { cp, rm } from "node:fs/promises";
 import { relative } from "node:path";
 import { pagesOf, type ResolvedConfig } from "../core/config";
+import { applyVersions } from "../core/ver";
 import { optimizeChunks } from "./chunks";
 import { htmxUiPlugin, PUBLIC_ORIGIN } from "./plugin";
 
@@ -12,6 +13,8 @@ export async function build(config: ResolvedConfig): Promise<boolean> {
   const { outDir } = config;
   const opts = config.user.build ?? {};
   const pages = pagesOf(config);
+  const start = performance.now();
+  config.debug.log("build", `building ${pages.length} pages into ${outDir}`);
   await rm(outDir, { recursive: true, force: true });
 
   const plugins = [htmxUiPlugin(config)];
@@ -42,20 +45,25 @@ export async function build(config: ResolvedConfig): Promise<boolean> {
   const removed = new Set(optimizeChunks(result.outputs.map((o) => o.path)));
   const outputs = result.outputs.filter((o) => !removed.has(o.path));
 
-  if (config.publicDir) {
-    // Links to public files were given a placeholder origin so Bun left them alone (./plugin.ts)
-    for (const output of outputs) {
-      if (!output.path.endsWith(".html")) continue;
-      const html = await Bun.file(output.path).text();
-      if (html.includes(PUBLIC_ORIGIN)) await Bun.write(output.path, html.replaceAll(PUBLIC_ORIGIN, ""));
-    }
-    await cp(config.publicDir, outDir, { recursive: true });
+  // Both post-processing passes on the built pages, after optimizeChunks (it matches
+  // script srcs as plain strings): links to public files were given a placeholder origin
+  // so Bun would leave them alone, and assetVer()'s ?ver= was parked in a data-ver
+  // attribute while Bun bundled the page (./plugin.ts). Bun keeps that attribute on the
+  // tags it passes through (img, source, iframe) but not on the ones it rewrites.
+  for (const output of outputs) {
+    if (!output.path.endsWith(".html")) continue;
+    const html = await Bun.file(output.path).text();
+    const settled = applyVersions(config.publicDir ? html.replaceAll(PUBLIC_ORIGIN, "") : html);
+    if (settled !== html) await Bun.write(output.path, settled);
   }
+  if (config.publicDir) await cp(config.publicDir, outDir, { recursive: true });
   await opts.done?.({ config, outDir, pages });
 
   for (const output of outputs) {
     if (output.path.endsWith(".map")) continue;
     console.log(` -> ${relative(process.cwd(), output.path)} (${(output.size / 1024).toFixed(1)} KB)`);
   }
+  const done = (performance.now() - start).toFixed(0);
+  config.debug.log("build", `build done: ${outputs.length} files in ${done}ms`, { pages: pages.length });
   return true;
 }

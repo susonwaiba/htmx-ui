@@ -45,7 +45,7 @@ export async function viteConfig(config: ResolvedConfig, command: "serve" | "bui
     root: config.root,
     appType: "mpa" as const,
     publicDir: config.publicDir ?? false,
-    server: { port: config.port, fs: { allow: [config.root, ...config.templateRoots] } },
+    server: { port: config.port, fs: { allow: [...new Set(config.roots.map((r) => r.dir))] } },
     preview: { port: config.port },
     define: command === "build" ? opts.define : undefined,
     build: {
