@@ -1,0 +1,154 @@
+{% extends "layouts/docs.html" %}
+{% from "components/icon/icon.html" import icon %}
+{% set release = {} %}
+{% for r in json("data/changelog.json").releases %}{% if r.version == "0.2.0" %}{% set release = r %}{% endif %}{% endfor %}
+{% set title = "v" + release.version %}
+{% set description = release.summary %}
+
+{% block content %}
+  <div class="not-prose flex flex-wrap items-center gap-3">
+    <a href="/docs/changelog" class="btn btn-ghost btn-sm -ml-3">{{ icon("arrow-left") }} All releases</a>
+    {% if not release.date %}
+      <span class="badge badge-primary">In development</span>
+      <span class="muted">Not released yet</span>
+    {% else %}
+      <span class="badge badge-primary">Latest</span>
+      <time datetime="{{ release.date }}" class="muted">{{ release.date }}</time>
+    {% endif %}
+  </div>
+
+  <h2 id="breaking">Breaking changes</h2>
+  <p>Two changes need an edit in your config or your command line.</p>
+  <h3>templates is now roots</h3>
+  <p>
+    The two options are one, and <code>roots[0]</code> is the project root, which <code>templates</code> never moved.
+    Rename the key and keep your project directory first unless it already is:
+  </p>
+  <ul>
+    <li>
+      Before: <code>defineConfig({ templates: ["."] })</code>
+    </li>
+    <li>After: <code>defineConfig({ roots: ["."] })</code></li>
+  </ul>
+  <p>
+    A config that still says <code>templates</code> is a TypeScript error, not a silent fallback.
+    <code>ResolvedConfig.templateRoots</code> is gone with it; read <code>ResolvedConfig.roots</code> (the same list,
+    entries as <code>{ name?, dir }</code>) and map <code>dir</code> if you needed the bare directories. See
+    <a href="/docs/engine#roots">Roots</a>.
+  </p>
+  <h3>create-htmx-ui defaults to bun</h3>
+  <p>
+    The scaffolder's <code>--pm</code> default is <code>bun</code> instead of <code>npm</code>. Pass
+    <code>--pm npm</code> (or <code>pnpm</code>, <code>yarn</code>) for the old behaviour. Since
+    <code>bun create htmx-ui</code> already ran Bun, this mostly changes what the scaffolder writes into a new project's
+    <code>package.json</code> scripts and lockfile.
+  </p>
+
+  <h2 id="added">Added</h2>
+  <h3>Components</h3>
+  <ul>
+    <li>
+      <a href="/docs/components/checkbox">Checkbox</a>: a native checkbox styled with the design tokens, in sizes, with
+      disabled, invalid and indeterminate states.
+    </li>
+    <li>
+      <a href="/docs/components/radio-group">Radio group</a>: native radios as cards or inline rows, so a choice is one
+      control that submits with the form.
+    </li>
+    <li>
+      <a href="/docs/components/select">Select</a>: a listbox in a popup opened from a button, styled like an input,
+      searchable and keyboard driven, falling back to the native <code>&lt;select&gt;</code> without JavaScript.
+    </li>
+    <li>
+      <a href="/docs/components/switch">Switch</a>: an on/off setting that applies at once, drawn as a sliding track on
+      a real checkbox, so it needs no JavaScript.
+    </li>
+  </ul>
+  <h3>Templates and data</h3>
+  <ul>
+    <li>
+      <a href="/docs/engine#roots">Named template roots</a>: <code>roots</code> in <code>htmx-ui.config.ts</code> is an
+      ordered list of directories, each optionally named, and the first entry is the project root. A name is the prefix
+      templates reach that directory by, so it can move without a single template changing.
+    </li>
+    <li>
+      Names work everywhere a template name does &mdash; <code>extends</code>, <code>include</code>,
+      <code>import</code>, <code>from</code>, <code>json()</code>, <code>svg()</code>, <code>glob()</code> and
+      <code>asset()</code> &mdash; because resolution moved into a loader Nunjucks uses for every template load.
+    </li>
+    <li>
+      <a href="/docs/servers#static-and-dynamic">Deploying templates</a> a server renders at runtime: copy the roots
+      next to <code>dist/</code> and point <code>roots</code> at the copy.
+    </li>
+  </ul>
+  <h3>Engine</h3>
+  <ul>
+    <li>
+      <a href="/docs/servers">Serving a site from your own backend</a>: <code>createSite()</code> is the framework-free
+      core of the dev servers, wrapped by <code>htmx-ui-engine/elysia</code> (recommended),
+      <code>htmx-ui-engine/express</code> and <code>htmx-ui-engine/hono</code>. None of them imports its framework.
+    </li>
+    <li>
+      <code>site.render()</code> renders a full page, <code>site.fragment()</code> renders any template as an htmx
+      fragment, and <code>site.handle()</code> answers a request from config <code>routes</code>, the built
+      <code>dist/</code>, the config's <code>fetch</code>, the built 404, then returns <code>null</code> so your
+      framework can answer.
+    </li>
+    <li>
+      <code>render: true</code> in the config checks at startup that the template roots and pages directory arrived, so
+      a packaging mistake fails the boot instead of the first request.
+    </li>
+    <li>
+      A cached runtime renderer: <code>render(path, roots, { cache: true })</code> with <code>warm()</code> to compile
+      ahead of the first request (<code>createSite()</code> does both), and <code>markup()</code> for a global that
+      returns HTML.
+    </li>
+    <li>
+      <code>debug</code> in the config logs requests, unmatched routes, builds and reloads, per topic.
+    </li>
+  </ul>
+  <h3>Package</h3>
+  <ul>
+    <li>
+      <code>htmx-ui</code> exports <code>queryAll</code> (the helper components use to include the root in their scan)
+      and the <code>Theme</code> type.
+    </li>
+    <li>
+      <code>htmx-ui-engine</code> exports <code>createSite</code>, <code>Site</code>, <code>SiteOptions</code>,
+      <code>normalizeRoots</code>, <code>tryLocate</code>, <code>locate</code>, <code>TemplateRoot</code>,
+      <code>RootSpec</code>, <code>warm</code>, <code>markup</code> and <code>logger</code>.
+    </li>
+    <li>
+      <code>bun run version:set &lt;x.y.z&gt;</code> names the docs version in development, dates it, and sets all three
+      package versions at once.
+    </li>
+  </ul>
+
+  <h2 id="changed">Changed</h2>
+  <ul>
+    <li>
+      The dev watcher honours <code>.gitignore</code> and skips <code>node_modules</code>, <code>dist</code>,
+      <code>public</code> and <code>.git</code> whatever the roots say, so a root of <code>.</code> no longer adds a
+      file watcher for every directory in <code>node_modules</code>. The trade-off: a new file under one of those
+      directories shows up on the next refresh rather than immediately.
+    </li>
+    <li>The dev server watches the roots you configured, so a template that moved is still watched.</li>
+  </ul>
+
+  <h2 id="fixed">Fixed</h2>
+  <ul>
+    <li>
+      <code>assetVer()</code>'s <code>?ver=</code> can no longer break a build or be dropped by the bundler. Neither Bun
+      nor Vite can resolve an asset URL carrying a query string, so the version is parked in a <code>data-ver</code>
+      attribute before the bundler sees the page and moved onto the finished URL after it.
+    </li>
+    <li>
+      <code>.select</code> no longer restyles the select component's trigger as a native dropdown; the rule is scoped to
+      <code>select.select</code>.
+    </li>
+    <li>
+      A field whose label sits in <code>.field-content</code> &mdash; what a switch or a radio group produces &mdash;
+      marks an invalid field the same way a top-level label does, instead of losing the danger colour.
+    </li>
+  </ul>
+{% endblock %}

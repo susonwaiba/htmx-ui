@@ -1,6 +1,10 @@
 {
   "releases": [
     {
+      "version": "0.2.0",
+      "summary": "Named template roots, serving a site from your own backend with Elysia, Express or Hono, and four new components: checkbox, radio-group, select and switch."
+    },
+    {
       "version": "0.1.0",
       "date": "2026-10-02",
       "summary": "First release: design tokens, light and dark themes, twenty components including forms, toggles and loading states, syntax highlighting, versioned and agent-ready docs; plus htmx-ui-engine (dev server and builds on Bun or Node) and create-htmx-ui."

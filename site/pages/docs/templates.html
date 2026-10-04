@@ -44,6 +44,7 @@
   {% set data_src %}
 {
   "releases": [
+    { "version": "0.2.0", "summary": "Named template roots…" },
     { "version": "0.1.0", "date": "2026-10-02", "summary": "First release…" }
   ]
 }
@@ -53,7 +54,7 @@
 
 <ul>
   {% for r in releases %}
-    <li><a href="/docs/changelog/{{ r.version }}">v{{ r.version }}</a>, {{ r.date }}</li>
+    <li><a href="/docs/changelog/{{ r.version }}">v{{ r.version }}</a>, {{ r.date or "Unreleased" }}</li>
   {% endfor %}
 </ul>{% endraw %}
   {% endset %}
@@ -64,7 +65,7 @@
   <p>That template, live, reading this site's real file:</p>
   <ul>
     {% for r in releases %}
-      <li><a href="/docs/changelog/{{ r.version }}">v{{ r.version }}</a>, {{ r.date }}</li>
+      <li><a href="/docs/changelog/{{ r.version }}">v{{ r.version }}</a>, {{ r.date or "Unreleased" }}</li>
     {% endfor %}
   </ul>
   <p>This site's data files:</p>

@@ -2,9 +2,10 @@
 // server and the build (site/lib/engine.ts: template roots, origin, heading anchors).
 import { describe, expect, test } from "bun:test";
 import { pagesOf, renderPage } from "htmx-ui-engine";
+import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { engine } from "./engine";
-import { PAGES } from "./paths";
+import { PAGES, SITE } from "./paths";
 
 const render = (path: string) => renderPage(engine, resolve(PAGES, path));
 const files = pagesOf(engine).map((p) => p.path);
@@ -56,8 +57,46 @@ describe("pages", () => {
   });
 
   test("changelog version pages keep Changelog active in the sidebar", () => {
+    // Every release page must find its own entry by version, not by index, so adding
+    // a release cannot hand an older page the newer page's description.
     const page = render("docs/changelog/0.1.0.html");
     expect(page).toMatch(/href="\/docs\/changelog" class="sidebar-link" aria-current="page"/);
+    expect(page).toContain("<title>v0.1.0 · HTMX UI</title>");
+
+    const next = render("docs/changelog/0.2.0.html");
+    expect(next).toMatch(/href="\/docs\/changelog" class="sidebar-link" aria-current="page"/);
+    expect(next).toContain("<title>v0.2.0 · HTMX UI</title>");
+    expect(next).toContain("Named template roots");
+  });
+
+  test("every release page resolves its own release, not the newest one", () => {
+    // The lookup is a loop, so a version typo would silently fall back to {} and
+    // then to whatever the page defaults to. Pin each page to its own summary.
+    const releases = JSON.parse(readFileSync(resolve(SITE, "data/changelog.json"), "utf8")).releases as {
+      version: string;
+      summary: string;
+    }[];
+    // The summary lands in a meta description, so Nunjucks escapes it.
+    const esc = (v: string) =>
+      v.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+    for (const r of releases) {
+      const page = render(`docs/changelog/${r.version}.html`);
+      expect(page).toContain(`<title>v${r.version} · HTMX UI</title>`);
+      // Its own summary, and none of the others'.
+      expect(page).toContain(esc(r.summary.slice(0, 60)));
+      for (const other of releases.filter((o) => o.version !== r.version)) {
+        expect(page).not.toContain(esc(other.summary.slice(0, 60)));
+      }
+    }
+  });
+
+  test("a release with no date is shown as in development", () => {
+    const page = render("docs/changelog/0.2.0.html");
+    expect(page).toContain("In development");
+    expect(page).not.toMatch(/<time datetime="\d{4}-\d{2}-\d{2}"[^>]*>Unreleased/);
+    const index = render("docs/changelog/index.html");
+    expect(index).toContain("In development");
+    expect(index).toContain("Unreleased");
   });
 
   test("only the closest nav entry is active, so a section can have pages of its own", () => {

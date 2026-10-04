@@ -1,7 +1,9 @@
 {% extends "layouts/docs.html" %}
 {% from "components/icon/icon.html" import icon %}
-{% set title = "v0.1.0" %}
-{% set description = json("data/changelog.json").releases[0].summary %}
+{% set release = {} %}
+{% for r in json("data/changelog.json").releases %}{% if r.version == "0.1.0" %}{% set release = r %}{% endif %}{% endfor %}
+{% set title = "v" + release.version %}
+{% set description = release.summary %}
 
 {% block content %}
   <div class="not-prose flex flex-wrap items-center gap-3">

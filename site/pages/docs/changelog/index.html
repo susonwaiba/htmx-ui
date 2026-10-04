@@ -13,8 +13,8 @@
           <div class="card-header">
             <div class="flex flex-wrap items-center gap-2">
               <h2 class="card-title text-lg">v{{ r.version }}</h2>
-              {% if loop.first %}<span class="badge badge-primary">Latest</span>{% endif %}
-              <time datetime="{{ r.date }}" class="muted ml-auto">{{ r.date }}</time>
+              {% if not r.date %}<span class="badge badge-primary">In development</span>{% elif loop.first %}<span class="badge badge-primary">Latest</span>{% endif %}
+              {% if r.date %}<time datetime="{{ r.date }}" class="muted ml-auto">{{ r.date }}</time>{% else %}<span class="muted ml-auto">Unreleased</span>{% endif %}
             </div>
           </div>
           <div class="card-content flex items-end justify-between gap-4">
