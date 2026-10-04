@@ -9,6 +9,9 @@
 // output of `htmx-ui build` (pages at their routes, hashed assets, public/ files),
 // the config's `routes` and `fetch`, and leaves everything else to your framework.
 //
+// While NODE_ENV is not "production" it renders the page templates themselves, so a
+// server you start yourself answers page requests before anything has been built.
+//
 // `site.render(url)` renders a page per request (server-rendered data), and
 // `site.fragment(path)` renders any template as an HTML fragment for hx-get/hx-post.
 // Both go through Nunjucks and the config's globals, filters and asset().
@@ -99,8 +102,9 @@ export interface Site {
   /**
    * Answer a request from the config's routes, then from the built site (pages,
    * assets, public/), then from the config's `fetch`, then from the built 404 page.
-   * Returns null when nothing matched, so the caller can fall through to its own
-   * routes.
+   * While NODE_ENV is not "production", a route the build has no answer for is
+   * rendered from its page template, in between. Returns null when nothing matched,
+   * so the caller can fall through to its own routes.
    */
   handle(request: Request, context?: Record<string, unknown>): Promise<Response | null>;
 }
@@ -121,6 +125,13 @@ function fileResponse(file: string, head = false): Response {
   // Content-Length headers in one response are a protocol error.
   if (head) headers["Content-Length"] = String(body.byteLength);
   return new Response(head ? null : body, { headers });
+}
+
+/** A page rendered at request time, as a Response. HEAD gets the headers only. */
+function htmlResponse(html: string, head = false): Response {
+  const headers: Record<string, string> = { "Content-Type": TYPES.html! };
+  if (head) headers["Content-Length"] = String(Buffer.byteLength(html));
+  return new Response(head ? null : html, { headers });
 }
 
 /**
@@ -177,12 +188,19 @@ export async function createSite(options: SiteOptions = {}): Promise<Site> {
   if (cache) warm(pages.map((p) => p.file), templates);
 
   const { debug } = resolved;
+  // A server started against a project that has not been built yet has no dist/ to
+  // read, so it renders the pages it is asked for instead of 404ing them. NODE_ENV,
+  // not a config option: it is the same environment the deploy already sets, and a
+  // build is still what production serves — dist/ answers before this can.
+  const developing = process.env.NODE_ENV !== "production";
   // Name the config and the directories. A site rooted somewhere other than where
   // htmx-ui build ran looks fine and then serves nothing, and the roots are the only
   // way to tell that apart from a missing page.
   debug.log(
     "render",
-    `${pages.length} pages from ${resolved.pagesDir}, ${resolved.render ? "rendering at runtime" : "serving the built site"}`,
+    `${pages.length} pages from ${resolved.pagesDir}, ${
+      developing ? "rendering them per request (development)" : resolved.render ? "rendering at runtime" : "serving the built site"
+    }`,
     { config: resolved.file ?? "none", root: resolved.root, outDir: resolved.outDir, cache },
   );
 
@@ -227,8 +245,19 @@ export async function createSite(options: SiteOptions = {}): Promise<Site> {
         const params = matchRoute(pattern, pathname);
         if (params) return answer(`route ${pattern}`, await table[pattern]!(Object.assign(request, { params })));
       }
-      const file = staticFile(resolved.outDir, route(pathname));
+      const path = route(pathname);
+      const file = staticFile(resolved.outDir, path);
       if (file) return answer("dist", fileResponse(file, isHead(request)));
+      // No dist/ answer: the build hasn't run, so render the page template the route
+      // is written as. After dist/, never before it — a built page carries hashed asset
+      // URLs and is the same bytes for everyone.
+      const page = developing ? byUrl.get(path) : undefined;
+      if (page) {
+        const html = debug.time("render", `render ${page.url}`, () => renderPage(resolved, page.file, asset, values(), cache), {
+          cached: cache,
+        });
+        return answer("page", htmlResponse(html, isHead(request)));
+      }
       const fallback = await resolved.user.fetch?.(request);
       if (fallback) return answer("fetch", fallback);
       const notFound = resolve(resolved.outDir, "404.html");

@@ -16,6 +16,22 @@ async function fixture(files: Record<string, string>): Promise<string> {
 
 const get = (url: string, init?: RequestInit) => new Request(`http://localhost${url}`, init);
 
+/**
+ * Run `fn` with NODE_ENV set, which is what decides whether handle() renders a page or
+ * serves the build. createSite() reads it once, so a site has to be built inside.
+ */
+async function inEnv(env: string | undefined, fn: () => Promise<void>) {
+  const was = process.env.NODE_ENV;
+  if (env === undefined) delete process.env.NODE_ENV;
+  else process.env.NODE_ENV = env;
+  try {
+    await fn();
+  } finally {
+    if (was === undefined) delete process.env.NODE_ENV;
+    else process.env.NODE_ENV = was;
+  }
+}
+
 const built = {
   "htmx-ui.config.ts": `export default {
     ui: false,
@@ -129,7 +145,11 @@ describe("createSite", () => {
     const site = await createSite({ root: dir, config: { ui: false, pages: "src", outDir: "build" } });
     expect(site.config.pagesDir).toBe(join(dir, "src"));
     expect(site.config.outDir).toBe(join(dir, "build"));
-    expect(await site.handle(get("/"))).toBeNull(); // nothing built yet
+    // Production serves the build, and this outDir has none: nothing handled.
+    await inEnv("production", async () => {
+      const prod = await createSite({ root: dir, config: { ui: false, pages: "src", outDir: "build" } });
+      expect(await prod.handle(get("/"))).toBeNull();
+    });
     expect(site.render("/")).toBe("<p>from src/</p>");
   });
 
@@ -137,6 +157,75 @@ describe("createSite", () => {
     const site = await createSite({ root: await fixture(built) });
     expect(await createSite({ site })).toBe(site);
     expect(await createSite({ site: Promise.resolve(site) })).toBe(site);
+  });
+});
+
+describe("development: handle() renders the pages the build has not written", () => {
+  /** A project being worked on: templates, and no dist/ yet. */
+  const unbuilt = {
+    "htmx-ui.config.ts": `export default {
+      ui: false,
+      globals: { site: "Acme" },
+      routes: { "/docs/:name": (req) => new Response("route " + req.params.name) },
+      transform: (html, page) => html + "<!-- " + page.url + "-->",
+    };`,
+    "layout.html": "<title>{{ site }}</title>{% block content %}{% endblock %}",
+    "pages/index.html": '{% extends "layout.html" %}{% block content %}<h1>Home</h1>{% endblock %}',
+    "pages/docs/setup.html": '{% extends "layout.html" %}{% block content %}<p>{{ url }}</p>{% endblock %}',
+  };
+
+  test("a page route the build has no file for is rendered from its template", async () => {
+    await inEnv(undefined, async () => {
+      const site = await createSite({ root: await fixture(unbuilt), context: { greeting: "Hello" } });
+      const home = await site.handle(get("/"));
+      expect(home!.status).toBe(200);
+      expect(home!.headers.get("Content-Type")).toBe("text/html; charset=utf-8");
+      // The site's own context, and the config's transform, as render() does it.
+      expect(await home!.text()).toBe("<title>Acme</title><h1>Home</h1><!-- /-->");
+      // Clean URLs, trailing slash and all.
+      expect(await (await site.handle(get("/docs/setup")))!.text()).toBe("<title>Acme</title><p>/docs/setup</p>");
+      // Not a page: the caller answers it, as it always did.
+      expect(await site.handle(get("/nope"))).toBeNull();
+    });
+  });
+
+  test("a config route still beats the page behind it", async () => {
+    await inEnv(undefined, async () => {
+      const site = await createSite({ root: await fixture(unbuilt) });
+      expect(await (await site.handle(get("/docs/setup")))!.text()).toBe("route setup");
+    });
+  });
+
+  test("the build answers first, so a built page keeps its hashed asset URLs", async () => {
+    const dir = await fixture(unbuilt);
+    await mkdir(join(dir, "dist"), { recursive: true });
+    await writeFile(join(dir, "dist/index.html"), '<h1>built</h1><script src="/assets/app-a1b2.js">');
+    await inEnv(undefined, async () => {
+      const site = await createSite({ root: dir });
+      expect(await (await site.handle(get("/")))!.text()).toBe('<h1>built</h1><script src="/assets/app-a1b2.js">');
+    });
+  });
+
+  test("HEAD gets the rendered page's headers and no body", async () => {
+    await inEnv(undefined, async () => {
+      const site = await createSite({ root: await fixture(unbuilt) });
+      const head = await site.handle(get("/", { method: "HEAD" }));
+      expect(head!.status).toBe(200);
+      expect(head!.headers.get("Content-Type")).toBe("text/html; charset=utf-8");
+      expect(head!.headers.get("Content-Length")).toBe("42");
+      expect(await head!.text()).toBe("");
+    });
+  });
+
+  test("production renders nothing: only the build, then fetch, then the built 404", async () => {
+    const dir = await fixture(unbuilt);
+    await mkdir(join(dir, "dist"), { recursive: true });
+    await writeFile(join(dir, "dist/index.html"), "<h1>built</h1>");
+    await inEnv("production", async () => {
+      const site = await createSite({ root: dir, config: { ui: false, fetch: (req) => (req.url.endsWith("/docs/setup") ? new Response("fetched") : null) } });
+      expect(await (await site.handle(get("/")))!.text()).toBe("<h1>built</h1>");
+      expect(await (await site.handle(get("/docs/setup")))!.text()).toBe("fetched");
+    });
   });
 });
 
