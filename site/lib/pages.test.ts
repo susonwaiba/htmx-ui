@@ -60,6 +60,23 @@ describe("pages", () => {
     expect(page).toMatch(/href="\/docs\/changelog" class="sidebar-link" aria-current="page"/);
   });
 
+  test("only the closest nav entry is active, so a section can have pages of its own", () => {
+    const index = render("docs/servers.html");
+    expect(index).toMatch(/href="\/docs\/servers" class="sidebar-link" aria-current="page"/);
+    expect(index).toContain('<p class="eyebrow">Servers</p>');
+
+    const page = render("docs/servers/elysia.html");
+    expect(page).toMatch(/href="\/docs\/servers\/elysia" class="sidebar-link" aria-current="page"/);
+    expect(page).not.toMatch(/href="\/docs\/servers" class="sidebar-link" aria-current="page"/);
+    expect(page).toContain('<p class="eyebrow">Servers</p>');
+
+    // The section's pages are in prev/next order: Servers overview -> Elysia -> Express -> Hono.
+    expect(page).toMatch(/Previous[\s\S]*?Server frameworks/);
+    expect(page).toMatch(/Next[\s\S]*?Express/);
+    expect(render("docs/servers/express.html")).toMatch(/Next[\s\S]*?Hono/);
+    expect(render("docs/servers/hono.html")).toMatch(/Next[\s\S]*?Overview/);
+  });
+
   test("code blocks highlight, escape markup and encode braces", () => {
     const page = render("docs/components/code-block.html");
     expect(page).toContain("color:var(--code-token-");

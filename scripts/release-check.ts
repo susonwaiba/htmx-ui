@@ -8,6 +8,8 @@
 // 3. Pack each package's real tarball and check what's in it.
 // 4. Smoke tests against the tarballs (need network access to install from npm):
 //    - the UI package alone in a Bun.build project, and its compiled lib/ on Node;
+//    - the engine's lib/ on Node: createSite() and the server adapters, with no
+//      framework installed, so they must not import one;
 //    - a site scaffolded by create-htmx-ui for each package manager on PATH, built
 //      and typechecked: bun (Bun runtime), and npm, pnpm, yarn (Node runtime, Vite).
 
@@ -15,6 +17,7 @@ import { $ } from "bun";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { NEXT_VERSION } from "../site/lib/versions";
 import { CREATE, DIST, ENGINE, PACKAGES, ROOT, SRC, UI } from "./paths";
 
 let failed = false;
@@ -66,8 +69,10 @@ await step(`every package is ${version}, and ${version} is in CHANGELOG.md and s
   const changelog = await Bun.file(join(ROOT, "CHANGELOG.md")).text();
   if (!changelog.includes(`## ${version}`)) throw new Error(`CHANGELOG.md has no "## ${version}" section`);
   const versions = await Bun.file(join(ROOT, "site/data/versions.json")).json();
+  const docs = (versions.versions as { id: string; released?: string }[]).find((v) => v.id === NEXT_VERSION);
+  if (docs) throw new Error(`site/data/versions.json still has the "${NEXT_VERSION}" docs version; run "bun run version:set ${version}"`);
   const minor = version.split(".").slice(0, 2).join(".");
-  if (!versions.versions.some((v: { id: string }) => v.id === minor)) throw new Error(`no docs version ${minor}`);
+  if (!(versions.versions as { id: string }[]).some((v) => v.id === minor)) throw new Error(`no docs version ${minor}`);
 });
 
 const work = await mkdtemp(join(tmpdir(), "htmx-ui-release-"));
@@ -94,7 +99,7 @@ await step("pack htmx-ui", () =>
   pack(UI, ["package.json", "README.md", "LICENSE", "lib/index.js", "lib/index.d.ts", "lib/theme.js", "lib/theme.d.ts", "src/styles.css", "src/components/button/button.css", "src/components/icon/icon.html", "src/icons/sun.svg"]),
 );
 await step("pack htmx-ui-engine", () =>
-  pack(ENGINE, ["package.json", "README.md", "LICENSE", "bin/htmx-ui.js", "lib/index.js", "lib/index.d.ts", "lib/node/index.js", "lib/node/vite-plugin.js", "lib/node/vite-plugin.d.ts", "src/bun/cli.ts", "src/bun/plugin.ts", "src/core/render.ts"]),
+  pack(ENGINE, ["package.json", "README.md", "LICENSE", "bin/htmx-ui.js", "lib/index.js", "lib/index.d.ts", "lib/node/index.js", "lib/node/vite-plugin.js", "lib/node/vite-plugin.d.ts", "lib/express.js", "lib/elysia.js", "lib/hono.js", "src/bun/cli.ts", "src/bun/plugin.ts", "src/core/render.ts", "src/core/site.ts"]),
 );
 await step("pack create-htmx-ui", () =>
   pack(CREATE, ["package.json", "README.md", "LICENSE", "index.js", "template/_gitignore", "template/htmx-ui.config.ts", "template/pages/index.html"]),
@@ -141,6 +146,40 @@ await step("smoke test: htmx-ui alone in a Bun.build project, and its lib/ on No
     .quiet()
     .nothrow();
   failIfNot(node, "importing htmx-ui's lib/ on Node");
+});
+
+await step("smoke test: htmx-ui-engine's lib/ on Node (createSite + server adapters, no framework installed)", async () => {
+  const app = join(work, "engine-only");
+  await Bun.write(join(app, "package.json"), JSON.stringify({ name: "smoke-engine", private: true, type: "module" }));
+  // @types/node: the adapters' lib/*.d.ts are typed with node:http, like any Node middleware.
+  await quiet($`bun add -d @types/node`.cwd(app));
+  await quiet($`bun add ${tarballs["htmx-ui-engine"]!}`.cwd(app));
+  // A consumer that imports every server entry point; it must typecheck without
+  // express, elysia or hono in the project, because the adapters never import them.
+  await Bun.write(
+    join(app, "server.ts"),
+    `import { createSite } from "htmx-ui-engine";\n` +
+      `import { htmxUi as expressUi } from "htmx-ui-engine/express";\n` +
+      `import { htmxUi as elysiaUi } from "htmx-ui-engine/elysia";\n` +
+      `import { htmxUi as honoUi } from "htmx-ui-engine/hono";\n` +
+      `const site = await createSite();\n` +
+      `const handlers = [expressUi({ site }), elysiaUi({ site }), honoUi({ site })];\n` +
+      `const html: string = await site.render(site.pages[0]!.path);\n` +
+      `const fragment: string = site.fragment("partials/x.html");\n` +
+      `const served: Response | null = await site.handle(new Request("https://example.com/"));\n` +
+      `console.log(handlers.length, html.length, fragment.length, served?.status);\n`,
+  );
+  failIfNot(
+    await $`bunx tsc --noEmit --strict --module preserve --moduleResolution bundler --target esnext --lib esnext,dom server.ts`.cwd(app).quiet().nothrow(),
+    "server adapter typecheck",
+  );
+  // Node resolves the "default" condition: lib/, which must export what the types promise
+  const probe =
+    `const core = await import("htmx-ui-engine");` +
+    `const adapters = await Promise.all(["express", "elysia", "hono"].map((n) => import("htmx-ui-engine/" + n)));` +
+    `if (typeof core.createSite !== "function") { console.error(Object.keys(core)); process.exit(1); }` +
+    `for (const [i, a] of adapters.entries()) if (typeof a.htmxUi !== "function") { console.error(i, Object.keys(a)); process.exit(1); }`;
+  failIfNot(await $`node --input-type=module -e ${probe}`.cwd(app).quiet().nothrow(), "importing htmx-ui-engine's lib/ on Node");
 });
 
 /** This script's environment minus the npm_config_* / npm_* variables Bun sets, so each package manager sets its own. */

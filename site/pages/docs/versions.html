@@ -16,7 +16,7 @@
             <td class="font-mono font-medium">{{ v.label }}</td>
             <td class="text-muted-foreground">{{ v.released or "Unreleased" }}</td>
             <td>
-              {% if v.id == all.latest %}<span class="badge badge-primary">Latest</span>
+              {% if v.id == all.latest %}<span class="badge badge-primary">{{ "In development" if not v.released else "Latest" }}</span>
               {% else %}<span class="badge badge-secondary">Archived</span>{% endif %}
             </td>
             <td class="text-right"><a class="link" href="{{ path }}" data-version-link>{{ path }}</a></td>
@@ -50,6 +50,7 @@
   <ul>
     <li>Releases follow <a href="https://semver.org">semantic versioning</a>. Docs are versioned per minor release (0.1, 0.2, …) before 1.0, and per major release after.</li>
     <li>Patch releases update the docs of their version in place.</li>
+    <li>The version under development has no number yet and is listed as <code>next</code> until it is released.</li>
     <li>Every release's changes and migration notes are in the <a href="/docs/changelog">changelog</a>.</li>
   </ul>
 

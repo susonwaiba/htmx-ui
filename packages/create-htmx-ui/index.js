@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 // create-htmx-ui: start a new htmx-ui site.
 //
+//   bun create htmx-ui my-site
 //   npm create htmx-ui@latest my-site
 //   pnpm create htmx-ui my-site
 //   yarn create htmx-ui my-site
-//   bun create htmx-ui my-site
 //
 // Copies template/ into the directory and writes a package.json for the package
 // manager that ran it. The runtime follows the package manager: Bun projects build
@@ -24,7 +24,7 @@ import { parseArgs } from "node:util";
 const HELP = `Usage: create-htmx-ui [directory] [options]
 
 Options:
-  --pm <npm|pnpm|yarn|bun>   package manager (default: the one running this)
+  --pm <bun|npm|pnpm|yarn>   package manager (default: the one running this)
   --runtime <bun|node>       runtime for dev/build (default: bun for bun, else node)
   --install / --no-install   install dependencies (default: ask, or no when not interactive)
   --force                    write into a directory that isn't empty
@@ -43,7 +43,7 @@ const VERSIONS = {
   "@tailwindcss/vite": "^4.3.3",
 };
 
-const MANAGERS = ["npm", "pnpm", "yarn", "bun"];
+const MANAGERS = ["bun", "npm", "pnpm", "yarn"];
 
 /** The package manager that started us, from npm_config_user_agent ("pnpm/10.1.0 npm/? node/v24..."). */
 export function detectManager(agent = process.env.npm_config_user_agent ?? "") {
@@ -100,7 +100,7 @@ ${run(pm, "preview")}   # serve dist/
 }
 
 /** Write the project. Returns the absolute directory. */
-export function scaffold(dir, { pm = "npm", runtime = pm === "bun" ? "bun" : "node", force = false, version } = {}) {
+export function scaffold(dir, { pm = "bun", runtime = pm === "bun" ? "bun" : "node", force = false, version } = {}) {
   const target = resolve(dir);
   if (existsSync(target) && readdirSync(target).length && !force) {
     throw new Error(`${relative(process.cwd(), target) || "."} is not empty (use --force to write into it anyway)`);

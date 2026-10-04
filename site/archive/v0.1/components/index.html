@@ -1,0 +1,431 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Components · HTMX UI</title>
+  <meta name="description" content="Every component is a set of CSS classes, plus a small behaviour where one is needed. Pick one to see live examples and the full class reference." />
+    <script>
+      // Apply the stored theme before first paint to avoid a flash of the wrong
+      // colors. Kept inline and tiny on purpose; htmx-ui/theme takes over
+      // once app.ts loads.
+      (() => {
+        const stored = localStorage.getItem("theme");
+        const dark = stored ? stored === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+        document.documentElement.classList.toggle("dark", dark);
+      })();
+    </script>
+    
+  <link rel="stylesheet" crossorigin href="/docs/v0.1/_assets/index-ecy9vwrz.css"><script type="module" crossorigin src="/docs/v0.1/_assets/index-rpr74v5j.js"></script><link rel="modulepreload" crossorigin href="/docs/v0.1/_assets/index-rpr74v5j.js"><meta name="robots" content="noindex" /></head>
+  <body class="min-h-dvh bg-background text-foreground antialiased">
+<header class="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/70">
+  <div class="mx-auto flex h-14 w-full max-w-7xl items-center gap-2 px-4 sm:px-6 lg:px-8">
+      <button type="button" class="btn btn-ghost btn-icon -ml-2 lg:hidden" data-sidebar-toggle aria-controls="docs-nav" aria-expanded="false" aria-label="Open navigation"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+    <a href="/" class="mr-4 flex items-center gap-2 font-semibold">
+      <span class="grid size-7 place-items-center rounded-md bg-primary text-primary-foreground"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65M22 12.65l-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/></svg></span>
+      HTMX UI
+    </a>
+    <nav class="hidden items-center gap-1 text-sm sm:flex">
+        <a href="/docs/v0.1" class="rounded-md px-3 py-1.5 transition-colors hover:text-foreground text-muted-foreground">Docs</a>
+        <a href="/docs/v0.1/components" class="rounded-md px-3 py-1.5 transition-colors hover:text-foreground text-foreground font-medium" aria-current="page">Components</a>
+        <a href="/docs/v0.1/changelog" class="rounded-md px-3 py-1.5 transition-colors hover:text-foreground text-muted-foreground">Changelog</a>
+    </nav>
+    <div class="ml-auto flex items-center gap-1">
+
+<button type="button" class="btn btn-outline btn-sm hidden w-56 justify-between font-normal text-muted-foreground md:inline-flex" data-search-open aria-haspopup="dialog" aria-label="Search the docs">
+  <span class="inline-flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg> Search docs…</span>
+  <kbd class="kbd" data-search-shortcut>Ctrl K</kbd>
+</button>
+<button type="button" class="btn btn-ghost btn-icon md:hidden" data-search-open aria-haspopup="dialog" aria-label="Search the docs"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></button>
+
+<dialog class="search-dialog" data-search-dialog aria-label="Search the docs">
+  <div class="search-field">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4 shrink-0 text-muted-foreground" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+    <input type="search" class="search-input" placeholder="Search docs, components, sections…" autocomplete="off" spellcheck="false"
+      role="combobox" aria-expanded="false" aria-controls="search-results" aria-autocomplete="list" aria-label="Search" data-search-input />
+    <kbd class="kbd">Esc</kbd>
+  </div>
+  <div class="search-body">
+    <ul id="search-results" class="search-results" role="listbox" aria-label="Results" data-search-results></ul>
+    <p class="search-message" data-search-message>Type to search pages and sections.</p>
+  </div>
+  <div class="search-footer" aria-hidden="true">
+    <span><kbd class="kbd">↑</kbd> <kbd class="kbd">↓</kbd> to navigate</span>
+    <span><kbd class="kbd"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-3" aria-hidden="true"><path d="M10 9V5l-7 7 7 7v-4.1c5 0 8.5 1.6 11 5.1-1-5-4-10-11-11z"/></svg></kbd> to open</span>
+    <span class="ml-auto" data-search-version></span>
+  </div>
+</dialog>
+      <a href="/docs/v0.1/installation" class="btn btn-primary btn-sm hidden sm:inline-flex">Get started</a>
+      <button type="button" class="btn btn-ghost btn-icon" data-theme-toggle aria-pressed="false" title="Toggle light and dark theme">
+        <span class="dark:hidden"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg></span>
+        <span class="hidden dark:inline"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg></span>
+        <span class="sr-only">Theme: <span data-theme-label>light</span></span>
+      </button>
+    </div>
+  </div>
+</header>
+  <div class="mx-auto flex w-full max-w-7xl gap-12 px-4 sm:px-6 lg:px-8">
+    <aside id="docs-nav" class="sidebar" data-sidebar aria-label="Documentation">
+      <div class="mb-6 flex items-center justify-between lg:hidden">
+        <span class="font-semibold">Documentation</span>
+        <button type="button" class="btn btn-ghost btn-icon btn-sm" data-sidebar-toggle aria-controls="docs-nav" aria-label="Close navigation"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+      </div>
+
+
+<div class="dropdown mb-6 w-full" data-dropdown data-version-switcher data-version="0.1" data-versions-src="/docs/versions.json">
+  <button type="button" class="btn btn-outline w-full justify-between" data-dropdown-trigger aria-haspopup="menu" aria-expanded="false">
+    <span class="flex items-center gap-2 text-muted-foreground"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5M12 7v5l4 2"/></svg> Version</span>
+    <span class="flex items-center gap-1.5"><span class="font-mono">v0.1</span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span>
+  </button>
+  <div class="dropdown-menu w-full" role="menu" aria-label="Documentation version" hidden>
+    <p class="dropdown-label">Documentation versions</p>
+    <div data-version-items>
+        <a role="menuitem" class="dropdown-item" data-version-link href="/docs" aria-current="true">
+          <span class="font-mono">v0.1</span>
+<span class="badge badge-primary">Latest</span>        </a>
+    </div>
+    <div class="dropdown-separator" role="separator"></div>
+    <a role="menuitem" class="dropdown-item" data-version-link href="/docs/changelog">Changelog <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a>
+  </div>
+</div>
+        <nav class="sidebar-group">
+          <p class="sidebar-label">Getting started</p>
+            <a href="/docs/v0.1" class="sidebar-link">
+              Introduction
+            </a>
+            <a href="/docs/v0.1/installation" class="sidebar-link">
+              Installation
+            </a>
+            <a href="/docs/v0.1/engine" class="sidebar-link">
+              Engine
+            </a>
+        </nav>
+        <nav class="sidebar-group">
+          <p class="sidebar-label">Customization</p>
+            <a href="/docs/v0.1/theming" class="sidebar-link">
+              Theming
+            </a>
+            <a href="/docs/v0.1/dark-mode" class="sidebar-link">
+              Dark mode
+            </a>
+        </nav>
+        <nav class="sidebar-group">
+          <p class="sidebar-label">Guides</p>
+            <a href="/docs/v0.1/templates" class="sidebar-link">
+              Templates &amp; data
+            </a>
+            <a href="/docs/v0.1/ai-agents" class="sidebar-link">
+              AI agents
+            </a>
+        </nav>
+        <nav class="sidebar-group">
+          <p class="sidebar-label">Components</p>
+            <a href="/docs/v0.1/components" class="sidebar-link" aria-current="page">
+              Overview
+            </a>
+            <a href="/docs/v0.1/components/accordion" class="sidebar-link">
+              Accordion
+            </a>
+            <a href="/docs/v0.1/components/alert" class="sidebar-link">
+              Alert
+            </a>
+            <a href="/docs/v0.1/components/badge" class="sidebar-link">
+              Badge
+            </a>
+            <a href="/docs/v0.1/components/button" class="sidebar-link">
+              Button
+            </a>
+            <a href="/docs/v0.1/components/button-group" class="sidebar-link">
+              Button group
+            </a>
+            <a href="/docs/v0.1/components/card" class="sidebar-link">
+              Card
+            </a>
+            <a href="/docs/v0.1/components/code-block" class="sidebar-link">
+              Code block
+            </a>
+            <a href="/docs/v0.1/components/dropdown" class="sidebar-link">
+              Dropdown
+            </a>
+            <a href="/docs/v0.1/components/field" class="sidebar-link">
+              Field
+            </a>
+            <a href="/docs/v0.1/components/icon" class="sidebar-link">
+              Icon
+            </a>
+            <a href="/docs/v0.1/components/input" class="sidebar-link">
+              Input
+            </a>
+            <a href="/docs/v0.1/components/input-group" class="sidebar-link">
+              Input group
+            </a>
+            <a href="/docs/v0.1/components/popover" class="sidebar-link">
+              Popover
+            </a>
+            <a href="/docs/v0.1/components/sidebar" class="sidebar-link">
+              Sidebar
+            </a>
+            <a href="/docs/v0.1/components/spinner" class="sidebar-link">
+              Spinner
+            </a>
+            <a href="/docs/v0.1/components/table" class="sidebar-link">
+              Table
+            </a>
+            <a href="/docs/v0.1/components/tabs" class="sidebar-link">
+              Tabs
+            </a>
+            <a href="/docs/v0.1/components/text" class="sidebar-link">
+              Text
+            </a>
+            <a href="/docs/v0.1/components/toggle" class="sidebar-link">
+              Toggle
+            </a>
+            <a href="/docs/v0.1/components/toggle-group" class="sidebar-link">
+              Toggle group
+            </a>
+        </nav>
+        <nav class="sidebar-group">
+          <p class="sidebar-label">Project</p>
+            <a href="/docs/v0.1/changelog" class="sidebar-link">
+              Changelog
+            </a>
+            <a href="/docs/versions" class="sidebar-link">
+              Versions
+            </a>
+        </nav>
+    </aside>
+    <div class="sidebar-backdrop" data-sidebar-close></div>
+
+    <main class="min-w-0 flex-1 pt-8 pb-16 lg:pt-12">
+      <article class="mx-auto max-w-3xl">
+        
+        <div class="alert alert-warning mb-8" role="status" data-version-banner data-md-skip><div class="alert-title">You're viewing the docs for v0.1.</div><div class="alert-description">The latest version is next. <a class="link" href="/docs/components">Go to this page in next</a>.</div></div>
+        <header class="mb-10 space-y-3 border-b border-border pb-8">
+          <p class="eyebrow">Components</p>
+          <h1 class="h1">Components</h1>
+<p class="lead">Every component is a set of CSS classes, plus a small behaviour where one is needed. Pick one to see live examples and the full class reference.</p>          <div class="flex flex-wrap gap-2 pt-2">
+            <button type="button" class="btn btn-outline btn-sm" data-markdown-copy="/docs/v0.1/components.md">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg> <span data-markdown-copy-label>Copy Markdown</span>
+            </button>
+            <a href="/docs/v0.1/components.md" class="btn btn-ghost btn-sm" title="This page as Markdown, for AI agents"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4M10 9H8M16 13H8M16 17H8"/></svg> View .md</a>
+          </div>
+        </header>
+
+        <div data-docs-content class="prose docs-prose max-w-none">
+  <div class="not-prose grid gap-4 sm:grid-cols-2">
+          <a href="/docs/v0.1/components/accordion" class="card card-link group">
+            <div class="card-header pb-6">
+              <div class="flex items-center justify-between">
+                <h2 class="card-title">Accordion</h2>
+                <span class="text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+              </div>
+              <p class="card-description">Stacked headings that reveal sections; one or many open, no JavaScript.</p>
+            </div>
+          </a>
+          <a href="/docs/v0.1/components/alert" class="card card-link group">
+            <div class="card-header pb-6">
+              <div class="flex items-center justify-between">
+                <h2 class="card-title">Alert</h2>
+                <span class="text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+              </div>
+              <p class="card-description">Callouts for info, success, warnings and errors.</p>
+            </div>
+          </a>
+          <a href="/docs/v0.1/components/badge" class="card card-link group">
+            <div class="card-header pb-6">
+              <div class="flex items-center justify-between">
+                <h2 class="card-title">Badge</h2>
+                <span class="text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+              </div>
+              <p class="card-description">Small status labels and counters.</p>
+            </div>
+          </a>
+          <a href="/docs/v0.1/components/button" class="card card-link group">
+            <div class="card-header pb-6">
+              <div class="flex items-center justify-between">
+                <h2 class="card-title">Button</h2>
+                <span class="text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+              </div>
+              <p class="card-description">Actions in every variant, size and state, including loading.</p>
+            </div>
+          </a>
+          <a href="/docs/v0.1/components/button-group" class="card card-link group">
+            <div class="card-header pb-6">
+              <div class="flex items-center justify-between">
+                <h2 class="card-title">Button group</h2>
+                <span class="text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+              </div>
+              <p class="card-description">Join buttons, inputs and menus: split buttons, toolbars, vertical groups.</p>
+            </div>
+          </a>
+          <a href="/docs/v0.1/components/card" class="card card-link group">
+            <div class="card-header pb-6">
+              <div class="flex items-center justify-between">
+                <h2 class="card-title">Card</h2>
+                <span class="text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+              </div>
+              <p class="card-description">Header, content and footer, with media, an action slot and scrolling content.</p>
+            </div>
+          </a>
+          <a href="/docs/v0.1/components/code-block" class="card card-link group">
+            <div class="card-header pb-6">
+              <div class="flex items-center justify-between">
+                <h2 class="card-title">Code block</h2>
+                <span class="text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+              </div>
+              <p class="card-description">Highlighted source with a copy button and package-manager tabs.</p>
+            </div>
+          </a>
+          <a href="/docs/v0.1/components/dropdown" class="card card-link group">
+            <div class="card-header pb-6">
+              <div class="flex items-center justify-between">
+                <h2 class="card-title">Dropdown</h2>
+                <span class="text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+              </div>
+              <p class="card-description">A menu of links or actions that opens from a button.</p>
+            </div>
+          </a>
+          <a href="/docs/v0.1/components/field" class="card card-link group">
+            <div class="card-header pb-6">
+              <div class="flex items-center justify-between">
+                <h2 class="card-title">Field</h2>
+                <span class="text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+              </div>
+              <p class="card-description">Labels, help text and messages for controls; inline, responsive and grid forms.</p>
+            </div>
+          </a>
+          <a href="/docs/v0.1/components/icon" class="card card-link group">
+            <div class="card-header pb-6">
+              <div class="flex items-center justify-between">
+                <h2 class="card-title">Icon</h2>
+                <span class="text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+              </div>
+              <p class="card-description">SVG icons inlined at build time, or linked as images.</p>
+            </div>
+          </a>
+          <a href="/docs/v0.1/components/input" class="card card-link group">
+            <div class="card-header pb-6">
+              <div class="flex items-center justify-between">
+                <h2 class="card-title">Input</h2>
+                <span class="text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+              </div>
+              <p class="card-description">Text inputs, textareas, selects and file pickers with every state.</p>
+            </div>
+          </a>
+          <a href="/docs/v0.1/components/input-group" class="card card-link group">
+            <div class="card-header pb-6">
+              <div class="flex items-center justify-between">
+                <h2 class="card-title">Input group</h2>
+                <span class="text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+              </div>
+              <p class="card-description">Icons, text, buttons, menus and spinners inside an input&#39;s border.</p>
+            </div>
+          </a>
+          <a href="/docs/v0.1/components/popover" class="card card-link group">
+            <div class="card-header pb-6">
+              <div class="flex items-center justify-between">
+                <h2 class="card-title">Popover</h2>
+                <span class="text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+              </div>
+              <p class="card-description">A floating panel of rich content that opens from a button.</p>
+            </div>
+          </a>
+          <a href="/docs/v0.1/components/sidebar" class="card card-link group">
+            <div class="card-header pb-6">
+              <div class="flex items-center justify-between">
+                <h2 class="card-title">Sidebar</h2>
+                <span class="text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+              </div>
+              <p class="card-description">Responsive navigation column with off-canvas mode.</p>
+            </div>
+          </a>
+          <a href="/docs/v0.1/components/spinner" class="card card-link group">
+            <div class="card-header pb-6">
+              <div class="flex items-center justify-between">
+                <h2 class="card-title">Spinner</h2>
+                <span class="text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+              </div>
+              <p class="card-description">Loading indicator from any icon or pure CSS; works in buttons, badges and inputs.</p>
+            </div>
+          </a>
+          <a href="/docs/v0.1/components/table" class="card card-link group">
+            <div class="card-header pb-6">
+              <div class="flex items-center justify-between">
+                <h2 class="card-title">Table</h2>
+                <span class="text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+              </div>
+              <p class="card-description">Readable data tables with optional hover rows.</p>
+            </div>
+          </a>
+          <a href="/docs/v0.1/components/tabs" class="card card-link group">
+            <div class="card-header pb-6">
+              <div class="flex items-center justify-between">
+                <h2 class="card-title">Tabs</h2>
+                <span class="text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+              </div>
+              <p class="card-description">Switch between panels; optionally synced and remembered.</p>
+            </div>
+          </a>
+          <a href="/docs/v0.1/components/text" class="card card-link group">
+            <div class="card-header pb-6">
+              <div class="flex items-center justify-between">
+                <h2 class="card-title">Text</h2>
+                <span class="text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+              </div>
+              <p class="card-description">Long-form content with .prose (Tailwind Typography), plus helpers for single elements.</p>
+            </div>
+          </a>
+          <a href="/docs/v0.1/components/toggle" class="card card-link group">
+            <div class="card-header pb-6">
+              <div class="flex items-center justify-between">
+                <h2 class="card-title">Toggle</h2>
+                <span class="text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+              </div>
+              <p class="card-description">A two-state button, on or off, in any button style.</p>
+            </div>
+          </a>
+          <a href="/docs/v0.1/components/toggle-group" class="card card-link group">
+            <div class="card-header pb-6">
+              <div class="flex items-center justify-between">
+                <h2 class="card-title">Toggle group</h2>
+                <span class="text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+              </div>
+              <p class="card-description">A set of toggle buttons: pick one, at most one, or many.</p>
+            </div>
+          </a>
+  </div>
+
+  <h2 id="anatomy">Anatomy of a component<a class="heading-anchor" href="#anatomy" aria-label="Link to this section" data-md-skip>#</a></h2>
+  <p>Each component has its own directory, <code>htmx-ui/components/&lt;name&gt;/</code> (<code>packages/ui/src/components/&lt;name&gt;/</code> in the repository), holding:</p>
+  <ul>
+    <li><code>&lt;name&gt;.css</code>: classes in <code>@layer components</code>, built from token utilities with <code>@apply</code>.</li>
+    <li><code>&lt;name&gt;.ts</code> (optional): an <code>init&lt;Name&gt;(root)</code> function that wires up <code>[data-&lt;name&gt;]</code> elements once each, with <code>&lt;name&gt;.test.ts</code> beside it.</li>
+    <li><code>&lt;name&gt;.html</code> (optional): a Nunjucks macro for markup that is tedious to write by hand.</li>
+  </ul>
+        </div>
+
+            <nav class="mt-16 grid gap-4 border-t border-border pt-8 sm:grid-cols-2" aria-label="Pagination">
+                <a href="/docs/v0.1/ai-agents" class="card card-link p-4">
+                  <span class="muted inline-flex items-center gap-1"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-3.5" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg> Previous</span>
+                  <span class="mt-1 font-medium">AI agents</span>
+                </a>
+                <a href="/docs/v0.1/components/accordion" class="card card-link p-4 text-right sm:col-start-2">
+                  <span class="muted inline-flex items-center justify-end gap-1">Next <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-3.5" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+                  <span class="mt-1 font-medium">Accordion</span>
+                </a>
+            </nav>
+      </article>
+    </main>
+  </div>
+<footer class="border-t border-border">
+  <div class="mx-auto flex w-full max-w-7xl flex-col items-center justify-between gap-4 px-4 py-8 text-sm text-muted-foreground sm:flex-row sm:px-6 lg:px-8">
+    <p>© <span data-year></span> HTMX UI. Built with htmx, Tailwind CSS and Bun.</p>
+    <nav class="flex gap-5">
+      <a href="/docs/v0.1" class="hover:text-foreground">Docs</a>
+      <a href="/docs/v0.1/changelog" class="hover:text-foreground">Changelog</a>
+      <a href="/about" class="hover:text-foreground">About</a>
+    </nav>
+  </div>
+</footer>
+  </body>
+</html>

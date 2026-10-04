@@ -1,0 +1,580 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Input · HTMX UI</title>
+  <meta name="description" content="Text inputs, textareas, selects and file pickers, with focus, disabled, error, warning and success states." />
+    <script>
+      // Apply the stored theme before first paint to avoid a flash of the wrong
+      // colors. Kept inline and tiny on purpose; htmx-ui/theme takes over
+      // once app.ts loads.
+      (() => {
+        const stored = localStorage.getItem("theme");
+        const dark = stored ? stored === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+        document.documentElement.classList.toggle("dark", dark);
+      })();
+    </script>
+    
+  <link rel="stylesheet" crossorigin href="/docs/v0.1/_assets/index-ecy9vwrz.css"><script type="module" crossorigin src="/docs/v0.1/_assets/index-rpr74v5j.js"></script><link rel="modulepreload" crossorigin href="/docs/v0.1/_assets/index-rpr74v5j.js"><meta name="robots" content="noindex" /></head>
+  <body class="min-h-dvh bg-background text-foreground antialiased">
+<header class="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/70">
+  <div class="mx-auto flex h-14 w-full max-w-7xl items-center gap-2 px-4 sm:px-6 lg:px-8">
+      <button type="button" class="btn btn-ghost btn-icon -ml-2 lg:hidden" data-sidebar-toggle aria-controls="docs-nav" aria-expanded="false" aria-label="Open navigation"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+    <a href="/" class="mr-4 flex items-center gap-2 font-semibold">
+      <span class="grid size-7 place-items-center rounded-md bg-primary text-primary-foreground"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65M22 12.65l-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/></svg></span>
+      HTMX UI
+    </a>
+    <nav class="hidden items-center gap-1 text-sm sm:flex">
+        <a href="/docs/v0.1" class="rounded-md px-3 py-1.5 transition-colors hover:text-foreground text-muted-foreground">Docs</a>
+        <a href="/docs/v0.1/components" class="rounded-md px-3 py-1.5 transition-colors hover:text-foreground text-foreground font-medium" aria-current="page">Components</a>
+        <a href="/docs/v0.1/changelog" class="rounded-md px-3 py-1.5 transition-colors hover:text-foreground text-muted-foreground">Changelog</a>
+    </nav>
+    <div class="ml-auto flex items-center gap-1">
+
+<button type="button" class="btn btn-outline btn-sm hidden w-56 justify-between font-normal text-muted-foreground md:inline-flex" data-search-open aria-haspopup="dialog" aria-label="Search the docs">
+  <span class="inline-flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg> Search docs…</span>
+  <kbd class="kbd" data-search-shortcut>Ctrl K</kbd>
+</button>
+<button type="button" class="btn btn-ghost btn-icon md:hidden" data-search-open aria-haspopup="dialog" aria-label="Search the docs"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></button>
+
+<dialog class="search-dialog" data-search-dialog aria-label="Search the docs">
+  <div class="search-field">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4 shrink-0 text-muted-foreground" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+    <input type="search" class="search-input" placeholder="Search docs, components, sections…" autocomplete="off" spellcheck="false"
+      role="combobox" aria-expanded="false" aria-controls="search-results" aria-autocomplete="list" aria-label="Search" data-search-input />
+    <kbd class="kbd">Esc</kbd>
+  </div>
+  <div class="search-body">
+    <ul id="search-results" class="search-results" role="listbox" aria-label="Results" data-search-results></ul>
+    <p class="search-message" data-search-message>Type to search pages and sections.</p>
+  </div>
+  <div class="search-footer" aria-hidden="true">
+    <span><kbd class="kbd">↑</kbd> <kbd class="kbd">↓</kbd> to navigate</span>
+    <span><kbd class="kbd"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-3" aria-hidden="true"><path d="M10 9V5l-7 7 7 7v-4.1c5 0 8.5 1.6 11 5.1-1-5-4-10-11-11z"/></svg></kbd> to open</span>
+    <span class="ml-auto" data-search-version></span>
+  </div>
+</dialog>
+      <a href="/docs/v0.1/installation" class="btn btn-primary btn-sm hidden sm:inline-flex">Get started</a>
+      <button type="button" class="btn btn-ghost btn-icon" data-theme-toggle aria-pressed="false" title="Toggle light and dark theme">
+        <span class="dark:hidden"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg></span>
+        <span class="hidden dark:inline"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg></span>
+        <span class="sr-only">Theme: <span data-theme-label>light</span></span>
+      </button>
+    </div>
+  </div>
+</header>
+  <div class="mx-auto flex w-full max-w-7xl gap-12 px-4 sm:px-6 lg:px-8">
+    <aside id="docs-nav" class="sidebar" data-sidebar aria-label="Documentation">
+      <div class="mb-6 flex items-center justify-between lg:hidden">
+        <span class="font-semibold">Documentation</span>
+        <button type="button" class="btn btn-ghost btn-icon btn-sm" data-sidebar-toggle aria-controls="docs-nav" aria-label="Close navigation"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+      </div>
+
+
+<div class="dropdown mb-6 w-full" data-dropdown data-version-switcher data-version="0.1" data-versions-src="/docs/versions.json">
+  <button type="button" class="btn btn-outline w-full justify-between" data-dropdown-trigger aria-haspopup="menu" aria-expanded="false">
+    <span class="flex items-center gap-2 text-muted-foreground"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5M12 7v5l4 2"/></svg> Version</span>
+    <span class="flex items-center gap-1.5"><span class="font-mono">v0.1</span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span>
+  </button>
+  <div class="dropdown-menu w-full" role="menu" aria-label="Documentation version" hidden>
+    <p class="dropdown-label">Documentation versions</p>
+    <div data-version-items>
+        <a role="menuitem" class="dropdown-item" data-version-link href="/docs" aria-current="true">
+          <span class="font-mono">v0.1</span>
+<span class="badge badge-primary">Latest</span>        </a>
+    </div>
+    <div class="dropdown-separator" role="separator"></div>
+    <a role="menuitem" class="dropdown-item" data-version-link href="/docs/changelog">Changelog <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a>
+  </div>
+</div>
+        <nav class="sidebar-group">
+          <p class="sidebar-label">Getting started</p>
+            <a href="/docs/v0.1" class="sidebar-link">
+              Introduction
+            </a>
+            <a href="/docs/v0.1/installation" class="sidebar-link">
+              Installation
+            </a>
+            <a href="/docs/v0.1/engine" class="sidebar-link">
+              Engine
+            </a>
+        </nav>
+        <nav class="sidebar-group">
+          <p class="sidebar-label">Customization</p>
+            <a href="/docs/v0.1/theming" class="sidebar-link">
+              Theming
+            </a>
+            <a href="/docs/v0.1/dark-mode" class="sidebar-link">
+              Dark mode
+            </a>
+        </nav>
+        <nav class="sidebar-group">
+          <p class="sidebar-label">Guides</p>
+            <a href="/docs/v0.1/templates" class="sidebar-link">
+              Templates &amp; data
+            </a>
+            <a href="/docs/v0.1/ai-agents" class="sidebar-link">
+              AI agents
+            </a>
+        </nav>
+        <nav class="sidebar-group">
+          <p class="sidebar-label">Components</p>
+            <a href="/docs/v0.1/components" class="sidebar-link">
+              Overview
+            </a>
+            <a href="/docs/v0.1/components/accordion" class="sidebar-link">
+              Accordion
+            </a>
+            <a href="/docs/v0.1/components/alert" class="sidebar-link">
+              Alert
+            </a>
+            <a href="/docs/v0.1/components/badge" class="sidebar-link">
+              Badge
+            </a>
+            <a href="/docs/v0.1/components/button" class="sidebar-link">
+              Button
+            </a>
+            <a href="/docs/v0.1/components/button-group" class="sidebar-link">
+              Button group
+            </a>
+            <a href="/docs/v0.1/components/card" class="sidebar-link">
+              Card
+            </a>
+            <a href="/docs/v0.1/components/code-block" class="sidebar-link">
+              Code block
+            </a>
+            <a href="/docs/v0.1/components/dropdown" class="sidebar-link">
+              Dropdown
+            </a>
+            <a href="/docs/v0.1/components/field" class="sidebar-link">
+              Field
+            </a>
+            <a href="/docs/v0.1/components/icon" class="sidebar-link">
+              Icon
+            </a>
+            <a href="/docs/v0.1/components/input" class="sidebar-link" aria-current="page">
+              Input
+            </a>
+            <a href="/docs/v0.1/components/input-group" class="sidebar-link">
+              Input group
+            </a>
+            <a href="/docs/v0.1/components/popover" class="sidebar-link">
+              Popover
+            </a>
+            <a href="/docs/v0.1/components/sidebar" class="sidebar-link">
+              Sidebar
+            </a>
+            <a href="/docs/v0.1/components/spinner" class="sidebar-link">
+              Spinner
+            </a>
+            <a href="/docs/v0.1/components/table" class="sidebar-link">
+              Table
+            </a>
+            <a href="/docs/v0.1/components/tabs" class="sidebar-link">
+              Tabs
+            </a>
+            <a href="/docs/v0.1/components/text" class="sidebar-link">
+              Text
+            </a>
+            <a href="/docs/v0.1/components/toggle" class="sidebar-link">
+              Toggle
+            </a>
+            <a href="/docs/v0.1/components/toggle-group" class="sidebar-link">
+              Toggle group
+            </a>
+        </nav>
+        <nav class="sidebar-group">
+          <p class="sidebar-label">Project</p>
+            <a href="/docs/v0.1/changelog" class="sidebar-link">
+              Changelog
+            </a>
+            <a href="/docs/versions" class="sidebar-link">
+              Versions
+            </a>
+        </nav>
+    </aside>
+    <div class="sidebar-backdrop" data-sidebar-close></div>
+
+    <main class="min-w-0 flex-1 pt-8 pb-16 lg:pt-12">
+      <article class="mx-auto max-w-3xl">
+        
+        <div class="alert alert-warning mb-8" role="status" data-version-banner data-md-skip><div class="alert-title">You're viewing the docs for v0.1.</div><div class="alert-description">The latest version is next. <a class="link" href="/docs/components/input">Go to this page in next</a>.</div></div>
+        <header class="mb-10 space-y-3 border-b border-border pb-8">
+          <p class="eyebrow">Components</p>
+          <h1 class="h1">Input</h1>
+<p class="lead">Text inputs, textareas, selects and file pickers, with focus, disabled, error, warning and success states.</p>          <div class="flex flex-wrap gap-2 pt-2">
+            <button type="button" class="btn btn-outline btn-sm" data-markdown-copy="/docs/v0.1/components/input.md">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg> <span data-markdown-copy-label>Copy Markdown</span>
+            </button>
+            <a href="/docs/v0.1/components/input.md" class="btn btn-ghost btn-sm" title="This page as Markdown, for AI agents"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4M10 9H8M16 13H8M16 17H8"/></svg> View .md</a>
+          </div>
+        </header>
+
+        <div data-docs-content class="prose docs-prose max-w-none">
+<div class="demo not-prose overflow-hidden rounded-[calc(var(--radius)+4px)] border border-border [&_.code-block]:rounded-none [&_.code-block]:border-0">
+  <div class="flex min-h-40 flex-wrap items-center justify-center gap-3 bg-background p-6 sm:p-10 " data-md-skip>    <input class="input max-w-sm" type="email" placeholder="you@example.com" aria-label="Email" />
+</div>
+<div class="border-t border-border"><div class="code-block not-prose" data-code>
+  <div class="code-block-header">
+    <span class="font-mono">html</span>
+    <button type="button" class="code-copy" data-copy aria-label="Copy code">
+  <span class="code-copy-idle inline-flex items-center gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg><span data-copy-label>Copy</span></span>
+  <span class="code-copied items-center gap-1.5" aria-live="polite"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Copied</span>
+</button>
+  </div>
+  <pre><code data-lang="html"><span class="line"><span style="color:var(--code-foreground)">&#x3C;</span><span style="color:var(--code-token-string-expression)">input</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"input max-w-sm"</span><span style="color:var(--code-token-function)"> type</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"email"</span><span style="color:var(--code-token-function)"> placeholder</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"you@example.com"</span><span style="color:var(--code-token-function)"> aria-label</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"Email"</span><span style="color:var(--code-foreground)"> /></span></span></code></pre>
+</div></div></div>
+  <h2 id="usage">Usage<a class="heading-anchor" href="#usage" aria-label="Link to this section" data-md-skip>#</a></h2>
+  <p>
+    Add <code>.input</code> to any text-like <code>&lt;input&gt;</code>. It fills its container's width; constrain it
+    with a <code>max-w-*</code> utility or a wrapper. Every input needs a label: wrap it in a
+    <a href="/docs/v0.1/components/field">field</a> with a <code>.field-label</code>, or give it an <code>aria-label</code>.
+  </p>
+<div class="demo not-prose overflow-hidden rounded-[calc(var(--radius)+4px)] border border-border [&_.code-block]:rounded-none [&_.code-block]:border-0">
+  <div class="flex min-h-40 flex-wrap items-center justify-center gap-3 bg-background p-6 sm:p-10 flex-col" data-md-skip>    <div class="field max-w-sm">
+      <label class="field-label" for="input-name">Name</label>
+      <input class="input" id="input-name" placeholder="Ada Lovelace" />
+    </div>
+</div>
+<div class="border-t border-border"><div class="code-block not-prose" data-code>
+  <div class="code-block-header">
+    <span class="font-mono">html</span>
+    <button type="button" class="code-copy" data-copy aria-label="Copy code">
+  <span class="code-copy-idle inline-flex items-center gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg><span data-copy-label>Copy</span></span>
+  <span class="code-copied items-center gap-1.5" aria-live="polite"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Copied</span>
+</button>
+  </div>
+  <pre><code data-lang="html"><span class="line"><span style="color:var(--code-foreground)">&#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"field max-w-sm"</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;</span><span style="color:var(--code-token-string-expression)">label</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"field-label"</span><span style="color:var(--code-token-function)"> for</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"input-name"</span><span style="color:var(--code-foreground)">>Name&#x3C;/</span><span style="color:var(--code-token-string-expression)">label</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;</span><span style="color:var(--code-token-string-expression)">input</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"input"</span><span style="color:var(--code-token-function)"> id</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"input-name"</span><span style="color:var(--code-token-function)"> placeholder</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"Ada Lovelace"</span><span style="color:var(--code-foreground)"> /></span></span>
+<span class="line"><span style="color:var(--code-foreground)">&#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span></code></pre>
+</div></div></div>
+  <h2 id="types">Types<a class="heading-anchor" href="#types" aria-label="Link to this section" data-md-skip>#</a></h2>
+<div class="demo not-prose overflow-hidden rounded-[calc(var(--radius)+4px)] border border-border [&_.code-block]:rounded-none [&_.code-block]:border-0">
+  <div class="flex min-h-40 flex-wrap items-center justify-center gap-3 bg-background p-6 sm:p-10 flex-col" data-md-skip>    <div class="grid w-full max-w-sm gap-3">
+      <input class="input" type="password" value="hunter22" aria-label="Password" />
+      <input class="input" type="number" value="42" aria-label="Quantity" />
+      <input class="input" type="date" aria-label="Date" />
+      <input class="input" type="search" placeholder="Search…" aria-label="Search" />
+    </div>
+</div>
+<div class="border-t border-border"><div class="code-block not-prose" data-code>
+  <div class="code-block-header">
+    <span class="font-mono">html</span>
+    <button type="button" class="code-copy" data-copy aria-label="Copy code">
+  <span class="code-copy-idle inline-flex items-center gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg><span data-copy-label>Copy</span></span>
+  <span class="code-copied items-center gap-1.5" aria-live="polite"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Copied</span>
+</button>
+  </div>
+  <pre><code data-lang="html"><span class="line"><span style="color:var(--code-foreground)">&#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"grid w-full max-w-sm gap-3"</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;</span><span style="color:var(--code-token-string-expression)">input</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"input"</span><span style="color:var(--code-token-function)"> type</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"password"</span><span style="color:var(--code-token-function)"> value</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"hunter22"</span><span style="color:var(--code-token-function)"> aria-label</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"Password"</span><span style="color:var(--code-foreground)"> /></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;</span><span style="color:var(--code-token-string-expression)">input</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"input"</span><span style="color:var(--code-token-function)"> type</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"number"</span><span style="color:var(--code-token-function)"> value</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"42"</span><span style="color:var(--code-token-function)"> aria-label</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"Quantity"</span><span style="color:var(--code-foreground)"> /></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;</span><span style="color:var(--code-token-string-expression)">input</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"input"</span><span style="color:var(--code-token-function)"> type</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"date"</span><span style="color:var(--code-token-function)"> aria-label</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"Date"</span><span style="color:var(--code-foreground)"> /></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;</span><span style="color:var(--code-token-string-expression)">input</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"input"</span><span style="color:var(--code-token-function)"> type</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"search"</span><span style="color:var(--code-token-function)"> placeholder</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"Search…"</span><span style="color:var(--code-token-function)"> aria-label</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"Search"</span><span style="color:var(--code-foreground)"> /></span></span>
+<span class="line"><span style="color:var(--code-foreground)">&#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span></code></pre>
+</div></div></div>
+  <h2 id="file">File<a class="heading-anchor" href="#file" aria-label="Link to this section" data-md-skip>#</a></h2>
+  <p>File inputs keep the native picker, with its button restyled. <code>multiple</code> and <code>accept</code> work as usual.</p>
+<div class="demo not-prose overflow-hidden rounded-[calc(var(--radius)+4px)] border border-border [&_.code-block]:rounded-none [&_.code-block]:border-0">
+  <div class="flex min-h-40 flex-wrap items-center justify-center gap-3 bg-background p-6 sm:p-10 flex-col" data-md-skip>    <div class="field max-w-sm">
+      <label class="field-label" for="input-avatar">Picture</label>
+      <input class="input" id="input-avatar" type="file" accept="image/*" />
+      <p class="field-description">PNG or JPG, up to 2 MB.</p>
+    </div>
+    <div class="field max-w-sm">
+      <label class="field-label" for="input-docs">Documents</label>
+      <input class="input" id="input-docs" type="file" multiple />
+    </div>
+</div>
+<div class="border-t border-border"><div class="code-block not-prose" data-code>
+  <div class="code-block-header">
+    <span class="font-mono">html</span>
+    <button type="button" class="code-copy" data-copy aria-label="Copy code">
+  <span class="code-copy-idle inline-flex items-center gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg><span data-copy-label>Copy</span></span>
+  <span class="code-copied items-center gap-1.5" aria-live="polite"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Copied</span>
+</button>
+  </div>
+  <pre><code data-lang="html"><span class="line"><span style="color:var(--code-foreground)">&#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"field max-w-sm"</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;</span><span style="color:var(--code-token-string-expression)">label</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"field-label"</span><span style="color:var(--code-token-function)"> for</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"input-avatar"</span><span style="color:var(--code-foreground)">>Picture&#x3C;/</span><span style="color:var(--code-token-string-expression)">label</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;</span><span style="color:var(--code-token-string-expression)">input</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"input"</span><span style="color:var(--code-token-function)"> id</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"input-avatar"</span><span style="color:var(--code-token-function)"> type</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"file"</span><span style="color:var(--code-token-function)"> accept</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"image/*"</span><span style="color:var(--code-foreground)"> /></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;</span><span style="color:var(--code-token-string-expression)">p</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"field-description"</span><span style="color:var(--code-foreground)">>PNG or JPG, up to 2 MB.&#x3C;/</span><span style="color:var(--code-token-string-expression)">p</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">&#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">&#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"field max-w-sm"</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;</span><span style="color:var(--code-token-string-expression)">label</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"field-label"</span><span style="color:var(--code-token-function)"> for</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"input-docs"</span><span style="color:var(--code-foreground)">>Documents&#x3C;/</span><span style="color:var(--code-token-string-expression)">label</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;</span><span style="color:var(--code-token-string-expression)">input</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"input"</span><span style="color:var(--code-token-function)"> id</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"input-docs"</span><span style="color:var(--code-token-function)"> type</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"file"</span><span style="color:var(--code-token-function)"> multiple</span><span style="color:var(--code-foreground)"> /></span></span>
+<span class="line"><span style="color:var(--code-foreground)">&#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span></code></pre>
+</div></div></div>
+  <h2 id="textarea">Textarea<a class="heading-anchor" href="#textarea" aria-label="Link to this section" data-md-skip>#</a></h2>
+  <p><code>.textarea</code> grows with its content in browsers that support <code>field-sizing</code>.</p>
+<div class="demo not-prose overflow-hidden rounded-[calc(var(--radius)+4px)] border border-border [&_.code-block]:rounded-none [&_.code-block]:border-0">
+  <div class="flex min-h-40 flex-wrap items-center justify-center gap-3 bg-background p-6 sm:p-10 " data-md-skip>    <textarea class="textarea max-w-sm" placeholder="Type your message here." aria-label="Message"></textarea>
+</div>
+<div class="border-t border-border"><div class="code-block not-prose" data-code>
+  <div class="code-block-header">
+    <span class="font-mono">html</span>
+    <button type="button" class="code-copy" data-copy aria-label="Copy code">
+  <span class="code-copy-idle inline-flex items-center gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg><span data-copy-label>Copy</span></span>
+  <span class="code-copied items-center gap-1.5" aria-live="polite"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Copied</span>
+</button>
+  </div>
+  <pre><code data-lang="html"><span class="line"><span style="color:var(--code-foreground)">&#x3C;</span><span style="color:var(--code-token-string-expression)">textarea</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"textarea max-w-sm"</span><span style="color:var(--code-token-function)"> placeholder</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"Type your message here."</span><span style="color:var(--code-token-function)"> aria-label</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"Message"</span><span style="color:var(--code-foreground)">>&#x3C;/</span><span style="color:var(--code-token-string-expression)">textarea</span><span style="color:var(--code-foreground)">></span></span></code></pre>
+</div></div></div>
+  <h2 id="select">Select<a class="heading-anchor" href="#select" aria-label="Link to this section" data-md-skip>#</a></h2>
+  <p><code>.select</code> styles a native <code>&lt;select&gt;</code>.</p>
+<div class="demo not-prose overflow-hidden rounded-[calc(var(--radius)+4px)] border border-border [&_.code-block]:rounded-none [&_.code-block]:border-0">
+  <div class="flex min-h-40 flex-wrap items-center justify-center gap-3 bg-background p-6 sm:p-10 " data-md-skip>    <select class="select max-w-48" aria-label="Fruit">
+      <option>Apple</option>
+      <option>Banana</option>
+      <option>Blueberry</option>
+    </select>
+</div>
+<div class="border-t border-border"><div class="code-block not-prose" data-code>
+  <div class="code-block-header">
+    <span class="font-mono">html</span>
+    <button type="button" class="code-copy" data-copy aria-label="Copy code">
+  <span class="code-copy-idle inline-flex items-center gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg><span data-copy-label>Copy</span></span>
+  <span class="code-copied items-center gap-1.5" aria-live="polite"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Copied</span>
+</button>
+  </div>
+  <pre><code data-lang="html"><span class="line"><span style="color:var(--code-foreground)">&#x3C;</span><span style="color:var(--code-token-string-expression)">select</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"select max-w-48"</span><span style="color:var(--code-token-function)"> aria-label</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"Fruit"</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;</span><span style="color:var(--code-token-string-expression)">option</span><span style="color:var(--code-foreground)">>Apple&#x3C;/</span><span style="color:var(--code-token-string-expression)">option</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;</span><span style="color:var(--code-token-string-expression)">option</span><span style="color:var(--code-foreground)">>Banana&#x3C;/</span><span style="color:var(--code-token-string-expression)">option</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;</span><span style="color:var(--code-token-string-expression)">option</span><span style="color:var(--code-foreground)">>Blueberry&#x3C;/</span><span style="color:var(--code-token-string-expression)">option</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">&#x3C;/</span><span style="color:var(--code-token-string-expression)">select</span><span style="color:var(--code-foreground)">></span></span></code></pre>
+</div></div></div>
+  <h2 id="sizes">Sizes<a class="heading-anchor" href="#sizes" aria-label="Link to this section" data-md-skip>#</a></h2>
+  <p><code>.input-sm</code> and <code>.input-lg</code> match the heights of <code>.btn-sm</code> and <code>.btn-lg</code>.</p>
+<div class="demo not-prose overflow-hidden rounded-[calc(var(--radius)+4px)] border border-border [&_.code-block]:rounded-none [&_.code-block]:border-0">
+  <div class="flex min-h-40 flex-wrap items-center justify-center gap-3 bg-background p-6 sm:p-10 flex-col" data-md-skip>    <div class="flex w-full max-w-sm items-center gap-2">
+      <input class="input input-sm" placeholder="Small" aria-label="Small" />
+      <button class="btn btn-outline btn-sm">Go</button>
+    </div>
+    <div class="flex w-full max-w-sm items-center gap-2">
+      <input class="input" placeholder="Default" aria-label="Default" />
+      <button class="btn btn-outline">Go</button>
+    </div>
+    <div class="flex w-full max-w-sm items-center gap-2">
+      <input class="input input-lg" placeholder="Large" aria-label="Large" />
+      <button class="btn btn-outline btn-lg">Go</button>
+    </div>
+</div>
+<div class="border-t border-border"><div class="code-block not-prose" data-code>
+  <div class="code-block-header">
+    <span class="font-mono">html</span>
+    <button type="button" class="code-copy" data-copy aria-label="Copy code">
+  <span class="code-copy-idle inline-flex items-center gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg><span data-copy-label>Copy</span></span>
+  <span class="code-copied items-center gap-1.5" aria-live="polite"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Copied</span>
+</button>
+  </div>
+  <pre><code data-lang="html"><span class="line"><span style="color:var(--code-foreground)">&#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"flex w-full max-w-sm items-center gap-2"</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;</span><span style="color:var(--code-token-string-expression)">input</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"input input-sm"</span><span style="color:var(--code-token-function)"> placeholder</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"Small"</span><span style="color:var(--code-token-function)"> aria-label</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"Small"</span><span style="color:var(--code-foreground)"> /></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;</span><span style="color:var(--code-token-string-expression)">button</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"btn btn-outline btn-sm"</span><span style="color:var(--code-foreground)">>Go&#x3C;/</span><span style="color:var(--code-token-string-expression)">button</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">&#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">&#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"flex w-full max-w-sm items-center gap-2"</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;</span><span style="color:var(--code-token-string-expression)">input</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"input"</span><span style="color:var(--code-token-function)"> placeholder</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"Default"</span><span style="color:var(--code-token-function)"> aria-label</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"Default"</span><span style="color:var(--code-foreground)"> /></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;</span><span style="color:var(--code-token-string-expression)">button</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"btn btn-outline"</span><span style="color:var(--code-foreground)">>Go&#x3C;/</span><span style="color:var(--code-token-string-expression)">button</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">&#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">&#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"flex w-full max-w-sm items-center gap-2"</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;</span><span style="color:var(--code-token-string-expression)">input</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"input input-lg"</span><span style="color:var(--code-token-function)"> placeholder</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"Large"</span><span style="color:var(--code-token-function)"> aria-label</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"Large"</span><span style="color:var(--code-foreground)"> /></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;</span><span style="color:var(--code-token-string-expression)">button</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"btn btn-outline btn-lg"</span><span style="color:var(--code-foreground)">>Go&#x3C;/</span><span style="color:var(--code-token-string-expression)">button</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">&#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span></code></pre>
+</div></div></div>
+  <h2 id="states">States<a class="heading-anchor" href="#states" aria-label="Link to this section" data-md-skip>#</a></h2>
+
+  <h3 id="disabled">Disabled<a class="heading-anchor" href="#disabled" aria-label="Link to this section" data-md-skip>#</a></h3>
+  <p>The <code>disabled</code> attribute fades the input; inside a field, the label fades too.</p>
+<div class="demo not-prose overflow-hidden rounded-[calc(var(--radius)+4px)] border border-border [&_.code-block]:rounded-none [&_.code-block]:border-0">
+  <div class="flex min-h-40 flex-wrap items-center justify-center gap-3 bg-background p-6 sm:p-10 flex-col" data-md-skip>    <div class="field max-w-sm">
+      <label class="field-label" for="input-disabled">Email</label>
+      <input class="input" id="input-disabled" type="email" placeholder="you@example.com" disabled />
+    </div>
+</div>
+<div class="border-t border-border"><div class="code-block not-prose" data-code>
+  <div class="code-block-header">
+    <span class="font-mono">html</span>
+    <button type="button" class="code-copy" data-copy aria-label="Copy code">
+  <span class="code-copy-idle inline-flex items-center gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg><span data-copy-label>Copy</span></span>
+  <span class="code-copied items-center gap-1.5" aria-live="polite"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Copied</span>
+</button>
+  </div>
+  <pre><code data-lang="html"><span class="line"><span style="color:var(--code-foreground)">&#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"field max-w-sm"</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;</span><span style="color:var(--code-token-string-expression)">label</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"field-label"</span><span style="color:var(--code-token-function)"> for</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"input-disabled"</span><span style="color:var(--code-foreground)">>Email&#x3C;/</span><span style="color:var(--code-token-string-expression)">label</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;</span><span style="color:var(--code-token-string-expression)">input</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"input"</span><span style="color:var(--code-token-function)"> id</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"input-disabled"</span><span style="color:var(--code-token-function)"> type</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"email"</span><span style="color:var(--code-token-function)"> placeholder</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"you@example.com"</span><span style="color:var(--code-token-function)"> disabled</span><span style="color:var(--code-foreground)"> /></span></span>
+<span class="line"><span style="color:var(--code-foreground)">&#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span></code></pre>
+</div></div></div>
+  <h3 id="required">Required<a class="heading-anchor" href="#required" aria-label="Link to this section" data-md-skip>#</a></h3>
+  <p>A field holding a <code>required</code> input marks its label with an asterisk automatically.</p>
+<div class="demo not-prose overflow-hidden rounded-[calc(var(--radius)+4px)] border border-border [&_.code-block]:rounded-none [&_.code-block]:border-0">
+  <div class="flex min-h-40 flex-wrap items-center justify-center gap-3 bg-background p-6 sm:p-10 flex-col" data-md-skip>    <div class="field max-w-sm">
+      <label class="field-label" for="input-required">Username</label>
+      <input class="input" id="input-required" required />
+    </div>
+</div>
+<div class="border-t border-border"><div class="code-block not-prose" data-code>
+  <div class="code-block-header">
+    <span class="font-mono">html</span>
+    <button type="button" class="code-copy" data-copy aria-label="Copy code">
+  <span class="code-copy-idle inline-flex items-center gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg><span data-copy-label>Copy</span></span>
+  <span class="code-copied items-center gap-1.5" aria-live="polite"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Copied</span>
+</button>
+  </div>
+  <pre><code data-lang="html"><span class="line"><span style="color:var(--code-foreground)">&#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"field max-w-sm"</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;</span><span style="color:var(--code-token-string-expression)">label</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"field-label"</span><span style="color:var(--code-token-function)"> for</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"input-required"</span><span style="color:var(--code-foreground)">>Username&#x3C;/</span><span style="color:var(--code-token-string-expression)">label</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;</span><span style="color:var(--code-token-string-expression)">input</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"input"</span><span style="color:var(--code-token-function)"> id</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"input-required"</span><span style="color:var(--code-token-function)"> required</span><span style="color:var(--code-foreground)"> /></span></span>
+<span class="line"><span style="color:var(--code-foreground)">&#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span></code></pre>
+</div></div></div>
+  <h3 id="invalid">Error, warning, success<a class="heading-anchor" href="#invalid" aria-label="Link to this section" data-md-skip>#</a></h3>
+  <p>
+    Set <code>aria-invalid="true"</code> for an error (the border turns red; so does the field's label). Native
+    validation styles the same way once the user has interacted (<code>:user-invalid</code>). For softer states, add
+    <code>.input-warning</code> or <code>.input-success</code>. Pair each with a message from the
+    <a href="/docs/v0.1/components/field#messages">field</a> classes and link it with <code>aria-describedby</code>.
+  </p>
+<div class="demo not-prose overflow-hidden rounded-[calc(var(--radius)+4px)] border border-border [&_.code-block]:rounded-none [&_.code-block]:border-0">
+  <div class="flex min-h-40 flex-wrap items-center justify-center gap-3 bg-background p-6 sm:p-10 flex-col" data-md-skip>    <div class="field-group max-w-sm">
+      <div class="field">
+        <label class="field-label" for="input-error">Email</label>
+        <input class="input" id="input-error" type="email" value="ada@" aria-invalid="true" aria-describedby="input-error-msg" />
+        <p class="field-error" id="input-error-msg"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m15 9-6 6M9 9l6 6"/></svg> Enter a complete email address.</p>
+      </div>
+      <div class="field">
+        <label class="field-label" for="input-warning">Password</label>
+        <input class="input input-warning" id="input-warning" type="password" value="password" aria-describedby="input-warning-msg" />
+        <p class="field-warning" id="input-warning-msg"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4M12 17h.01"/></svg> This password is common. Consider a longer one.</p>
+      </div>
+      <div class="field">
+        <label class="field-label" for="input-success">Username</label>
+        <input class="input input-success" id="input-success" value="ada" aria-describedby="input-success-msg" />
+        <p class="field-success" id="input-success-msg"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg> Username is available.</p>
+      </div>
+    </div>
+</div>
+<div class="border-t border-border"><div class="code-block not-prose" data-code>
+  <div class="code-block-header">
+    <span class="font-mono">html</span>
+    <button type="button" class="code-copy" data-copy aria-label="Copy code">
+  <span class="code-copy-idle inline-flex items-center gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg><span data-copy-label>Copy</span></span>
+  <span class="code-copied items-center gap-1.5" aria-live="polite"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Copied</span>
+</button>
+  </div>
+  <pre><code data-lang="html"><span class="line"><span style="color:var(--code-foreground)">&#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"field-group max-w-sm"</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"field"</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">    &#x3C;</span><span style="color:var(--code-token-string-expression)">label</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"field-label"</span><span style="color:var(--code-token-function)"> for</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"input-error"</span><span style="color:var(--code-foreground)">>Email&#x3C;/</span><span style="color:var(--code-token-string-expression)">label</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">    &#x3C;</span><span style="color:var(--code-token-string-expression)">input</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"input"</span><span style="color:var(--code-token-function)"> id</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"input-error"</span><span style="color:var(--code-token-function)"> type</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"email"</span><span style="color:var(--code-token-function)"> value</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"ada@"</span><span style="color:var(--code-token-function)"> aria-invalid</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"true"</span><span style="color:var(--code-token-function)"> aria-describedby</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"input-error-msg"</span><span style="color:var(--code-foreground)"> /></span></span>
+<span class="line"><span style="color:var(--code-foreground)">    &#x3C;</span><span style="color:var(--code-token-string-expression)">p</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"field-error"</span><span style="color:var(--code-token-function)"> id</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"input-error-msg"</span><span style="color:var(--code-foreground)">>&#x3C;</span><span style="color:var(--code-token-string-expression)">svg</span><span style="color:var(--code-token-function)"> xmlns</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"http://www.w3.org/2000/svg"</span><span style="color:var(--code-token-function)"> width</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"24"</span><span style="color:var(--code-token-function)"> height</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"24"</span><span style="color:var(--code-token-function)"> viewBox</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"0 0 24 24"</span><span style="color:var(--code-token-function)"> fill</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"none"</span><span style="color:var(--code-token-function)"> stroke</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"currentColor"</span><span style="color:var(--code-token-function)"> stroke-width</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"2"</span><span style="color:var(--code-token-function)"> stroke-linecap</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"round"</span><span style="color:var(--code-token-function)"> stroke-linejoin</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"round"</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"size-4"</span><span style="color:var(--code-token-function)"> aria-hidden</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"true"</span><span style="color:var(--code-foreground)">>&#x3C;</span><span style="color:var(--code-token-string-expression)">circle</span><span style="color:var(--code-token-function)"> cx</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"12"</span><span style="color:var(--code-token-function)"> cy</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"12"</span><span style="color:var(--code-token-function)"> r</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"10"</span><span style="color:var(--code-foreground)">/>&#x3C;</span><span style="color:var(--code-token-string-expression)">path</span><span style="color:var(--code-token-function)"> d</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"m15 9-6 6M9 9l6 6"</span><span style="color:var(--code-foreground)">/>&#x3C;/</span><span style="color:var(--code-token-string-expression)">svg</span><span style="color:var(--code-foreground)">> Enter a complete email address.&#x3C;/</span><span style="color:var(--code-token-string-expression)">p</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"field"</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">    &#x3C;</span><span style="color:var(--code-token-string-expression)">label</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"field-label"</span><span style="color:var(--code-token-function)"> for</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"input-warning"</span><span style="color:var(--code-foreground)">>Password&#x3C;/</span><span style="color:var(--code-token-string-expression)">label</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">    &#x3C;</span><span style="color:var(--code-token-string-expression)">input</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"input input-warning"</span><span style="color:var(--code-token-function)"> id</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"input-warning"</span><span style="color:var(--code-token-function)"> type</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"password"</span><span style="color:var(--code-token-function)"> value</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"password"</span><span style="color:var(--code-token-function)"> aria-describedby</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"input-warning-msg"</span><span style="color:var(--code-foreground)"> /></span></span>
+<span class="line"><span style="color:var(--code-foreground)">    &#x3C;</span><span style="color:var(--code-token-string-expression)">p</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"field-warning"</span><span style="color:var(--code-token-function)"> id</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"input-warning-msg"</span><span style="color:var(--code-foreground)">>&#x3C;</span><span style="color:var(--code-token-string-expression)">svg</span><span style="color:var(--code-token-function)"> xmlns</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"http://www.w3.org/2000/svg"</span><span style="color:var(--code-token-function)"> width</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"24"</span><span style="color:var(--code-token-function)"> height</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"24"</span><span style="color:var(--code-token-function)"> viewBox</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"0 0 24 24"</span><span style="color:var(--code-token-function)"> fill</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"none"</span><span style="color:var(--code-token-function)"> stroke</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"currentColor"</span><span style="color:var(--code-token-function)"> stroke-width</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"2"</span><span style="color:var(--code-token-function)"> stroke-linecap</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"round"</span><span style="color:var(--code-token-function)"> stroke-linejoin</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"round"</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"size-4"</span><span style="color:var(--code-token-function)"> aria-hidden</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"true"</span><span style="color:var(--code-foreground)">>&#x3C;</span><span style="color:var(--code-token-string-expression)">path</span><span style="color:var(--code-token-function)"> d</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"</span><span style="color:var(--code-foreground)">/>&#x3C;</span><span style="color:var(--code-token-string-expression)">path</span><span style="color:var(--code-token-function)"> d</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"M12 9v4M12 17h.01"</span><span style="color:var(--code-foreground)">/>&#x3C;/</span><span style="color:var(--code-token-string-expression)">svg</span><span style="color:var(--code-foreground)">> This password is common. Consider a longer one.&#x3C;/</span><span style="color:var(--code-token-string-expression)">p</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"field"</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">    &#x3C;</span><span style="color:var(--code-token-string-expression)">label</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"field-label"</span><span style="color:var(--code-token-function)"> for</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"input-success"</span><span style="color:var(--code-foreground)">>Username&#x3C;/</span><span style="color:var(--code-token-string-expression)">label</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">    &#x3C;</span><span style="color:var(--code-token-string-expression)">input</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"input input-success"</span><span style="color:var(--code-token-function)"> id</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"input-success"</span><span style="color:var(--code-token-function)"> value</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"ada"</span><span style="color:var(--code-token-function)"> aria-describedby</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"input-success-msg"</span><span style="color:var(--code-foreground)"> /></span></span>
+<span class="line"><span style="color:var(--code-foreground)">    &#x3C;</span><span style="color:var(--code-token-string-expression)">p</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"field-success"</span><span style="color:var(--code-token-function)"> id</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"input-success-msg"</span><span style="color:var(--code-foreground)">>&#x3C;</span><span style="color:var(--code-token-string-expression)">svg</span><span style="color:var(--code-token-function)"> xmlns</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"http://www.w3.org/2000/svg"</span><span style="color:var(--code-token-function)"> width</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"24"</span><span style="color:var(--code-token-function)"> height</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"24"</span><span style="color:var(--code-token-function)"> viewBox</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"0 0 24 24"</span><span style="color:var(--code-token-function)"> fill</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"none"</span><span style="color:var(--code-token-function)"> stroke</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"currentColor"</span><span style="color:var(--code-token-function)"> stroke-width</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"2"</span><span style="color:var(--code-token-function)"> stroke-linecap</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"round"</span><span style="color:var(--code-token-function)"> stroke-linejoin</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"round"</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"size-4"</span><span style="color:var(--code-token-function)"> aria-hidden</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"true"</span><span style="color:var(--code-foreground)">>&#x3C;</span><span style="color:var(--code-token-string-expression)">circle</span><span style="color:var(--code-token-function)"> cx</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"12"</span><span style="color:var(--code-token-function)"> cy</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"12"</span><span style="color:var(--code-token-function)"> r</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"10"</span><span style="color:var(--code-foreground)">/>&#x3C;</span><span style="color:var(--code-token-string-expression)">path</span><span style="color:var(--code-token-function)"> d</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"m9 12 2 2 4-4"</span><span style="color:var(--code-foreground)">/>&#x3C;/</span><span style="color:var(--code-token-string-expression)">svg</span><span style="color:var(--code-foreground)">> Username is available.&#x3C;/</span><span style="color:var(--code-token-string-expression)">p</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">&#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span></code></pre>
+</div></div></div>
+  <h3 id="validate-htmx">Validating with htmx<a class="heading-anchor" href="#validate-htmx" aria-label="Link to this section" data-md-skip>#</a></h3>
+  <p>
+    The server can return the whole field with its state, swapped in on <code>change</code>. Here the mock server
+    just echoes the value back:
+  </p>
+<div class="demo not-prose overflow-hidden rounded-[calc(var(--radius)+4px)] border border-border [&_.code-block]:rounded-none [&_.code-block]:border-0">
+  <div class="flex min-h-40 flex-wrap items-center justify-center gap-3 bg-background p-6 sm:p-10 flex-col" data-md-skip>    <div class="field max-w-sm">
+      <label class="field-label" for="input-htmx">Username</label>
+      <input class="input" id="input-htmx" name="username" placeholder="Pick a username"
+             hx-post="/api/echo" hx-trigger="change" hx-target="#input-htmx-msg" />
+      <p class="field-description" id="input-htmx-msg" aria-live="polite">Checked when you leave the field.</p>
+    </div>
+</div>
+<div class="border-t border-border"><div class="code-block not-prose" data-code>
+  <div class="code-block-header">
+    <span class="font-mono">html</span>
+    <button type="button" class="code-copy" data-copy aria-label="Copy code">
+  <span class="code-copy-idle inline-flex items-center gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg><span data-copy-label>Copy</span></span>
+  <span class="code-copied items-center gap-1.5" aria-live="polite"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Copied</span>
+</button>
+  </div>
+  <pre><code data-lang="html"><span class="line"><span style="color:var(--code-foreground)">&#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"field max-w-sm"</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;</span><span style="color:var(--code-token-string-expression)">label</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"field-label"</span><span style="color:var(--code-token-function)"> for</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"input-htmx"</span><span style="color:var(--code-foreground)">>Username&#x3C;/</span><span style="color:var(--code-token-string-expression)">label</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;</span><span style="color:var(--code-token-string-expression)">input</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"input"</span><span style="color:var(--code-token-function)"> id</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"input-htmx"</span><span style="color:var(--code-token-function)"> name</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"username"</span><span style="color:var(--code-token-function)"> placeholder</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"Pick a username"</span></span>
+<span class="line"><span style="color:var(--code-token-function)">         hx-post</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"/api/echo"</span><span style="color:var(--code-token-function)"> hx-trigger</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"change"</span><span style="color:var(--code-token-function)"> hx-target</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"#input-htmx-msg"</span><span style="color:var(--code-foreground)"> /></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;</span><span style="color:var(--code-token-string-expression)">p</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"field-description"</span><span style="color:var(--code-token-function)"> id</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"input-htmx-msg"</span><span style="color:var(--code-token-function)"> aria-live</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"polite"</span><span style="color:var(--code-foreground)">>Checked when you leave the field.&#x3C;/</span><span style="color:var(--code-token-string-expression)">p</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">&#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span></code></pre>
+</div></div></div>
+  <h2 id="combining">Combining<a class="heading-anchor" href="#combining" aria-label="Link to this section" data-md-skip>#</a></h2>
+  <p>
+    Join an input to buttons with a <a href="/docs/v0.1/components/button-group">button group</a>, put icons, text, badges
+    or buttons inside its border with an <a href="/docs/v0.1/components/input-group">input group</a>, and lay out labels,
+    help text and grids of inputs with <a href="/docs/v0.1/components/field">field</a>.
+  </p>
+<div class="demo not-prose overflow-hidden rounded-[calc(var(--radius)+4px)] border border-border [&_.code-block]:rounded-none [&_.code-block]:border-0">
+  <div class="flex min-h-40 flex-wrap items-center justify-center gap-3 bg-background p-6 sm:p-10 flex-col" data-md-skip>    <div class="btn-group w-full max-w-sm" role="group" aria-label="Subscribe">
+      <input class="input" type="email" placeholder="you@example.com" aria-label="Email" />
+      <button class="btn btn-outline">Subscribe</button>
+    </div>
+    <div class="input-group max-w-sm">
+      <input class="input" placeholder="Add tags…" aria-label="Tags" />
+      <span class="input-group-addon"><span class="badge badge-secondary">htmx</span><span class="badge badge-secondary">css</span></span>
+    </div>
+</div>
+<div class="border-t border-border"><div class="code-block not-prose" data-code>
+  <div class="code-block-header">
+    <span class="font-mono">html</span>
+    <button type="button" class="code-copy" data-copy aria-label="Copy code">
+  <span class="code-copy-idle inline-flex items-center gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg><span data-copy-label>Copy</span></span>
+  <span class="code-copied items-center gap-1.5" aria-live="polite"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Copied</span>
+</button>
+  </div>
+  <pre><code data-lang="html"><span class="line"><span style="color:var(--code-foreground)">&#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"btn-group w-full max-w-sm"</span><span style="color:var(--code-token-function)"> role</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"group"</span><span style="color:var(--code-token-function)"> aria-label</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"Subscribe"</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;</span><span style="color:var(--code-token-string-expression)">input</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"input"</span><span style="color:var(--code-token-function)"> type</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"email"</span><span style="color:var(--code-token-function)"> placeholder</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"you@example.com"</span><span style="color:var(--code-token-function)"> aria-label</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"Email"</span><span style="color:var(--code-foreground)"> /></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;</span><span style="color:var(--code-token-string-expression)">button</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"btn btn-outline"</span><span style="color:var(--code-foreground)">>Subscribe&#x3C;/</span><span style="color:var(--code-token-string-expression)">button</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">&#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">&#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"input-group max-w-sm"</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;</span><span style="color:var(--code-token-string-expression)">input</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"input"</span><span style="color:var(--code-token-function)"> placeholder</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"Add tags…"</span><span style="color:var(--code-token-function)"> aria-label</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"Tags"</span><span style="color:var(--code-foreground)"> /></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;</span><span style="color:var(--code-token-string-expression)">span</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"input-group-addon"</span><span style="color:var(--code-foreground)">>&#x3C;</span><span style="color:var(--code-token-string-expression)">span</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"badge badge-secondary"</span><span style="color:var(--code-foreground)">>htmx&#x3C;/</span><span style="color:var(--code-token-string-expression)">span</span><span style="color:var(--code-foreground)">>&#x3C;</span><span style="color:var(--code-token-string-expression)">span</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"badge badge-secondary"</span><span style="color:var(--code-foreground)">>css&#x3C;/</span><span style="color:var(--code-token-string-expression)">span</span><span style="color:var(--code-foreground)">>&#x3C;/</span><span style="color:var(--code-token-string-expression)">span</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">&#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span></code></pre>
+</div></div></div>
+  <h2 id="reference">Reference<a class="heading-anchor" href="#reference" aria-label="Link to this section" data-md-skip>#</a></h2>
+  <div class="table-wrap not-prose">
+  <table class="table">
+    <thead><tr><th>Class / attribute</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td class="whitespace-nowrap"><code class="code">.input</code></td><td class="text-muted-foreground">Text-like inputs, including type=&quot;file&quot;.</td></tr>
+      <tr><td class="whitespace-nowrap"><code class="code">.textarea</code></td><td class="text-muted-foreground">Multi-line input; grows with its content where supported.</td></tr>
+      <tr><td class="whitespace-nowrap"><code class="code">.select</code></td><td class="text-muted-foreground">Native select with a chevron.</td></tr>
+      <tr><td class="whitespace-nowrap"><code class="code">.input-sm / .input-lg</code></td><td class="text-muted-foreground">32px or 44px tall instead of 36px. Also on .select.</td></tr>
+      <tr><td class="whitespace-nowrap"><code class="code">.input-warning / .input-success</code></td><td class="text-muted-foreground">Amber or green border and focus ring.</td></tr>
+      <tr><td class="whitespace-nowrap"><code class="code">aria-invalid=&quot;true&quot;</code></td><td class="text-muted-foreground">Error state: red border and focus ring. :user-invalid looks the same.</td></tr>
+    </tbody>
+  </table>
+</div>
+        </div>
+
+            <nav class="mt-16 grid gap-4 border-t border-border pt-8 sm:grid-cols-2" aria-label="Pagination">
+                <a href="/docs/v0.1/components/icon" class="card card-link p-4">
+                  <span class="muted inline-flex items-center gap-1"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-3.5" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg> Previous</span>
+                  <span class="mt-1 font-medium">Icon</span>
+                </a>
+                <a href="/docs/v0.1/components/input-group" class="card card-link p-4 text-right sm:col-start-2">
+                  <span class="muted inline-flex items-center justify-end gap-1">Next <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-3.5" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+                  <span class="mt-1 font-medium">Input group</span>
+                </a>
+            </nav>
+      </article>
+    </main>
+  </div>
+<footer class="border-t border-border">
+  <div class="mx-auto flex w-full max-w-7xl flex-col items-center justify-between gap-4 px-4 py-8 text-sm text-muted-foreground sm:flex-row sm:px-6 lg:px-8">
+    <p>© <span data-year></span> HTMX UI. Built with htmx, Tailwind CSS and Bun.</p>
+    <nav class="flex gap-5">
+      <a href="/docs/v0.1" class="hover:text-foreground">Docs</a>
+      <a href="/docs/v0.1/changelog" class="hover:text-foreground">Changelog</a>
+      <a href="/about" class="hover:text-foreground">About</a>
+    </nav>
+  </div>
+</footer>
+  </body>
+</html>

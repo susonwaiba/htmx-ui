@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>v0.1.0 · HTMX UI</title>
+  <meta name="description" content="First release: design tokens, light and dark themes, twenty components including forms, toggles and loading states, syntax highlighting, versioned and agent-ready docs; plus htmx-ui-engine (dev server and builds on Bun or Node) and create-htmx-ui." />
+    <script>
+      // Apply the stored theme before first paint to avoid a flash of the wrong
+      // colors. Kept inline and tiny on purpose; htmx-ui/theme takes over
+      // once app.ts loads.
+      (() => {
+        const stored = localStorage.getItem("theme");
+        const dark = stored ? stored === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+        document.documentElement.classList.toggle("dark", dark);
+      })();
+    </script>
+    
+  <link rel="stylesheet" crossorigin href="/docs/v0.1/_assets/index-ecy9vwrz.css"><script type="module" crossorigin src="/docs/v0.1/_assets/index-rpr74v5j.js"></script><link rel="modulepreload" crossorigin href="/docs/v0.1/_assets/index-rpr74v5j.js"><meta name="robots" content="noindex" /></head>
+  <body class="min-h-dvh bg-background text-foreground antialiased">
+<header class="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/70">
+  <div class="mx-auto flex h-14 w-full max-w-7xl items-center gap-2 px-4 sm:px-6 lg:px-8">
+      <button type="button" class="btn btn-ghost btn-icon -ml-2 lg:hidden" data-sidebar-toggle aria-controls="docs-nav" aria-expanded="false" aria-label="Open navigation"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+    <a href="/" class="mr-4 flex items-center gap-2 font-semibold">
+      <span class="grid size-7 place-items-center rounded-md bg-primary text-primary-foreground"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65M22 12.65l-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/></svg></span>
+      HTMX UI
+    </a>
+    <nav class="hidden items-center gap-1 text-sm sm:flex">
+        <a href="/docs/v0.1" class="rounded-md px-3 py-1.5 transition-colors hover:text-foreground text-muted-foreground">Docs</a>
+        <a href="/docs/v0.1/components" class="rounded-md px-3 py-1.5 transition-colors hover:text-foreground text-muted-foreground">Components</a>
+        <a href="/docs/v0.1/changelog" class="rounded-md px-3 py-1.5 transition-colors hover:text-foreground text-foreground font-medium" aria-current="page">Changelog</a>
+    </nav>
+    <div class="ml-auto flex items-center gap-1">
+
+<button type="button" class="btn btn-outline btn-sm hidden w-56 justify-between font-normal text-muted-foreground md:inline-flex" data-search-open aria-haspopup="dialog" aria-label="Search the docs">
+  <span class="inline-flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg> Search docs…</span>
+  <kbd class="kbd" data-search-shortcut>Ctrl K</kbd>
+</button>
+<button type="button" class="btn btn-ghost btn-icon md:hidden" data-search-open aria-haspopup="dialog" aria-label="Search the docs"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></button>
+
+<dialog class="search-dialog" data-search-dialog aria-label="Search the docs">
+  <div class="search-field">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4 shrink-0 text-muted-foreground" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+    <input type="search" class="search-input" placeholder="Search docs, components, sections…" autocomplete="off" spellcheck="false"
+      role="combobox" aria-expanded="false" aria-controls="search-results" aria-autocomplete="list" aria-label="Search" data-search-input />
+    <kbd class="kbd">Esc</kbd>
+  </div>
+  <div class="search-body">
+    <ul id="search-results" class="search-results" role="listbox" aria-label="Results" data-search-results></ul>
+    <p class="search-message" data-search-message>Type to search pages and sections.</p>
+  </div>
+  <div class="search-footer" aria-hidden="true">
+    <span><kbd class="kbd">↑</kbd> <kbd class="kbd">↓</kbd> to navigate</span>
+    <span><kbd class="kbd"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-3" aria-hidden="true"><path d="M10 9V5l-7 7 7 7v-4.1c5 0 8.5 1.6 11 5.1-1-5-4-10-11-11z"/></svg></kbd> to open</span>
+    <span class="ml-auto" data-search-version></span>
+  </div>
+</dialog>
+      <a href="/docs/v0.1/installation" class="btn btn-primary btn-sm hidden sm:inline-flex">Get started</a>
+      <button type="button" class="btn btn-ghost btn-icon" data-theme-toggle aria-pressed="false" title="Toggle light and dark theme">
+        <span class="dark:hidden"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg></span>
+        <span class="hidden dark:inline"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg></span>
+        <span class="sr-only">Theme: <span data-theme-label>light</span></span>
+      </button>
+    </div>
+  </div>
+</header>
+  <div class="mx-auto flex w-full max-w-7xl gap-12 px-4 sm:px-6 lg:px-8">
+    <aside id="docs-nav" class="sidebar" data-sidebar aria-label="Documentation">
+      <div class="mb-6 flex items-center justify-between lg:hidden">
+        <span class="font-semibold">Documentation</span>
+        <button type="button" class="btn btn-ghost btn-icon btn-sm" data-sidebar-toggle aria-controls="docs-nav" aria-label="Close navigation"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+      </div>
+
+
+<div class="dropdown mb-6 w-full" data-dropdown data-version-switcher data-version="0.1" data-versions-src="/docs/versions.json">
+  <button type="button" class="btn btn-outline w-full justify-between" data-dropdown-trigger aria-haspopup="menu" aria-expanded="false">
+    <span class="flex items-center gap-2 text-muted-foreground"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5M12 7v5l4 2"/></svg> Version</span>
+    <span class="flex items-center gap-1.5"><span class="font-mono">v0.1</span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span>
+  </button>
+  <div class="dropdown-menu w-full" role="menu" aria-label="Documentation version" hidden>
+    <p class="dropdown-label">Documentation versions</p>
+    <div data-version-items>
+        <a role="menuitem" class="dropdown-item" data-version-link href="/docs" aria-current="true">
+          <span class="font-mono">v0.1</span>
+<span class="badge badge-primary">Latest</span>        </a>
+    </div>
+    <div class="dropdown-separator" role="separator"></div>
+    <a role="menuitem" class="dropdown-item" data-version-link href="/docs/changelog">Changelog <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a>
+  </div>
+</div>
+        <nav class="sidebar-group">
+          <p class="sidebar-label">Getting started</p>
+            <a href="/docs/v0.1" class="sidebar-link">
+              Introduction
+            </a>
+            <a href="/docs/v0.1/installation" class="sidebar-link">
+              Installation
+            </a>
+            <a href="/docs/v0.1/engine" class="sidebar-link">
+              Engine
+            </a>
+        </nav>
+        <nav class="sidebar-group">
+          <p class="sidebar-label">Customization</p>
+            <a href="/docs/v0.1/theming" class="sidebar-link">
+              Theming
+            </a>
+            <a href="/docs/v0.1/dark-mode" class="sidebar-link">
+              Dark mode
+            </a>
+        </nav>
+        <nav class="sidebar-group">
+          <p class="sidebar-label">Guides</p>
+            <a href="/docs/v0.1/templates" class="sidebar-link">
+              Templates &amp; data
+            </a>
+            <a href="/docs/v0.1/ai-agents" class="sidebar-link">
+              AI agents
+            </a>
+        </nav>
+        <nav class="sidebar-group">
+          <p class="sidebar-label">Components</p>
+            <a href="/docs/v0.1/components" class="sidebar-link">
+              Overview
+            </a>
+            <a href="/docs/v0.1/components/accordion" class="sidebar-link">
+              Accordion
+            </a>
+            <a href="/docs/v0.1/components/alert" class="sidebar-link">
+              Alert
+            </a>
+            <a href="/docs/v0.1/components/badge" class="sidebar-link">
+              Badge
+            </a>
+            <a href="/docs/v0.1/components/button" class="sidebar-link">
+              Button
+            </a>
+            <a href="/docs/v0.1/components/button-group" class="sidebar-link">
+              Button group
+            </a>
+            <a href="/docs/v0.1/components/card" class="sidebar-link">
+              Card
+            </a>
+            <a href="/docs/v0.1/components/code-block" class="sidebar-link">
+              Code block
+            </a>
+            <a href="/docs/v0.1/components/dropdown" class="sidebar-link">
+              Dropdown
+            </a>
+            <a href="/docs/v0.1/components/field" class="sidebar-link">
+              Field
+            </a>
+            <a href="/docs/v0.1/components/icon" class="sidebar-link">
+              Icon
+            </a>
+            <a href="/docs/v0.1/components/input" class="sidebar-link">
+              Input
+            </a>
+            <a href="/docs/v0.1/components/input-group" class="sidebar-link">
+              Input group
+            </a>
+            <a href="/docs/v0.1/components/popover" class="sidebar-link">
+              Popover
+            </a>
+            <a href="/docs/v0.1/components/sidebar" class="sidebar-link">
+              Sidebar
+            </a>
+            <a href="/docs/v0.1/components/spinner" class="sidebar-link">
+              Spinner
+            </a>
+            <a href="/docs/v0.1/components/table" class="sidebar-link">
+              Table
+            </a>
+            <a href="/docs/v0.1/components/tabs" class="sidebar-link">
+              Tabs
+            </a>
+            <a href="/docs/v0.1/components/text" class="sidebar-link">
+              Text
+            </a>
+            <a href="/docs/v0.1/components/toggle" class="sidebar-link">
+              Toggle
+            </a>
+            <a href="/docs/v0.1/components/toggle-group" class="sidebar-link">
+              Toggle group
+            </a>
+        </nav>
+        <nav class="sidebar-group">
+          <p class="sidebar-label">Project</p>
+            <a href="/docs/v0.1/changelog" class="sidebar-link" aria-current="page">
+              Changelog
+            </a>
+            <a href="/docs/versions" class="sidebar-link">
+              Versions
+            </a>
+        </nav>
+    </aside>
+    <div class="sidebar-backdrop" data-sidebar-close></div>
+
+    <main class="min-w-0 flex-1 pt-8 pb-16 lg:pt-12">
+      <article class="mx-auto max-w-3xl">
+        
+        <div class="alert alert-warning mb-8" role="status" data-version-banner data-md-skip><div class="alert-title">You're viewing the docs for v0.1.</div><div class="alert-description">The latest version is next. <a class="link" href="/docs/changelog/0.1.0">Go to this page in next</a>.</div></div>
+        <header class="mb-10 space-y-3 border-b border-border pb-8">
+          <p class="eyebrow">Project</p>
+          <h1 class="h1">v0.1.0</h1>
+<p class="lead">First release: design tokens, light and dark themes, twenty components including forms, toggles and loading states, syntax highlighting, versioned and agent-ready docs; plus htmx-ui-engine (dev server and builds on Bun or Node) and create-htmx-ui.</p>          <div class="flex flex-wrap gap-2 pt-2">
+            <button type="button" class="btn btn-outline btn-sm" data-markdown-copy="/docs/v0.1/changelog/0.1.0.md">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg> <span data-markdown-copy-label>Copy Markdown</span>
+            </button>
+            <a href="/docs/v0.1/changelog/0.1.0.md" class="btn btn-ghost btn-sm" title="This page as Markdown, for AI agents"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4M10 9H8M16 13H8M16 17H8"/></svg> View .md</a>
+          </div>
+        </header>
+
+        <div data-docs-content class="prose docs-prose max-w-none">
+  <div class="not-prose flex flex-wrap items-center gap-3">
+    <a href="/docs/v0.1/changelog" class="btn btn-ghost btn-sm -ml-3"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg> All releases</a>
+    <span class="badge badge-primary">Latest</span>
+    <time datetime="2026-10-02" class="muted">2026-10-02</time>
+  </div>
+
+  <h2 id="added">Added<a class="heading-anchor" href="#added" aria-label="Link to this section" data-md-skip>#</a></h2>
+  <h3 id="components">Components<a class="heading-anchor" href="#components" aria-label="Link to this section" data-md-skip>#</a></h3>
+  <ul>
+    <li><a href="/docs/v0.1/components/accordion">Accordion</a>: built on <code>&lt;details&gt;</code>: one or several open, disabled items, bordered and separated styles, lazy-loaded content with htmx.</li>
+    <li><a href="/docs/v0.1/components/alert">Alert</a>: neutral, info, success, warning and danger, with an optional dismiss button.</li>
+    <li><a href="/docs/v0.1/components/badge">Badge</a>: solid, outline and soft status variants, plus a status dot.</li>
+    <li><a href="/docs/v0.1/components/button">Button</a>: primary, secondary, outline, ghost, danger and link variants; extra small to large sizes; icon, rounded, disabled and loading states.</li>
+    <li><a href="/docs/v0.1/components/button-group">Button group</a>: joins buttons, inputs, dropdowns and popovers: vertical, sized, separated, nested toolbars and split buttons.</li>
+    <li><a href="/docs/v0.1/components/card">Card</a>: header, title, description, action, content and footer parts; edge-to-edge images, horizontal layout, scrolling content, compact size and clickable cards.</li>
+    <li><a href="/docs/v0.1/components/code-block">Code block</a>: build-time syntax highlighting, copy button, file tabs and npm/pnpm/yarn/bun command tabs.</li>
+    <li><a href="/docs/v0.1/components/dropdown">Dropdown</a>: accessible menu with keyboard navigation; powers the docs version switcher.</li>
+    <li><a href="/docs/v0.1/components/field">Field</a>: labels, descriptions and error, warning and success messages; an automatic required asterisk; inline, responsive and grid form layouts; fieldsets and separators.</li>
+    <li><a href="/docs/v0.1/components/icon">Icon</a>: SVG files inlined at build time, or linked as images.</li>
+    <li><a href="/docs/v0.1/components/input">Input</a>: text inputs, textareas, selects and file inputs, with sizes and disabled, error, warning and success states.</li>
+    <li><a href="/docs/v0.1/components/input-group">Input group</a>: icons, text, badges, buttons, dropdowns and spinners inside an input, at the inline start or end, above or below.</li>
+    <li><a href="/docs/v0.1/components/popover">Popover</a>: a floating panel of rich content or a small form that opens from a button.</li>
+    <li><a href="/docs/v0.1/components/sidebar">Sidebar</a>: sticky on desktop, off-canvas with a backdrop on mobile.</li>
+    <li><a href="/docs/v0.1/components/spinner">Spinner</a>: any icon or a pure-CSS ring, in four sizes; works in buttons, badges, button groups and input groups, and as an htmx request indicator.</li>
+    <li><a href="/docs/v0.1/components/table">Table</a>: bordered wrapper, muted header and hover rows.</li>
+    <li><a href="/docs/v0.1/components/tabs">Tabs</a>: accessible tab groups that can sync with each other and remember the reader's choice.</li>
+    <li><a href="/docs/v0.1/components/text">Text</a>: <code>@tailwindcss/typography</code> (<code>.prose</code>) mapped onto the design tokens, plus heading, lead, muted, link, inline code and kbd helpers.</li>
+    <li><a href="/docs/v0.1/components/toggle">Toggle</a>: any button becomes an on/off toggle with <code>aria-pressed</code>.</li>
+    <li><a href="/docs/v0.1/components/toggle-group">Toggle group</a>: pick one, at most one, or many; arrow-key navigation; spaced or joined.</li>
+  </ul>
+  <h3 id="theming-and-dark-mode">Theming and dark mode<a class="heading-anchor" href="#theming-and-dark-mode" aria-label="Link to this section" data-md-skip>#</a></h3>
+  <ul>
+    <li>Design tokens as CSS variables, exposed as Tailwind colours with <code>@theme inline</code>. See <a href="/docs/v0.1/theming">Theming</a>.</li>
+    <li>Thin, theme-tinted scrollbars everywhere (<code>--scrollbar-thumb</code>). See <a href="/docs/v0.1/theming#scrollbars">Theming</a>.</li>
+    <li>Class-based dark mode with a theme switcher that follows the OS until the user picks. See <a href="/docs/v0.1/dark-mode">Dark mode</a>.</li>
+  </ul>
+  <h3 id="templates-and-data">Templates and data<a class="heading-anchor" href="#templates-and-data" aria-label="Link to this section" data-md-skip>#</a></h3>
+  <ul>
+    <li>Component behaviours initialise inside swapped content via <code>htmx:after:process</code>, including when the swapped element is the component itself.</li>
+    <li>Optional Nunjucks macros for alerts, code blocks, command tabs, icons and spinners.</li>
+    <li><code>json()</code>, <code>svg()</code> and <code>glob()</code> template functions. See <a href="/docs/v0.1/templates">Templates &amp; data</a>.</li>
+  </ul>
+  <h3 id="docs">Docs<a class="heading-anchor" href="#docs" aria-label="Link to this section" data-md-skip>#</a></h3>
+  <ul>
+    <li>Versioned docs: a version switcher, frozen snapshots of older versions under <code>/docs/v&lt;version&gt;</code>, and <code>/docs/versions.json</code>. See <a href="/docs/versions">Versions</a>.</li>
+    <li>Site search (<kbd>Ctrl</kbd> / <kbd>⌘</kbd> + <kbd>K</kbd>): fuzzy-finds pages and sections in the docs version you're reading, and opens the exact section.</li>
+  </ul>
+  <h3 id="package">Package<a class="heading-anchor" href="#package" aria-label="Link to this section" data-md-skip>#</a></h3>
+  <ul>
+    <li>ES modules with TypeScript types for <code>htmx-ui</code> and <code>htmx-ui/theme</code>; CSS, icons and macros ship as source.</li>
+    <li><code>htmx.org</code> 4 and <code>tailwindcss</code> 4 are peer dependencies; <code>@tailwindcss/typography</code> is installed with the package.</li>
+    <li>Nunjucks macros for alerts, code blocks, command tabs, icons and spinners, resolved by name in engine sites.</li>
+  </ul>
+  <h3 id="engine-and-project-starter">Engine and project starter<a class="heading-anchor" href="#engine-and-project-starter" aria-label="Link to this section" data-md-skip>#</a></h3>
+  <ul>
+    <li><code>htmx-ui-engine</code>: <code>htmx-ui dev</code>, <code>build</code> and <code>preview</code> for sites made of Nunjucks pages, with file-based routing, Tailwind, hot reload (including layouts, partials and data) and mock htmx endpoints. Runs on Bun (Bun.serve, Bun.build) or Node (Vite), picked from whatever started it. See <a href="/docs/v0.1/engine">Engine</a>.</li>
+    <li>A Bun plugin (<code>htmx-ui-engine/bun</code>) and a Vite plugin (<code>htmx-ui-engine/vite</code>) for existing build setups.</li>
+    <li><code>create-htmx-ui</code>: <code>npm create htmx-ui</code>, <code>pnpm create htmx-ui</code>, <code>yarn create htmx-ui</code> or <code>bun create htmx-ui</code> scaffolds a site with pages, a layout, a theme toggle and an htmx demo.</li>
+  </ul>
+  <h3 id="for-ai-agents">For AI agents<a class="heading-anchor" href="#for-ai-agents" aria-label="Link to this section" data-md-skip>#</a></h3>
+  <ul>
+    <li>Every docs page as Markdown at <code>&lt;url&gt;.md</code>, plus <code>/llms.txt</code>, <code>/llms-full.txt</code>, <code>/sitemap.json</code> (with section text for search, and per-version sitemaps) and <code>/sitemap.xml</code>. See <a href="/docs/v0.1/ai-agents">AI agents</a>.</li>
+    <li>Every docs heading has a <code>#</code> link, so sections can be shared and opened directly.</li>
+    <li>Prompt examples and a ready-made agent skill that point at <code>/llms.txt</code>.</li>
+  </ul>
+        </div>
+
+      </article>
+    </main>
+  </div>
+<footer class="border-t border-border">
+  <div class="mx-auto flex w-full max-w-7xl flex-col items-center justify-between gap-4 px-4 py-8 text-sm text-muted-foreground sm:flex-row sm:px-6 lg:px-8">
+    <p>© <span data-year></span> HTMX UI. Built with htmx, Tailwind CSS and Bun.</p>
+    <nav class="flex gap-5">
+      <a href="/docs/v0.1" class="hover:text-foreground">Docs</a>
+      <a href="/docs/v0.1/changelog" class="hover:text-foreground">Changelog</a>
+      <a href="/about" class="hover:text-foreground">About</a>
+    </nav>
+  </div>
+</footer>
+  </body>
+</html>

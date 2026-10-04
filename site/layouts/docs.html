@@ -12,13 +12,22 @@
 {# Pages rendered from source are always the latest docs version; older versions are frozen snapshots (site/lib/versions.ts). #}
 {% set version = versions.latest %}
 
-{# Flatten the nav for prev/next, and find this page's section. #}
+{# Flatten the nav for prev/next, and find this page's closest nav entry: the one for
+   its own route, or the longest one that prefixes it (/docs/servers/express -> /docs/servers).
+   Only that entry is marked active, so a section can have pages of its own. #}
+{# Named nav_* because an {% include %} shares this frame (partials/header.html has its own `active`). #}
 {% set pages = [] %}
-{% set section = "Docs" %}
+{% set nav_active = "" %}
+{% set nav_section = "Docs" %}
 {% for group in sections %}
   {% for item in group.items %}
     {% set _ = pages.push(item) %}
-    {% if item.href == url or url.startsWith(item.href + "/") %}{% set section = group.title %}{% endif %}
+    {% if item.href == url or url.startsWith(item.href + "/") %}
+      {% if item.href.length > nav_active.length %}
+        {% set nav_active = item.href %}
+        {% set nav_section = group.title %}
+      {% endif %}
+    {% endif %}
   {% endfor %}
 {% endfor %}
 
@@ -41,8 +50,7 @@
         <nav class="sidebar-group">
           <p class="sidebar-label">{{ group.title }}</p>
           {% for item in group.items %}
-            {% set active = item.href == url or (item.href != "/docs" and item.href != "/docs/components" and url.startsWith(item.href + "/")) %}
-            <a href="{{ item.href }}" class="sidebar-link"{% if active %} aria-current="page"{% endif %}>
+            <a href="{{ item.href }}" class="sidebar-link"{% if item.href == nav_active %} aria-current="page"{% endif %}>
               {{ item.title }}
             </a>
           {% endfor %}
@@ -53,17 +61,18 @@
 
     <main class="min-w-0 flex-1 pt-8 pb-16 lg:pt-12">
       <article class="mx-auto max-w-3xl">
-        {# Filled in on older versions by site/features/versions.ts #}
+        {# Banner for older versions: filled in when they are archived (site/lib/versions.ts),
+           refreshed at view time by site/features/versions.ts. Empty on the latest docs. #}
         <div data-version-banner data-md-skip hidden></div>
         <header class="mb-10 space-y-3 border-b border-border pb-8">
-          <p class="eyebrow">{{ section }}</p>
+          <p class="eyebrow">{{ nav_section }}</p>
           <h1 class="h1">{{ title }}</h1>
           {% if description %}<p class="lead">{{ description }}</p>{% endif %}
           <div class="flex flex-wrap gap-2 pt-2">
             <button type="button" class="btn btn-outline btn-sm" data-markdown-copy="{{ url }}.md">
               {{ icon("copy") }} <span data-markdown-copy-label>Copy Markdown</span>
             </button>
-            <a href="{{ url }}.md" class="btn btn-ghost btn-sm" title="This page as Markdown, for AI agents">{{ icon("file-text") }} View .md</a>
+            <a hx-boost="false" href="{{ url }}.md" target="_blank" class="btn btn-ghost btn-sm" title="This page as Markdown, for AI agents">{{ icon("file-text") }} View .md</a>
           </div>
         </header>
 

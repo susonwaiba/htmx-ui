@@ -17,7 +17,7 @@
     </script>
     <script type="module" src="{{ asset('app.ts') }}"></script>
   </head>
-  <body class="min-h-dvh bg-background text-foreground antialiased">
+  <body hx-boost:inherited="true" class="min-h-dvh bg-background text-foreground antialiased">
     {% block body %}{% endblock %}
   </body>
 </html>

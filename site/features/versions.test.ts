@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 
+import { bannerMarkup } from "../lib/versions";
 import { initVersions } from "./versions";
 
 const MANIFEST = {
@@ -83,7 +84,54 @@ describe("versions", () => {
 
     const banner = document.querySelector<HTMLElement>("[data-version-banner]")!;
     expect(banner.hidden).toBe(false);
+    // Styled and worded exactly as the archiver bakes it in, so a snapshot's banner is
+    // only ever refreshed: no unstyled box growing into an alert when the page loads.
+    expect(banner.className).toBe("alert alert-warning mb-8");
+    expect(banner.getAttribute("role")).toBe("status");
+    expect(banner.querySelector(".alert-title")?.textContent).toBe("You're viewing the docs for v0.1.");
+    expect(banner.querySelector(".alert-description")?.textContent).toBe("The latest version is v0.2. Go to this page in v0.2.");
     expect(banner.querySelector("a")?.getAttribute("href")).toBe("/docs/installation");
+    expect(bannerMarkup("v0.1", "v0.2", "/docs/installation")).toContain(banner.innerHTML);
+  });
+
+  test("refreshes the banner a snapshot already ships with", async () => {
+    // An archived page arrives with the banner already built (site/lib/versions.ts)
+    document.body.innerHTML = `
+      <span data-version-switcher data-version="0.1" data-versions-src="/docs/versions.json">
+        <ul data-version-items></ul>
+      </span>
+      ${bannerMarkup("v0.1", "next", "/docs/installation")}`;
+    Object.defineProperty(window, "location", {
+      value: { href: "https://example.test/docs/v0.1/installation", pathname: "/docs/v0.1/installation" },
+      writable: true,
+    });
+    stubFetch(() => new Response(JSON.stringify(MANIFEST)));
+
+    await initVersions();
+
+    const banner = document.querySelector<HTMLElement>("[data-version-banner]")!;
+    // Same element, only the label and the link moved on to the version released since
+    expect(banner.className).toBe("alert alert-warning mb-8");
+    expect(banner.querySelector(".alert-title")?.textContent).toBe("You're viewing the docs for v0.1.");
+    expect(banner.querySelector(".alert-description")?.textContent).toBe("The latest version is v0.2. Go to this page in v0.2.");
+    expect(banner.querySelector("a")?.getAttribute("href")).toBe("/docs/installation");
+  });
+
+  test("marks the version in development instead of calling it the latest", async () => {
+    const manifest = {
+      latest: "next",
+      versions: [
+        { id: "next", label: "next", path: "/docs", latest: true, released: null, pages: ["", "/components/button"] },
+        { id: "0.1", label: "v0.1", path: "/docs/v0.1", latest: false, released: "2026-01-01", pages: [""] },
+      ],
+    };
+    setup("/docs/components/button", manifest, "https://example.test/docs/components/button", "next");
+    await initVersions();
+
+    const items = [...document.querySelectorAll("[data-version-items] a")];
+    expect(items.map((a) => a.textContent)).toEqual(["nextIn development", "v0.1"]);
+    // Nothing is archived yet, so no banner
+    expect(document.querySelector<HTMLElement>("[data-version-banner]")!.hidden).toBe(true);
   });
 
   test("keeps the server-rendered links when the manifest cannot be read", async () => {

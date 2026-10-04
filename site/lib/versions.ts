@@ -11,8 +11,17 @@
 //   site/archive/v0.1/pages.json   page paths in that version (for the version switcher)
 //   /docs/versions.json            published manifest the switcher reads at runtime
 //
-// `bun run docs:archive <next>` (scripts/archive.ts) snapshots the latest version and
-// makes <next> the new latest.
+// A snapshot's pages get an "old version" banner baked in (bannerHtml), so it shows
+// without JavaScript; site/features/versions.ts refreshes it from the manifest, which
+// also teaches snapshots about versions released after them.
+//
+// The version being worked on is not numbered yet: it is listed as "next" until
+// `bun run version:set <x.y>` (scripts/version.ts) names it at release time. Its id
+// never reaches a URL, because the latest docs are served at /docs/... and only
+// *archived* versions get a /docs/v<id>/ prefix.
+//
+// `bun run docs:archive` (scripts/archive.ts) snapshots the latest version and starts a
+// new "next". `bun run version:set <x.y>` names it.
 
 import { existsSync } from "node:fs";
 import { cp, mkdir, readdir, rm } from "node:fs/promises";
@@ -22,6 +31,12 @@ import { routeFor } from "htmx-ui-engine";
 
 export type VersionEntry = { id: string; label: string; released?: string; archived?: boolean };
 export type Version = VersionEntry & { path: string; latest: boolean };
+
+/** Id of the docs version being worked on, before its release number is known. */
+export const NEXT_VERSION = "next";
+
+/** Display name of a version: "next" for the one in development, "v0.2" once numbered. */
+export const versionLabel = (id: string) => (id === NEXT_VERSION ? NEXT_VERSION : `v${id}`);
 
 const VERSIONS_FILE = resolve(SITE, "data/versions.json");
 
@@ -96,7 +111,7 @@ const isAsset = (name: string) => !/\.(html|md|txt|xml|json|map)$/.test(name);
 export function rewriteUrl(value: string, id: string, fileDir: string, assets: Set<string>): string {
   const docs = /^\/docs(?=$|[/.?#])(.*)$/.exec(value);
   if (docs) {
-    if (/^\/v\d/.test(docs[1]!) || docs[1] === "/versions.json") return value;
+    if (/^\/v[^/]/.test(docs[1]!) || docs[1] === "/versions.json") return value;
     return `/docs/v${id}${docs[1]}`;
   }
   if (/^([a-z][a-z0-9+.-]*:|\/|#)/i.test(value) || !value) return value;
@@ -113,6 +128,35 @@ export function rewriteMarkdown(md: string, id: string): string {
     .replace(/(\]\()([^)\s]+)/g, (_, a, url) => `${a}${fix(url)}`);
 }
 
+/**
+ * The "you are reading an old version" banner, as a whole element. Archived pages get
+ * it at build time, classes included, so it is styled on first paint;
+ * site/features/versions.ts reuses the element when it refreshes the banner from
+ * /docs/versions.json, so both must render exactly this markup.
+ */
+export function bannerMarkup(current: string, latest: string, href: string): string {
+  const label = Bun.escapeHTML(latest);
+  return (
+    `<div class="alert alert-warning mb-8" role="status" data-version-banner data-md-skip>` +
+    `<div class="alert-title">You're viewing the docs for ${Bun.escapeHTML(current)}.</div>` +
+    `<div class="alert-description">The latest version is ${label}. ` +
+    `<a class="link" href="${Bun.escapeHTML(href)}">Go to this page in ${label}</a>.</div></div>`
+  );
+}
+
+/** Bake the banner into a frozen page, after its URLs were rewritten. */
+function withBanner(html: string, current: string, newer: { label: string; path: string }, route: string, pages: string[]): string {
+  const sub = route === "/" ? "" : route;
+  const href = newer.path + (pages.includes(sub) ? sub : "");
+  return new HTMLRewriter()
+    .on("[data-version-banner]", {
+      element(el) {
+        el.replace(bannerMarkup(current, newer.label, href), { html: true });
+      },
+    })
+    .transform(html);
+}
+
 async function walk(dir: string): Promise<string[]> {
   const out: string[] = [];
   for (const entry of await readdir(dir, { withFileTypes: true })) {
@@ -125,9 +169,22 @@ async function walk(dir: string): Promise<string[]> {
 
 /**
  * Snapshot the docs of a finished build (`dist`) as version `id` into `archive`.
- * Returns the archived page paths.
+ * `newer` is the version that will be current once this one is archived: each frozen
+ * page gets a banner pointing at the same page there. Returns the archived page paths.
  */
-export async function archiveDocs({ dist, id, archive = ARCHIVE }: { dist: string; id: string; archive?: string }) {
+export async function archiveDocs({
+  dist,
+  id,
+  newer,
+  archive = ARCHIVE,
+}: {
+  dist: string;
+  id: string;
+  newer?: { label: string; path: string };
+  archive?: string;
+}) {
+  // A snapshot's id becomes a URL (/docs/v<id>/), so it must be a real version.
+  if (id === NEXT_VERSION) throw new Error(`[archive] "${NEXT_VERSION}" has no release number; name it with "bun run version:set <x.y>"`);
   const out = join(archive, `v${id}`);
   if (await Bun.file(join(out, "index.html")).exists()) throw new Error(`[archive] ${out} already exists`);
   await rm(out, { recursive: true, force: true });
@@ -145,12 +202,19 @@ export async function archiveDocs({ dist, id, archive = ARCHIVE }: { dist: strin
   const pages: string[] = [];
   const docFiles = [...(await walk(docsDir)), join(dist, "docs.md")];
 
+  // The build's docs sitemap lists the live pages, so a frozen page can link to the
+  // same page in the newer version when it still exists there.
+  const sitemapFile = Bun.file(join(docsDir, "sitemap.json"));
+  const sitemap = (await sitemapFile.exists()) ? await sitemapFile.json() : null;
+  const livePages: string[] = sitemap.pages.map((p: { url: string }) => p.url.slice("/docs".length));
+
   for (const file of docFiles) {
     if (!(await Bun.file(file).exists())) continue;
     const rel = relative(docsDir, file).split(sep).join("/"); // "components/button.html", "../docs.md"
-    if (/^v\d/.test(rel) || rel === "versions.json") continue; // older snapshots and the manifest are not part of this version
+    if (/^v[^/]/.test(rel) || rel === "versions.json") continue; // older snapshots and the manifest are not part of this version
     const target = rel === "../docs.md" ? join(archive, `v${id}.md`) : join(out, rel);
     await mkdir(dirname(target), { recursive: true });
+    const route = routeFor(rel); // "/" or "/components/button", relative to the version root
 
     if (file.endsWith(".html")) {
       const fileDir = posix.dirname(relative(dist, file).split(sep).join("/"));
@@ -170,8 +234,8 @@ export async function archiveDocs({ dist, id, archive = ARCHIVE }: { dist: strin
             el.append('<meta name="robots" content="noindex" />', { html: true });
           },
         });
-      await Bun.write(target, rewriter.transform(await Bun.file(file).text()));
-      const route = routeFor(rel); // "/" or "/components/button", relative to the version root
+      const frozen = rewriter.transform(await Bun.file(file).text());
+      await Bun.write(target, newer ? withBanner(frozen, versionLabel(id), newer, route, livePages) : frozen);
       pages.push(route === "/" ? "" : route);
     } else if (file.endsWith(".md")) {
       await Bun.write(target, rewriteMarkdown(await Bun.file(file).text(), id));
@@ -182,9 +246,8 @@ export async function archiveDocs({ dist, id, archive = ARCHIVE }: { dist: strin
   await Bun.write(join(out, "pages.json"), JSON.stringify(pages, null, 2) + "\n");
 
   // The version's own sitemap (search index): the build's docs sitemap with URLs moved under /docs/v<id>
-  const sitemapFile = Bun.file(join(dist, "docs", "sitemap.json"));
-  if (await sitemapFile.exists()) {
-    const map = await sitemapFile.json();
+  if (sitemap) {
+    const map = structuredClone(sitemap);
     const fix = (url: string | null) => (url ? rewriteUrl(url, id, "", new Set()) : url);
     map.version = id;
     map.pages = map.pages.map((p: { url: string; markdown: string | null }) => ({

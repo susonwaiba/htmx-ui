@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { mkdtemp, mkdir, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { archiveDocs, archiveFile, rewriteMarkdown, rewriteUrl, versionsManifest } from "./versions";
+import { archiveDocs, archiveFile, bannerMarkup, rewriteMarkdown, rewriteUrl, versionLabel, versionsManifest, loadVersions } from "./versions";
 
 async function fixture(files: Record<string, string>): Promise<string> {
   const dir = await mkdtemp(join(tmpdir(), "versions-"));
@@ -56,9 +56,11 @@ describe("archiveDocs", () => {
       "docs.md": '---\nurl: "/docs"\n---\n[x](/docs/x)\n',
       "docs/index.html":
         '<html><head><link rel="stylesheet" href="../chunk-b.css"></head><body>' +
+        '<div data-version-banner data-md-skip hidden></div>' +
         '<a href="/docs/x">x</a><a href="/docs/versions" data-version-link>v</a><script src="../chunk-a.js"></script></body></html>',
       "docs/x.html":
-        '<html><head><link rel="modulepreload" href="../assets/app-c.js"></head><body><button data-markdown-copy="/docs/x.md"></button>' +
+        '<html><head><link rel="modulepreload" href="../assets/app-c.js"></head><body><div data-version-banner data-md-skip hidden></div>' +
+        '<button data-markdown-copy="/docs/x.md"></button>' +
         '<script type="module" src="../assets/app-c.js"></script></body></html>',
       "docs/x.md": "[home](/docs)\n",
       "docs/versions.json": "{}",
@@ -81,6 +83,8 @@ describe("archiveDocs", () => {
     expect(index).toContain('href="/docs/v0.1/x"');
     expect(index).toContain('href="/docs/versions" data-version-link'); // switcher links untouched
     expect(index).toContain('<meta name="robots" content="noindex" />');
+    // The banner slot stays empty here: the version being archived is still the latest one
+    expect(index).toContain("<div data-version-banner data-md-skip hidden></div>");
 
     const x = await Bun.file(join(archive, "v0.1/x.html")).text();
     expect(x).toContain('data-markdown-copy="/docs/v0.1/x.md"');
@@ -108,6 +112,19 @@ describe("archiveDocs", () => {
     const dist = await build();
     const archive = await fixture({ "v0.1/index.html": "x" });
     await expect(archiveDocs({ dist, id: "0.1", archive })).rejects.toThrow(/already exists/);
+  });
+
+  test("bakes the old-version banner in, so it needs no JavaScript", async () => {
+    const dist = await build();
+    const archive = await fixture({});
+    await archiveDocs({ dist, id: "0.1", newer: { label: "next", path: "/docs" }, archive });
+
+    const index = await Bun.file(join(archive, "v0.1/index.html")).text();
+    expect(index).toContain(bannerMarkup("v0.1", "next", "/docs"));
+    // The build's sitemap lists /x but not the docs root, so only that page keeps its route
+    const x = await Bun.file(join(archive, "v0.1/x.html")).text();
+    expect(x).toContain(bannerMarkup("v0.1", "next", "/docs/x"));
+    expect(x).not.toContain("hidden");
   });
 });
 
@@ -138,5 +155,33 @@ test("versionsManifest lists versions with paths and pages", async () => {
       { id: "0.2", label: "v0.2", released: null, path: "/docs", latest: true, sitemap: "/docs/sitemap.json", pages: ["", "/new"] },
       { id: "0.1", label: "v0.1", released: "2026-01-01", path: "/docs/v0.1", latest: false, sitemap: "/docs/v0.1/sitemap.json", pages: ["", "/old"] },
     ],
+  });
+});
+
+describe("the version in development", () => {
+  test("is labelled 'next' until it is numbered", () => {
+    expect(versionLabel("next")).toBe("next");
+    expect(versionLabel("0.2")).toBe("v0.2");
+  });
+
+  test("is served at /docs, never at /docs/vnext", async () => {
+    const file = join(await fixture({}), "versions.json");
+    await writeFile(file, JSON.stringify({ latest: "next", versions: [{ id: "next", label: "next" }, { id: "0.1", label: "v0.1", archived: true }] }));
+    const { latest, versions } = await loadVersions(file);
+    expect(latest).toBe("next");
+    expect(versions.map((v) => v.path)).toEqual(["/docs", "/docs/v0.1"]);
+  });
+
+  test("leaves links to any other version alone, numbered or not", () => {
+    const fix = (url: string) => rewriteUrl(url, "0.2", "", new Set());
+    for (const url of ["/docs/vnext/x", "/docs/v0.1/x", "/docs/versions.json"]) expect(fix(url)).toBe(url);
+    expect(fix("/docs/x")).toBe("/docs/v0.2/x");
+  });
+
+  test("is never snapshotted: a placeholder archive dir is refused", async () => {
+    const dist = await fixture({ "docs/index.html": "<html></html>" });
+    const archive = await fixture({});
+    await expect(archiveDocs({ dist, id: "next", archive })).rejects.toThrow();
+    expect(await Bun.file(join(archive, "vnext/index.html")).exists()).toBe(false);
   });
 });

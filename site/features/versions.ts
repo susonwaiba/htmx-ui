@@ -1,16 +1,21 @@
 // Docs version switcher and "old version" banner.
 //
-// Reads /docs/versions.json (bun/versions.ts) and rebuilds the switcher's links so
-// each points at the same page in that version, when it exists there. Because this
-// runs at view time, frozen snapshots of older versions also list versions that
-// were released after them, and show a banner pointing to the latest docs.
+// Archived pages are frozen HTML, so their banner is baked in when they are
+// archived (site/lib/versions.ts) and is there on first paint. This module reads
+// /docs/versions.json (bun/versions.ts) to rebuild the switcher's links so each points
+// at the same page in that version, when it exists there, and to refresh the banner when
+// a newer version has been released since. Because it runs at view time, frozen
+// snapshots also list versions that were released after them.
 
 type Manifest = {
   latest: string;
-  versions: { id: string; label: string; path: string; latest: boolean; pages: string[] }[];
+  versions: { id: string; label: string; path: string; latest: boolean; released: string | null; pages: string[] }[];
 };
 
-function link(href: string, label: string, current: boolean, latest: boolean): HTMLAnchorElement {
+/** The version being worked on has no release number yet; it is labelled "next". */
+const IN_DEVELOPMENT = "next";
+
+function link(href: string, label: string, current: boolean, latest: boolean, released: boolean): HTMLAnchorElement {
   const a = document.createElement("a");
   a.href = href;
   a.className = "dropdown-item";
@@ -24,25 +29,29 @@ function link(href: string, label: string, current: boolean, latest: boolean): H
   if (latest) {
     const badge = document.createElement("span");
     badge.className = "badge badge-primary";
-    badge.textContent = "Latest";
+    badge.textContent = label === IN_DEVELOPMENT || !released ? "In development" : "Latest";
     a.append(badge);
   }
   return a;
 }
 
+/**
+ * Fill the banner. Archived pages ship it already built (site/lib/versions.ts), so its
+ * parts are reused and only the text is refreshed: no flash when nothing has changed.
+ */
 function banner(el: HTMLElement, current: string, latestLabel: string, href: string) {
   el.className = "alert alert-warning mb-8";
   el.setAttribute("role", "status");
-  const title = document.createElement("div");
+  const title = el.querySelector<HTMLElement>(".alert-title") ?? document.createElement("div");
   title.className = "alert-title";
   title.textContent = `You're viewing the docs for ${current}.`;
-  const body = document.createElement("div");
+  const body = el.querySelector<HTMLElement>(".alert-description") ?? document.createElement("div");
   body.className = "alert-description";
-  const a = document.createElement("a");
+  const a = body.querySelector<HTMLAnchorElement>("a") ?? document.createElement("a");
   a.className = "link";
   a.href = href;
   a.textContent = `Go to this page in ${latestLabel}`;
-  body.append(`The latest version is ${latestLabel}. `, a, ".");
+  body.replaceChildren(`The latest version is ${latestLabel}. `, a, ".");
   el.replaceChildren(title, body);
   el.hidden = false;
 }
@@ -71,7 +80,9 @@ export async function initVersions() {
 
   switcher
     .querySelector("[data-version-items]")
-    ?.replaceChildren(...manifest.versions.map((v) => link(hrefIn(v), v.label, v === current, v.latest)));
+    ?.replaceChildren(
+      ...manifest.versions.map((v) => link(hrefIn(v), v.label, v === current, v.latest, !!v.released)),
+    );
 
   const latest = manifest.versions.find((v) => v.latest);
   const slot = document.querySelector<HTMLElement>("[data-version-banner]");

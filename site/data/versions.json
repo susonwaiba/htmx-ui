@@ -1,6 +1,15 @@
 {
-  "latest": "0.1",
+  "latest": "next",
   "versions": [
-    { "id": "0.1", "label": "v0.1", "released": "2026-10-02" }
+    {
+      "id": "next",
+      "label": "next"
+    },
+    {
+      "id": "0.1",
+      "label": "v0.1",
+      "released": "2026-10-02",
+      "archived": true
+    }
   ]
 }

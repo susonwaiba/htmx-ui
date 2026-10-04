@@ -98,16 +98,79 @@
     {% raw %}{% for path in glob("icons/*.svg") %}…{% endfor %}{% endraw %}
   {% endcall %}
 
+  <h2 id="assets">Assets</h2>
+  <p>
+    <code>asset(path)</code> turns a root-relative path into one relative to the page being rendered, so a
+    layout's <code>&lt;script src&gt;</code> works from any depth. The bundler resolves it and names the built
+    file after its content.
+  </p>
+  {% call code("jinja") %}
+    {% raw %}<script type="module" src="{{ asset('app.ts') }}"></script>{% endraw %}
+  {% endcall %}
+  <p>
+    <code>assetVer(path)</code> is the same URL with <code>?ver=</code> appended: the project's own
+    <code>version</code> from <code>package.json</code>, plus a random suffix per dev session
+    (<code>?ver=1.4.0-k3f9</code> in dev). Use it for assets whose name doesn't change with their content, so a
+    browser or proxy never serves a stale copy.
+  </p>
+  {% call code("jinja") %}
+    {% raw %}<link rel="stylesheet" href="{{ assetVer('app.css') }}">{% endraw %}
+  {% endcall %}
+  <p>
+    A project with no <code>version</code> in <code>package.json</code> gets <code>assetVer()</code> ==
+    <code>asset()</code> in a build, and a random one in dev. It makes no difference for most files: both Bun and
+    Vite name built assets after their content, and Bun's dev server does too, so their URLs always change with
+    the file. It matters where a URL stays the same — Vite's dev server serves <code>/app.css</code> un-hashed,
+    and <code>public/</code> files keep their names in <code>dist/</code>.
+  </p>
+
+  <h2 id="custom">Custom globals and filters</h2>
+  <p>
+    The helpers above are the ones every site needs; whatever is specific to yours goes in
+    <code>globals</code> and <code>filters</code> in <code>htmx-ui.config.ts</code>. Both are plain JavaScript,
+    registered before every render, so a helper of your own is available wherever a built-in one is: layouts,
+    partials, and macros imported without <code>with context</code>.
+  </p>
+  {% call code("ts", title="htmx-ui.config.ts") %}
+    import { defineConfig, markup } from "htmx-ui-engine";
+
+    export default defineConfig({
+      globals: {
+        // Any value you can compute at render time…
+        siteName: "Acme",
+        // …or a function, called with whatever the template passes.
+        docsUrl: (path: string) => `https://docs.acme.com${path}`,
+        badge: (label: string) => markup(`<span class="badge">${label}</span>`),
+      },
+      filters: {
+        slug: (text: unknown) => String(text).toLowerCase().replace(/\s+/g, "-"),
+      },
+    });
+  {% endcall %}
+  {% call code("jinja") %}
+    {% raw %}<a href="{{ docsUrl('/api') }}">{{ siteName }} API</a> <span>{{ badge("new") }}</span>
+{{ "Acme Support" | slug }}{% endraw %}
+  {% endcall %}
+  <p>
+    What you return is escaped like any other value, so a global that emits HTML wraps it in
+    <code>markup()</code> — the same way <code>svg()</code> and <code>| highlight</code> return markup. An unknown
+    name fails the build rather than rendering blank, which catches a typo in a helper's name too. Rendering a page
+    yourself takes the same options: <code>site.render()</code> and the exported <code>render()</code> both accept
+    <code>globals</code> and <code>filters</code>, alongside the <code>context</code> values a request supplies.
+  </p>
+
   <h2 id="reference">Reference</h2>
   {{ classes([
     ["json(path)", "Parsed JSON file. Paths are relative to a template root (the project, then htmx-ui); first match wins."],
     ["svg(path, attrs)", "Inline SVG with attributes set on the root <svg>."],
     ["glob(pattern)", "Sorted list of root-relative paths matching the pattern."],
     ["asset(path)", "Root-relative path rewritten relative to the current page (for <script src>, <link href>)."],
+    ["assetVer(path)", "asset(path) with ?ver=<package.json version>, plus a random suffix in dev."],
     ["url", "The current page's route, e.g. /docs/templates."],
     ["origin", "The public site URL: url in htmx-ui.config.ts, or $SITE_URL."],
     ["| dedent", "Remove shared indentation."],
     ["| highlight(lang)", "Syntax-highlight a string at build time."]
   ], heading="Function / filter") }}
-  <p>All of them work inside imported macros too, without <code>with context</code>.</p>
+  <p>All of them work inside imported macros too, without <code>with context</code>. Add your own with
+    <code>globals</code> and <code>filters</code> in the config, as above.</p>
 {% endblock %}

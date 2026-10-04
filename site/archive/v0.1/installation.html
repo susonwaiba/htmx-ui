@@ -1,0 +1,519 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Installation · HTMX UI</title>
+  <meta name="description" content="Start a new HTMX UI site with one command, or add the components to an app that already uses Tailwind CSS v4 and htmx." />
+    <script>
+      // Apply the stored theme before first paint to avoid a flash of the wrong
+      // colors. Kept inline and tiny on purpose; htmx-ui/theme takes over
+      // once app.ts loads.
+      (() => {
+        const stored = localStorage.getItem("theme");
+        const dark = stored ? stored === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+        document.documentElement.classList.toggle("dark", dark);
+      })();
+    </script>
+    
+  <link rel="stylesheet" crossorigin href="/docs/v0.1/_assets/index-ecy9vwrz.css"><script type="module" crossorigin src="/docs/v0.1/_assets/index-rpr74v5j.js"></script><link rel="modulepreload" crossorigin href="/docs/v0.1/_assets/index-rpr74v5j.js"><meta name="robots" content="noindex" /></head>
+  <body class="min-h-dvh bg-background text-foreground antialiased">
+<header class="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/70">
+  <div class="mx-auto flex h-14 w-full max-w-7xl items-center gap-2 px-4 sm:px-6 lg:px-8">
+      <button type="button" class="btn btn-ghost btn-icon -ml-2 lg:hidden" data-sidebar-toggle aria-controls="docs-nav" aria-expanded="false" aria-label="Open navigation"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+    <a href="/" class="mr-4 flex items-center gap-2 font-semibold">
+      <span class="grid size-7 place-items-center rounded-md bg-primary text-primary-foreground"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65M22 12.65l-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/></svg></span>
+      HTMX UI
+    </a>
+    <nav class="hidden items-center gap-1 text-sm sm:flex">
+        <a href="/docs/v0.1" class="rounded-md px-3 py-1.5 transition-colors hover:text-foreground text-foreground font-medium" aria-current="page">Docs</a>
+        <a href="/docs/v0.1/components" class="rounded-md px-3 py-1.5 transition-colors hover:text-foreground text-muted-foreground">Components</a>
+        <a href="/docs/v0.1/changelog" class="rounded-md px-3 py-1.5 transition-colors hover:text-foreground text-muted-foreground">Changelog</a>
+    </nav>
+    <div class="ml-auto flex items-center gap-1">
+
+<button type="button" class="btn btn-outline btn-sm hidden w-56 justify-between font-normal text-muted-foreground md:inline-flex" data-search-open aria-haspopup="dialog" aria-label="Search the docs">
+  <span class="inline-flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg> Search docs…</span>
+  <kbd class="kbd" data-search-shortcut>Ctrl K</kbd>
+</button>
+<button type="button" class="btn btn-ghost btn-icon md:hidden" data-search-open aria-haspopup="dialog" aria-label="Search the docs"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></button>
+
+<dialog class="search-dialog" data-search-dialog aria-label="Search the docs">
+  <div class="search-field">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4 shrink-0 text-muted-foreground" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+    <input type="search" class="search-input" placeholder="Search docs, components, sections…" autocomplete="off" spellcheck="false"
+      role="combobox" aria-expanded="false" aria-controls="search-results" aria-autocomplete="list" aria-label="Search" data-search-input />
+    <kbd class="kbd">Esc</kbd>
+  </div>
+  <div class="search-body">
+    <ul id="search-results" class="search-results" role="listbox" aria-label="Results" data-search-results></ul>
+    <p class="search-message" data-search-message>Type to search pages and sections.</p>
+  </div>
+  <div class="search-footer" aria-hidden="true">
+    <span><kbd class="kbd">↑</kbd> <kbd class="kbd">↓</kbd> to navigate</span>
+    <span><kbd class="kbd"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-3" aria-hidden="true"><path d="M10 9V5l-7 7 7 7v-4.1c5 0 8.5 1.6 11 5.1-1-5-4-10-11-11z"/></svg></kbd> to open</span>
+    <span class="ml-auto" data-search-version></span>
+  </div>
+</dialog>
+      <a href="/docs/v0.1/installation" class="btn btn-primary btn-sm hidden sm:inline-flex">Get started</a>
+      <button type="button" class="btn btn-ghost btn-icon" data-theme-toggle aria-pressed="false" title="Toggle light and dark theme">
+        <span class="dark:hidden"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg></span>
+        <span class="hidden dark:inline"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg></span>
+        <span class="sr-only">Theme: <span data-theme-label>light</span></span>
+      </button>
+    </div>
+  </div>
+</header>
+  <div class="mx-auto flex w-full max-w-7xl gap-12 px-4 sm:px-6 lg:px-8">
+    <aside id="docs-nav" class="sidebar" data-sidebar aria-label="Documentation">
+      <div class="mb-6 flex items-center justify-between lg:hidden">
+        <span class="font-semibold">Documentation</span>
+        <button type="button" class="btn btn-ghost btn-icon btn-sm" data-sidebar-toggle aria-controls="docs-nav" aria-label="Close navigation"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+      </div>
+
+
+<div class="dropdown mb-6 w-full" data-dropdown data-version-switcher data-version="0.1" data-versions-src="/docs/versions.json">
+  <button type="button" class="btn btn-outline w-full justify-between" data-dropdown-trigger aria-haspopup="menu" aria-expanded="false">
+    <span class="flex items-center gap-2 text-muted-foreground"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5M12 7v5l4 2"/></svg> Version</span>
+    <span class="flex items-center gap-1.5"><span class="font-mono">v0.1</span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span>
+  </button>
+  <div class="dropdown-menu w-full" role="menu" aria-label="Documentation version" hidden>
+    <p class="dropdown-label">Documentation versions</p>
+    <div data-version-items>
+        <a role="menuitem" class="dropdown-item" data-version-link href="/docs" aria-current="true">
+          <span class="font-mono">v0.1</span>
+<span class="badge badge-primary">Latest</span>        </a>
+    </div>
+    <div class="dropdown-separator" role="separator"></div>
+    <a role="menuitem" class="dropdown-item" data-version-link href="/docs/changelog">Changelog <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a>
+  </div>
+</div>
+        <nav class="sidebar-group">
+          <p class="sidebar-label">Getting started</p>
+            <a href="/docs/v0.1" class="sidebar-link">
+              Introduction
+            </a>
+            <a href="/docs/v0.1/installation" class="sidebar-link" aria-current="page">
+              Installation
+            </a>
+            <a href="/docs/v0.1/engine" class="sidebar-link">
+              Engine
+            </a>
+        </nav>
+        <nav class="sidebar-group">
+          <p class="sidebar-label">Customization</p>
+            <a href="/docs/v0.1/theming" class="sidebar-link">
+              Theming
+            </a>
+            <a href="/docs/v0.1/dark-mode" class="sidebar-link">
+              Dark mode
+            </a>
+        </nav>
+        <nav class="sidebar-group">
+          <p class="sidebar-label">Guides</p>
+            <a href="/docs/v0.1/templates" class="sidebar-link">
+              Templates &amp; data
+            </a>
+            <a href="/docs/v0.1/ai-agents" class="sidebar-link">
+              AI agents
+            </a>
+        </nav>
+        <nav class="sidebar-group">
+          <p class="sidebar-label">Components</p>
+            <a href="/docs/v0.1/components" class="sidebar-link">
+              Overview
+            </a>
+            <a href="/docs/v0.1/components/accordion" class="sidebar-link">
+              Accordion
+            </a>
+            <a href="/docs/v0.1/components/alert" class="sidebar-link">
+              Alert
+            </a>
+            <a href="/docs/v0.1/components/badge" class="sidebar-link">
+              Badge
+            </a>
+            <a href="/docs/v0.1/components/button" class="sidebar-link">
+              Button
+            </a>
+            <a href="/docs/v0.1/components/button-group" class="sidebar-link">
+              Button group
+            </a>
+            <a href="/docs/v0.1/components/card" class="sidebar-link">
+              Card
+            </a>
+            <a href="/docs/v0.1/components/code-block" class="sidebar-link">
+              Code block
+            </a>
+            <a href="/docs/v0.1/components/dropdown" class="sidebar-link">
+              Dropdown
+            </a>
+            <a href="/docs/v0.1/components/field" class="sidebar-link">
+              Field
+            </a>
+            <a href="/docs/v0.1/components/icon" class="sidebar-link">
+              Icon
+            </a>
+            <a href="/docs/v0.1/components/input" class="sidebar-link">
+              Input
+            </a>
+            <a href="/docs/v0.1/components/input-group" class="sidebar-link">
+              Input group
+            </a>
+            <a href="/docs/v0.1/components/popover" class="sidebar-link">
+              Popover
+            </a>
+            <a href="/docs/v0.1/components/sidebar" class="sidebar-link">
+              Sidebar
+            </a>
+            <a href="/docs/v0.1/components/spinner" class="sidebar-link">
+              Spinner
+            </a>
+            <a href="/docs/v0.1/components/table" class="sidebar-link">
+              Table
+            </a>
+            <a href="/docs/v0.1/components/tabs" class="sidebar-link">
+              Tabs
+            </a>
+            <a href="/docs/v0.1/components/text" class="sidebar-link">
+              Text
+            </a>
+            <a href="/docs/v0.1/components/toggle" class="sidebar-link">
+              Toggle
+            </a>
+            <a href="/docs/v0.1/components/toggle-group" class="sidebar-link">
+              Toggle group
+            </a>
+        </nav>
+        <nav class="sidebar-group">
+          <p class="sidebar-label">Project</p>
+            <a href="/docs/v0.1/changelog" class="sidebar-link">
+              Changelog
+            </a>
+            <a href="/docs/versions" class="sidebar-link">
+              Versions
+            </a>
+        </nav>
+    </aside>
+    <div class="sidebar-backdrop" data-sidebar-close></div>
+
+    <main class="min-w-0 flex-1 pt-8 pb-16 lg:pt-12">
+      <article class="mx-auto max-w-3xl">
+        
+        <div class="alert alert-warning mb-8" role="status" data-version-banner data-md-skip><div class="alert-title">You're viewing the docs for v0.1.</div><div class="alert-description">The latest version is next. <a class="link" href="/docs/installation">Go to this page in next</a>.</div></div>
+        <header class="mb-10 space-y-3 border-b border-border pb-8">
+          <p class="eyebrow">Getting started</p>
+          <h1 class="h1">Installation</h1>
+<p class="lead">Start a new HTMX UI site with one command, or add the components to an app that already uses Tailwind CSS v4 and htmx.</p>          <div class="flex flex-wrap gap-2 pt-2">
+            <button type="button" class="btn btn-outline btn-sm" data-markdown-copy="/docs/v0.1/installation.md">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg> <span data-markdown-copy-label>Copy Markdown</span>
+            </button>
+            <a href="/docs/v0.1/installation.md" class="btn btn-ghost btn-sm" title="This page as Markdown, for AI agents"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4M10 9H8M16 13H8M16 17H8"/></svg> View .md</a>
+          </div>
+        </header>
+
+        <div data-docs-content class="prose docs-prose max-w-none">
+  <p>Commands are shown for bun, npm, pnpm and yarn. Pick yours once; every command block on the site remembers the choice.</p>
+
+  <h2 id="packages">Packages<a class="heading-anchor" href="#packages" aria-label="Link to this section" data-md-skip>#</a></h2>
+  <div class="table-wrap not-prose">
+    <table class="table">
+      <thead><tr><th>Package</th><th>What it is</th></tr></thead>
+      <tbody>
+        <tr><td><code class="code">htmx-ui</code></td><td class="text-muted-foreground">The components: CSS classes, design tokens, dark mode and small behaviours. Works with any bundler.</td></tr>
+        <tr><td><code class="code">htmx-ui-engine</code></td><td class="text-muted-foreground">Builds a site from Nunjucks pages: <code class="code">htmx-ui dev</code>, <code class="code">build</code> and <code class="code">preview</code>, on Bun or Node. See <a class="link" href="/docs/v0.1/engine">Engine</a>.</td></tr>
+        <tr><td><code class="code">create-htmx-ui</code></td><td class="text-muted-foreground">Scaffolds a new site that uses both.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2 id="requirements">Requirements<a class="heading-anchor" href="#requirements" aria-label="Link to this section" data-md-skip>#</a></h2>
+  <div class="table-wrap not-prose">
+    <table class="table">
+      <thead><tr><th>Dependency</th><th>Version</th><th>Why</th></tr></thead>
+      <tbody>
+        <tr><td><a class="link" href="https://tailwindcss.com">Tailwind CSS</a></td><td><span class="badge badge-secondary">4.x</span></td><td class="text-muted-foreground">Component styles use <code class="code">@apply</code> and <code class="code">@theme</code>.</td></tr>
+        <tr><td><a class="link" href="https://htmx.org">htmx</a></td><td><span class="badge badge-secondary">4.x</span></td><td class="text-muted-foreground">Fragment swaps; components initialise inside new content.</td></tr>
+        <tr><td><a class="link" href="https://bun.sh">Bun</a> or <a class="link" href="https://nodejs.org">Node</a></td><td><span class="badge badge-secondary">Bun 1.2.3+ / Node 22.12+</span></td><td class="text-muted-foreground">For the engine. With your own bundler, any that handles TypeScript and CSS imports works.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2 id="new-project">New project<a class="heading-anchor" href="#new-project" aria-label="Link to this section" data-md-skip>#</a></h2>
+  <p>Create a site, install it and start the dev server:</p>
+  <div class="code-block not-prose" data-code data-tabs data-tabs-sync="pm">
+  <div class="code-block-header pl-1">
+    <div class="code-tabs" role="tablist">
+        <button type="button" class="code-tab" role="tab" data-tab="bun" aria-selected="true">bun</button>
+        <button type="button" class="code-tab" role="tab" data-tab="npm" aria-selected="false">npm</button>
+        <button type="button" class="code-tab" role="tab" data-tab="pnpm" aria-selected="false">pnpm</button>
+        <button type="button" class="code-tab" role="tab" data-tab="yarn" aria-selected="false">yarn</button>
+    </div>
+    <button type="button" class="code-copy" data-copy aria-label="Copy code">
+  <span class="code-copy-idle inline-flex items-center gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg><span data-copy-label>Copy</span></span>
+  <span class="code-copied items-center gap-1.5" aria-live="polite"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Copied</span>
+</button>
+  </div>
+    <pre role="tabpanel" data-tab-panel="bun"><code data-lang="bash"><span class="line"><span style="color:var(--code-token-function)">bun</span><span style="color:var(--code-token-string)"> create</span><span style="color:var(--code-token-string)"> htmx-ui</span><span style="color:var(--code-token-string)"> my-site</span></span>
+<span class="line"><span style="color:var(--code-token-function)">cd</span><span style="color:var(--code-token-string)"> my-site</span></span>
+<span class="line"><span style="color:var(--code-token-function)">bun</span><span style="color:var(--code-token-string)"> install</span></span>
+<span class="line"><span style="color:var(--code-token-function)">bun</span><span style="color:var(--code-token-string)"> run</span><span style="color:var(--code-token-string)"> dev</span></span></code></pre>
+    <pre role="tabpanel" data-tab-panel="npm" hidden><code data-lang="bash"><span class="line"><span style="color:var(--code-token-function)">npm</span><span style="color:var(--code-token-string)"> create</span><span style="color:var(--code-token-string)"> htmx-ui</span><span style="color:var(--code-token-string)"> my-site</span></span>
+<span class="line"><span style="color:var(--code-token-function)">cd</span><span style="color:var(--code-token-string)"> my-site</span></span>
+<span class="line"><span style="color:var(--code-token-function)">npm</span><span style="color:var(--code-token-string)"> install</span></span>
+<span class="line"><span style="color:var(--code-token-function)">npm</span><span style="color:var(--code-token-string)"> run</span><span style="color:var(--code-token-string)"> dev</span></span></code></pre>
+    <pre role="tabpanel" data-tab-panel="pnpm" hidden><code data-lang="bash"><span class="line"><span style="color:var(--code-token-function)">pnpm</span><span style="color:var(--code-token-string)"> create</span><span style="color:var(--code-token-string)"> htmx-ui</span><span style="color:var(--code-token-string)"> my-site</span></span>
+<span class="line"><span style="color:var(--code-token-function)">cd</span><span style="color:var(--code-token-string)"> my-site</span></span>
+<span class="line"><span style="color:var(--code-token-function)">pnpm</span><span style="color:var(--code-token-string)"> install</span></span>
+<span class="line"><span style="color:var(--code-token-function)">pnpm</span><span style="color:var(--code-token-string)"> run</span><span style="color:var(--code-token-string)"> dev</span></span></code></pre>
+    <pre role="tabpanel" data-tab-panel="yarn" hidden><code data-lang="bash"><span class="line"><span style="color:var(--code-token-function)">yarn</span><span style="color:var(--code-token-string)"> create</span><span style="color:var(--code-token-string)"> htmx-ui</span><span style="color:var(--code-token-string)"> my-site</span></span>
+<span class="line"><span style="color:var(--code-token-function)">cd</span><span style="color:var(--code-token-string)"> my-site</span></span>
+<span class="line"><span style="color:var(--code-token-function)">yarn</span><span style="color:var(--code-token-string)"> install</span></span>
+<span class="line"><span style="color:var(--code-token-function)">yarn</span><span style="color:var(--code-token-string)"> run</span><span style="color:var(--code-token-string)"> dev</span></span></code></pre>
+</div>
+  <p>
+    You get <code>pages/</code> (one file per route), a layout with a theme toggle, Tailwind with the library's styles,
+    an htmx button talking to a mock endpoint, and <code>dev</code>, <code>build</code> and <code>preview</code> scripts.
+    A site created with bun runs on Bun; with npm, pnpm or yarn it runs on Node, with Vite. Open
+    <code>http://localhost:3000</code> and edit <code>pages/index.html</code>.
+  </p>
+
+  <h2 id="engine-by-hand">Add the engine to a project<a class="heading-anchor" href="#engine-by-hand" aria-label="Link to this section" data-md-skip>#</a></h2>
+  <h3 id="1-install">1. Install<a class="heading-anchor" href="#1-install" aria-label="Link to this section" data-md-skip>#</a></h3>
+  <div class="code-block not-prose" data-code data-tabs data-tabs-sync="pm">
+  <div class="code-block-header pl-1">
+    <div class="code-tabs" role="tablist">
+        <button type="button" class="code-tab" role="tab" data-tab="bun" aria-selected="true">bun</button>
+        <button type="button" class="code-tab" role="tab" data-tab="npm" aria-selected="false">npm</button>
+        <button type="button" class="code-tab" role="tab" data-tab="pnpm" aria-selected="false">pnpm</button>
+        <button type="button" class="code-tab" role="tab" data-tab="yarn" aria-selected="false">yarn</button>
+    </div>
+    <button type="button" class="code-copy" data-copy aria-label="Copy code">
+  <span class="code-copy-idle inline-flex items-center gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg><span data-copy-label>Copy</span></span>
+  <span class="code-copied items-center gap-1.5" aria-live="polite"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Copied</span>
+</button>
+  </div>
+    <pre role="tabpanel" data-tab-panel="bun"><code data-lang="bash"><span class="line"><span style="color:var(--code-token-function)">bun</span><span style="color:var(--code-token-string)"> add</span><span style="color:var(--code-token-string)"> htmx-ui</span><span style="color:var(--code-token-string)"> htmx.org</span></span>
+<span class="line"><span style="color:var(--code-token-function)">bun</span><span style="color:var(--code-token-string)"> add</span><span style="color:var(--code-token-string)"> -d</span><span style="color:var(--code-token-string)"> htmx-ui-engine</span><span style="color:var(--code-token-string)"> tailwindcss</span></span></code></pre>
+    <pre role="tabpanel" data-tab-panel="npm" hidden><code data-lang="bash"><span class="line"><span style="color:var(--code-token-function)">npm</span><span style="color:var(--code-token-string)"> install</span><span style="color:var(--code-token-string)"> htmx-ui</span><span style="color:var(--code-token-string)"> htmx.org</span></span>
+<span class="line"><span style="color:var(--code-token-function)">npm</span><span style="color:var(--code-token-string)"> install</span><span style="color:var(--code-token-string)"> -D</span><span style="color:var(--code-token-string)"> htmx-ui-engine</span><span style="color:var(--code-token-string)"> tailwindcss</span></span></code></pre>
+    <pre role="tabpanel" data-tab-panel="pnpm" hidden><code data-lang="bash"><span class="line"><span style="color:var(--code-token-function)">pnpm</span><span style="color:var(--code-token-string)"> add</span><span style="color:var(--code-token-string)"> htmx-ui</span><span style="color:var(--code-token-string)"> htmx.org</span></span>
+<span class="line"><span style="color:var(--code-token-function)">pnpm</span><span style="color:var(--code-token-string)"> add</span><span style="color:var(--code-token-string)"> -D</span><span style="color:var(--code-token-string)"> htmx-ui-engine</span><span style="color:var(--code-token-string)"> tailwindcss</span></span></code></pre>
+    <pre role="tabpanel" data-tab-panel="yarn" hidden><code data-lang="bash"><span class="line"><span style="color:var(--code-token-function)">yarn</span><span style="color:var(--code-token-string)"> add</span><span style="color:var(--code-token-string)"> htmx-ui</span><span style="color:var(--code-token-string)"> htmx.org</span></span>
+<span class="line"><span style="color:var(--code-token-function)">yarn</span><span style="color:var(--code-token-string)"> add</span><span style="color:var(--code-token-string)"> -D</span><span style="color:var(--code-token-string)"> htmx-ui-engine</span><span style="color:var(--code-token-string)"> tailwindcss</span></span></code></pre>
+</div>
+  <p>Then the Tailwind integration for the runtime you'll build with. On Bun:</p>
+<div class="code-block not-prose" data-code>
+  <div class="code-block-header">
+    <span class="font-mono">Terminal</span>
+    <button type="button" class="code-copy" data-copy aria-label="Copy code">
+  <span class="code-copy-idle inline-flex items-center gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg><span data-copy-label>Copy</span></span>
+  <span class="code-copied items-center gap-1.5" aria-live="polite"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Copied</span>
+</button>
+  </div>
+  <pre><code data-lang="bash"><span class="line"><span style="color:var(--code-token-function)">bun</span><span style="color:var(--code-token-string)"> add</span><span style="color:var(--code-token-string)"> -d</span><span style="color:var(--code-token-string)"> bun-plugin-tailwind</span></span></code></pre>
+</div>  <p>On Node (npm, pnpm or yarn), Vite and its Tailwind plugin:</p>
+  <div class="code-block not-prose" data-code data-tabs data-tabs-sync="pm">
+  <div class="code-block-header pl-1">
+    <div class="code-tabs" role="tablist">
+        <button type="button" class="code-tab" role="tab" data-tab="bun" aria-selected="true">bun</button>
+        <button type="button" class="code-tab" role="tab" data-tab="npm" aria-selected="false">npm</button>
+        <button type="button" class="code-tab" role="tab" data-tab="pnpm" aria-selected="false">pnpm</button>
+        <button type="button" class="code-tab" role="tab" data-tab="yarn" aria-selected="false">yarn</button>
+    </div>
+    <button type="button" class="code-copy" data-copy aria-label="Copy code">
+  <span class="code-copy-idle inline-flex items-center gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg><span data-copy-label>Copy</span></span>
+  <span class="code-copied items-center gap-1.5" aria-live="polite"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Copied</span>
+</button>
+  </div>
+    <pre role="tabpanel" data-tab-panel="bun"><code data-lang="bash"><span class="line"><span style="color:var(--code-token-function)">bun</span><span style="color:var(--code-token-string)"> add</span><span style="color:var(--code-token-string)"> -d</span><span style="color:var(--code-token-string)"> vite</span><span style="color:var(--code-token-string)"> @tailwindcss/vite</span></span></code></pre>
+    <pre role="tabpanel" data-tab-panel="npm" hidden><code data-lang="bash"><span class="line"><span style="color:var(--code-token-function)">npm</span><span style="color:var(--code-token-string)"> install</span><span style="color:var(--code-token-string)"> -D</span><span style="color:var(--code-token-string)"> vite</span><span style="color:var(--code-token-string)"> @tailwindcss/vite</span></span></code></pre>
+    <pre role="tabpanel" data-tab-panel="pnpm" hidden><code data-lang="bash"><span class="line"><span style="color:var(--code-token-function)">pnpm</span><span style="color:var(--code-token-string)"> add</span><span style="color:var(--code-token-string)"> -D</span><span style="color:var(--code-token-string)"> vite</span><span style="color:var(--code-token-string)"> @tailwindcss/vite</span></span></code></pre>
+    <pre role="tabpanel" data-tab-panel="yarn" hidden><code data-lang="bash"><span class="line"><span style="color:var(--code-token-function)">yarn</span><span style="color:var(--code-token-string)"> add</span><span style="color:var(--code-token-string)"> -D</span><span style="color:var(--code-token-string)"> vite</span><span style="color:var(--code-token-string)"> @tailwindcss/vite</span></span></code></pre>
+</div>
+
+  <h3 id="2-add-the-scripts">2. Add the scripts<a class="heading-anchor" href="#2-add-the-scripts" aria-label="Link to this section" data-md-skip>#</a></h3>
+<div class="code-block not-prose" data-code>
+  <div class="code-block-header">
+    <span class="font-mono">package.json</span>
+    <button type="button" class="code-copy" data-copy aria-label="Copy code">
+  <span class="code-copy-idle inline-flex items-center gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg><span data-copy-label>Copy</span></span>
+  <span class="code-copied items-center gap-1.5" aria-live="polite"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Copied</span>
+</button>
+  </div>
+  <pre><code data-lang="json"><span class="line"><span style="color:var(--code-foreground)">&#123;</span></span>
+<span class="line"><span style="color:var(--code-token-keyword)">  "scripts"</span><span style="color:var(--code-token-punctuation)">:</span><span style="color:var(--code-foreground)"> &#123;</span></span>
+<span class="line"><span style="color:var(--code-token-keyword)">    "dev"</span><span style="color:var(--code-token-punctuation)">:</span><span style="color:var(--code-token-string-expression)"> "htmx-ui dev"</span><span style="color:var(--code-token-punctuation)">,</span></span>
+<span class="line"><span style="color:var(--code-token-keyword)">    "build"</span><span style="color:var(--code-token-punctuation)">:</span><span style="color:var(--code-token-string-expression)"> "htmx-ui build"</span><span style="color:var(--code-token-punctuation)">,</span></span>
+<span class="line"><span style="color:var(--code-token-keyword)">    "preview"</span><span style="color:var(--code-token-punctuation)">:</span><span style="color:var(--code-token-string-expression)"> "htmx-ui preview"</span></span>
+<span class="line"><span style="color:var(--code-foreground)">  }</span></span>
+<span class="line"><span style="color:var(--code-foreground)">}</span></span></code></pre>
+</div>
+  <h3 id="3-import-the-styles">3. Import the styles<a class="heading-anchor" href="#3-import-the-styles" aria-label="Link to this section" data-md-skip>#</a></h3>
+  <p>Import Tailwind first, then the library. The <code>@source</code> line tells Tailwind where your own markup lives.</p>
+<div class="code-block not-prose" data-code>
+  <div class="code-block-header">
+    <span class="font-mono">styles.css</span>
+    <button type="button" class="code-copy" data-copy aria-label="Copy code">
+  <span class="code-copy-idle inline-flex items-center gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg><span data-copy-label>Copy</span></span>
+  <span class="code-copied items-center gap-1.5" aria-live="polite"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Copied</span>
+</button>
+  </div>
+  <pre><code data-lang="css"><span class="line"><span style="color:var(--code-token-keyword)">@import</span><span style="color:var(--code-token-string-expression)"> "tailwindcss"</span><span style="color:var(--code-foreground)">;</span></span>
+<span class="line"><span style="color:var(--code-token-keyword)">@import</span><span style="color:var(--code-token-string-expression)"> "htmx-ui/styles.css"</span><span style="color:var(--code-foreground)">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:var(--code-token-keyword)">@source</span><span style="color:var(--code-foreground)"> "./";</span></span></code></pre>
+</div>
+  <h3 id="4-initialise-components">4. Initialise components<a class="heading-anchor" href="#4-initialise-components" aria-label="Link to this section" data-md-skip>#</a></h3>
+<div class="code-block not-prose" data-code>
+  <div class="code-block-header">
+    <span class="font-mono">app.ts</span>
+    <button type="button" class="code-copy" data-copy aria-label="Copy code">
+  <span class="code-copy-idle inline-flex items-center gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg><span data-copy-label>Copy</span></span>
+  <span class="code-copied items-center gap-1.5" aria-live="polite"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Copied</span>
+</button>
+  </div>
+  <pre><code data-lang="ts"><span class="line"><span style="color:var(--code-token-keyword)">import</span><span style="color:var(--code-token-string-expression)"> "htmx.org"</span><span style="color:var(--code-foreground)">;</span></span>
+<span class="line"><span style="color:var(--code-token-keyword)">import</span><span style="color:var(--code-token-string-expression)"> "./styles.css"</span><span style="color:var(--code-foreground)">;</span></span>
+<span class="line"><span style="color:var(--code-token-keyword)">import</span><span style="color:var(--code-foreground)"> &#123; initComponents } </span><span style="color:var(--code-token-keyword)">from</span><span style="color:var(--code-token-string-expression)"> "htmx-ui"</span><span style="color:var(--code-foreground)">;</span></span>
+<span class="line"><span style="color:var(--code-token-keyword)">import</span><span style="color:var(--code-foreground)"> &#123; initTheme } </span><span style="color:var(--code-token-keyword)">from</span><span style="color:var(--code-token-string-expression)"> "htmx-ui/theme"</span><span style="color:var(--code-foreground)">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:var(--code-token-constant)">document</span><span style="color:var(--code-token-function)">.addEventListener</span><span style="color:var(--code-foreground)">(</span><span style="color:var(--code-token-string-expression)">"DOMContentLoaded"</span><span style="color:var(--code-token-punctuation)">,</span><span style="color:var(--code-foreground)"> () </span><span style="color:var(--code-token-keyword)">=></span><span style="color:var(--code-foreground)"> &#123;</span></span>
+<span class="line"><span style="color:var(--code-token-function)">  initTheme</span><span style="color:var(--code-foreground)">();</span></span>
+<span class="line"><span style="color:var(--code-token-function)">  initComponents</span><span style="color:var(--code-foreground)">(document);</span></span>
+<span class="line"><span style="color:var(--code-foreground)">});</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:var(--code-token-comment)">// htmx 4 fires htmx:after:process on each newly inserted element</span></span>
+<span class="line"><span style="color:var(--code-token-constant)">document</span><span style="color:var(--code-token-function)">.addEventListener</span><span style="color:var(--code-foreground)">(</span><span style="color:var(--code-token-string-expression)">"htmx:after:process"</span><span style="color:var(--code-token-punctuation)">,</span><span style="color:var(--code-foreground)"> (e) </span><span style="color:var(--code-token-keyword)">=></span><span style="color:var(--code-foreground)"> &#123;</span></span>
+<span class="line"><span style="color:var(--code-token-function)">  initComponents</span><span style="color:var(--code-foreground)">((</span><span style="color:var(--code-token-constant)">e</span><span style="color:var(--code-foreground)">.target </span><span style="color:var(--code-token-keyword)">as</span><span style="color:var(--code-token-function)"> ParentNode</span><span style="color:var(--code-foreground)">) </span><span style="color:var(--code-token-keyword)">??</span><span style="color:var(--code-foreground)"> document);</span></span>
+<span class="line"><span style="color:var(--code-foreground)">});</span></span></code></pre>
+</div>
+  <h3 id="5-add-a-layout-and-a-page">5. Add a layout and a page<a class="heading-anchor" href="#5-add-a-layout-and-a-page" aria-label="Link to this section" data-md-skip>#</a></h3>
+  <p><code>asset()</code> makes the script path relative to whichever page is rendering, so the bundler finds it from any depth.</p>
+<div class="code-block not-prose" data-code>
+  <div class="code-block-header">
+    <span class="font-mono">layouts/base.html</span>
+    <button type="button" class="code-copy" data-copy aria-label="Copy code">
+  <span class="code-copy-idle inline-flex items-center gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg><span data-copy-label>Copy</span></span>
+  <span class="code-copied items-center gap-1.5" aria-live="polite"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Copied</span>
+</button>
+  </div>
+  <pre><code data-lang="jinja"><span class="line"><span style="color:var(--code-foreground)">&#x3C;!</span><span style="color:var(--code-token-string-expression)">doctype</span><span style="color:var(--code-token-function)"> html</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">&#x3C;</span><span style="color:var(--code-token-string-expression)">html</span><span style="color:var(--code-token-function)"> lang</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"en"</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;</span><span style="color:var(--code-token-string-expression)">head</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">    &#x3C;</span><span style="color:var(--code-token-string-expression)">meta</span><span style="color:var(--code-token-function)"> charset</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"utf-8"</span><span style="color:var(--code-foreground)"> /></span></span>
+<span class="line"><span style="color:var(--code-foreground)">    &#x3C;</span><span style="color:var(--code-token-string-expression)">meta</span><span style="color:var(--code-token-function)"> name</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"viewport"</span><span style="color:var(--code-token-function)"> content</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"width=device-width, initial-scale=1"</span><span style="color:var(--code-foreground)"> /></span></span>
+<span class="line"><span style="color:var(--code-foreground)">    &#x3C;</span><span style="color:var(--code-token-string-expression)">title</span><span style="color:var(--code-foreground)">>&#123;% </span><span style="color:var(--code-token-keyword)">block</span><span style="color:var(--code-foreground)"> title %}My site&#123;% </span><span style="color:var(--code-token-keyword)">endblock</span><span style="color:var(--code-foreground)"> %}&#x3C;/</span><span style="color:var(--code-token-string-expression)">title</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">    &#x3C;</span><span style="color:var(--code-token-string-expression)">script</span><span style="color:var(--code-token-function)"> type</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"module"</span><span style="color:var(--code-token-function)"> src</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"&#123;&#123; asset('app.ts') }}"</span><span style="color:var(--code-foreground)">>&#x3C;/</span><span style="color:var(--code-token-string-expression)">script</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;/</span><span style="color:var(--code-token-string-expression)">head</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;</span><span style="color:var(--code-token-string-expression)">body</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"bg-background text-foreground"</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">    &#123;% </span><span style="color:var(--code-token-keyword)">block</span><span style="color:var(--code-foreground)"> content %}&#123;% </span><span style="color:var(--code-token-keyword)">endblock</span><span style="color:var(--code-foreground)"> %}</span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;/</span><span style="color:var(--code-token-string-expression)">body</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">&#x3C;/</span><span style="color:var(--code-token-string-expression)">html</span><span style="color:var(--code-foreground)">></span></span></code></pre>
+</div><div class="code-block not-prose" data-code>
+  <div class="code-block-header">
+    <span class="font-mono">pages/index.html</span>
+    <button type="button" class="code-copy" data-copy aria-label="Copy code">
+  <span class="code-copy-idle inline-flex items-center gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg><span data-copy-label>Copy</span></span>
+  <span class="code-copied items-center gap-1.5" aria-live="polite"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Copied</span>
+</button>
+  </div>
+  <pre><code data-lang="jinja"><span class="line"><span style="color:var(--code-foreground)">&#123;% </span><span style="color:var(--code-token-keyword)">extends</span><span style="color:var(--code-token-string-expression)"> "layouts/base.html"</span><span style="color:var(--code-foreground)"> %}</span></span>
+<span class="line"><span style="color:var(--code-foreground)">&#123;% </span><span style="color:var(--code-token-keyword)">block</span><span style="color:var(--code-foreground)"> content %}&#x3C;</span><span style="color:var(--code-token-string-expression)">button</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"btn btn-primary"</span><span style="color:var(--code-foreground)">>It works&#x3C;/</span><span style="color:var(--code-token-string-expression)">button</span><span style="color:var(--code-foreground)">>&#123;% </span><span style="color:var(--code-token-keyword)">endblock</span><span style="color:var(--code-foreground)"> %}</span></span></code></pre>
+</div>  <div class="code-block not-prose" data-code data-tabs data-tabs-sync="pm">
+  <div class="code-block-header pl-1">
+    <div class="code-tabs" role="tablist">
+        <button type="button" class="code-tab" role="tab" data-tab="bun" aria-selected="true">bun</button>
+        <button type="button" class="code-tab" role="tab" data-tab="npm" aria-selected="false">npm</button>
+        <button type="button" class="code-tab" role="tab" data-tab="pnpm" aria-selected="false">pnpm</button>
+        <button type="button" class="code-tab" role="tab" data-tab="yarn" aria-selected="false">yarn</button>
+    </div>
+    <button type="button" class="code-copy" data-copy aria-label="Copy code">
+  <span class="code-copy-idle inline-flex items-center gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg><span data-copy-label>Copy</span></span>
+  <span class="code-copied items-center gap-1.5" aria-live="polite"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Copied</span>
+</button>
+  </div>
+    <pre role="tabpanel" data-tab-panel="bun"><code data-lang="bash"><span class="line"><span style="color:var(--code-token-function)">bun</span><span style="color:var(--code-token-string)"> run</span><span style="color:var(--code-token-string)"> dev</span></span></code></pre>
+    <pre role="tabpanel" data-tab-panel="npm" hidden><code data-lang="bash"><span class="line"><span style="color:var(--code-token-function)">npm</span><span style="color:var(--code-token-string)"> run</span><span style="color:var(--code-token-string)"> dev</span></span></code></pre>
+    <pre role="tabpanel" data-tab-panel="pnpm" hidden><code data-lang="bash"><span class="line"><span style="color:var(--code-token-function)">pnpm</span><span style="color:var(--code-token-string)"> run</span><span style="color:var(--code-token-string)"> dev</span></span></code></pre>
+    <pre role="tabpanel" data-tab-panel="yarn" hidden><code data-lang="bash"><span class="line"><span style="color:var(--code-token-function)">yarn</span><span style="color:var(--code-token-string)"> run</span><span style="color:var(--code-token-string)"> dev</span></span></code></pre>
+</div>
+
+  <h2 id="existing-project">Existing project<a class="heading-anchor" href="#existing-project" aria-label="Link to this section" data-md-skip>#</a></h2>
+  <p>If the app already has Tailwind v4, htmx and a bundler, it only needs the components:</p>
+  <div class="code-block not-prose" data-code data-tabs data-tabs-sync="pm">
+  <div class="code-block-header pl-1">
+    <div class="code-tabs" role="tablist">
+        <button type="button" class="code-tab" role="tab" data-tab="bun" aria-selected="true">bun</button>
+        <button type="button" class="code-tab" role="tab" data-tab="npm" aria-selected="false">npm</button>
+        <button type="button" class="code-tab" role="tab" data-tab="pnpm" aria-selected="false">pnpm</button>
+        <button type="button" class="code-tab" role="tab" data-tab="yarn" aria-selected="false">yarn</button>
+    </div>
+    <button type="button" class="code-copy" data-copy aria-label="Copy code">
+  <span class="code-copy-idle inline-flex items-center gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg><span data-copy-label>Copy</span></span>
+  <span class="code-copied items-center gap-1.5" aria-live="polite"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Copied</span>
+</button>
+  </div>
+    <pre role="tabpanel" data-tab-panel="bun"><code data-lang="bash"><span class="line"><span style="color:var(--code-token-function)">bun</span><span style="color:var(--code-token-string)"> add</span><span style="color:var(--code-token-string)"> htmx-ui</span></span></code></pre>
+    <pre role="tabpanel" data-tab-panel="npm" hidden><code data-lang="bash"><span class="line"><span style="color:var(--code-token-function)">npm</span><span style="color:var(--code-token-string)"> install</span><span style="color:var(--code-token-string)"> htmx-ui</span></span></code></pre>
+    <pre role="tabpanel" data-tab-panel="pnpm" hidden><code data-lang="bash"><span class="line"><span style="color:var(--code-token-function)">pnpm</span><span style="color:var(--code-token-string)"> add</span><span style="color:var(--code-token-string)"> htmx-ui</span></span></code></pre>
+    <pre role="tabpanel" data-tab-panel="yarn" hidden><code data-lang="bash"><span class="line"><span style="color:var(--code-token-function)">yarn</span><span style="color:var(--code-token-string)"> add</span><span style="color:var(--code-token-string)"> htmx-ui</span></span></code></pre>
+</div>
+  <ol>
+    <li>Add <code>@import "htmx-ui/styles.css";</code> directly after <code>@import "tailwindcss";</code>.</li>
+    <li>Call <code>initComponents()</code> on load and on <code>htmx:after:process</code>, as in step 4 above.</li>
+  </ol>
+
+<div class="alert alert-warning" role="status">
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4M12 17h.01"/></svg><div class="alert-title">Clashing variable names</div>  <div class="alert-description">    The library defines CSS variables such as <code class="code">--primary</code>, <code class="code">--border</code> and <code class="code">--radius</code> on <code class="code">:root</code>,
+    and Tailwind colours with the same names. If your app already defines these, the definition loaded last wins. Rename yours,
+    or set them to the values you want (see <a class="link" href="/docs/v0.1/theming">Theming</a>).
+</div>
+</div>
+  <h3 id="already-using-the-dark-variant">Already using the dark: variant?<a class="heading-anchor" href="#already-using-the-dark-variant" aria-label="Link to this section" data-md-skip>#</a></h3>
+  <p>
+    The library switches Tailwind's <code>dark:</code> variant from the OS media query to a
+    <code>.dark</code> class on <code>&lt;html&gt;</code>. If your app relies on the media-query
+    behaviour, read <a href="/docs/v0.1/dark-mode">Dark mode</a> before upgrading.
+  </p>
+
+  <h2 id="exports">What the package exports<a class="heading-anchor" href="#exports" aria-label="Link to this section" data-md-skip>#</a></h2>
+  <p>JavaScript ships as ES modules with TypeScript types. <code>htmx.org</code> and <code>tailwindcss</code> are peer dependencies, so your app controls their versions.</p>
+  <div class="table-wrap not-prose">
+    <table class="table">
+      <thead><tr><th>Import</th><th>Contents</th></tr></thead>
+      <tbody>
+        <tr><td><code class="code">htmx-ui</code></td><td class="text-muted-foreground"><code class="code">initComponents(root)</code>: wires up every component's behaviour under <code class="code">root</code>.</td></tr>
+        <tr><td><code class="code">htmx-ui/styles.css</code></td><td class="text-muted-foreground">Design tokens, the dark variant, <code class="code">.prose</code> (Tailwind Typography, installed with the package), syntax-highlighting colours and every component's styles.</td></tr>
+        <tr><td><code class="code">htmx-ui/theme</code></td><td class="text-muted-foreground"><code class="code">initTheme()</code> and <code class="code">getTheme()</code> for the light/dark switcher.</td></tr>
+        <tr><td><code class="code">htmx-ui/icons/&lt;name&gt;.svg</code></td><td class="text-muted-foreground">The SVG icons, for your own templates or <code class="code">&lt;img&gt;</code> tags.</td></tr>
+        <tr><td><code class="code">htmx-ui/components/&lt;name&gt;/&lt;name&gt;.html</code></td><td class="text-muted-foreground">Nunjucks macros (icon, code, alert, spinner). The engine resolves them by name: <code class="code">&#123;% from "components/icon/icon.html" import icon %&#125;</code>.</td></tr>
+      </tbody>
+    </table>
+  </div>
+        </div>
+
+            <nav class="mt-16 grid gap-4 border-t border-border pt-8 sm:grid-cols-2" aria-label="Pagination">
+                <a href="/docs/v0.1" class="card card-link p-4">
+                  <span class="muted inline-flex items-center gap-1"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-3.5" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg> Previous</span>
+                  <span class="mt-1 font-medium">Introduction</span>
+                </a>
+                <a href="/docs/v0.1/engine" class="card card-link p-4 text-right sm:col-start-2">
+                  <span class="muted inline-flex items-center justify-end gap-1">Next <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-3.5" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+                  <span class="mt-1 font-medium">Engine</span>
+                </a>
+            </nav>
+      </article>
+    </main>
+  </div>
+<footer class="border-t border-border">
+  <div class="mx-auto flex w-full max-w-7xl flex-col items-center justify-between gap-4 px-4 py-8 text-sm text-muted-foreground sm:flex-row sm:px-6 lg:px-8">
+    <p>© <span data-year></span> HTMX UI. Built with htmx, Tailwind CSS and Bun.</p>
+    <nav class="flex gap-5">
+      <a href="/docs/v0.1" class="hover:text-foreground">Docs</a>
+      <a href="/docs/v0.1/changelog" class="hover:text-foreground">Changelog</a>
+      <a href="/about" class="hover:text-foreground">About</a>
+    </nav>
+  </div>
+</footer>
+  </body>
+</html>
