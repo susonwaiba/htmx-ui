@@ -1,0 +1,113 @@
+/* <div class="combobox" data-combobox>                                     data-autohighlight, data-multiple…
+     <div class="input-group">
+       <input class="input" data-combobox-input placeholder="Pick a framework" aria-label="Framework" />
+       <span class="input-group-addon input-group-addon-inline-end">
+         <button type="button" class="btn btn-ghost btn-icon" data-combobox-clear aria-label="Clear" hidden>{{ icon("x") }}</button>
+         <button type="button" class="btn btn-ghost btn-icon" data-combobox-toggle tabindex="-1" aria-label="Show suggestions">{{ icon("chevrons-up-down") }}</button>
+       </span>
+     </div>
+     <div class="combobox-content" role="listbox" aria-label="Frameworks" hidden>
+       <div class="combobox-item" role="option" value="astro">Astro <span class="combobox-check">{{ icon("check") }}</span></div>
+       <div class="combobox-separator" role="separator"></div>
+       <div class="combobox-group" role="group" aria-labelledby="g-meta">
+         <div class="combobox-label" id="g-meta">Meta-frameworks</div>
+         <div class="combobox-item" role="option" value="next" data-keywords="react">Next.js</div>
+       </div>
+       <p class="combobox-empty" data-combobox-empty hidden>No framework found.</p>
+     </div>
+     <input type="hidden" name="framework" data-combobox-value />
+   </div>
+   A bare .input works in place of the input group. Multiple: data-multiple on the wrapper and
+   <div class="combobox-chips" data-combobox-chips><input class="combobox-chips-input" data-combobox-input /></div>
+   in place of the input group; the behaviour (combobox.ts) adds a chip before the input per pick. */
+@layer components {
+  .combobox {
+    @apply relative w-full;
+  }
+
+  /* The list. Opens below, as wide as the input. */
+  .combobox-content {
+    @apply absolute top-full left-0 z-50 mt-1 max-h-72 w-full min-w-48 overflow-y-auto overscroll-contain
+      rounded-(--radius) border border-border bg-surface p-1 text-foreground shadow-lg;
+  }
+  .combobox-content-end {
+    @apply right-0 left-auto;
+  }
+  .combobox-content-up {
+    @apply top-auto bottom-full mt-0 mb-1;
+  }
+  /* The highlight follows the keyboard and the pointer alike (data-highlighted, set by the
+     behaviour), so there is only ever one. */
+  .combobox-item {
+    @apply flex w-full cursor-pointer items-center gap-2 rounded-[calc(var(--radius)-2px)] px-2 py-1.5 text-left
+      text-sm leading-normal outline-none select-none aria-disabled:pointer-events-none aria-disabled:opacity-50
+      data-highlighted:bg-accent data-highlighted:text-accent-foreground [&_svg]:size-4 [&_svg]:shrink-0;
+  }
+  .combobox-item[aria-selected="true"] {
+    @apply font-medium;
+  }
+  /* A check that shows while the option is picked; ms-auto puts it at the end of the row. */
+  .combobox-check {
+    @apply invisible ms-auto flex;
+  }
+  .combobox-item[aria-selected="true"] .combobox-check {
+    @apply visible;
+  }
+  /* Muted text after the label (a shortcut, a count, a hint) */
+  .combobox-item-description {
+    @apply ms-auto text-xs font-normal text-muted-foreground;
+  }
+  .combobox-group {
+    @apply flex flex-col;
+  }
+  .combobox-label {
+    @apply px-2 py-1.5 text-xs font-medium text-muted-foreground;
+  }
+  .combobox-separator {
+    @apply -mx-1 my-1 h-px bg-border;
+  }
+  .combobox-empty {
+    @apply px-2 py-4 text-center text-sm text-muted-foreground;
+  }
+
+  /* Multiple: chips and the input wrap inside one box that looks like an .input.
+     One color-mix() per rule (see components/alert). */
+  .combobox-chips {
+    @apply flex min-h-9 w-full min-w-0 cursor-text flex-wrap items-center gap-1 rounded-(--radius) border
+      border-border bg-transparent px-1.5 py-1 shadow-xs transition-[color,box-shadow,border-color];
+  }
+  .combobox-chips:has(> input:focus-visible) {
+    @apply border-ring ring-3 ring-ring/30;
+  }
+  .combobox-chips:has([aria-invalid="true"]) {
+    @apply border-danger;
+  }
+  .combobox-chips:has([aria-invalid="true"]:focus-visible) {
+    @apply ring-danger/20;
+  }
+  .combobox-chips:has(> input:disabled) {
+    @apply cursor-not-allowed opacity-50;
+  }
+  .combobox-chips-input {
+    @apply h-6 min-w-16 flex-1 border-0 bg-transparent px-1 text-sm text-foreground outline-none
+      placeholder:text-muted-foreground disabled:cursor-not-allowed;
+  }
+  /* Buttons at the end of the chip box (clear, toggle) */
+  .combobox-chips > .btn {
+    @apply size-6 rounded-[calc(var(--radius)-3px)] px-0 shadow-none;
+  }
+  .combobox-chip {
+    @apply inline-flex h-6 max-w-full items-center gap-1 rounded-[calc(var(--radius)-3px)] bg-secondary ps-2 pe-0.5
+      text-xs font-medium whitespace-nowrap text-secondary-foreground;
+  }
+  .combobox-chip-remove {
+    @apply flex size-5 cursor-pointer items-center justify-center rounded-[calc(var(--radius)-4px)] text-current
+      opacity-60 hover:bg-foreground/10 hover:opacity-100 disabled:pointer-events-none;
+  }
+  /* The ×, drawn from the text colour: the behaviour builds chips with no icon markup. */
+  .combobox-chip-remove::before {
+    @apply size-3 bg-current content-[''];
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.5' stroke-linecap='round'%3E%3Cpath d='M18 6 6 18M6 6l12 12'/%3E%3C/svg%3E")
+      center / contain no-repeat;
+  }
+}

@@ -1,0 +1,119 @@
+/* <div class="input-otp" data-input-otp>                      data-pattern="alphanumeric", data-mask…
+     <input class="input-otp-input" data-input-otp-input name="code" aria-label="Verification code" />
+     <div class="input-otp-group">
+       <div class="input-otp-slot"></div> <div class="input-otp-slot"></div> <div class="input-otp-slot"></div>
+     </div>
+     <div class="input-otp-separator">{{ icon("minus") }}</div>
+     <div class="input-otp-group">
+       <div class="input-otp-slot"></div> <div class="input-otp-slot"></div> <div class="input-otp-slot"></div>
+     </div>
+   </div>
+   One slot per character; the behaviour (input-otp.ts) fills them from the real input, which
+   lies transparent on top. Or write it with the input_otp() macro (input-otp.html).
+   States, as .input: aria-invalid="true" (or :user-invalid), disabled, .input-otp-warning /
+   .input-otp-success. Sizes: .input-otp-sm / .input-otp-lg. Separate boxes: .input-otp-spaced. */
+@layer components {
+  .input-otp {
+    @apply relative inline-flex w-fit items-center gap-2 has-[:disabled]:cursor-not-allowed
+      has-[:disabled]:opacity-50;
+  }
+
+  /* The real input: covers the slots, takes the clicks and keys, shows nothing itself.
+     16px text stops iOS zooming in on focus. */
+  .input-otp-input {
+    @apply absolute inset-0 z-10 size-full cursor-text appearance-none border-0 bg-transparent p-0 text-base
+      text-transparent caret-transparent outline-none selection:bg-transparent disabled:cursor-not-allowed;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.5em;
+  }
+  /* Autofill paints a background and text colour of its own. */
+  .input-otp-input:autofill {
+    -webkit-text-fill-color: transparent;
+    transition: background-color 600000s 0s;
+  }
+  .input-otp[data-mask] .input-otp-input {
+    -webkit-text-security: disc;
+  }
+
+  /* Slots joined into one bordered group. */
+  .input-otp-group {
+    @apply flex items-center;
+  }
+  .input-otp-slot {
+    @apply relative flex size-9 items-center justify-center border-y border-r border-border bg-transparent text-sm
+      font-medium text-foreground shadow-xs transition-[color,box-shadow,border-color] first:rounded-l-(--radius)
+      first:border-l last:rounded-r-(--radius);
+  }
+  .input-otp-slot[data-active] {
+    @apply z-[1] border-ring ring-3 ring-ring/30;
+  }
+  /* The caret, drawn in the active slot while it is empty. */
+  .input-otp-slot[data-active]:empty::after {
+    @apply pointer-events-none absolute h-4 w-px bg-foreground content-[''];
+    animation: input-otp-caret 1.1s ease-out infinite;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .input-otp-slot[data-active]:empty::after {
+      animation: none;
+    }
+  }
+
+  /* Between groups: an icon, text, or (when empty) a short dash. */
+  .input-otp-separator {
+    @apply flex items-center text-muted-foreground [&_svg]:size-4;
+  }
+  .input-otp-separator:empty::before {
+    @apply block h-0.5 w-2.5 rounded-full bg-border content-[''];
+  }
+
+  /* Each slot a box of its own, e.g. for a PIN. */
+  .input-otp-spaced .input-otp-group {
+    @apply gap-2;
+  }
+  .input-otp-spaced .input-otp-slot {
+    @apply rounded-(--radius) border;
+  }
+
+  /* States. One color-mix() per rule (see components/alert). */
+  .input-otp:has([aria-invalid="true"], :user-invalid) .input-otp-slot {
+    @apply border-danger;
+  }
+  .input-otp:has([aria-invalid="true"], :user-invalid) .input-otp-slot[data-active] {
+    @apply ring-danger/20;
+  }
+  .input-otp-warning .input-otp-slot {
+    @apply border-warning;
+  }
+  .input-otp-warning .input-otp-slot[data-active] {
+    @apply ring-warning/20;
+  }
+  .input-otp-success .input-otp-slot {
+    @apply border-success;
+  }
+  .input-otp-success .input-otp-slot[data-active] {
+    @apply ring-success/20;
+  }
+
+  /* Sizes, matching .input-sm / .input-lg. */
+  .input-otp-sm .input-otp-slot {
+    @apply size-8 text-xs;
+  }
+  .input-otp-lg .input-otp-slot {
+    @apply size-11 text-base;
+  }
+  .input-otp-lg .input-otp-slot[data-active]:empty::after {
+    @apply h-5;
+  }
+}
+
+@keyframes input-otp-caret {
+  0%,
+  70%,
+  100% {
+    opacity: 1;
+  }
+  20%,
+  50% {
+    opacity: 0;
+  }
+}

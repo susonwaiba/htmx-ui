@@ -5,6 +5,7 @@
      <p class="field-description" id="email-help">We'll never share it.</p>
    </div>
    The label gets a red asterisk automatically when the field holds a required control.
+   .label (label.css) works in place of .field-label.
    Layout: .field-horizontal / .field-responsive, stacked in a .field-group, columns with .field-grid,
    grouped under a <fieldset class="fieldset"> with a <legend class="field-legend">. */
 @layer components {
@@ -38,8 +39,11 @@
     @apply flex flex-1 flex-col gap-1.5 leading-snug;
   }
   .field-description {
-    @apply text-sm leading-normal font-normal text-muted-foreground [&_a]:underline [&_a]:underline-offset-4
-      [&_a:hover]:text-primary;
+    @apply text-sm leading-normal font-normal text-muted-foreground;
+  }
+  /* Links in the text: a separate rule, because the minified build drops [&_a]:underline inside @apply. */
+  .field-description a {
+    @apply underline underline-offset-4 hover:text-primary;
   }
 
   /* Messages: <p class="field-error">{{ icon("x-circle") }} Enter a valid email.</p> */
@@ -62,16 +66,16 @@
   }
 
   /* Required: asterisk after the label */
-  :is(.field:has(:is(input, select, textarea):required) > .field-label, .field:has(:is(input, select, textarea):required) > .field-content > .field-label, .field-label-required)::after {
+  :is(.field:has(:is(input, select, textarea):required) > :is(.field-label, .label), .field:has(:is(input, select, textarea):required) > .field-content > :is(.field-label, .label), .field-label-required)::after {
     @apply -ms-1 size-2.5 shrink-0 bg-danger content-[''];
     mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3' stroke-linecap='round'%3E%3Cpath d='M12 4v16M18.9 8 5.1 16M5.1 8l13.8 8'/%3E%3C/svg%3E")
       center / contain no-repeat;
   }
   /* Field states: dim the label when disabled, tint it when invalid */
-  .field:has(:is(input, select, textarea):disabled) :is(.field-label, .field-description) {
+  .field:has(:is(input, select, textarea):disabled) :is(.field-label, .label, .field-description) {
     @apply opacity-50;
   }
-  :is(.field:has([aria-invalid="true"]) > .field-label, .field:has([aria-invalid="true"]) > .field-content > .field-label) {
+  :is(.field:has([aria-invalid="true"]) > :is(.field-label, .label), .field:has([aria-invalid="true"]) > .field-content > :is(.field-label, .label)) {
     @apply text-danger;
   }
 

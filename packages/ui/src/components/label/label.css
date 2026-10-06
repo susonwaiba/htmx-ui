@@ -1,0 +1,68 @@
+/* A label for a control, anywhere: <label class="label" for="email">Email</label>
+   Wrapping the control makes the whole label its hit area, with no for/id needed:
+     <label class="label"><input class="checkbox" type="checkbox" name="terms" /> Accept the terms</label>
+   A choice card is a bordered label around a checkbox, radio or switch, tinted while checked:
+     <label class="label-card">
+       <input class="checkbox" type="checkbox" name="alerts" />
+       <span class="label-content">
+         Email alerts
+         <span class="label-description">One message a day, at most.</span>
+       </span>
+     </label>
+   A disabled control dims its label: wrapped, or as the label's next/previous sibling.
+   Inside a .field, .label behaves like .field-label (required asterisk, error tint); see field.css. */
+@layer components {
+  .label {
+    @apply flex w-fit items-center gap-2 text-sm leading-snug font-medium text-foreground select-none
+      [&_svg]:size-4;
+  }
+  /* Wrapping a checkbox, radio or switch: the box lines up with the first line of text. */
+  .label:has(> :is(input[type="checkbox"], input[type="radio"])) {
+    @apply cursor-pointer items-start font-normal;
+  }
+  .label > :is(input[type="checkbox"], input[type="radio"]) {
+    @apply mt-px;
+  }
+  .label:has(> .switch) {
+    @apply items-center;
+  }
+  .label > .switch {
+    @apply mt-0;
+  }
+
+  /* Disabled: the label of a disabled control can't be used either. */
+  .label:has(:disabled),
+  :disabled + .label,
+  .label:has(+ :disabled),
+  .label-card:has(:disabled) {
+    @apply cursor-not-allowed opacity-50;
+  }
+
+  /* Choice card: the whole card is the hit area. One color-mix() per rule (see components/alert). */
+  .label-card {
+    @apply flex w-full cursor-pointer items-start gap-3 rounded-(--radius) border border-border bg-surface p-3 text-sm
+      leading-snug font-medium text-foreground transition-[color,box-shadow,border-color,background-color]
+      select-none hover:bg-accent/40;
+  }
+  .label-card > :is(input[type="checkbox"], input[type="radio"]) {
+    @apply mt-px;
+  }
+  .label-card:has(:checked) {
+    border-color: var(--primary);
+    background-color: color-mix(in oklab, var(--primary) 5%, transparent);
+  }
+  .label-card:has(:focus-visible) {
+    @apply border-ring ring-3 ring-ring/30;
+  }
+  .label-card:has(:disabled) {
+    @apply hover:bg-transparent;
+  }
+  /* Title and description beside the control; .label-content fills the row, pushing a
+     trailing switch to the right edge. */
+  .label-content {
+    @apply flex min-w-0 flex-1 flex-col gap-1;
+  }
+  .label-description {
+    @apply text-sm leading-normal font-normal text-muted-foreground;
+  }
+}

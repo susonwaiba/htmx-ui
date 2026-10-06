@@ -1,0 +1,47 @@
+{# Slider: one thumb per value, the filled range painted before any JavaScript runs.
+   {% from "components/slider/slider.html" import slider %}
+   {{ slider(50, aria_label="Volume") }}                               one value
+   {{ slider([20, 80], name="price", labels=["Minimum", "Maximum"]) }}  a range
+   {{ slider([10, 40, 70], step=5) }}                                  several thumbs
+   value=50            a number, or a list of numbers (one thumb each, in ascending order)
+   min=0, max=100, step=1
+   name=none           the inputs' name; every thumb submits under it (name=price&name=price)
+   names=none          a list of names instead, one per thumb
+   id=none             the first input's id; the others get "<id>-2", "<id>-3"… Needed for a
+                       <label for> or an <output for>.
+   aria_label=none     the accessible name of a single thumb
+   labels=none         a list of accessible names, one per thumb (default for two thumbs:
+                       "Minimum" and "Maximum")
+   orientation=none    "vertical" (give the slider, or its parent, a height)
+   gap=none            the least distance between neighbouring thumbs, in value units
+   disabled=false, invalid=false
+   variant=none        "warning" | "success"
+   size=none           "sm" | "lg"
+   attrs=none          more attributes for every input, as a dict ({"hx-post": "/volume", …})
+   class=""            more classes on the .slider #}
+
+{% macro slider(value=50, min=0, max=100, step=1, name=none, names=none, id=none, aria_label=none, labels=none, orientation=none, gap=none, disabled=false, invalid=false, variant=none, size=none, attrs=none, class="") %}
+{% set values = value if (value is iterable and not (value is string)) else [value] %}
+{% set span = max - min %}
+{% set pcts = [] %}
+{% for v in values %}{% set _ = pcts.push((((v - min) / span) * 100) if span > 0 else 0) %}{% endfor %}
+{% set start = (pcts | sort | first) if values | length > 1 else 0 %}
+{% set end = pcts | sort | last %}
+{% set default_labels = ["Minimum", "Maximum"] if values | length == 2 else none %}
+<div class="slider{% if variant %} slider-{{ variant }}{% endif %}{% if size %} slider-{{ size }}{% endif %}{% if class %} {{ class }}{% endif %}" data-slider
+  {%- if orientation %} data-orientation="{{ orientation }}"{% endif %}
+  {%- if gap %} data-slider-gap="{{ gap }}"{% endif %} style="--slider-start: {{ start }}%; --slider-end: {{ end }}%">
+  <div class="slider-track"><div class="slider-range"></div></div>
+  {% for v in values %}
+  {% set label = (labels[loop.index0] if labels else (aria_label if values | length == 1 else (default_labels[loop.index0] if default_labels else "Value " ~ loop.index))) %}
+  <input type="range" min="{{ min }}" max="{{ max }}" step="{{ step }}" value="{{ v }}"
+    {%- if id %} id="{{ id if loop.first else id ~ '-' ~ loop.index }}"{% endif %}
+    {%- if names %} name="{{ names[loop.index0] }}"{% elif name %} name="{{ name }}"{% endif %}
+    {%- if label %} aria-label="{{ label }}"{% endif %}
+    {%- if orientation %} aria-orientation="{{ orientation }}"{% endif %}
+    {%- if disabled %} disabled{% endif %}
+    {%- if invalid %} aria-invalid="true"{% endif %}
+    {%- if attrs %}{% for k, a in attrs %} {{ k }}="{{ a }}"{% endfor %}{% endif %} />
+  {% endfor %}
+</div>
+{%- endmacro %}

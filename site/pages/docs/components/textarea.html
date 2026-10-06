@@ -1,0 +1,115 @@
+{% extends "layouts/docs.html" %}
+{% from "docs/macros.html" import demo, classes %}
+{% from "components/icon/icon.html" import icon %}
+{% set title = "Textarea" %}
+{% set description = "Multi-line text that grows with what's typed: field labels and messages, a character count, every form state, and submitting with Ctrl/⌘+Enter." %}
+
+{% block content %}
+  {% call demo() %}
+    <textarea class="textarea max-w-sm" placeholder="Type your message here." aria-label="Message"></textarea>
+  {% endcall %}
+
+  <h2 id="markup">Markup</h2>
+  <ul>
+    <li>A native <code>&lt;textarea class="textarea"&gt;</code>. It shares its border, focus ring and states with <a href="/docs/components/input"><code>.input</code></a>.</li>
+    <li>It grows with its content (CSS <code>field-sizing</code>) from <code>min-h-16</code>; add a <code>max-h-*</code> and it scrolls beyond that. <code>.textarea-fixed</code> keeps the height of its <code>rows</code> instead.</li>
+    <li>Optional behaviour, <code>data-textarea</code>: growing in browsers without <code>field-sizing</code>, a <a href="#count">character count</a> and <a href="#submit">submitting with the keyboard</a>.</li>
+  </ul>
+
+  <h2 id="field">Field</h2>
+  <p>In a <a href="/docs/components/field"><code>.field</code></a>, with a label, a description linked by <code>aria-describedby</code>, and the required asterisk when the textarea is <code>required</code>.</p>
+  {% call demo("block") %}
+    <div class="field mx-auto max-w-sm">
+      <label class="field-label" for="textarea-bio">Bio</label>
+      <textarea class="textarea" id="textarea-bio" name="bio" placeholder="Tell us a little about yourself" aria-describedby="textarea-bio-help" required></textarea>
+      <p class="field-description" id="textarea-bio-help">A sentence or two, shown on your profile.</p>
+    </div>
+  {% endcall %}
+
+  <h2 id="count">Character count</h2>
+  <p>
+    With <code>data-textarea</code>, a <code>[data-textarea-count]</code> in the same field shows the length, against
+    <code>maxlength</code> when there is one. It turns amber from 90% and red at the limit. Put it in a
+    <code>.field-footer</code> to sit opposite the description.
+  </p>
+  {% call demo("block") %}
+    <div class="field mx-auto max-w-sm">
+      <label class="field-label" for="textarea-status">Status</label>
+      <textarea class="textarea" id="textarea-status" maxlength="80" data-textarea aria-describedby="textarea-status-help">Shipping the 0.2 release</textarea>
+      <div class="field-footer">
+        <p class="field-description" id="textarea-status-help">Shown next to your name.</p>
+        <span class="textarea-count" data-textarea-count aria-live="polite"></span>
+      </div>
+    </div>
+  {% endcall %}
+
+  <h2 id="states">States</h2>
+  <p>As on inputs: <code>disabled</code>, <code>readonly</code>, <code>aria-invalid="true"</code> (with a <code>.field-error</code> message), <code>.textarea-warning</code> and <code>.textarea-success</code>.</p>
+  {% call demo("grid items-start gap-6 sm:grid-cols-2") %}
+    <div class="field">
+      <label class="field-label" for="textarea-disabled">Disabled</label>
+      <textarea class="textarea" id="textarea-disabled" disabled>Can't be changed.</textarea>
+    </div>
+    <div class="field">
+      <label class="field-label" for="textarea-readonly">Read only</label>
+      <textarea class="textarea" id="textarea-readonly" readonly>Can be selected and copied.</textarea>
+    </div>
+    <div class="field">
+      <label class="field-label" for="textarea-error">Description</label>
+      <textarea class="textarea" id="textarea-error" aria-invalid="true" aria-describedby="textarea-error-msg">Too short</textarea>
+      <p class="field-error" id="textarea-error-msg">{{ icon("x-circle") }} Write at least 20 characters.</p>
+    </div>
+    <div class="field">
+      <label class="field-label" for="textarea-warning">Notes</label>
+      <textarea class="textarea textarea-warning" id="textarea-warning" aria-describedby="textarea-warning-msg">Call the supplier on Monday</textarea>
+      <p class="field-warning" id="textarea-warning-msg">{{ icon("alert-triangle") }} Visible to the whole team.</p>
+    </div>
+    <div class="field sm:col-span-2">
+      <label class="field-label" for="textarea-success">Address</label>
+      <textarea class="textarea textarea-success" id="textarea-success" aria-describedby="textarea-success-msg">1 Martin Place, Sydney NSW 2000</textarea>
+      <p class="field-success" id="textarea-success-msg">{{ icon("check-circle") }} Address verified.</p>
+    </div>
+  {% endcall %}
+
+  <h2 id="sizes">Sizes and height</h2>
+  <p><code>.textarea-sm</code> and <code>.textarea-lg</code> change the text size and padding. <code>.textarea-fixed</code> with <code>rows</code> holds a height and drops the resize handle; <code>max-h-*</code> caps a growing one.</p>
+  {% call demo("flex-col items-stretch gap-4 sm:px-16") %}
+    <textarea class="textarea textarea-sm" placeholder="Small" aria-label="Small"></textarea>
+    <textarea class="textarea textarea-lg" placeholder="Large" aria-label="Large"></textarea>
+    <textarea class="textarea textarea-fixed" rows="3" placeholder="Fixed at three rows" aria-label="Fixed"></textarea>
+    <textarea class="textarea max-h-32" placeholder="Grows up to 8rem, then scrolls" aria-label="Capped"></textarea>
+  {% endcall %}
+
+  <h2 id="submit">Submit with the keyboard</h2>
+  <p>
+    <code>data-textarea-submit</code> submits the form on <kbd class="kbd">Ctrl</kbd>/<kbd class="kbd">⌘</kbd>+<kbd class="kbd">Enter</kbd>;
+    <code>data-textarea-submit="enter"</code> on <kbd class="kbd">Enter</kbd>, with <kbd class="kbd">Shift</kbd>+<kbd class="kbd">Enter</kbd> for a new line, as in chat.
+    It calls <code>requestSubmit()</code>, so validation and htmx run as for a click.
+  </p>
+  {% call demo("block") %}
+    <form class="field mx-auto max-w-sm" hx-post="/api/echo" hx-target="#textarea-result" hx-on::after:request="this.reset()">
+      <label class="field-label" for="textarea-reply">Reply</label>
+      <div class="input-group">
+        <textarea class="textarea" id="textarea-reply" name="reply" placeholder="Write a reply…" data-textarea data-textarea-submit required></textarea>
+        <div class="input-group-addon input-group-addon-block-end">
+          <span class="text-xs text-muted-foreground"><kbd class="kbd">Ctrl</kbd> <kbd class="kbd">Enter</kbd> to send</span>
+          <button class="btn btn-primary btn-xs ms-auto" type="submit">Send</button>
+        </div>
+      </div>
+      <p class="field-description" id="textarea-result">Nothing sent yet.</p>
+    </form>
+  {% endcall %}
+
+  <h2 id="reference">Reference</h2>
+  {{ classes([
+    [".textarea", "Multi-line input; grows with its content where supported."],
+    [".textarea-fixed", "Keeps its rows height, no resize handle."],
+    [".textarea-sm / .textarea-lg", "Smaller or larger text and padding."],
+    [".textarea-warning / .textarea-success", "Warning and success borders (aria-invalid=\"true\" for errors)."],
+    [".field-footer", "A row under a field's control: description and count."],
+    [".textarea-count", "The character count; data-state=\"near\" / \"limit\" colour it."],
+    ["[data-textarea]", "Behaviour: grows without field-sizing, fills the count."],
+    ["[data-textarea-count]", "Where the count goes (in the same .field, or by id)."],
+    ["[data-textarea-submit]", "Ctrl/⌘+Enter submits; =\"enter\": Enter submits, Shift+Enter is a new line."]
+  ]) }}
+{% endblock %}

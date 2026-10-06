@@ -1,0 +1,295 @@
+{% extends "layouts/docs.html" %}
+{% from "components/icon/icon.html" import icon %}
+{% from "components/spinner/spinner.html" import spinner %}
+{% from "components/code/code.html" import code %}
+{% from "components/combobox/combobox.html" import combobox %}
+{% from "docs/macros.html" import demo, classes %}
+{% set title = "Combobox" %}
+{% set description = "An input with a list of suggestions that filters as you type: groups, multiple picks as chips, a clear button and server-side search." %}
+{% set frameworks = [
+  { value: "astro", label: "Astro" },
+  { value: "next", label: "Next.js", keywords: "react vercel" },
+  { value: "nuxt", label: "Nuxt", keywords: "vue" },
+  { value: "remix", label: "Remix", keywords: "react" },
+  { value: "solid-start", label: "SolidStart", keywords: "solid" },
+  { value: "sveltekit", label: "SvelteKit", keywords: "svelte" }
+] %}
+{% set timezones = [
+  { label: "Americas", options: [
+    { value: "america/new_york", label: "New York (GMT-5)" },
+    { value: "america/chicago", label: "Chicago (GMT-6)" },
+    { value: "america/los_angeles", label: "Los Angeles (GMT-8)" }
+  ] },
+  { label: "Europe", options: [
+    { value: "europe/london", label: "London (GMT+0)" },
+    { value: "europe/paris", label: "Paris (GMT+1)" },
+    { value: "europe/athens", label: "Athens (GMT+2)" }
+  ] },
+  { label: "Asia and Pacific", options: [
+    { value: "asia/kathmandu", label: "Kathmandu (GMT+5:45)" },
+    { value: "asia/tokyo", label: "Tokyo (GMT+9)" },
+    { value: "australia/sydney", label: "Sydney (GMT+10)" },
+    { value: "pacific/auckland", label: "Auckland (GMT+12)" }
+  ] }
+] %}
+
+{% block content %}
+  {% call demo("min-h-96 items-start") %}
+    <div class="combobox w-64" data-combobox>
+      <div class="input-group">
+        <input class="input" data-combobox-input placeholder="Pick a framework" aria-label="Framework" />
+        <span class="input-group-addon input-group-addon-inline-end">
+          <button type="button" class="btn btn-ghost btn-icon" data-combobox-clear aria-label="Clear" hidden>{{ icon("x") }}</button>
+          <button type="button" class="btn btn-ghost btn-icon" data-combobox-toggle tabindex="-1" aria-label="Show suggestions">{{ icon("chevrons-up-down") }}</button>
+        </span>
+      </div>
+      <div class="combobox-content" role="listbox" aria-label="Frameworks" hidden>
+        {% for f in frameworks %}
+        <div class="combobox-item" role="option" value="{{ f.value }}"{% if f.keywords %} data-keywords="{{ f.keywords }}"{% endif %}>
+          {{ f.label }}
+          <span class="combobox-check">{{ icon("check") }}</span>
+        </div>
+        {% endfor %}
+        <p class="combobox-empty" data-combobox-empty hidden>No framework found.</p>
+      </div>
+      <input type="hidden" name="framework" data-combobox-value />
+    </div>
+  {% endcall %}
+
+  <p>
+    A combobox is a text input that suggests values: the user can type to narrow a long list, or open it and pick. Use a
+    <a href="/docs/components/select">select</a> when the list is short enough to scan, and a combobox when typing is
+    the faster way in.
+  </p>
+
+  <h2 id="markup">Markup</h2>
+  <ul>
+    <li>Wrap everything in <code>.combobox</code> with <code>data-combobox</code>.</li>
+    <li>The input has <code>data-combobox-input</code> and a name for screen readers (<code>aria-label</code>, or a <code>&lt;label for&gt;</code>). The behaviour makes it a <code>role="combobox"</code> linked to the list, and turns browser autocomplete off. Put it in an <a href="/docs/components/input-group">input group</a> to give it buttons, or use a bare <code>.input</code>.</li>
+    <li>The list is a <code>.combobox-content</code> with <code>role="listbox"</code>, starting <code>hidden</code>. Each suggestion is a <code>.combobox-item</code> with <code>role="option"</code> and a <code>value</code>; <code>aria-selected="true"</code> marks the starting choice. A <code>.combobox-check</code> inside shows while the option is picked.</li>
+    <li>Optional parts: a <code>[data-combobox-clear]</code> button, shown only when there is something to clear; a <code>[data-combobox-toggle]</code> button that opens and closes the list (<code>tabindex="-1"</code>, as the input already takes focus); a <code>.combobox-empty</code> with <code>data-combobox-empty</code> for "no matches".</li>
+    <li>To submit the value, add <code>&lt;input type="hidden" name="framework" data-combobox-value&gt;</code>. The text input shows the label; the hidden field carries the value.</li>
+  </ul>
+
+  <h2 id="keyboard">Keyboard</h2>
+  <p>Focus stays in the input the whole time, so typing never stops working. The highlighted option is announced through <code>aria-activedescendant</code>.</p>
+  <div class="table-wrap not-prose">
+    <table class="table">
+      <thead><tr><th>Key</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr><td>Typing</td><td class="text-muted-foreground">Open the list and filter it</td></tr>
+        <tr><td><kbd class="kbd">↓</kbd> <kbd class="kbd">↑</kbd></td><td class="text-muted-foreground">Open the list, or move the highlight (wrapping round)</td></tr>
+        <tr><td><kbd class="kbd">Enter</kbd></td><td class="text-muted-foreground">Pick the highlighted option</td></tr>
+        <tr><td><kbd class="kbd">Esc</kbd></td><td class="text-muted-foreground">Close the list</td></tr>
+        <tr><td><kbd class="kbd">Tab</kbd>, click outside</td><td class="text-muted-foreground">Close the list and move on</td></tr>
+        <tr><td><kbd class="kbd">Backspace</kbd> in an empty input</td><td class="text-muted-foreground">Multiple: remove the last pick</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>
+    Picking writes the option's label into the input and closes the list. Leaving the input with other text in it puts the
+    label back; leaving it empty clears the choice.
+  </p>
+
+  <h2 id="filtering">Filtering</h2>
+  <p>
+    Typing matches like a command palette rather than a plain prefix search: case and accents don't matter
+    (<code>zurich</code> finds Zürich), and every word typed must appear somewhere in the option, in any order. Add
+    <code>data-keywords</code> to make an option findable by words that aren't in its label: above, typing
+    <code>react</code> finds Next.js and Remix. Groups with nothing left in them hide, along with their separators, and the
+    empty message shows when nothing matches.
+  </p>
+
+  <h2 id="auto-highlight">Auto highlight</h2>
+  <p>
+    With <code>data-autohighlight</code> on the wrapper, the first match is highlighted as you type, so <kbd class="kbd">Enter</kbd>
+    takes it straight away. Without it, nothing is highlighted until an arrow key or the pointer picks one, and
+    <kbd class="kbd">Enter</kbd> submits the form as usual.
+  </p>
+  {% call demo("min-h-96 items-start") %}
+    {{ combobox("cb-autohighlight", frameworks, class="w-64", label="Framework", placeholder="Type, then Enter", autohighlight=true) }}
+  {% endcall %}
+
+  <h2 id="groups">Groups</h2>
+  <p>
+    Wrap a run of options in a <code>.combobox-group</code> with <code>role="group"</code>, headed by a
+    <code>.combobox-label</code> that names it through <code>aria-labelledby</code>. A <code>.combobox-separator</code> with
+    <code>role="separator"</code> goes between groups.
+  </p>
+  {% call demo("min-h-[28rem] items-start") %}
+    {{ combobox("cb-timezone", timezones, class="w-72", label="Timezone", placeholder="Search timezones", value="asia/kathmandu", name="timezone") }}
+  {% endcall %}
+
+  <h2 id="multiple">Multiple</h2>
+  <p>
+    Add <code>data-multiple</code> to the wrapper and replace the input group with a <code>.combobox-chips</code> box holding
+    a <code>.combobox-chips-input</code>, both with their data attributes. Picking toggles an option and keeps the list open;
+    each pick shows as a chip before the input, with a button to remove it, and <kbd class="kbd">Backspace</kbd> in the
+    empty input removes the last one. The hidden field is repeated, one per value, so the form submits
+    <code>frameworks=next&amp;frameworks=astro</code>.
+  </p>
+  {% call demo("min-h-96 items-start") %}
+    <div class="combobox w-80" data-combobox data-multiple>
+      <div class="combobox-chips" data-combobox-chips>
+        <input class="combobox-chips-input" data-combobox-input placeholder="Add frameworks" aria-label="Frameworks" />
+        <button type="button" class="btn btn-ghost btn-icon" data-combobox-clear aria-label="Clear all" hidden>{{ icon("x") }}</button>
+      </div>
+      <div class="combobox-content" role="listbox" aria-label="Frameworks" hidden>
+        {% for f in frameworks %}
+        <div class="combobox-item" role="option" value="{{ f.value }}" aria-selected="{{ 'true' if f.value in ['next', 'sveltekit'] else 'false' }}">
+          {{ f.label }}
+          <span class="combobox-check">{{ icon("check") }}</span>
+        </div>
+        {% endfor %}
+        <p class="combobox-empty" data-combobox-empty hidden>No framework found.</p>
+      </div>
+      <input type="hidden" name="frameworks" data-combobox-value />
+    </div>
+  {% endcall %}
+
+  <h2 id="clear">Clear button</h2>
+  <p>
+    A <code>[data-combobox-clear]</code> button empties the input and the choice (every chip, with
+    <code>data-multiple</code>) and returns focus to the input. It hides itself while there is nothing to clear, so start it
+    <code>hidden</code> unless the combobox starts with a value. Leave it out when a value is required.
+  </p>
+
+  <h2 id="states">Form states</h2>
+  <p>
+    The combobox takes the input states, shown through its <a href="/docs/components/input-group">input group</a> or chip
+    box: <code>aria-invalid="true"</code> for an error, <code>disabled</code> (its buttons are disabled with it), and
+    <code>required</code>, which native validation checks against the text input — it only holds text once something is
+    picked. Put it in a <a href="/docs/components/field">field</a> for the label and messages.
+  </p>
+  {% call demo("min-h-[26rem] flex-col items-start gap-6") %}
+    <div class="field w-64">
+      <label class="label" for="cb-invalid">Framework</label>
+      {{ combobox("cb-invalid", frameworks, invalid=true, required=true, attrs='aria-describedby="cb-invalid-error"') }}
+      <p class="field-error" id="cb-invalid-error">{{ icon("x-circle") }} Pick the framework your project uses.</p>
+    </div>
+    <div class="field w-64">
+      <label class="label" for="cb-disabled">Framework</label>
+      {{ combobox("cb-disabled", frameworks, value="astro", disabled=true) }}
+      <p class="field-description">Locked while a deploy is running.</p>
+    </div>
+    <div class="field w-80">
+      <label class="label" for="cb-multi-invalid">Frameworks</label>
+      {{ combobox("cb-multi-invalid", frameworks, multiple=true, invalid=true) }}
+    </div>
+  {% endcall %}
+
+  <h2 id="input-group">Input group</h2>
+  <p>
+    The input sits in an ordinary <a href="/docs/components/input-group">input group</a>, so any addon works beside it: an
+    icon, text, a button. Here an icon leads, and each option carries its region as a
+    <code>.combobox-item-description</code>.
+  </p>
+  {% call demo("min-h-96 items-start") %}
+    <div class="combobox w-72" data-combobox data-autohighlight>
+      <div class="input-group">
+        <input class="input" data-combobox-input placeholder="Search timezones" aria-label="Timezone" />
+        <span class="input-group-addon">{{ icon("monitor") }}</span>
+        <span class="input-group-addon input-group-addon-inline-end">
+          <button type="button" class="btn btn-ghost btn-icon" data-combobox-clear aria-label="Clear" hidden>{{ icon("x") }}</button>
+        </span>
+      </div>
+      <div class="combobox-content" role="listbox" aria-label="Timezones" hidden>
+        {% for group in timezones %}
+        {% for t in group.options %}
+        <div class="combobox-item" role="option" value="{{ t.value }}">{{ t.label }}<span class="combobox-item-description">{{ group.label }}</span></div>
+        {% endfor %}
+        {% endfor %}
+        <p class="combobox-empty" data-combobox-empty hidden>No timezone found.</p>
+      </div>
+    </div>
+  {% endcall %}
+
+  <h2 id="server">Searching on the server</h2>
+  <p>
+    For a list too long to send with the page, let htmx fetch the options as the user types and swap them into the list.
+    <code>data-filter="none"</code> turns the browser-side filter off, as the server already did it. The behaviour watches
+    the list, so the new options are highlighted, keyboard-ready and marked if already picked — picks are remembered by
+    value, so they survive the list changing under them, chips included.
+  </p>
+  {% call demo("min-h-96 items-start") %}
+    <div class="combobox w-64" data-combobox data-filter="none" data-autohighlight>
+      <div class="input-group">
+        <input class="input" data-combobox-input name="q" placeholder="Search countries" aria-label="Country"
+               hx-get="/api/countries" hx-trigger="input changed delay:200ms" hx-target="next [role=listbox]"
+               hx-indicator="#cb-country-spinner" />
+        <span class="input-group-addon">{{ icon("search") }}</span>
+        <span class="input-group-addon input-group-addon-inline-end">{{ spinner(class="htmx-indicator", label="Searching", id="cb-country-spinner") }}</span>
+      </div>
+      <div class="combobox-content" role="listbox" aria-label="Countries" hidden>
+        <div class="combobox-item" role="option" value="argentina">Argentina</div>
+        <div class="combobox-item" role="option" value="australia">Australia</div>
+        <div class="combobox-item" role="option" value="austria">Austria</div>
+        <div class="combobox-item" role="option" value="belgium">Belgium</div>
+      </div>
+      <input type="hidden" name="country" data-combobox-value />
+    </div>
+  {% endcall %}
+  <p>
+    The endpoint returns plain option markup (<code>&lt;div class="combobox-item" role="option" value="…"&gt;</code>), or a
+    <code>.combobox-empty</code> paragraph when nothing matches. This demo's endpoint is part of the dev server, so it only
+    answers on a running site, not on a static host.
+  </p>
+
+  <h2 id="htmx">Submitting with htmx</h2>
+  <p>
+    Every change fires a bubbling <code>combobox:change</code> with <code>detail.value</code> and <code>detail.label</code>
+    (the first pick) and <code>detail.values</code> / <code>detail.labels</code> (all of them). Inside a form, trigger on it
+    and htmx posts the hidden <code>[data-combobox-value]</code> fields with the rest:
+  </p>
+  {% call demo("min-h-96 flex-col items-start gap-4") %}
+    <form class="w-80" onsubmit="return false" hx-post="/api/echo" hx-trigger="combobox:change" hx-target="#cb-result">
+      {{ combobox("cb-htmx", frameworks, class="w-80", multiple=true, name="frameworks", label="Frameworks", placeholder="Add frameworks") }}
+    </form>
+    <p id="cb-result" class="muted" aria-live="polite"></p>
+  {% endcall %}
+
+  <h2 id="alignment">Alignment</h2>
+  <p>
+    The list opens below the input, as wide as the combobox. <code>.combobox-content-up</code> opens it above, and
+    <code>.combobox-content-end</code> aligns a list wider than the input (a <code>w-80</code> utility) to the right edge.
+  </p>
+
+  <h2 id="macro">Nunjucks macro</h2>
+  <p>
+    The <code>combobox</code> macro writes the input group or chip box, the options, groups and separators, and the hidden
+    field. Options are strings, <code>&#123;value, label, keywords, disabled&#125;</code> objects, or groups
+    <code>&#123;label, options&#125;</code>.
+  </p>
+  {% call code("jinja", title="page.html") %}
+    {% raw %}{% from "components/combobox/combobox.html" import combobox %}
+
+<div class="field">
+  <label class="label" for="framework">Framework</label>
+  {{ combobox("framework", json("data/frameworks.json"), name="framework", autohighlight=true) }}
+</div>
+
+{{ combobox("tags", ["Bug", "Feature", "Docs"], multiple=true, value=["Bug"], name="tags", label="Tags") }}
+{{ combobox("tz", [{label: "Europe", options: [...]}, {label: "Asia", options: [...]}], label="Timezone") }}{% endraw %}
+  {% endcall %}
+
+  <h2 id="reference">Reference</h2>
+  {{ classes([
+    [".combobox", "Positioning wrapper. Add data-combobox."],
+    [".combobox-content", "The listbox. Opens below, as wide as the combobox."],
+    [".combobox-content-up / -end", "Open above / align to the right edge."],
+    [".combobox-item", "One option (role=\"option\", value). data-keywords: extra words to match."],
+    [".combobox-check", "Icon in an option, shown while it is picked."],
+    [".combobox-item-description", "Muted text at the end of an option."],
+    [".combobox-group / .combobox-label", "A group of options (role=\"group\") and its heading."],
+    [".combobox-separator", "A line between groups (role=\"separator\"); hidden when a filter empties one side."],
+    [".combobox-empty", "Shown when nothing matches. Add data-combobox-empty."],
+    [".combobox-chips / .combobox-chips-input", "Multiple: the box that looks like an input, and the input inside it."],
+    [".combobox-chip / .combobox-chip-remove", "A pick and its remove button, built by the behaviour."],
+    ["[data-combobox-input]", "The text input (becomes role=\"combobox\")."],
+    ["[data-combobox-value]", "Hidden field with the value; one per value with data-multiple."],
+    ["[data-combobox-clear] / [data-combobox-toggle]", "Clear button (hides itself when empty) / open-close button."],
+    ["data-multiple / data-autohighlight", "Several picks as chips / highlight the first match as you type."],
+    ["data-filter=\"none\"", "No browser-side filtering, for lists the server filters."],
+    ["combobox:change", "Event with detail { value, label, values, labels }."]
+  ], heading="Class / attribute") }}
+{% endblock %}

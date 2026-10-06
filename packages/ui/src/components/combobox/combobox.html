@@ -1,0 +1,67 @@
+{# Combobox: an input that filters a list of suggestions (behaviour: combobox.ts).
+   {% from "components/combobox/combobox.html" import combobox %}
+   {{ combobox("framework", ["Astro", "Next.js", "SvelteKit"], label="Framework") }}     bare strings: value == label
+   {{ combobox("tz", [{value: "utc", label: "UTC"}, …], value="utc", name="tz") }}
+   {{ combobox("fruit", [{label: "Fruits", options: ["Apple", "Banana"]}, {label: "Vegetables", options: [...]}]) }}
+   {{ combobox("tags", tags, multiple=true, value=["a", "b"], name="tags") }}
+   options: strings, {value, label, keywords?, disabled?}, or groups {label, options} (separated by a line).
+   value: the preselected value (a list with multiple). name: hidden field(s) for the form.
+   multiple: chips. autohighlight: Enter takes the first match. clear: a clear button.
+   label: the accessible name of the input and list. empty: the "no matches" text.
+   invalid, disabled, required: on the input. class: on the wrapper (a width: w-64). attrs: extra
+   attributes on the input. #}
+
+{% macro _option(o, value, multiple) %}
+{% set val = o.value if o.value is defined else o %}
+{% set text = o.label if o.label is defined else o %}
+{% set picked = (val in value) if multiple else (val == value) %}
+{% from "components/icon/icon.html" import icon %}
+<div class="combobox-item" role="option" value="{{ val }}" aria-selected="{{ 'true' if picked else 'false' }}"{% if o.keywords %} data-keywords="{{ o.keywords }}"{% endif %}{% if o.disabled %} aria-disabled="true"{% endif %}>{{ text }}<span class="combobox-check">{{ icon("check") }}</span></div>
+{%- endmacro %}
+
+{% macro combobox(id, options, value=none, name=none, label=none, placeholder="Search…", multiple=false, autohighlight=false, clear=true, empty="No results.", invalid=false, disabled=false, required=false, class="", attrs="") %}
+{% from "components/icon/icon.html" import icon %}
+{% set value = value if value is not none else ([] if multiple else "") %}
+{% set input_attrs %} id="{{ id }}" data-combobox-input placeholder="{{ placeholder }}"{% if label %} aria-label="{{ label }}"{% endif %}{% if invalid %} aria-invalid="true"{% endif %}{% if disabled %} disabled{% endif %}{% if required %} required{% endif %}{% if attrs %} {{ attrs | safe }}{% endif %}{% endset %}
+<div class="combobox{% if class %} {{ class }}{% endif %}" data-combobox{% if multiple %} data-multiple{% endif %}{% if autohighlight %} data-autohighlight{% endif %}>
+  {% if multiple %}
+  <div class="combobox-chips" data-combobox-chips>
+    <input class="combobox-chips-input"{{ input_attrs | safe }} />
+    {% if clear %}
+    <button type="button" class="btn btn-ghost btn-icon" data-combobox-clear aria-label="Clear" hidden>{{ icon("x") }}</button>
+    {% endif %}
+  </div>
+  {% else %}
+  <div class="input-group">
+    <input class="input"{{ input_attrs | safe }} />
+    <span class="input-group-addon input-group-addon-inline-end">
+      {% if clear %}
+      <button type="button" class="btn btn-ghost btn-icon" data-combobox-clear aria-label="Clear" hidden>{{ icon("x") }}</button>
+      {% endif %}
+      <button type="button" class="btn btn-ghost btn-icon" data-combobox-toggle tabindex="-1" aria-label="Show suggestions">{{ icon("chevrons-up-down") }}</button>
+    </span>
+  </div>
+  {% endif %}
+  <div class="combobox-content" role="listbox"{% if label %} aria-label="{{ label }}"{% endif %} hidden>
+    {% for o in options %}
+    {% if o.options is defined %}
+    {% if not loop.first %}
+    <div class="combobox-separator" role="separator"></div>
+    {% endif %}
+    <div class="combobox-group" role="group" aria-labelledby="{{ id }}-group-{{ loop.index }}">
+      <div class="combobox-label" id="{{ id }}-group-{{ loop.index }}">{{ o.label }}</div>
+      {% for item in o.options %}
+      {{ _option(item, value, multiple) }}
+      {% endfor %}
+    </div>
+    {% else %}
+    {{ _option(o, value, multiple) }}
+    {% endif %}
+    {% endfor %}
+    <p class="combobox-empty" data-combobox-empty hidden>{{ empty }}</p>
+  </div>
+  {% if name %}
+  <input type="hidden" name="{{ name }}" data-combobox-value />
+  {% endif %}
+</div>
+{%- endmacro %}

@@ -1,0 +1,16 @@
+/* A line between content.
+   <div class="separator" role="separator"></div>                                  horizontal (default)
+   <div class="separator" role="separator" aria-orientation="vertical"></div>      vertical
+   <hr class="separator" />                                                         horizontal, semantic
+   role="separator" tells screen readers the content changes here; a purely visual line takes
+   role="none" instead. .separator-vertical turns a decorative one (no aria-orientation) upright.
+   A vertical separator stretches to the height of its flex row; elsewhere give it one (h-4).
+   For a line with a word in it ("Or"), see .field-separator in field.css. */
+@layer components {
+  .separator {
+    @apply m-0 h-px w-full shrink-0 border-0 bg-border;
+  }
+  .separator:is([aria-orientation="vertical"], .separator-vertical) {
+    @apply h-auto w-px self-stretch;
+  }
+}

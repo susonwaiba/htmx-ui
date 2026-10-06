@@ -105,9 +105,4 @@
   :where(h1, h2, h3, h4, h5, h6):hover > .heading-anchor {
     @apply opacity-100;
   }
-
-  .kbd {
-    @apply inline-flex h-5 min-w-5 items-center justify-center rounded border border-border bg-muted px-1 font-mono
-      text-[0.75rem] text-muted-foreground shadow-[0_1px_0_var(--border)];
-  }
 }

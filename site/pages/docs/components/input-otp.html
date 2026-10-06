@@ -1,0 +1,205 @@
+{% extends "layouts/docs.html" %}
+{% from "components/icon/icon.html" import icon %}
+{% from "components/code/code.html" import code %}
+{% from "components/input-otp/input-otp.html" import input_otp %}
+{% from "docs/macros.html" import demo, classes %}
+{% set title = "Input OTP" %}
+{% set description = "An accessible one-time password input: a row of slots over one real input, so typing, pasting and SMS autofill just work." %}
+
+{% block content %}
+  {% call demo() %}
+    <div class="input-otp" data-input-otp>
+      <input class="input-otp-input" data-input-otp-input name="code" aria-label="Verification code" />
+      <div class="input-otp-group" aria-hidden="true">
+        <div class="input-otp-slot"></div>
+        <div class="input-otp-slot"></div>
+        <div class="input-otp-slot"></div>
+      </div>
+      <div class="input-otp-separator" aria-hidden="true">{{ icon("minus") }}</div>
+      <div class="input-otp-group" aria-hidden="true">
+        <div class="input-otp-slot"></div>
+        <div class="input-otp-slot"></div>
+        <div class="input-otp-slot"></div>
+      </div>
+    </div>
+  {% endcall %}
+
+  <h2 id="markup">Markup</h2>
+  <ul>
+    <li>Wrap everything in <code>.input-otp</code> with <code>data-input-otp</code>.</li>
+    <li>Inside goes one real <code>&lt;input class="input-otp-input" data-input-otp-input&gt;</code> with the <code>name</code> the form submits and an <code>aria-label</code> (or a <code>&lt;label for&gt;</code>). It lies transparent over the slots and takes every click and key.</li>
+    <li>Then one empty <code>.input-otp-slot</code> per character, in <code>.input-otp-group</code>s, with an optional <code>.input-otp-separator</code> between groups. Mark the groups and separators <code>aria-hidden="true"</code>: screen readers read the input, not the boxes.</li>
+    <li>The number of slots is the length of the code: the behaviour sets the input's <code>maxlength</code> to match.</li>
+  </ul>
+  <p>
+    Because the value lives in one ordinary input, everything a browser does for inputs keeps working: pasting a whole code,
+    the code from a text message offered above the keyboard (<code>autocomplete="one-time-code"</code>, set for you),
+    password managers, undo, form submission and validation. The behaviour only filters what goes in and paints the slots.
+  </p>
+
+  <h2 id="pattern">Pattern</h2>
+  <p>
+    <code>data-pattern</code> on the wrapper decides which characters are allowed; anything else is dropped as it is typed
+    or pasted, so <code>"123-456"</code> or <code>" 123 456 "</code> pasted from an email becomes <code>123456</code>.
+  </p>
+  <div class="table-wrap not-prose">
+    <table class="table">
+      <thead><tr><th>data-pattern</th><th>Allows</th><th>Mobile keyboard</th></tr></thead>
+      <tbody>
+        <tr><td><code class="code">digits</code> (default)</td><td class="text-muted-foreground">0–9</td><td class="text-muted-foreground">Number pad (<code class="code">inputmode="numeric"</code>)</td></tr>
+        <tr><td><code class="code">alphanumeric</code></td><td class="text-muted-foreground">A–Z, a–z, 0–9</td><td class="text-muted-foreground">Text</td></tr>
+        <tr><td><code class="code">alpha</code></td><td class="text-muted-foreground">A–Z, a–z</td><td class="text-muted-foreground">Text</td></tr>
+        <tr><td><code class="code">[0-9a-f]</code></td><td class="text-muted-foreground">Any regular-expression character class</td><td class="text-muted-foreground">Text</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>
+    <code>data-case="upper"</code> (or <code>"lower"</code>) converts letters as they are typed and asks phone keyboards
+    for capitals. The input also gets a <code>pattern</code> attribute for the full code (<code>[0-9]{6}</code>), so a
+    <code>required</code> input with a partial code fails native form validation. Set <code>inputmode</code>,
+    <code>autocomplete</code> or <code>pattern</code> yourself to override them.
+  </p>
+  {% call demo("flex-col gap-6") %}
+    <div class="field w-fit">
+      <label class="label" for="otp-pin">PIN (digits only)</label>
+      <div class="input-otp input-otp-spaced" data-input-otp data-mask>
+        <input class="input-otp-input" data-input-otp-input id="otp-pin" name="pin" />
+        <div class="input-otp-group" aria-hidden="true">
+          <div class="input-otp-slot"></div>
+          <div class="input-otp-slot"></div>
+          <div class="input-otp-slot"></div>
+          <div class="input-otp-slot"></div>
+        </div>
+      </div>
+    </div>
+    <div class="field w-fit">
+      <label class="label" for="otp-invite">Invite code (letters and digits)</label>
+      <div class="input-otp" data-input-otp data-pattern="alphanumeric" data-case="upper">
+        <input class="input-otp-input" data-input-otp-input id="otp-invite" name="invite" />
+        <div class="input-otp-group" aria-hidden="true">
+          <div class="input-otp-slot"></div>
+          <div class="input-otp-slot"></div>
+          <div class="input-otp-slot"></div>
+          <div class="input-otp-slot"></div>
+        </div>
+        <div class="input-otp-separator" aria-hidden="true">{{ icon("minus") }}</div>
+        <div class="input-otp-group" aria-hidden="true">
+          <div class="input-otp-slot"></div>
+          <div class="input-otp-slot"></div>
+          <div class="input-otp-slot"></div>
+          <div class="input-otp-slot"></div>
+        </div>
+      </div>
+    </div>
+  {% endcall %}
+  <p>
+    The PIN shows <code>•</code> in its slots with <code>data-mask</code>, and <code>.input-otp-spaced</code> gives every
+    slot a box of its own.
+  </p>
+
+  <h2 id="separator">Groups and separators</h2>
+  <p>
+    Split the slots into as many groups as the code reads in. A separator holds an icon or text; left empty it draws a short
+    dash.
+  </p>
+  {% call demo("flex-col gap-6") %}
+    {{ input_otp("otp-sep-a", groups=[2, 2, 2], label="Code in pairs") }}
+    <div class="input-otp" data-input-otp>
+      <input class="input-otp-input" data-input-otp-input name="otp-sep-b" aria-label="Code with a dot" />
+      <div class="input-otp-group" aria-hidden="true">
+        <div class="input-otp-slot"></div>
+        <div class="input-otp-slot"></div>
+        <div class="input-otp-slot"></div>
+      </div>
+      <div class="input-otp-separator" aria-hidden="true">·</div>
+      <div class="input-otp-group" aria-hidden="true">
+        <div class="input-otp-slot"></div>
+        <div class="input-otp-slot"></div>
+        <div class="input-otp-slot"></div>
+      </div>
+    </div>
+  {% endcall %}
+
+  <h2 id="sizes">Sizes and states</h2>
+  <p>
+    <code>.input-otp-sm</code> and <code>.input-otp-lg</code> match <code>.input-sm</code> and <code>.input-lg</code>.
+    <code>aria-invalid="true"</code> on the input (or a <code>required</code> code left unfinished,
+    <code>:user-invalid</code>) turns the slots red, <code>disabled</code> fades them, and <code>.input-otp-warning</code> /
+    <code>.input-otp-success</code> on the wrapper colour them. Pair them with
+    <a href="/docs/components/field">field</a> messages:
+  </p>
+  {% call demo("flex-col items-start gap-6") %}
+    {{ input_otp("otp-sm", groups=[3, 3], size="sm", label="Small") }}
+    {{ input_otp("otp-lg", groups=[3, 3], size="lg", label="Large") }}
+    <div class="field w-fit">
+      <label class="label" for="otp-invalid">Verification code</label>
+      <div class="input-otp" data-input-otp>
+        <input class="input-otp-input" data-input-otp-input id="otp-invalid" name="code" value="123" aria-invalid="true" aria-describedby="otp-invalid-error" />
+        <div class="input-otp-group" aria-hidden="true">
+          <div class="input-otp-slot"></div>
+          <div class="input-otp-slot"></div>
+          <div class="input-otp-slot"></div>
+          <div class="input-otp-slot"></div>
+          <div class="input-otp-slot"></div>
+          <div class="input-otp-slot"></div>
+        </div>
+      </div>
+      <p class="field-error" id="otp-invalid-error">{{ icon("x-circle") }} That code has expired. We sent you a new one.</p>
+    </div>
+    <div class="field w-fit">
+      <label class="label" for="otp-success">Verified</label>
+      {{ input_otp("code", id="otp-success", state="success", value="482913") }}
+    </div>
+    <div class="field w-fit">
+      <label class="label" for="otp-disabled">Disabled</label>
+      {{ input_otp("code", id="otp-disabled", disabled=true, value="12") }}
+    </div>
+  {% endcall %}
+
+  <h2 id="keyboard">Typing, pasting and the keyboard</h2>
+  <ul>
+    <li>Focus puts the caret after the last character; the active slot shows a blinking caret. <kbd class="kbd">Backspace</kbd> deletes backwards.</li>
+    <li><kbd class="kbd">←</kbd> <kbd class="kbd">→</kbd> <kbd class="kbd">Home</kbd> <kbd class="kbd">End</kbd> move between slots, and clicking a filled slot selects it: typing then replaces that character.</li>
+    <li>Pasting a full code replaces the whole value, even when the input is already full; a shorter paste goes in at the caret.</li>
+    <li>On phones, the digits pattern opens the number pad, and the code from a text message is offered above the keyboard.</li>
+  </ul>
+
+  <h2 id="htmx">With htmx</h2>
+  <p>
+    Filling the last slot fires a bubbling <code>input-otp:complete</code> with <code>detail.value</code>. Trigger a request
+    on it to check the code as soon as it's entered, or add <code>data-submit</code> to submit the input's form:
+  </p>
+  {% call demo("flex-col gap-4") %}
+    <form class="flex flex-col items-center gap-3" hx-post="/api/echo" hx-trigger="input-otp:complete" hx-target="#otp-result">
+      {{ input_otp("code", groups=[3, 3], label="Verification code") }}
+      <p id="otp-result" class="muted" aria-live="polite">Enter any six digits.</p>
+    </form>
+  {% endcall %}
+
+  <h2 id="macro">Nunjucks macro</h2>
+  <p>The <code>input_otp</code> macro writes the input, groups, slots and separators from a few options.</p>
+  {% call code("jinja", title="page.html") %}
+    {% raw %}{% from "components/input-otp/input-otp.html" import input_otp %}
+
+{{ input_otp("code", groups=[3, 3], label="Verification code", required=true) }}
+{{ input_otp("invite", length=8, groups=[4, 4], pattern="alphanumeric", case="upper") }}
+{{ input_otp("pin", length=4, mask=true, spaced=true, size="lg") }}
+{{ input_otp("code", invalid=true, attrs='aria-describedby="code-error"') }}{% endraw %}
+  {% endcall %}
+
+  <h2 id="reference">Reference</h2>
+  {{ classes([
+    [".input-otp", "Wrapper. Add data-input-otp."],
+    [".input-otp-input", "The real input, transparent over the slots. Add data-input-otp-input."],
+    [".input-otp-group / .input-otp-slot", "A run of slots joined into one border / one character."],
+    [".input-otp-separator", "Between groups: an icon, text, or a dash when empty."],
+    [".input-otp-spaced", "Every slot a separate box."],
+    [".input-otp-sm / .input-otp-lg", "Sizes, matching .input-sm / .input-lg."],
+    [".input-otp-warning / .input-otp-success", "State colours. Errors: aria-invalid on the input."],
+    ["data-pattern", "digits (default), alphanumeric, alpha, or a regex character class."],
+    ["data-case", "upper or lower: convert letters as they are typed."],
+    ["data-mask", "Show • in the slots."],
+    ["data-submit", "Submit the form when the last slot is filled."],
+    ["input-otp:complete", "Event on the wrapper with detail { value }."]
+  ], heading="Class / attribute") }}
+{% endblock %}

@@ -1,0 +1,144 @@
+{% extends "layouts/docs.html" %}
+{% from "components/icon/icon.html" import icon %}
+{% from "docs/macros.html" import demo, classes %}
+{% set title = "Label" %}
+{% set description = "An accessible label for a control: beside it, around a checkbox or radio, or as a whole choice card." %}
+
+{% block content %}
+  {% call demo() %}
+    <label class="label">
+      <input class="checkbox" type="checkbox" name="terms" />
+      Accept terms and conditions
+    </label>
+  {% endcall %}
+
+  <h2 id="markup">Markup</h2>
+  <ul>
+    <li><code>.label</code> styles a <code>&lt;label&gt;</code>. Point it at its control with <code>for</code> and the control's <code>id</code>, or put the control inside it: either way clicking the text focuses or toggles the control, and screen readers read the text as its name.</li>
+    <li>Around a <a href="/docs/components/checkbox">checkbox</a>, <a href="/docs/components/radio-group">radio</a> or <a href="/docs/components/switch">switch</a>, the label lines the box up with the first line of text and shows a pointer.</li>
+    <li>A disabled control dims its label and shows the not-allowed cursor: wrapped in it, or as the label's sibling right before or after it.</li>
+    <li>Use a real <code>&lt;label&gt;</code> for a form control. For something that isn't one — a custom <a href="/docs/components/select">select</a> trigger, a group — give the text an <code>id</code> and point the control's <code>aria-labelledby</code> at it.</li>
+  </ul>
+
+  <h2 id="field">In a field</h2>
+  <p>
+    Inside a <a href="/docs/components/field">field</a>, <code>.label</code> works like <code>.field-label</code>: it gets a
+    red asterisk when the control is <code>required</code>, turns red with <code>aria-invalid="true"</code> and fades when
+    the control is disabled.
+  </p>
+  {% call demo() %}
+    <div class="field max-w-sm">
+      <label class="label" for="label-email">Email</label>
+      <input class="input" id="label-email" type="email" placeholder="you@example.com" required aria-describedby="label-email-help" />
+      <p class="field-description" id="label-email-help">We send the receipt here.</p>
+    </div>
+  {% endcall %}
+
+  <h2 id="form">In a form</h2>
+  <p>
+    Labels in a <code>.field-group</code>, one per control. A label can hold more than text: an icon, or, beside it, a link
+    that belongs to the field.
+  </p>
+  {% call demo() %}
+    <form class="field-group max-w-sm" onsubmit="return false">
+      <div class="field">
+        <label class="label" for="label-name">{{ icon("user") }} Name</label>
+        <input class="input" id="label-name" autocomplete="name" />
+      </div>
+      <div class="field">
+        <div class="flex items-center justify-between">
+          <label class="label" for="label-password">Password</label>
+          <a class="link text-sm" href="#">Forgot it?</a>
+        </div>
+        <input class="input" id="label-password" type="password" autocomplete="current-password" aria-invalid="true" aria-describedby="label-password-error" />
+        <p class="field-error" id="label-password-error">{{ icon("x-circle") }} That password is not right.</p>
+      </div>
+      <div class="field field-horizontal">
+        <input class="switch" type="checkbox" role="switch" id="label-remember" checked />
+        <label class="label" for="label-remember">Remember me</label>
+      </div>
+      <button class="btn btn-primary w-full">Sign in</button>
+    </form>
+  {% endcall %}
+
+  <h2 id="controls">Checkbox, radio and switch</h2>
+  <p>
+    Wrapping the control in the label makes the text part of its hit area with no <code>for</code> or <code>id</code>.
+    Long text wraps beside the box rather than under it.
+  </p>
+  {% call demo("flex-col items-start gap-4") %}
+    <label class="label">
+      <input class="checkbox" type="checkbox" name="news" checked />
+      Send me product news
+    </label>
+    <label class="label max-w-xs">
+      <input class="checkbox" type="checkbox" name="digest" />
+      Email me a weekly digest of everything that changed in the projects I follow
+    </label>
+    <fieldset class="flex flex-col gap-3">
+      <legend class="label mb-3">Notify me about</legend>
+      <label class="label"><input class="radio" type="radio" name="notify" value="all" checked /> All new messages</label>
+      <label class="label"><input class="radio" type="radio" name="notify" value="mentions" /> Direct messages and mentions</label>
+      <label class="label"><input class="radio" type="radio" name="notify" value="none" /> Nothing</label>
+    </fieldset>
+    <label class="label">
+      <input class="switch" type="checkbox" role="switch" name="airplane" />
+      Airplane mode
+    </label>
+  {% endcall %}
+
+  <h2 id="card">Choice card</h2>
+  <p>
+    <code>.label-card</code> is a bordered label around a control and its text, highlighted while checked. Put the title
+    and a <code>.label-description</code> in a <code>.label-content</code>: it fills the row, so a switch placed after it
+    sits at the right edge.
+  </p>
+  {% call demo("flex-col gap-3") %}
+    <div class="flex w-full max-w-sm flex-col gap-3">
+      <label class="label-card">
+        <input class="checkbox" type="checkbox" name="alerts" checked />
+        <span class="label-content">
+          Enable notifications
+          <span class="label-description">You can turn them off again at any time.</span>
+        </span>
+      </label>
+      <label class="label-card">
+        <span class="label-content">
+          Share usage data
+          <span class="label-description">Anonymous statistics that help us improve.</span>
+        </span>
+        <input class="switch" type="checkbox" role="switch" name="telemetry" />
+      </label>
+      <label class="label-card">
+        <input class="checkbox" type="checkbox" name="beta" disabled />
+        <span class="label-content">
+          Beta features
+          <span class="label-description">Not available on the free plan.</span>
+        </span>
+      </label>
+    </div>
+  {% endcall %}
+  <p>For a set of radio cards, <a href="/docs/components/radio-group"><code>.radio-card</code></a> adds the group layout.</p>
+
+  <h2 id="disabled">Disabled</h2>
+  <p>The label follows its control: no extra class.</p>
+  {% call demo("flex-col items-start gap-4") %}
+    <label class="label"><input class="checkbox" type="checkbox" disabled /> Wrapped</label>
+    <div class="flex items-center gap-2">
+      <input class="checkbox" type="checkbox" id="label-disabled" disabled />
+      <label class="label" for="label-disabled">After the control</label>
+    </div>
+    <div class="flex flex-col gap-2">
+      <label class="label" for="label-disabled-input">Before the control</label>
+      <input class="input w-64" id="label-disabled-input" disabled value="Read only for now" />
+    </div>
+  {% endcall %}
+
+  <h2 id="reference">Reference</h2>
+  {{ classes([
+    [".label", "A label for a control. Around a checkbox, radio or switch it lines them up with the text."],
+    [".label-card", "A bordered label around a control, tinted while checked, ringed while focused."],
+    [".label-content", "Title and description beside the control in a card; fills the row."],
+    [".label-description", "Muted supporting text in a card."]
+  ]) }}
+{% endblock %}

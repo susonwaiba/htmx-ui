@@ -1,0 +1,144 @@
+/* A value, a range or several values picked on a track. Each thumb is a native
+   <input type="range"> laid over one shared track, so it submits with the form, works with the
+   keyboard (arrows, Page Up/Down, Home/End) and is announced by screen readers, with no
+   JavaScript. The behaviour (slider.ts) paints the filled range, keeps thumbs from crossing,
+   moves the nearest thumb when the track is clicked and fills <output for="…"> elements.
+
+   <div class="slider" data-slider style="--slider-start: 25%; --slider-end: 75%">
+     <div class="slider-track"><div class="slider-range"></div></div>
+     <input type="range" name="price" min="0" max="100" value="25" aria-label="Minimum price" />
+     <input type="range" name="price" min="0" max="100" value="75" aria-label="Maximum price" />
+   </div>
+
+   One input: a value (the range fills from the start). Two: a range. More: several thumbs, the
+   range spanning the lowest to the highest. The inline --slider-start / --slider-end paint the
+   range before the behaviour runs (the slider() macro writes them).
+   data-orientation="vertical" stands it up (give it a height); data-slider-gap="10" keeps
+   neighbouring thumbs that far apart, in value units.
+   States: disabled inputs, aria-invalid="true", .slider-warning, .slider-success. Sizes:
+   .slider-sm / .slider-lg. Labels and messages: field.css. */
+@layer components {
+  .slider {
+    --slider-start: 0%;
+    --slider-end: 0%;
+    --slider-thumb: 1rem;
+    --slider-track: 0.375rem;
+    --slider-color: var(--primary);
+    @apply relative flex h-(--slider-thumb) w-full touch-none items-center select-none;
+  }
+  /* The track is inset by half a thumb at each end: a native thumb's centre travels from
+     half its width to the width minus half, so percentages of the inset track line up. */
+  .slider-track {
+    @apply relative mx-[calc(var(--slider-thumb)/2)] h-(--slider-track) flex-1 overflow-hidden rounded-full bg-muted;
+  }
+  .slider-range {
+    @apply absolute inset-y-0 rounded-full bg-(--slider-color);
+    inset-inline-start: var(--slider-start);
+    inset-inline-end: calc(100% - var(--slider-end));
+  }
+
+  /* The inputs cover the slider; only their thumbs take the pointer, so a thumb under another
+     input's empty track can still be grabbed. */
+  .slider > input[type="range"] {
+    @apply pointer-events-none absolute inset-x-0 top-1/2 m-0 h-(--slider-thumb) w-full -translate-y-1/2
+      cursor-pointer appearance-none bg-transparent outline-none disabled:cursor-not-allowed;
+  }
+  .slider > input[type="range"]::-webkit-slider-runnable-track {
+    @apply h-full appearance-none border-0 bg-transparent;
+  }
+  .slider > input[type="range"]::-moz-range-track {
+    @apply h-full border-0 bg-transparent;
+  }
+  .slider > input[type="range"]::-webkit-slider-thumb {
+    @apply pointer-events-auto size-(--slider-thumb) cursor-grab appearance-none rounded-full border-2
+      border-(--slider-color) bg-surface shadow-sm transition-[box-shadow,scale];
+  }
+  .slider > input[type="range"]::-moz-range-thumb {
+    @apply pointer-events-auto box-border size-(--slider-thumb) cursor-grab appearance-none rounded-full border-2
+      border-(--slider-color) bg-surface shadow-sm transition-[box-shadow,scale];
+  }
+  .slider > input[type="range"]:active::-webkit-slider-thumb {
+    @apply cursor-grabbing;
+  }
+  .slider > input[type="range"]:active::-moz-range-thumb {
+    @apply cursor-grabbing;
+  }
+  .slider > input[type="range"]:disabled::-webkit-slider-thumb {
+    @apply cursor-not-allowed;
+  }
+  .slider > input[type="range"]:disabled::-moz-range-thumb {
+    @apply cursor-not-allowed;
+  }
+  /* Focus ring on the thumb. One color-mix() per rule (see components/alert). */
+  .slider > input[type="range"]:focus-visible::-webkit-slider-thumb {
+    box-shadow: 0 0 0 4px color-mix(in oklab, var(--slider-color) 30%, transparent);
+  }
+  .slider > input[type="range"]:focus-visible::-moz-range-thumb {
+    box-shadow: 0 0 0 4px color-mix(in oklab, var(--slider-color) 30%, transparent);
+  }
+  .slider > input[type="range"]:not(:disabled):hover::-webkit-slider-thumb {
+    box-shadow: 0 0 0 4px color-mix(in oklab, var(--slider-color) 18%, transparent);
+  }
+  .slider > input[type="range"]:not(:disabled):hover::-moz-range-thumb {
+    box-shadow: 0 0 0 4px color-mix(in oklab, var(--slider-color) 18%, transparent);
+  }
+
+  /* Vertical: the inputs turn with writing-mode, the minimum at the bottom. */
+  .slider[data-orientation="vertical"] {
+    @apply h-full min-h-40 w-(--slider-thumb) flex-col;
+  }
+  .slider[data-orientation="vertical"] .slider-track {
+    @apply mx-0 my-[calc(var(--slider-thumb)/2)] h-auto w-(--slider-track);
+  }
+  .slider[data-orientation="vertical"] .slider-range {
+    @apply inset-x-0;
+    inset-inline-start: 0;
+    inset-inline-end: 0;
+    bottom: var(--slider-start);
+    top: calc(100% - var(--slider-end));
+  }
+  .slider[data-orientation="vertical"] > input[type="range"] {
+    @apply inset-x-auto inset-y-0 top-0 left-1/2 h-full w-(--slider-thumb) -translate-x-1/2 translate-y-0;
+    writing-mode: vertical-lr;
+    direction: rtl;
+  }
+  .slider[data-orientation="vertical"] > input[type="range"]::-webkit-slider-runnable-track {
+    @apply h-full w-full;
+  }
+
+  /* States */
+  .slider:has(> input[type="range"]:disabled) {
+    @apply opacity-50;
+  }
+  .slider:has(> input[type="range"]:is([aria-invalid="true"], :user-invalid)) {
+    --slider-color: var(--danger);
+  }
+  .slider-warning {
+    --slider-color: var(--warning);
+  }
+  .slider-success {
+    --slider-color: var(--success);
+  }
+
+  /* Sizes */
+  .slider-sm {
+    --slider-thumb: 0.75rem;
+    --slider-track: 0.25rem;
+  }
+  .slider-lg {
+    --slider-thumb: 1.25rem;
+    --slider-track: 0.5rem;
+  }
+
+  /* Labels and the current value above the slider, as in .progress-field. */
+  .slider-field {
+    @apply grid w-full grid-cols-[1fr_auto] items-center gap-x-3 gap-y-3;
+  }
+  .slider-field > .slider,
+  .slider-field > .field-description {
+    @apply col-span-2;
+  }
+  .slider-value {
+    @apply text-sm text-muted-foreground tabular-nums;
+  }
+}

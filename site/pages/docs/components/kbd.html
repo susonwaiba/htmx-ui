@@ -1,0 +1,89 @@
+{% extends "layouts/docs.html" %}
+{% from "components/icon/icon.html" import icon %}
+{% from "docs/macros.html" import demo, classes %}
+{% set title = "Kbd" %}
+{% set description = "Shows keyboard input: a single key or a shortcut, on its own or inside buttons, tooltips and input groups." %}
+
+{% block content %}
+  {% call demo("flex-col gap-4") %}
+    <kbd class="kbd-group">
+      <kbd class="kbd">{{ icon("command") }}</kbd>
+      <kbd class="kbd">Shift</kbd>
+      <kbd class="kbd">Alt</kbd>
+      <kbd class="kbd">Ctrl</kbd>
+    </kbd>
+    <kbd class="kbd-group">
+      <kbd class="kbd">Ctrl</kbd>
+      <span>+</span>
+      <kbd class="kbd">B</kbd>
+    </kbd>
+  {% endcall %}
+
+  <h2 id="markup">Markup</h2>
+  <ul>
+    <li>A key is a <code>&lt;kbd class="kbd"&gt;</code>. It holds text (<code>Esc</code>, <code>K</code>, <code>↵</code>) or an <a href="/docs/components/icon">icon</a>, which is sized to the key.</li>
+    <li>A shortcut of several keys is a <code>.kbd-group</code> around them, with any text between: <code>+</code>, <code>then</code>. Make the group a <code>&lt;kbd&gt;</code> too, as HTML nests <code>&lt;kbd&gt;</code> for a key combination.</li>
+    <li>Give an icon key a name for screen readers when the symbol alone could be misread: <code>icon("command", label="Command")</code>.</li>
+    <li>Inside <code>.prose</code>, a bare <code>&lt;kbd&gt;</code> is already styled by the <a href="/docs/components/text">text</a> styles; use <code>.kbd</code> in UI.</li>
+  </ul>
+
+  <h2 id="group">Group</h2>
+  <p>Keys in a sentence: <code>.kbd-group</code> keeps a shortcut together and spaces its keys evenly.</p>
+  {% call demo() %}
+    <p class="text-sm text-muted-foreground">
+      Use
+      <kbd class="kbd-group"><kbd class="kbd">Ctrl</kbd><span>+</span><kbd class="kbd">B</kbd></kbd>
+      or
+      <kbd class="kbd-group"><kbd class="kbd">Ctrl</kbd><span>+</span><kbd class="kbd">K</kbd></kbd>
+      to open the command palette.
+    </p>
+  {% endcall %}
+
+  <h2 id="button">Button</h2>
+  <p>
+    A key at the end of a <a href="/docs/components/button">button</a> shows its shortcut. On filled buttons it becomes a
+    translucent chip of the button's text colour; in small buttons it shrinks with them.
+  </p>
+  {% call demo() %}
+    <button class="btn btn-outline">Accept <kbd class="kbd">↵</kbd></button>
+    <button class="btn btn-outline btn-sm">Cancel <kbd class="kbd">Esc</kbd></button>
+    <button class="btn btn-primary">Save <kbd class="kbd-group"><kbd class="kbd">{{ icon("command") }}</kbd><kbd class="kbd">S</kbd></kbd></button>
+    <button class="btn btn-danger btn-sm">Delete <kbd class="kbd">Del</kbd></button>
+  {% endcall %}
+
+  <h2 id="tooltip">Tooltip</h2>
+  <p>In a <a href="/docs/components/tooltip">tooltip</a> the key inverts with it, so it reads in both themes.</p>
+  {% call demo("min-h-44") %}
+    <div class="btn-group">
+      <span class="tooltip" data-tooltip>
+        <button class="btn btn-outline btn-sm">Save</button>
+        <span class="tooltip-content">Save changes <kbd class="kbd">S</kbd></span>
+      </span>
+      <span class="tooltip" data-tooltip>
+        <button class="btn btn-outline btn-sm">Print</button>
+        <span class="tooltip-content">Print document <kbd class="kbd-group"><kbd class="kbd">Ctrl</kbd><kbd class="kbd">P</kbd></kbd></span>
+      </span>
+    </div>
+  {% endcall %}
+
+  <h2 id="input-group">Input group</h2>
+  <p>
+    A key in an <a href="/docs/components/input-group">input group</a> addon hints at the shortcut that focuses the field,
+    like the search box at the top of this page.
+  </p>
+  {% call demo() %}
+    <div class="input-group max-w-xs">
+      <input class="input" type="search" placeholder="Search…" aria-label="Search" />
+      <span class="input-group-addon">{{ icon("search") }}</span>
+      <span class="input-group-addon input-group-addon-inline-end">
+        <kbd class="kbd-group"><kbd class="kbd">{{ icon("command") }}</kbd><kbd class="kbd">K</kbd></kbd>
+      </span>
+    </div>
+  {% endcall %}
+
+  <h2 id="reference">Reference</h2>
+  {{ classes([
+    [".kbd", "One key: text or an icon."],
+    [".kbd-group", "Keys of one shortcut, with optional text between them."]
+  ]) }}
+{% endblock %}

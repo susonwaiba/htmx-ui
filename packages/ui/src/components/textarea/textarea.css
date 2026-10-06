@@ -1,0 +1,47 @@
+/* <textarea class="textarea" placeholder="Type your message here."></textarea>
+   Multi-line text, styled with .input (input.css: border, focus ring, disabled, readonly and the
+   states aria-invalid="true", .textarea-warning, .textarea-success). It grows with its content
+   (field-sizing) between min-h-16 and any max-h-* you give it, then scrolls.
+
+   In a form field, with a character count:
+   <div class="field">
+     <label class="field-label" for="bio">Bio</label>
+     <textarea class="textarea" id="bio" maxlength="160" data-textarea aria-describedby="bio-help"></textarea>
+     <div class="field-footer">
+       <p class="field-description" id="bio-help">Shown on your profile.</p>
+       <span class="textarea-count" data-textarea-count aria-live="polite"></span>
+     </div>
+   </div>
+
+   The behaviour (data-textarea, textarea.ts) is optional: it grows the box in browsers without
+   field-sizing, fills [data-textarea-count] in its field ("12/160"), and with
+   data-textarea-submit submits the form on Ctrl/⌘+Enter (or Enter, with data-textarea-submit="enter").
+   .textarea-fixed keeps its rows= height and drops the resize handle; .textarea-sm / -lg resize the text. */
+@layer components {
+  .textarea {
+    @apply field-sizing-content min-h-16 resize-y py-2;
+  }
+  .textarea-fixed {
+    @apply field-sizing-fixed min-h-0 resize-none;
+  }
+  .textarea-sm {
+    @apply min-h-12 px-2.5 py-1.5 text-xs;
+  }
+  .textarea-lg {
+    @apply min-h-20 px-4 py-3 text-base;
+  }
+
+  /* A row under a field's control: the description and the count */
+  .field-footer {
+    @apply flex items-start justify-between gap-3;
+  }
+  .textarea-count {
+    @apply ms-auto shrink-0 text-xs text-muted-foreground tabular-nums;
+  }
+  .textarea-count[data-state="limit"] {
+    @apply font-medium text-danger;
+  }
+  .textarea-count[data-state="near"] {
+    @apply text-warning;
+  }
+}

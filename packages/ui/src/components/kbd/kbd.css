@@ -1,0 +1,42 @@
+/* A key the user presses: <kbd class="kbd">Esc</kbd>, or a shortcut of several keys:
+   <kbd class="kbd-group"><kbd class="kbd">Ctrl</kbd><span>+</span><kbd class="kbd">K</kbd></kbd>
+   Icons work as keys too: <kbd class="kbd">{{ icon("command") }}</kbd>.
+   Inside a .btn, a .tooltip-content or an .input-group-addon it picks up their colours. Inside
+   .prose a bare <kbd> is styled by the typography plugin (text.css). */
+@layer components {
+  .kbd {
+    @apply inline-flex h-5 w-fit min-w-5 shrink-0 items-center justify-center gap-1 rounded border border-border
+      bg-muted px-1 font-mono text-[0.75rem] leading-none font-medium text-muted-foreground
+      shadow-[0_1px_0_var(--border)] select-none [&>svg]:size-3!;
+  }
+  /* Keys of one shortcut, with optional separators ("+", "then") between them. */
+  .kbd-group {
+    @apply inline-flex items-center gap-1 text-xs text-muted-foreground;
+  }
+
+  /* On a filled button the key is a translucent chip of the button's text colour.
+     One color-mix() per rule (see components/alert). */
+  .btn .kbd-group {
+    @apply text-current;
+  }
+  :is(.btn-primary, .btn-danger) .kbd {
+    @apply border-transparent text-current shadow-none;
+  }
+  .btn-primary .kbd {
+    @apply bg-primary-foreground/20;
+  }
+  .btn-danger .kbd {
+    @apply bg-danger-foreground/20;
+  }
+  .btn-sm .kbd {
+    @apply h-4 min-w-4 text-[0.6875rem];
+  }
+
+  /* In a tooltip (dark on light, light on dark) the key inverts with it. */
+  .tooltip-content :is(.kbd, .kbd-group) {
+    @apply border-transparent text-current shadow-none;
+  }
+  .tooltip-content .kbd {
+    @apply bg-background/20;
+  }
+}
