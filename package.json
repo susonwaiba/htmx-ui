@@ -19,7 +19,8 @@
     "component:new": "bun run scripts/new-component.ts",
     "deploy:prepare": "bun run scripts/prepare-for-github-pages.ts",
     "deploy:check": "bun run scripts/check-github-pages.ts",
-    "deploy": "SITE_URL=${SITE_URL:-https://susonwaiba.github.io/htmx-ui} bun run build && bun run deploy:prepare && bun run deploy:check"
+    "deploy": "SITE_URL=${SITE_URL:-https://susonwaiba.github.io/htmx-ui} bun run build && bun run deploy:prepare && bun run deploy:check",
+    "clean": "rm -rf dist packages/*/lib"
   },
   "type": "module",
   "workspaces": [
