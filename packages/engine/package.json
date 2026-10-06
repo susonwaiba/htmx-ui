@@ -57,6 +57,16 @@
       "types": "./lib/hono.d.ts",
       "default": "./lib/hono.js"
     },
+    "./fastify": {
+      "bun": "./src/fastify.ts",
+      "types": "./lib/fastify.d.ts",
+      "default": "./lib/fastify.js"
+    },
+    "./koa": {
+      "bun": "./src/koa.ts",
+      "types": "./lib/koa.d.ts",
+      "default": "./lib/koa.js"
+    },
     "./package.json": "./package.json"
   },
   "files": [
@@ -74,6 +84,7 @@
     "prepublishOnly": "bun run --cwd ../.. release:check"
   },
   "dependencies": {
+    "@types/nunjucks": "^3.2.6",
     "nunjucks": "^3.2.4",
     "shiki": "^4.5.0"
   },
@@ -100,11 +111,13 @@
   "devDependencies": {
     "@tailwindcss/vite": "^4.3.3",
     "@types/express": "^5.0.6",
+    "@types/koa": "^3.0.3",
     "@types/node": "^24",
-    "@types/nunjucks": "^3.2.6",
     "elysia": "^1.4.30",
     "express": "^5.2.1",
+    "fastify": "^5.12.5",
     "hono": "^4.13.12",
+    "koa": "^3.2.1",
     "vite": "^8.3.2"
   }
 }

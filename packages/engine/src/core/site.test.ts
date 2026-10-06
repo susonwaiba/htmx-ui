@@ -129,11 +129,19 @@ describe("createSite", () => {
     expect(await missing!.text()).toBe("<h1>Not found</h1>");
   });
 
-  test("handle() returns null when nothing matches and no 404 page was built", async () => {
-    const site = await createSite({
-      root: await fixture({ "htmx-ui.config.ts": "export default { ui: false };", "pages/index.html": "<p>hi</p>" }),
+  test("handle() answers with htmx-ui's default 404 page when the project has none", async () => {
+    await inEnv("production", async () => {
+      const site = await createSite({
+        root: await fixture({ "htmx-ui.config.ts": "export default { ui: false };", "pages/index.html": "<p>hi</p>" }),
+      });
+      const missing = await site.handle(get("/nothing"));
+      expect(missing.status).toBe(404);
+      expect(missing.headers.get("Content-Type")).toBe("text/html; charset=utf-8");
+      expect(await missing.text()).toContain("<h1>Page not found</h1>");
+      const head = await site.handle(get("/nothing", { method: "HEAD" }));
+      expect(head.status).toBe(404);
+      expect(await head.text()).toBe("");
     });
-    expect(await site.handle(get("/nothing"))).toBeNull();
   });
 
   test("routes and fetch get the request, and handle() serves whatever a config option says", async () => {
@@ -145,10 +153,10 @@ describe("createSite", () => {
     const site = await createSite({ root: dir, config: { ui: false, pages: "src", outDir: "build" } });
     expect(site.config.pagesDir).toBe(join(dir, "src"));
     expect(site.config.outDir).toBe(join(dir, "build"));
-    // Production serves the build, and this outDir has none: nothing handled.
+    // Production serves the build, and this outDir has none: a 404.
     await inEnv("production", async () => {
       const prod = await createSite({ root: dir, config: { ui: false, pages: "src", outDir: "build" } });
-      expect(await prod.handle(get("/"))).toBeNull();
+      expect((await prod.handle(get("/"))).status).toBe(404);
     });
     expect(site.render("/")).toBe("<p>from src/</p>");
   });
@@ -185,8 +193,30 @@ describe("development: handle() renders the pages the build has not written", ()
       expect(await home!.text()).toBe("<title>Acme</title><h1>Home</h1><!-- /-->");
       // Clean URLs: a trailing slash is stripped before the page lookup.
       expect(await (await site.handle(get("/about/")))!.text()).toBe("<title>Acme</title><p>About</p><!-- /about-->");
-      // Not a page: the caller answers it, as it always did.
-      expect(await site.handle(get("/nope"))).toBeNull();
+      // Not a page: htmx-ui's default 404, since this project has no pages/404.html.
+      const missing = await site.handle(get("/nope"));
+      expect(missing.status).toBe(404);
+      expect(await missing.text()).toContain("Page not found");
+    });
+  });
+
+  test("handle()'s context reaches the pages it renders", async () => {
+    await inEnv(undefined, async () => {
+      const site = await createSite({ root: await fixture(unbuilt) });
+      const dir = site.config.pagesDir;
+      await writeFile(join(dir, "hello.html"), "<p>{{ site }} says {{ greeting }}</p>");
+      const fresh = await createSite({ root: site.config.root });
+      expect(await (await fresh.handle(get("/hello"), { greeting: "hi" })).text()).toBe("<p>Acme says hi</p><!-- /hello-->");
+    });
+  });
+
+  test("the project's pages/404.html is rendered with a 404 status before the build has one", async () => {
+    const dir = await fixture({ ...unbuilt, "pages/404.html": '{% extends "layout.html" %}{% block content %}<h1>Lost</h1>{% endblock %}' });
+    await inEnv(undefined, async () => {
+      const site = await createSite({ root: dir });
+      const missing = await site.handle(get("/nope"));
+      expect(missing.status).toBe(404);
+      expect(await missing.text()).toBe("<title>Acme</title><h1>Lost</h1><!-- /404-->");
     });
   });
 
@@ -267,7 +297,7 @@ describe("render: a deployment that renders templates at runtime", () => {
     expect(createSite({ root: dir })).rejects.toThrow(/render: no templates at .*dist\/_templates/);
     expect(createSite({ root: dir })).rejects.toThrow(/copy the templates it renders from/);
     // The advice has to fit its cause: this branch already has render: true.
-    expect(createSite({ root: dir })).rejects.toThrow(/point `templates` at where you put them/);
+    expect(createSite({ root: dir })).rejects.toThrow(/list where you put them in `roots`/);
   });
 
   test("say so when the pages directory is missing but the templates arrived", async () => {

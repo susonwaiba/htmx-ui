@@ -12,7 +12,7 @@ const out = resolve(dir, "lib");
 await rm(out, { recursive: true, force: true });
 
 const result = await Bun.build({
-  entrypoints: ["index.ts", "node/index.ts", "node/vite-plugin.ts", "express.ts", "elysia.ts", "hono.ts"].map((f) => resolve(src, f)),
+  entrypoints: ["index.ts", "node/index.ts", "node/vite-plugin.ts", "express.ts", "elysia.ts", "hono.ts", "fastify.ts", "koa.ts"].map((f) => resolve(src, f)),
   root: src,
   outdir: out,
   target: "node",

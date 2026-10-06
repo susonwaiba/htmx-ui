@@ -3,7 +3,8 @@
 // so Bun.serve bundles pages with the htmx-ui plugin and Tailwind, with HMR.
 //
 // Serves every pages/**/*.html as a route, the config's dev routes (mock htmx
-// endpoints), the public directory, then the config's fetch fallback.
+// endpoints), the public directory, then the config's fetch fallback, then a 404
+// page: pages/404.html when the project has one, htmx-ui's default otherwise.
 //
 // Bun's HMR covers scripts, styles and the page files themselves, but not the
 // templates a page is rendered from (layouts, partials, macros, data): they aren't
@@ -15,11 +16,22 @@ import { existsSync, readdirSync, watch, type FSWatcher } from "node:fs";
 import { resolve, sep } from "node:path";
 import { createIgnore } from "./gitignore";
 import { loadConfig, pagesOf } from "../core/config";
+import { NOT_FOUND_HTML } from "../core/not-found";
 import { RELOAD_PATH } from "./plugin";
 
 const config = await loadConfig();
 const pages = pagesOf(config);
-const notFound = () => new Response("Not found", { status: 404 });
+
+/** The project's pages/404.html with a 404 status, or htmx-ui's default 404 page. */
+async function notFound(): Promise<Response> {
+  if (pages.some((p) => p.url === "/404")) {
+    // It is a bundled route like any other page (with HMR and the reload listener),
+    // so ask this server for it and change only the status.
+    const page = await fetch(new URL("/404", server.url));
+    return new Response(page.body, { status: 404, headers: page.headers });
+  }
+  return new Response(NOT_FOUND_HTML, { status: 404, headers: { "Content-Type": "text/html; charset=utf-8" } });
+}
 
 // Open reload streams. Kept on globalThis so they survive --hot re-evaluation.
 const g = globalThis as typeof globalThis & { __htmxUi?: { clients: Set<ReadableStreamDefaultController>; watchers: FSWatcher[]; version: number } };

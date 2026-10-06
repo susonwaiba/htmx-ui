@@ -51,6 +51,28 @@ describe("bun adapter", () => {
     expect(home).not.toMatch(/\{[%{]/);
     expect(await Bun.file(join(dir, "dist/favicon.svg")).exists()).toBe(true);
     expect(done).toEqual(["/", "/docs/intro"]);
+    // No pages/404.html, so the build ships htmx-ui's default.
+    expect(await Bun.file(join(dir, "dist/404.html")).text()).toContain("<h1>Page not found</h1>");
+  }, 30_000);
+
+  test("a project's own 404 page is the one the build ships", async () => {
+    const dir = await project({
+      "layout.html": layout,
+      "app.ts": "console.log('app');",
+      "pages/index.html": '{% extends "layout.html" %}{% block content %}home{% endblock %}',
+      "pages/404.html": '{% extends "layout.html" %}{% block content %}lost{% endblock %}',
+      "public/favicon.svg": "<svg/>",
+    });
+    const log = console.log;
+    console.log = () => {};
+    try {
+      expect(await build(resolveConfig({ ui: false }, dir))).toBe(true);
+    } finally {
+      console.log = log;
+    }
+    const notFound = await Bun.file(join(dir, "dist/404.html")).text();
+    expect(notFound).toContain("lost");
+    expect(notFound).not.toContain("Page not found");
   }, 30_000);
 
   test("pages share one script and stylesheet in assets/; a page's own script imports the shared code with a modulepreload", async () => {

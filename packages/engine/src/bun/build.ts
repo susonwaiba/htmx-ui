@@ -5,6 +5,7 @@
 import { cp, rm } from "node:fs/promises";
 import { relative } from "node:path";
 import { pagesOf, type ResolvedConfig } from "../core/config";
+import { writeNotFound } from "../core/not-found";
 import { applyVersions } from "../core/ver";
 import { optimizeChunks } from "./chunks";
 import { htmxUiPlugin, PUBLIC_ORIGIN } from "./plugin";
@@ -24,6 +25,8 @@ export async function build(config: ResolvedConfig): Promise<boolean> {
     console.warn("htmx-ui: bun-plugin-tailwind is not installed; building without Tailwind (bun add -d bun-plugin-tailwind tailwindcss)");
   }
 
+  // Bun.build throws on a failed bundle; its errors (an unresolved import, a syntax
+  // error) are on the AggregateError, not in its message, so print them.
   const result = await Bun.build({
     entrypoints: pages.map((p) => p.file),
     root: config.pagesDir,
@@ -35,7 +38,13 @@ export async function build(config: ResolvedConfig): Promise<boolean> {
     sourcemap: opts.sourcemap ?? "linked",
     plugins,
     define: { "process.env.NODE_ENV": JSON.stringify("production"), ...opts.define },
+  }).catch((e: unknown) => {
+    if (!(e instanceof AggregateError)) throw e;
+    console.error("Build failed:");
+    for (const error of e.errors) console.error(error);
+    return null;
   });
+  if (!result) return false;
   if (!result.success) {
     console.error("Build failed:");
     for (const log of result.logs) console.error(log);
@@ -57,6 +66,8 @@ export async function build(config: ResolvedConfig): Promise<boolean> {
     if (settled !== html) await Bun.write(output.path, settled);
   }
   if (config.publicDir) await cp(config.publicDir, outDir, { recursive: true });
+  // After public/, which may hold the project's own 404.html.
+  writeNotFound(outDir);
   await opts.done?.({ config, outDir, pages });
 
   for (const output of outputs) {

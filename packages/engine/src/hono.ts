@@ -9,8 +9,9 @@
 //   app.use(htmxUi());            // last: everything else is the built site
 //
 // Hono runs middleware in registration order and stops at the first handler that
-// answers, so registering htmx-ui last makes it the fallback. Build the site first
-// (`htmx-ui build`); it serves dist/, not the templates.
+// answers, so registering htmx-ui last makes it the fallback. It answers everything
+// it sees, with a 404 page when nothing matched. In production it serves dist/, so
+// build the site first (`htmx-ui build`).
 
 import { createSite, type SiteOptions } from "./core/site";
 
@@ -26,13 +27,14 @@ export interface Context {
 
 type Next = () => Promise<void>;
 
-/** Hono middleware serving the built site, the config's routes and its `fetch` fallback. */
+/**
+ * Hono middleware serving the built site, the config's routes and its `fetch` fallback,
+ * and a 404 page for anything else. It answers every request it sees, so register it last.
+ */
 export function htmxUi(options: SiteOptions = {}): (c: Context, next: Next) => Promise<void> {
   const site = createSite(options);
-  return async (c, next) => {
-    const response = await (await site).handle(c.request ?? c.req!.raw);
-    if (response) c.res = response;
-    else await next();
+  return async (c) => {
+    c.res = await (await site).handle(c.request ?? c.req!.raw);
   };
 }
 

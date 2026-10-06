@@ -81,19 +81,62 @@ export default defineConfig({
   transform: (html, page) => html,             // post-process every rendered page
   build: { minify: true, sourcemap: "linked", done: async ({ outDir, pages }) => {} },
   vite: {},                                    // Node only: extra Vite config
+  plugins: [],                                 // optional features, see Plugins below
 });
 ```
+
+## Plugins
+
+Features only some sites need are separate packages, listed under `plugins`. The official ones:
+[`htmx-ui-plugin-docs`](https://www.npmjs.com/package/htmx-ui-plugin-docs) (Markdown for every docs page, llms.txt,
+sitemaps, heading anchors, navigation), [`htmx-ui-plugin-versions`](https://www.npmjs.com/package/htmx-ui-plugin-versions)
+(archived docs versions and a switcher) and [`htmx-ui-plugin-search`](https://www.npmjs.com/package/htmx-ui-plugin-search)
+(a Ctrl/⌘K palette).
+
+```ts
+import { defineConfig } from "htmx-ui-engine";
+import docs from "htmx-ui-plugin-docs";
+import search from "htmx-ui-plugin-search";
+
+export default defineConfig({ plugins: [docs(), search()] });
+```
+
+A plugin is an object with a `name` and any of: `roots` (templates, searched after yours and before htmx-ui's),
+`globals`, `filters`, `transform`, `routes`, `fetch`, `build.done`, `commands` (CLI commands such as
+`htmx-ui versions:archive`, listed by `htmx-ui --help`), `configResolved(config)` and an `api` for other plugins.
+Your own config always wins: its routes and globals override a plugin's, its `fetch` runs first, its `transform` and
+`build.done` last. Plugins work in dev, builds, on Bun and Node and behind every server adapter.
+
+```ts
+import { definePlugin, editHtml } from "htmx-ui-engine";
+
+export const externalLinks = () =>
+  definePlugin({
+    name: "external-links",
+    transform: (html) =>
+      editHtml(html, {
+        element(el) {
+          if (el.matches("a[href^='http']")) el.setAttribute("rel", "noopener");
+        },
+      }),
+  });
+```
+
+Plugin code runs on Node too (Vite loads the config there), so use `node:` APIs and `editHtml()`, a streaming HTML
+editor that runs on both runtimes, rather than `Bun.*` or `HTMLRewriter`. The site's docs (`/docs/plugins/writing`)
+cover templates, routes, build output, commands, browser code, testing and publishing.
 
 ## Serve it from a backend
 
 The static build is just files, so any server can host it — and one function does it for you: `createSite()` finds
-`dist/`, answers with the config's `routes` and `fetch`, and falls back to a built `404.html`.
+`dist/`, answers with the config's `routes` and `fetch`, and answers anything else with a 404 page: your
+`pages/404.html` when you have one, htmx-ui's default otherwise.
 
 ```ts
 import { createSite } from "htmx-ui-engine";
 
 const site = await createSite();                    // dist/, config, pages; no framework required
-const server = Bun.serve({ fetch: (req) => site.handle(req) ?? new Response("Not found", { status: 404 }) });
+const server = Bun.serve({ fetch: (req) => site.handle(req) });
 ```
 
 It also renders, so a backend can serve pages and htmx fragments from the same templates, macros and data as the site:
@@ -107,18 +150,20 @@ Ready-made adapters mount it as middleware or a plugin (Elysia first — it's th
 
 ```ts
 import { Elysia } from "elysia";
-import { htmxUi } from "htmx-ui-engine/elysia";   // htmx-ui-engine/express, htmx-ui-engine/hono
+import { htmxUi } from "htmx-ui-engine/elysia";   // or /express, /hono, /fastify, /koa
 
 new Elysia()
   .get("/api/hello", () => "<p>Hi</p>")
-  .use(htmxUi({ site }))                             // last: everything else is the built site
+  .use(htmxUi({ site }))                             // everything else is the built site
   .listen(3000);
 ```
 
-`htmxUi(options?)` takes `root`, `config`, `context`, `asset(file, page)` and `site` — the options of `createSite()`.
-All three serve the output of `htmx-ui build`, so run it before starting your server.
+`htmxUi(options?)` takes the options of `createSite()`: `root`, `config`, `context`, `asset(file, page)`, `cache`
+and `site`. Elysia, Fastify and Koa answer only what your own routes don't, in any order; Express and Hono middleware
+goes last. In production they serve the output of `htmx-ui build`, so run it before starting your server. The
+site's Server frameworks docs (`/docs/servers`) cover each framework, rendering and deploying.
 
-## Use the plugins directly
+## Use the bundler plugins directly
 
 ```ts
 // Bun: Bun.build / Bun.serve
@@ -135,7 +180,7 @@ export default { plugins: [htmxUi(), tailwindcss()] };
 ```
 
 `htmx-ui-engine` itself exports the runtime-agnostic core: `defineConfig`, `loadConfig`, `render`, `renderPage`,
-`routeFor`, `findPages`, `pagesOf`, `highlight`, `createSite`.
+`routeFor`, `findPages`, `pagesOf`, `highlight`, `createSite`, and `definePlugin`, `editHtml`, `contentType` for plugins.
 
 Requires Bun 1.2.3+ or Node 22.12+ (Node runtime).
 

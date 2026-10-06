@@ -9,8 +9,9 @@
 //     .listen(3000);
 //
 // Elysia's router prefers static and parameter paths over wildcards, so your own
-// routes win over the catch-all htmx-ui registers. Build the site first
-// (`htmx-ui build`); it serves dist/, not the templates.
+// routes win over the catch-all htmx-ui registers. Paths nothing claims get the
+// project's 404 page, or htmx-ui's default. In production it serves dist/, so build
+// the site first (`htmx-ui build`).
 
 import { createSite, type SiteOptions } from "./core/site";
 
@@ -36,7 +37,7 @@ export function htmxUi(options: SiteOptions = {}) {
     // all("*"), not get("*"): the config's routes answer hx-post too. Head requests
     // are left to Elysia, which strips their bodies.
     app.all("*", async (ctx: Context) => {
-      return (await (await site).handle(ctx.request)) ?? new Response("Not found", { status: 404 });
+      return (await site).handle(ctx.request);
     });
     return app;
   };

@@ -11,6 +11,6 @@
     "outDir": "./lib",
     "types": ["node"]
   },
-  "include": ["src/index.ts", "src/node/index.ts", "src/node/vite-plugin.ts", "src/express.ts", "src/elysia.ts", "src/hono.ts"],
+  "include": ["src/index.ts", "src/node/index.ts", "src/node/vite-plugin.ts", "src/express.ts", "src/elysia.ts", "src/hono.ts", "src/fastify.ts", "src/koa.ts"],
   "exclude": ["src/**/*.test.ts"]
 }

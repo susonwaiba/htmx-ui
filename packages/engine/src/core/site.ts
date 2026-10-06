@@ -7,7 +7,8 @@
 // The dev servers and the builds already do this for you; createSite() is the same
 // thing as one function, so a site can live next to a real backend. It serves the
 // output of `htmx-ui build` (pages at their routes, hashed assets, public/ files),
-// the config's `routes` and `fetch`, and leaves everything else to your framework.
+// the config's `routes` and `fetch`, and answers anything else with a 404 page:
+// the project's own (pages/404.html, built to dist/404.html) or htmx-ui's default.
 //
 // While NODE_ENV is not "production" it renders the page templates themselves, so a
 // server you start yourself answers page requests before anything has been built.
@@ -24,6 +25,7 @@ import { existsSync, readFileSync, statSync } from "node:fs";
 import { relative, resolve, sep } from "node:path";
 import { loadConfig, pagesOf, renderOptions, renderPage, resolveConfig, type ResolvedConfig, type UserConfig } from "./config";
 import { locate, render, warm } from "./render";
+import { NOT_FOUND_HTML } from "./not-found";
 import { matchRoute, sortRoutes, type Page } from "./routes";
 import { staticFile } from "./static";
 
@@ -56,6 +58,9 @@ const TYPES: Record<string, string> = {
   woff2: "font/woff2",
   xml: "application/xml",
 };
+
+/** The Content-Type the engine serves a file with, by its extension. */
+export const contentType = (file: string): string => TYPES[file.split(".").pop()?.toLowerCase() ?? ""] ?? "application/octet-stream";
 
 export interface SiteOptions {
   /** Project root, where htmx-ui.config.ts and pages/ live. Default: process.cwd(). */
@@ -101,12 +106,13 @@ export interface Site {
   fragment(path: string, context?: Record<string, unknown>): string;
   /**
    * Answer a request from the config's routes, then from the built site (pages,
-   * assets, public/), then from the config's `fetch`, then from the built 404 page.
-   * While NODE_ENV is not "production", a route the build has no answer for is
-   * rendered from its page template, in between. Returns null when nothing matched,
-   * so the caller can fall through to its own routes.
+   * assets, public/), then from the config's `fetch`, then with a 404: the built
+   * 404.html, else htmx-ui's default 404 page. While NODE_ENV is not "production",
+   * a route the build has no answer for is rendered from its page template (with
+   * the site's context plus `context`) after the build, and pages/404.html before
+   * the default. Every request gets an answer, so mount it after your own routes.
    */
-  handle(request: Request, context?: Record<string, unknown>): Promise<Response | null>;
+  handle(request: Request, context?: Record<string, unknown>): Promise<Response>;
 }
 
 const isResolved = (c: UserConfig | ResolvedConfig): c is ResolvedConfig => "roots" in c;
@@ -118,9 +124,8 @@ const posix = (p: string) => p.split(sep).join("/");
 
 /** A built file as a Response, with its content type. HEAD gets the headers only. */
 function fileResponse(file: string, head = false): Response {
-  const type = TYPES[file.split(".").pop()?.toLowerCase() ?? ""];
   const body = readFileSync(file);
-  const headers: Record<string, string> = { "Content-Type": type ?? "application/octet-stream" };
+  const headers: Record<string, string> = { "Content-Type": contentType(file) };
   // Only when there is no body to measure: a server sets its own otherwise, and two
   // Content-Length headers in one response are a protocol error.
   if (head) headers["Content-Length"] = String(body.byteLength);
@@ -128,10 +133,10 @@ function fileResponse(file: string, head = false): Response {
 }
 
 /** A page rendered at request time, as a Response. HEAD gets the headers only. */
-function htmlResponse(html: string, head = false): Response {
+function htmlResponse(html: string, head = false, status = 200): Response {
   const headers: Record<string, string> = { "Content-Type": TYPES.html! };
   if (head) headers["Content-Length"] = String(Buffer.byteLength(html));
-  return new Response(head ? null : html, { headers });
+  return new Response(head ? null : html, { status, headers });
 }
 
 /**
@@ -153,7 +158,7 @@ function assertRenderable(config: ResolvedConfig, pages: Page[]): void {
   if (missing.length) {
     throw new Error(
       `[htmx-ui] render: no templates at ${missing.map((r) => r.dir).join(", ")}. ${copy} ` +
-        "Then point `templates` at where you put them.",
+        "Then list where you put them in `roots`.",
     );
   }
   if (!pages.length) {
@@ -228,16 +233,15 @@ export async function createSite(options: SiteOptions = {}): Promise<Site> {
       );
     },
 
-    async handle(request) {
+    async handle(request, context) {
       const { pathname } = new URL(request.url);
       const start = performance.now();
       // Logged before anything is tried, so a request with no line after it is the
       // one still in flight: which is what a page that never finishes loading is.
       debug.log("requests", `${request.method} ${pathname}`);
-      const answer = (how: string, response: Response | null) => {
+      const answer = (how: string, response: Response) => {
         const took = performance.now() - start;
-        const status = response ? `${response.status}` : "not handled";
-        debug.log("requests", `${request.method} ${pathname} ${status} via ${how} ${took.toFixed(1)}ms`);
+        debug.log("requests", `${request.method} ${pathname} ${response.status} via ${how} ${took.toFixed(1)}ms`);
         return response;
       };
 
@@ -251,19 +255,24 @@ export async function createSite(options: SiteOptions = {}): Promise<Site> {
       // No dist/ answer: the build hasn't run, so render the page template the route
       // is written as. After dist/, never before it — a built page carries hashed asset
       // URLs and is the same bytes for everyone.
-      const page = developing ? byUrl.get(path) : undefined;
-      if (page) {
-        const html = debug.time("render", `render ${page.url}`, () => renderPage(resolved, page.file, asset, values(), cache), {
+      const renderAt = (page: Page) =>
+        debug.time("render", `render ${page.url}`, () => renderPage(resolved, page.file, asset, values(context), cache), {
           cached: cache,
         });
-        return answer("page", htmlResponse(html, isHead(request)));
-      }
+      const page = developing ? byUrl.get(path) : undefined;
+      if (page) return answer("page", htmlResponse(renderAt(page), isHead(request)));
       const fallback = await resolved.user.fetch?.(request);
       if (fallback) return answer("fetch", fallback);
+
+      // Nothing has this path: a 404, from the project's page when it has one.
       const notFound = resolve(resolved.outDir, "404.html");
-      if (!existsSync(notFound)) return answer("nothing", null);
-      const res = fileResponse(notFound, isHead(request));
-      return answer("404.html", new Response(res.body, { status: 404, headers: res.headers }));
+      if (existsSync(notFound)) {
+        const res = fileResponse(notFound, isHead(request));
+        return answer("404.html", new Response(res.body, { status: 404, headers: res.headers }));
+      }
+      const notFoundPage = developing ? byUrl.get("/404") : undefined;
+      if (notFoundPage) return answer("pages/404.html", htmlResponse(renderAt(notFoundPage), isHead(request), 404));
+      return answer("default 404", htmlResponse(NOT_FOUND_HTML, isHead(request), 404));
     },
   };
 }

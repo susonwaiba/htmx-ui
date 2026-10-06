@@ -8,8 +8,9 @@
 import { createRequire } from "node:module";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
-import { HELP, parse } from "../core/cli";
+import { help, parse, runCommand } from "../core/cli";
 import { loadConfig, pagesOf, type ResolvedConfig } from "../core/config";
+import { writeNotFound } from "../core/not-found";
 
 type Vite = typeof import("vite");
 
@@ -76,6 +77,7 @@ export async function dev(config: ResolvedConfig) {
 export async function build(config: ResolvedConfig): Promise<boolean> {
   const v = await vite(config.root);
   await v.build({ ...(await viteConfig(config, "build")), mode: "production" });
+  writeNotFound(config.outDir);
   await config.user.build?.done?.({ config, outDir: config.outDir, pages: pagesOf(config) });
   return true;
 }
@@ -89,11 +91,13 @@ export async function preview(config: ResolvedConfig) {
 
 export async function main(argv: string[]): Promise<number> {
   const args = parse(argv);
-  if (args.command === "help") return console.log(HELP), 0;
+  // Help lists the project's plugin commands too, when there is a config (and Vite) to read them with.
+  if (args.command === "help") return console.log(help(await loadNodeConfig(args.root).catch(() => undefined))), 0;
   if (args.command === "version") return 0; // bin/htmx-ui.js prints it
   const config = await loadNodeConfig(args.root);
   if (args.port) config.port = args.port;
   if (args.command === "build") return (await build(config)) ? 0 : 1;
+  if (args.command !== "dev" && args.command !== "preview") return runCommand(config, args, build);
   await (args.command === "dev" ? dev(config) : preview(config));
   return new Promise(() => {}); // serve until killed
 }

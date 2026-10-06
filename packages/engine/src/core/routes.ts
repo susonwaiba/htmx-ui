@@ -2,7 +2,7 @@
 //   index.html -> "/", about.html -> "/about", docs/index.html -> "/docs",
 //   docs/changelog/0.1.0.html -> "/docs/changelog/0.1.0"
 
-import { globSync } from "node:fs";
+import { existsSync, globSync } from "node:fs";
 import { resolve, sep } from "node:path";
 
 /** Route for a page path relative to the pages directory, using "/" separators. */
@@ -20,8 +20,11 @@ export interface Page {
   url: string;
 }
 
-/** Every pages/**\/*.html, sorted by route. */
+/** Every pages/**\/*.html, sorted by route. None when the directory doesn't exist. */
 export function findPages(pagesDir: string): Page[] {
+  // Bun's globSync throws on a missing cwd where Node's returns nothing; a deployment
+  // that forgot its pages has to reach createSite()'s own error, which says what to copy.
+  if (!existsSync(pagesDir)) return [];
   return globSync("**/*.html", { cwd: pagesDir })
     .map((rel) => {
       const path = rel.split(sep).join("/");

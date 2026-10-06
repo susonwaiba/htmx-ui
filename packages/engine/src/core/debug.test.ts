@@ -108,7 +108,7 @@ describe("debug", () => {
     expect(joined).toContain("GET /docs/missing 404 via 404.html");
   });
 
-  test("a path nothing answers says so, which is how a host knows to fall through", async () => {
+  test("a path nothing answers gets the default 404, and says so", async () => {
     const site = await createSite({
       root: await fixture({
         "htmx-ui.config.ts": `export default { ui: false, debug: ["requests"] };`,
@@ -117,11 +117,11 @@ describe("debug", () => {
       }),
     });
     const lines = await capture(async () => {
-      expect(await site.handle(get("/api/mine"))).toBeNull();
+      expect((await site.handle(get("/api/mine"))).status).toBe(404);
     });
     expect(lines).toHaveLength(2);
     expect(lines[0]).toBe("[htmx-ui] GET /api/mine");
-    expect(lines[1]).toMatch(/^\[htmx-ui\] GET \/api\/mine not handled via nothing \d+\.\dms$/);
+    expect(lines[1]).toMatch(/^\[htmx-ui\] GET \/api\/mine 404 via default 404 \d+\.\dms$/);
   });
 
   test("a request that never comes back leaves only its arrival line", async () => {

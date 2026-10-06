@@ -12,6 +12,7 @@ import { createRequire } from "node:module";
 import { dirname, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { logger, type Debug, type Logger } from "./debug";
+import { applyPlugins, commandsOf, flattenPlugins, type Plugin, type PluginOption } from "./plugin";
 import { normalizeRoots, render, type RenderOptions, type TemplateRoot } from "./render";
 import { findPages, routeFor, type Page } from "./routes";
 import { verToken } from "./ver";
@@ -117,6 +118,12 @@ export interface UserConfig {
   };
   /** Node runtime only: extra Vite config, merged over the engine's. */
   vite?: Record<string, unknown>;
+  /**
+   * Optional features: `plugins: [docs(), search()]`. Each can add template roots,
+   * globals, filters, a transform, routes, a fetch fallback, a build.done hook and CLI
+   * commands; your own options win over theirs. Falsy entries are skipped. See ./plugin.ts.
+   */
+  plugins?: PluginOption[];
 }
 
 export interface ResolvedConfig {
@@ -137,7 +144,10 @@ export interface ResolvedConfig {
   version: string;
   /** The `?ver=` token assetVer() appends. The version in a build; a dev server adds a random suffix. */
   ver: string;
+  /** The config as written, with its plugins merged in: what every runtime and adapter reads. */
   user: UserConfig;
+  /** The plugins, flattened, in order. */
+  plugins: Plugin[];
   /** Built from `user.debug`; what core/, the dev servers and build log through. */
   debug: Logger;
   /** `user.render`: this deployment renders templates at runtime. */
@@ -185,16 +195,22 @@ export function resolveConfig(user: UserConfig, root: string, file: string | nul
   // asset() URLs are measured from, and the rest are extra places to look.
   const specs = user.roots ?? ["."];
   if (!specs.length) throw new Error("[htmx-ui] roots is empty: name at least the project directory");
-  const roots = normalizeRoots(
-    specs.map((s) => (typeof s === "string" ? resolve(root, s) : { ...s, dir: resolve(root, s.dir) })),
-  );
-  const primary = roots[0]!.dir;
+  const absolute = (base: string) => (s: RootSpec) => (typeof s === "string" ? resolve(base, s) : { ...s, dir: resolve(base, s.dir) });
+  const own = specs.map(absolute(root));
+  const primary = (typeof own[0] === "string" ? own[0] : own[0]!.dir) as string;
+
+  // Plugin templates come after the project's own, so a project overrides any of them
+  // by having a file with the same name, and before htmx-ui's src/. Root names must be
+  // unique across all of them, which normalizeRoots() checks.
+  const plugins = flattenPlugins(user.plugins);
+  commandsOf(plugins); // refuses clashing command names now rather than when one is run
+  const roots = normalizeRoots([...own, ...plugins.flatMap((p) => (p.roots ?? []).map(absolute(primary)))]);
 
   const uiDir = user.ui === false ? null : findUi(primary);
   if (uiDir && !roots.some((r) => r.dir === uiDir)) roots.push({ dir: uiDir });
   const publicDir = user.publicDir === false ? null : resolve(primary, user.publicDir ?? "public");
   const version = projectVersion(primary);
-  return {
+  const resolved: ResolvedConfig = {
     root: primary,
     file,
     pagesDir: resolve(primary, user.pages ?? "pages"),
@@ -206,10 +222,13 @@ export function resolveConfig(user: UserConfig, root: string, file: string | nul
     port: Number(process.env.PORT ?? user.port ?? 3000),
     version,
     ver: verToken(version),
-    user,
+    user: applyPlugins(user, plugins),
+    plugins,
     debug: logger(user.debug),
     render: user.render === true,
   };
+  for (const p of plugins) p.configResolved?.(resolved);
+  return resolved;
 }
 
 export type Importer = (file: string) => Promise<unknown>;

@@ -6,8 +6,14 @@
 
 import type { IncomingMessage, ServerResponse } from "node:http";
 
-/** Web Request from a Node request. Honours originalUrl, so it works when mounted on a sub-path. */
-export async function toRequest(req: IncomingMessage): Promise<Request> {
+/**
+ * Web Request from a Node request. Honours originalUrl, so it works when mounted on a sub-path.
+ *
+ * `parsed` is the body a framework's body parser already read off the stream
+ * (Express's `req.body`, Fastify's `request.body`, Koa's `ctx.request.body`): the
+ * stream is empty by then, so the body is rebuilt from it instead.
+ */
+export async function toRequest(req: IncomingMessage, parsed?: unknown): Promise<Request> {
   const url = new URL((req as IncomingMessage & { originalUrl?: string }).originalUrl ?? req.url ?? "/", `http://${req.headers.host ?? "localhost"}`);
   const headers = new Headers();
   for (const [k, v] of Object.entries(req.headers)) {
@@ -19,10 +25,34 @@ export async function toRequest(req: IncomingMessage): Promise<Request> {
   if (method !== "GET" && method !== "HEAD") {
     const chunks: Buffer[] = [];
     for await (const chunk of req) chunks.push(chunk as Buffer);
-    const buf = Buffer.concat(chunks);
-    body = buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength) as ArrayBuffer;
+    const buf = chunks.length ? Buffer.concat(chunks) : encode(parsed, headers);
+    if (buf) body = buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength) as ArrayBuffer;
   }
   return new Request(url, { method, headers, body });
+}
+
+/**
+ * A parsed body back as bytes, in the format its Content-Type names, so a handler
+ * calling `request.formData()` or `request.json()` reads what the client sent.
+ */
+function encode(parsed: unknown, headers: Headers): Buffer | undefined {
+  if (parsed === undefined || parsed === null) return undefined;
+  if (typeof parsed === "string") return Buffer.from(parsed);
+  if (parsed instanceof Uint8Array) return Buffer.from(parsed);
+  if (typeof parsed !== "object") return Buffer.from(String(parsed));
+  // A parser that found nothing to parse leaves {}: there was no body.
+  if (!Object.keys(parsed).length) return undefined;
+  if (headers.get("content-type")?.includes("application/x-www-form-urlencoded")) {
+    const form = new URLSearchParams();
+    for (const [key, value] of Object.entries(parsed)) {
+      for (const item of Array.isArray(value) ? value : [value]) form.append(key, String(item));
+    }
+    // Content-Length described the original bytes; the Request measures these.
+    headers.delete("content-length");
+    return Buffer.from(form.toString());
+  }
+  headers.delete("content-length");
+  return Buffer.from(JSON.stringify(parsed));
 }
 
 /** Send a web Response as a Node response, headers and body. */

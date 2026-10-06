@@ -14,11 +14,12 @@
 //   the root of dist/ so URLs match the routes. Assets use absolute URLs (base "/").
 
 import type { ServerResponse } from "node:http";
-import { existsSync, mkdirSync, readdirSync, renameSync, rmSync } from "node:fs";
+import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync } from "node:fs";
 import { dirname, relative, resolve, sep } from "node:path";
-import type { Plugin, ViteDevServer } from "vite";
+import type { Plugin, PreviewServer, ViteDevServer } from "vite";
 import { pagesOf, renderPage, resolveConfig, type Handler, type ResolvedConfig, type UserConfig } from "../core/config";
 import { send, toRequest } from "../core/http";
+import { NOT_FOUND_HTML } from "../core/not-found";
 import { relativeAsset } from "../core/render";
 import { matchRoute, sortRoutes, type Page } from "../core/routes";
 import { applyVersions, deferVersions, verToken } from "../core/ver";
@@ -132,17 +133,39 @@ export function htmxUi(input: UserConfig | ResolvedConfig = {}): Plugin[] {
         }
       });
 
-      // After Vite's own middlewares (modules, public dir), before its 404.
+      // After Vite's own middlewares (modules, public dir), before its 404: the config's
+      // fetch, then the project's pages/404.html with a 404 status, else htmx-ui's default.
       return () => {
         const fallback = config.user.fetch;
-        if (!fallback) return;
         server.middlewares.use(async (req, res, next) => {
           try {
-            const response = await fallback(await toRequest(req));
-            return response ? await send(res, response) : next();
+            const response = fallback ? await fallback(await toRequest(req)) : null;
+            if (response) return await send(res, response);
+            // Vite's own HTML middleware runs after this one, for .html files that exist.
+            const { pathname } = new URL(req.url ?? "/", "http://localhost");
+            if (pathname.endsWith(".html") && existsSync(resolve(server.config.root, "." + decodeURIComponent(pathname)))) return next();
+            const page = byUrl.get("/404");
+            const html = page
+              ? await server.transformIndexHtml("/" + posix(relative(config.root, page.file)), "", req.originalUrl)
+              : NOT_FOUND_HTML;
+            res.statusCode = 404;
+            res.setHeader("Content-Type", "text/html; charset=utf-8");
+            res.end(html);
           } catch (e) {
             next(e);
           }
+        });
+      };
+    },
+
+    // `vite preview` of the build: the built 404.html, else htmx-ui's default.
+    configurePreviewServer(server: PreviewServer) {
+      return () => {
+        server.middlewares.use((_req, res) => {
+          const built = resolve(outDir, "404.html");
+          res.statusCode = 404;
+          res.setHeader("Content-Type", "text/html; charset=utf-8");
+          res.end(existsSync(built) ? readFileSync(built) : NOT_FOUND_HTML);
         });
       };
     },

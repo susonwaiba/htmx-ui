@@ -8,11 +8,13 @@ import { createCssVariablesTheme, createHighlighterCoreSync } from "shiki/core";
 import { createOnigurumaEngine } from "shiki/engine/oniguruma";
 import bash from "shiki/langs/bash.mjs";
 import css from "shiki/langs/css.mjs";
+import docker from "shiki/langs/docker.mjs";
 import html from "shiki/langs/html.mjs";
 import javascript from "shiki/langs/javascript.mjs";
 import jinja from "shiki/langs/jinja.mjs"; // also brings jinja-html
 import json from "shiki/langs/json.mjs";
 import markdown from "shiki/langs/markdown.mjs";
+import nginx from "shiki/langs/nginx.mjs";
 import toml from "shiki/langs/toml.mjs";
 import typescript from "shiki/langs/typescript.mjs";
 import xml from "shiki/langs/xml.mjs";
@@ -21,7 +23,7 @@ const theme = createCssVariablesTheme({ name: "htmx-ui", variablePrefix: "--code
 
 const highlighter = createHighlighterCoreSync({
   themes: [theme],
-  langs: [bash, css, html, javascript, jinja, json, markdown, toml, typescript, xml],
+  langs: [bash, css, docker, html, javascript, jinja, json, markdown, nginx, toml, typescript, xml],
   // Oniguruma (the regex engine TextMate grammars are written for) loads once,
   // asynchronously; after that the highlighter is fully synchronous.
   engine: await createOnigurumaEngine(import("shiki/wasm")),
@@ -38,6 +40,7 @@ const ALIASES: Record<string, string> = {
   ts: "typescript",
   md: "markdown",
   svg: "xml",
+  dockerfile: "docker",
 };
 
 const escape = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
