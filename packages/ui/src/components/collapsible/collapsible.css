@@ -1,0 +1,31 @@
+/* <div class="collapsible" data-collapsible>
+     <button type="button" class="collapsible-trigger" data-collapsible-trigger aria-expanded="false">
+       Order #4189 {{ icon("chevron-down", "collapsible-icon") }}
+     </button>
+     <div class="collapsible-content" data-collapsible-content hidden>…</div>
+   </div>
+   The trigger can be any button (a .btn too) anywhere in the collapsible, and there can be
+   several; collapsibles nest. Start open by leaving `hidden` off the content. hidden="until-found"
+   lets the browser's find-in-page open it. Without JavaScript, the same classes style
+   <details class="collapsible"><summary class="collapsible-trigger">…</summary>…</details>.
+   A .collapsible-icon turns 180° while open; set --collapsible-rotate (90deg for a chevron-right). */
+@layer components {
+  .collapsible {
+    @apply flex flex-col;
+  }
+  .collapsible-trigger {
+    @apply flex w-full cursor-pointer list-none items-center justify-between gap-2 rounded-[calc(var(--radius)-2px)]
+      text-left text-sm font-medium select-none focus-visible:outline-2 focus-visible:outline-offset-2
+      focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-50 [&::-webkit-details-marker]:hidden
+      [&_svg]:size-4 [&_svg]:shrink-0;
+  }
+  .collapsible-icon {
+    @apply text-muted-foreground transition-[rotate] duration-200 motion-reduce:transition-none;
+  }
+  :is([aria-expanded="true"], details[open] > summary) > .collapsible-icon {
+    rotate: var(--collapsible-rotate, 180deg);
+  }
+  .collapsible-content {
+    @apply flex flex-col;
+  }
+}

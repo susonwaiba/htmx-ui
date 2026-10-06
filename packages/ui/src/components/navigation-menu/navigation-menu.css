@@ -1,0 +1,196 @@
+/* A site's main navigation: top-level links, and buttons that open panels of links
+   (the WAI-ARIA disclosure navigation pattern; not role="menu").
+
+   <nav class="navigation-menu" aria-label="Main" data-navigation-menu>
+     <ul class="navigation-menu-list">
+       <li class="navigation-menu-item">
+         <button class="navigation-menu-trigger" aria-expanded="false">Components {{ icon("chevron-down") }}</button>
+         <div class="navigation-menu-content">
+           <ul class="navigation-menu-grid">
+             <li><a class="navigation-menu-link" href="…">
+               <span class="navigation-menu-link-title">Tooltip</span>
+               <span class="navigation-menu-link-description">A short hint on hover or focus.</span>
+             </a></li>
+           </ul>
+         </div>
+       </li>
+       <li class="navigation-menu-item"><a class="navigation-menu-link" href="/docs" aria-current="page">Docs</a></li>
+     </ul>
+   </nav>
+
+   A panel follows its trigger and shows while the trigger has aria-expanded="true" (set by
+   navigation-menu.ts; without the script, while its item is hovered or holds focus). It opens below
+   the trigger at its left edge: .navigation-menu-content-center / -end align it.
+   In a panel: .navigation-menu-grid (a list of links), .navigation-menu-link (title + description,
+   or an icon and a label), .navigation-menu-featured (a large tile).
+   .navigation-menu-indicator on the nav adds an arrow from the open trigger to its panel.
+   .navigation-menu-vertical stacks the items, for a sidebar or a mobile sheet: panels expand in place. */
+@layer components {
+  .navigation-menu {
+    @apply relative z-10 flex max-w-max flex-1 items-center justify-center;
+  }
+  .navigation-menu-list {
+    @apply m-0 flex flex-1 list-none items-center justify-center gap-1 p-0;
+  }
+  .navigation-menu-item {
+    @apply relative m-0 p-0;
+  }
+
+  /* Top-level triggers and links */
+  .navigation-menu-trigger,
+  .navigation-menu-item > .navigation-menu-link {
+    @apply inline-flex h-9 w-max cursor-pointer items-center justify-center gap-1 rounded-[calc(var(--radius)-2px)]
+      bg-transparent px-4 py-2 text-sm leading-none font-medium text-foreground no-underline transition-colors
+      outline-none select-none hover:bg-accent hover:text-accent-foreground focus-visible:bg-accent
+      focus-visible:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring
+      disabled:pointer-events-none disabled:opacity-50;
+  }
+  .navigation-menu-trigger[aria-expanded="true"] {
+    @apply bg-accent text-accent-foreground;
+  }
+  .navigation-menu-item > .navigation-menu-link[aria-current="page"] {
+    @apply bg-accent text-accent-foreground;
+  }
+  /* The chevron turns over while the panel is open */
+  .navigation-menu-trigger > svg {
+    @apply relative top-px size-3! shrink-0 transition-transform duration-(--motion-duration-slow) ease-(--motion-ease-out);
+  }
+  .navigation-menu-trigger[aria-expanded="true"] > svg {
+    @apply rotate-180;
+  }
+
+  /* Panel: below the trigger, at its left edge. Hidden (visibility) while closed, so it is out of
+     the tab order and the accessibility tree, and can fade out as well as in. */
+  .navigation-menu-content {
+    @apply invisible absolute top-full left-0 z-50 mt-1.5 w-max max-w-[calc(100vw-2rem)] origin-top-left
+      rounded-(--radius) border border-border bg-surface p-2 text-sm text-foreground opacity-0 shadow-md;
+    scale: 0.96;
+    transition:
+      opacity var(--motion-duration-fast) var(--motion-ease-out),
+      scale var(--motion-duration-fast) var(--motion-ease-out),
+      visibility 0s var(--motion-duration-fast);
+  }
+  /* A bridge over the gap, so the pointer can move from the trigger into the panel. */
+  .navigation-menu-content::before {
+    @apply absolute inset-x-0 bottom-full h-2 content-[''];
+  }
+  .navigation-menu-content-center {
+    @apply left-1/2 origin-top -translate-x-1/2;
+  }
+  .navigation-menu-content-end {
+    @apply right-0 left-auto origin-top-right;
+  }
+  .navigation-menu-trigger[aria-expanded="true"] ~ .navigation-menu-content,
+  .navigation-menu:not([data-init]) .navigation-menu-item:focus-within > .navigation-menu-content {
+    @apply visible opacity-100;
+    scale: 1;
+    transition:
+      opacity var(--motion-duration-normal) var(--motion-ease-out),
+      scale var(--motion-duration-normal) var(--motion-ease-out);
+  }
+  @media (hover: hover) {
+    .navigation-menu:not([data-init]) .navigation-menu-content {
+      transition-delay: var(--navigation-menu-close-delay, 300ms);
+    }
+    .navigation-menu:not([data-init]) .navigation-menu-item:hover > .navigation-menu-content {
+      @apply visible opacity-100;
+      scale: 1;
+      transition:
+        opacity var(--motion-duration-normal) var(--motion-ease-out) var(--navigation-menu-open-delay, 200ms),
+        scale var(--motion-duration-normal) var(--motion-ease-out) var(--navigation-menu-open-delay, 200ms),
+        visibility 0s var(--navigation-menu-open-delay, 200ms);
+    }
+  }
+
+  /* Panel contents */
+  .navigation-menu-grid {
+    @apply m-0 grid list-none gap-1 p-0;
+  }
+  .navigation-menu-grid > li {
+    @apply m-0 p-0;
+  }
+  .navigation-menu-content .navigation-menu-link {
+    @apply flex flex-col gap-1 rounded-[calc(var(--radius)-2px)] p-2 text-sm leading-snug text-foreground
+      no-underline transition-colors outline-none hover:bg-accent hover:text-accent-foreground
+      focus-visible:bg-accent focus-visible:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring;
+  }
+  .navigation-menu-content .navigation-menu-link[aria-current="page"] {
+    @apply bg-accent text-accent-foreground;
+  }
+  /* An icon and a label in a row */
+  .navigation-menu-content .navigation-menu-link:has(> svg) {
+    @apply flex-row items-center gap-2 [&>svg]:size-4! [&>svg]:shrink-0 [&>svg]:text-muted-foreground;
+  }
+  .navigation-menu-link-title {
+    @apply text-sm leading-none font-medium;
+  }
+  .navigation-menu-link-description {
+    @apply line-clamp-2 text-sm leading-snug text-muted-foreground;
+  }
+  /* A large tile, e.g. the first cell of a grid spanning several rows */
+  .navigation-menu-featured {
+    @apply flex h-full min-h-32 w-full flex-col justify-end gap-2 rounded-[calc(var(--radius)-2px)] bg-linear-to-b
+      from-muted/50 p-4 text-foreground no-underline transition-colors outline-none select-none
+      focus-visible:ring-2 focus-visible:ring-ring md:p-6;
+  }
+  .navigation-menu-featured {
+    @apply to-muted;
+  }
+  .navigation-menu-featured .navigation-menu-link-title {
+    @apply text-lg leading-tight;
+  }
+  .navigation-menu-featured > svg {
+    @apply size-6!;
+  }
+
+  /* Indicator: an arrow from the open trigger to the top of its panel */
+  .navigation-menu-indicator .navigation-menu-trigger {
+    @apply relative;
+  }
+  .navigation-menu-indicator .navigation-menu-trigger::after {
+    @apply pointer-events-none invisible absolute top-full left-1/2 z-[51] mt-2.5 size-2.5 -translate-x-1/2
+      -translate-y-1/2 rotate-45 rounded-tl-[2px] border-t border-l border-border bg-surface opacity-0
+      content-[''];
+    transition:
+      opacity var(--motion-duration-fast) var(--motion-ease-out),
+      visibility 0s var(--motion-duration-fast);
+  }
+  .navigation-menu-indicator .navigation-menu-trigger[aria-expanded="true"]::after {
+    @apply visible opacity-100;
+    transition: opacity var(--motion-duration-normal) var(--motion-ease-out);
+  }
+  .navigation-menu-indicator .navigation-menu-content {
+    @apply mt-2.5;
+  }
+
+  /* Vertical: stacked items (a sidebar, a mobile sheet). Panels open in place, under their
+     trigger, pushing what follows down. */
+  .navigation-menu-vertical {
+    @apply block max-w-none;
+  }
+  .navigation-menu-vertical .navigation-menu-list {
+    @apply flex-col items-stretch justify-start;
+  }
+  .navigation-menu-vertical .navigation-menu-trigger,
+  .navigation-menu-vertical .navigation-menu-item > .navigation-menu-link {
+    @apply w-full justify-between px-3;
+  }
+  .navigation-menu-vertical .navigation-menu-content {
+    @apply visible static mt-1 hidden w-full max-w-none border-0 bg-transparent p-0 pl-3 opacity-100 shadow-none;
+    scale: 1;
+    transition: none;
+  }
+  .navigation-menu-vertical .navigation-menu-content::before {
+    @apply hidden;
+  }
+  .navigation-menu-vertical .navigation-menu-trigger[aria-expanded="true"] ~ .navigation-menu-content,
+  .navigation-menu-vertical:not([data-init]) .navigation-menu-item:focus-within > .navigation-menu-content {
+    @apply block;
+  }
+  .navigation-menu-vertical .navigation-menu-grid {
+    @apply w-auto! grid-cols-1!;
+  }
+  .navigation-menu-vertical .navigation-menu-featured {
+    @apply min-h-0 p-3 md:p-3;
+  }
+}

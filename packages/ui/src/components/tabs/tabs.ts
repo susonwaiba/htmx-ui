@@ -1,6 +1,8 @@
 // Tabs. Usage: see tabs.css.
 // - Buttons with [data-tab] switch to the [data-tab-panel] with the same value.
-// - Arrow keys, Home and End move between tabs (roving tabindex).
+// - Arrow keys, Home and End move between tabs (roving tabindex): Left/Right, or Up/Down when
+//   the group has data-orientation="vertical" (set as aria-orientation on the tablist).
+//   Disabled tabs are skipped and can't be selected.
 // - data-tabs-sync="key": every tab group on the page with the same key switches
 //   together, the choice is saved to localStorage ("tabs:key"), restored on load,
 //   and followed across browser tabs.
@@ -18,7 +20,7 @@ function read(sync: string): string | null {
 
 function select(group: HTMLElement, value: string): boolean {
   const tabs = group.querySelectorAll<HTMLElement>("[data-tab]");
-  if (![...tabs].some((t) => t.dataset.tab === value)) return false;
+  if (![...tabs].some((t) => t.dataset.tab === value && !disabled(t))) return false;
   tabs.forEach((t) => {
     const on = t.dataset.tab === value;
     t.setAttribute("aria-selected", String(on));
@@ -37,12 +39,17 @@ function selectSynced(sync: string, value: string) {
 
 let listening = false;
 
+const disabled = (tab: HTMLElement) => tab.hasAttribute("disabled") || tab.getAttribute("aria-disabled") === "true";
+
 export function initTabs(root: ParentNode) {
   queryAll(root, "[data-tabs]:not([data-tabs-init])").forEach((group, n) => {
     group.dataset.tabsInit = "";
     const sync = group.dataset.tabsSync;
     const tabs = [...group.querySelectorAll<HTMLElement>("[data-tab]")];
     const id = group.id || `tabs-${Math.random().toString(36).slice(2, 8)}-${n}`;
+    const vertical = group.dataset.orientation === "vertical";
+    const list = group.querySelector<HTMLElement>('[role="tablist"]');
+    if (list && vertical) list.setAttribute("aria-orientation", "vertical");
 
     tabs.forEach((tab) => {
       const panel = group.querySelector<HTMLElement>(`[data-tab-panel="${tab.dataset.tab}"]`);
@@ -54,6 +61,7 @@ export function initTabs(root: ParentNode) {
       }
 
       tab.addEventListener("click", () => {
+        if (disabled(tab)) return;
         const value = tab.dataset.tab!;
         if (!sync) return void select(group, value);
         selectSynced(sync, value);
@@ -63,18 +71,21 @@ export function initTabs(root: ParentNode) {
       });
 
       tab.addEventListener("keydown", (e) => {
-        const i = tabs.indexOf(tab);
-        const next = { ArrowRight: i + 1, ArrowLeft: i - 1, Home: 0, End: tabs.length - 1 }[e.key];
-        if (next === undefined) return;
+        const enabled = tabs.filter((t) => !disabled(t));
+        const i = enabled.indexOf(tab);
+        const [back, forward] = vertical ? ["ArrowUp", "ArrowDown"] : ["ArrowLeft", "ArrowRight"];
+        const next = { [forward]: i + 1, [back]: i - 1, Home: 0, End: enabled.length - 1 }[e.key];
+        if (next === undefined || !enabled.length) return;
         e.preventDefault();
-        const target = tabs[(next + tabs.length) % tabs.length]!;
+        const target = enabled[(next + enabled.length) % enabled.length]!;
         target.focus();
         target.click();
       });
     });
 
-    const initial = (sync && read(sync)) || tabs.find((t) => t.getAttribute("aria-selected") === "true")?.dataset.tab || tabs[0]?.dataset.tab;
-    if (initial && !select(group, initial) && tabs[0]) select(group, tabs[0].dataset.tab!);
+    const first = tabs.find((t) => !disabled(t))?.dataset.tab;
+    const initial = (sync && read(sync)) || tabs.find((t) => t.getAttribute("aria-selected") === "true")?.dataset.tab || first;
+    if (initial && !select(group, initial) && first) select(group, first);
   });
 
   if (!listening) {

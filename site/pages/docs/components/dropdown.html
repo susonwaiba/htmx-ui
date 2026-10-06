@@ -1,21 +1,34 @@
 {% extends "layouts/docs.html" %}
 {% from "components/icon/icon.html" import icon %}
-{% from "macros/docs.html" import demo, classes %}
+{% from "docs/macros.html" import demo, classes %}
 {% set title = "Dropdown" %}
-{% set description = "A menu of links or actions that opens from a button. Keyboard and screen-reader friendly. The docs version switcher in the sidebar is one." %}
+{% set description = "A menu of links, actions and options that opens from a button, with checkbox and radio items, shortcuts and submenus. Keyboard and screen-reader friendly. The docs version switcher in the sidebar is one." %}
 
 {% block content %}
-  {% call demo("min-h-64 items-start") %}
+  {% call demo("min-h-96 items-start") %}
     <div class="dropdown" data-dropdown>
       <button type="button" class="btn btn-outline" data-dropdown-trigger aria-haspopup="menu" aria-expanded="false">
         Options {{ icon("chevron-down") }}
       </button>
-      <div class="dropdown-menu" role="menu" hidden>
+      <div class="dropdown-menu w-56" role="menu" hidden>
         <p class="dropdown-label">My account</p>
-        <a class="dropdown-item" role="menuitem" href="#profile">Profile</a>
+        <a class="dropdown-item" role="menuitem" href="#profile">Profile <span class="dropdown-shortcut">⇧⌘P</span></a>
         <a class="dropdown-item" role="menuitem" href="#billing">Billing <span class="badge badge-secondary">Pro</span></a>
+        <a class="dropdown-item" role="menuitem" href="#settings">Settings <span class="dropdown-shortcut">⌘,</span></a>
         <div class="dropdown-separator" role="separator"></div>
-        <button type="button" class="dropdown-item text-danger" role="menuitem">{{ icon("trash") }} Delete account</button>
+        <a class="dropdown-item" role="menuitem" href="#team">Team</a>
+        <div class="dropdown-sub">
+          <button type="button" class="dropdown-item" role="menuitem" aria-haspopup="menu" aria-expanded="false">Invite users {{ icon("chevron-right") }}</button>
+          <div class="dropdown-menu" role="menu" hidden>
+            <button type="button" class="dropdown-item" role="menuitem">Email</button>
+            <button type="button" class="dropdown-item" role="menuitem">Message</button>
+            <div class="dropdown-separator" role="separator"></div>
+            <button type="button" class="dropdown-item" role="menuitem">More…</button>
+          </div>
+        </div>
+        <button type="button" class="dropdown-item" role="menuitem" aria-disabled="true">API</button>
+        <div class="dropdown-separator" role="separator"></div>
+        <button type="button" class="dropdown-item dropdown-item-destructive" role="menuitem">{{ icon("trash") }} Delete account</button>
       </div>
     </div>
   {% endcall %}
@@ -26,20 +39,130 @@
     <li>The trigger gets <code>data-dropdown-trigger</code>, <code>aria-haspopup="menu"</code> and <code>aria-expanded="false"</code>.</li>
     <li>The menu gets <code>role="menu"</code> and starts <code>hidden</code>. Each entry is a link or button with <code>role="menuitem"</code>.</li>
     <li>Mark the selected entry with <code>aria-current="true"</code>, and unavailable ones with <code>aria-disabled="true"</code>.</li>
+    <li>Add a <code>.dropdown-label</code> heading and <code>.dropdown-separator</code> lines (<code>role="separator"</code>) between sections as needed.</li>
   </ul>
+  <p>
+    The behaviour sets the rest: menu items get <code>tabindex="-1"</code> (focus moves with the arrow keys) and the
+    trigger is linked to the menu with <code>aria-controls</code>. The same menu classes and behaviour make up each
+    menu of a <a href="/docs/components/menubar">menubar</a>.
+  </p>
 
-  <h2 id="keyboard">Keyboard</h2>
-  <div class="table-wrap not-prose">
-    <table class="table">
-      <thead><tr><th>Key</th><th>Action</th></tr></thead>
-      <tbody>
-        <tr><td><kbd class="kbd">↓</kbd> <kbd class="kbd">↑</kbd> on the trigger</td><td class="text-muted-foreground">Open on the first / last item</td></tr>
-        <tr><td><kbd class="kbd">↓</kbd> <kbd class="kbd">↑</kbd> <kbd class="kbd">Home</kbd> <kbd class="kbd">End</kbd></td><td class="text-muted-foreground">Move between items</td></tr>
-        <tr><td><kbd class="kbd">Esc</kbd></td><td class="text-muted-foreground">Close and return focus to the trigger</td></tr>
-        <tr><td><kbd class="kbd">Tab</kbd>, click outside, choose an item</td><td class="text-muted-foreground">Close</td></tr>
-      </tbody>
-    </table>
-  </div>
+  <h2 id="icons">Icons and shortcuts</h2>
+  <p>
+    Put an <code>icon()</code> before an item's text; icons in items are muted and sized to match.
+    <code>.dropdown-shortcut</code> right-aligns a keyboard hint (a <code>.kbd</code> or a <code>.badge</code> sits
+    there too). The hint is only text: the dropdown doesn't bind the key. If your page handles it, say so with
+    <code>aria-keyshortcuts</code> on the item.
+  </p>
+  {% call demo("min-h-64 items-start") %}
+    <div class="dropdown" data-dropdown>
+      <button type="button" class="btn btn-outline" data-dropdown-trigger aria-haspopup="menu" aria-expanded="false">Edit {{ icon("chevron-down") }}</button>
+      <div class="dropdown-menu w-56" role="menu" hidden>
+        <button type="button" class="dropdown-item" role="menuitem">{{ icon("copy") }} Copy <span class="dropdown-shortcut">⌘C</span></button>
+        <button type="button" class="dropdown-item" role="menuitem">{{ icon("link") }} Copy link <span class="dropdown-shortcut">⇧⌘C</span></button>
+        <button type="button" class="dropdown-item" role="menuitem">{{ icon("download") }} Download <span class="kbd">D</span></button>
+        <div class="dropdown-separator" role="separator"></div>
+        <button type="button" class="dropdown-item" role="menuitem">{{ icon("settings") }} Settings</button>
+      </div>
+    </div>
+  {% endcall %}
+
+  <h2 id="checkbox-items">Checkbox items</h2>
+  <p>
+    An item with <code>role="menuitemcheckbox"</code> and <code>aria-checked="true"</code> or <code>"false"</code>
+    toggles when chosen, showing a check in an inset slot on the left. Give plain items and labels next to them
+    <code>.dropdown-item-inset</code> so their text lines up.
+  </p>
+  {% call demo("min-h-64 items-start") %}
+    <div class="dropdown" data-dropdown>
+      <button type="button" class="btn btn-outline" data-dropdown-trigger aria-haspopup="menu" aria-expanded="false">Appearance {{ icon("chevron-down") }}</button>
+      <div class="dropdown-menu w-56" role="menu" hidden>
+        <p class="dropdown-label dropdown-item-inset">Show</p>
+        <button type="button" class="dropdown-item" role="menuitemcheckbox" aria-checked="true">Status bar</button>
+        <button type="button" class="dropdown-item" role="menuitemcheckbox" aria-checked="false" aria-disabled="true">Activity bar</button>
+        <button type="button" class="dropdown-item" role="menuitemcheckbox" aria-checked="false">Panel</button>
+        <div class="dropdown-separator" role="separator"></div>
+        <button type="button" class="dropdown-item dropdown-item-inset" role="menuitem">Reset</button>
+      </div>
+    </div>
+  {% endcall %}
+
+  <h2 id="radio-items">Radio items</h2>
+  <p>
+    Items with <code>role="menuitemradio"</code> inside a <code>role="group"</code> are a set: choosing one checks
+    it and unchecks the rest of the group (without a group, the rest of the menu). Label the group with
+    <code>aria-label</code>, or with <code>aria-labelledby</code> pointing at its <code>.dropdown-label</code>.
+  </p>
+  {% call demo("min-h-64 items-start") %}
+    <div class="dropdown" data-dropdown>
+      <button type="button" class="btn btn-outline" data-dropdown-trigger aria-haspopup="menu" aria-expanded="false">Panel position {{ icon("chevron-down") }}</button>
+      <div class="dropdown-menu w-56" role="menu" hidden>
+        <p class="dropdown-label dropdown-item-inset" id="dropdown-position-label">Panel position</p>
+        <div role="group" aria-labelledby="dropdown-position-label">
+          <button type="button" class="dropdown-item" role="menuitemradio" aria-checked="true">Top</button>
+          <button type="button" class="dropdown-item" role="menuitemradio" aria-checked="false">Bottom</button>
+          <button type="button" class="dropdown-item" role="menuitemradio" aria-checked="false">Right</button>
+        </div>
+      </div>
+    </div>
+  {% endcall %}
+  <p>
+    Choosing a checkbox or radio item closes the menu like any other item. Add <code>data-keep-open</code> to an
+    item, a group or the whole menu to keep it open instead, so several options can be set in a row:
+  </p>
+  {% call demo("min-h-64 items-start") %}
+    <div class="dropdown" data-dropdown>
+      <button type="button" class="btn btn-outline" data-dropdown-trigger aria-haspopup="menu" aria-expanded="false">Columns {{ icon("chevron-down") }}</button>
+      <div class="dropdown-menu" role="menu" data-keep-open hidden>
+        <button type="button" class="dropdown-item" role="menuitemcheckbox" aria-checked="true">Name</button>
+        <button type="button" class="dropdown-item" role="menuitemcheckbox" aria-checked="true">Email</button>
+        <button type="button" class="dropdown-item" role="menuitemcheckbox" aria-checked="false">Phone</button>
+        <button type="button" class="dropdown-item" role="menuitemcheckbox" aria-checked="false">Last seen</button>
+      </div>
+    </div>
+  {% endcall %}
+
+  <h2 id="submenus">Submenus</h2>
+  <p>
+    Wrap an item and a nested menu in <code>.dropdown-sub</code>. The item gets <code>aria-haspopup="menu"</code>,
+    <code>aria-expanded="false"</code> and a <code>chevron-right</code> icon, which sits at the right edge. The
+    submenu opens beside it on hover (after a short delay), on click, or with <kbd class="kbd">→</kbd>,
+    <kbd class="kbd">Enter</kbd> or <kbd class="kbd">Space</kbd>; <kbd class="kbd">←</kbd> and
+    <kbd class="kbd">Esc</kbd> close it. Near the edge of the window it opens to the left or upwards instead.
+  </p>
+  {% call demo("min-h-64 items-start") %}
+    <div class="dropdown" data-dropdown>
+      <button type="button" class="btn btn-outline" data-dropdown-trigger aria-haspopup="menu" aria-expanded="false">Share {{ icon("chevron-down") }}</button>
+      <div class="dropdown-menu" role="menu" hidden>
+        <button type="button" class="dropdown-item" role="menuitem">{{ icon("link") }} Copy link</button>
+        <div class="dropdown-sub">
+          <button type="button" class="dropdown-item" role="menuitem" aria-haspopup="menu" aria-expanded="false">{{ icon("send") }} Send to {{ icon("chevron-right") }}</button>
+          <div class="dropdown-menu" role="menu" hidden>
+            <button type="button" class="dropdown-item" role="menuitem">{{ icon("mail") }} Email</button>
+            <button type="button" class="dropdown-item" role="menuitem">{{ icon("message-square") }} Message</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endcall %}
+
+  <h2 id="destructive">Destructive and disabled items</h2>
+  <p>
+    <code>.dropdown-item-destructive</code> colours an item that deletes or discards something.
+    <code>aria-disabled="true"</code> (or <code>disabled</code> on a button) fades an item out; it can't be chosen
+    and the arrow keys skip it.
+  </p>
+  {% call demo("min-h-56 items-start") %}
+    <div class="dropdown" data-dropdown>
+      <button type="button" class="btn btn-outline btn-icon" data-dropdown-trigger aria-haspopup="menu" aria-expanded="false" aria-label="Project actions">{{ icon("ellipsis") }}</button>
+      <div class="dropdown-menu" role="menu" hidden>
+        <button type="button" class="dropdown-item" role="menuitem">Rename</button>
+        <button type="button" class="dropdown-item" role="menuitem" aria-disabled="true">Transfer</button>
+        <div class="dropdown-separator" role="separator"></div>
+        <button type="button" class="dropdown-item dropdown-item-destructive" role="menuitem">{{ icon("trash") }} Delete project</button>
+      </div>
+    </div>
+  {% endcall %}
 
   <h2 id="alignment">Alignment</h2>
   <p>The menu opens below the trigger, aligned to its left edge. Add <code>.dropdown-menu-end</code> to align it to the right edge, or <code>.dropdown-menu-up</code> to open it above the trigger.</p>
@@ -66,15 +189,72 @@
     </div>
     <span id="export-result" class="muted"></span>
   {% endcall %}
+  <p>
+    Checkbox and radio items fire a bubbling <code>menu:change</code> event when they change, with
+    <code>detail.checked</code>, <code>detail.name</code> and <code>detail.value</code>. Give them a
+    <code>name</code> (and a <code>value</code>; a checkbox item defaults to <code>on</code>) and each keeps a hidden
+    input inside it in step, so a surrounding form submits the checked ones. This form posts on every change:
+  </p>
+  {% call demo("min-h-64 flex-col items-start gap-4") %}
+    <form hx-post="/api/echo" hx-trigger="menu:change" hx-target="#dropdown-filter-result">
+      <div class="dropdown" data-dropdown>
+        <button type="button" class="btn btn-outline" data-dropdown-trigger aria-haspopup="menu" aria-expanded="false">Filter {{ icon("chevron-down") }}</button>
+        <div class="dropdown-menu" role="menu" hidden>
+          <button type="button" class="dropdown-item" role="menuitemcheckbox" aria-checked="true" name="open">Open issues</button>
+          <button type="button" class="dropdown-item" role="menuitemcheckbox" aria-checked="false" name="closed">Closed issues</button>
+          <div class="dropdown-separator" role="separator"></div>
+          <div role="group" aria-label="Sort">
+            <button type="button" class="dropdown-item" role="menuitemradio" aria-checked="true" name="sort" value="newest">Newest first</button>
+            <button type="button" class="dropdown-item" role="menuitemradio" aria-checked="false" name="sort" value="oldest">Oldest first</button>
+          </div>
+        </div>
+      </div>
+    </form>
+    <span id="dropdown-filter-result" class="muted" aria-live="polite"></span>
+  {% endcall %}
+
+  <h2 id="keyboard">Keyboard</h2>
+  <div class="table-wrap not-prose">
+    <table class="table">
+      <thead><tr><th>Key</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr><td><kbd class="kbd">Enter</kbd> <kbd class="kbd">Space</kbd> on the trigger</td><td class="text-muted-foreground">Open on the first item</td></tr>
+        <tr><td><kbd class="kbd">↓</kbd> <kbd class="kbd">↑</kbd> on the trigger</td><td class="text-muted-foreground">Open on the first / last item</td></tr>
+        <tr><td><kbd class="kbd">↓</kbd> <kbd class="kbd">↑</kbd> <kbd class="kbd">Home</kbd> <kbd class="kbd">End</kbd></td><td class="text-muted-foreground">Next / previous / first / last item (wraps), skipping disabled ones</td></tr>
+        <tr><td>Letters</td><td class="text-muted-foreground">Next item starting with the typed letters</td></tr>
+        <tr><td><kbd class="kbd">Enter</kbd> <kbd class="kbd">Space</kbd></td><td class="text-muted-foreground">Choose the item (toggle a checkbox, check a radio) and close; open a submenu</td></tr>
+        <tr><td><kbd class="kbd">→</kbd> <kbd class="kbd">←</kbd></td><td class="text-muted-foreground">Open / close a submenu</td></tr>
+        <tr><td><kbd class="kbd">Esc</kbd></td><td class="text-muted-foreground">Close the innermost menu and return focus to what opened it</td></tr>
+        <tr><td><kbd class="kbd">Tab</kbd>, click outside</td><td class="text-muted-foreground">Close</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>With the mouse, hovering an item highlights (focuses) it, and hovering a submenu's item opens the submenu.</p>
+
+  <h2 id="accessibility">Accessibility</h2>
+  <ul>
+    <li>The markup follows the <a href="https://www.w3.org/WAI/ARIA/apg/patterns/menu-button/">WAI-ARIA menu button pattern</a>: <code>menu</code>, <code>menuitem</code>, <code>menuitemcheckbox</code>, <code>menuitemradio</code>, <code>group</code> and <code>separator</code> roles, with <code>aria-expanded</code>, <code>aria-controls</code> and <code>aria-checked</code> kept in step.</li>
+    <li>Name an icon-only trigger with <code>aria-label</code>, and label each radio group.</li>
+    <li>Use a dropdown for actions and navigation. For picking one value of a form field, use a <a href="/docs/components/select">select</a>.</li>
+  </ul>
 
   <h2 id="reference">Reference</h2>
   {{ classes([
     [".dropdown", "Positioning wrapper (relative, inline-block)."],
     [".dropdown-menu", "The floating panel. Opens below, left-aligned."],
     [".dropdown-menu-end / .dropdown-menu-up", "Align to the right edge / open above."],
-    [".dropdown-item", "Link or button inside the menu. aria-current and aria-disabled are styled."],
+    [".dropdown-item", "Link or button inside the menu: role=\"menuitem\", \"menuitemcheckbox\" or \"menuitemradio\". aria-current, aria-checked and aria-disabled are styled."],
+    [".dropdown-item-inset", "Indents an item or label to line up with checkbox and radio items."],
+    [".dropdown-item-destructive", "Danger-coloured item, for deleting or discarding."],
+    [".dropdown-shortcut", "Right-aligned, muted keyboard hint inside an item."],
     [".dropdown-label", "Small muted heading inside the menu."],
-    [".dropdown-separator", "Divider line."],
-    ["[data-dropdown] / [data-dropdown-trigger]", "Behaviour: open/close, keyboard navigation, outside click."]
-  ]) }}
+    [".dropdown-separator", "Divider line (role=\"separator\")."],
+    [".dropdown-sub", "Wraps a submenu trigger (aria-haspopup=\"menu\", aria-expanded) and its nested .dropdown-menu."],
+    ["role=\"group\"", "Groups radio items: checking one unchecks the others in the group."],
+    ["data-keep-open", "On an item, group or menu: choosing an item doesn't close the menu."],
+    ["name / value", "On checkbox and radio items: kept in a hidden input so a surrounding form submits them."],
+    ["menu:change", "Bubbling event from a checkbox or radio item that changed; detail { checked, name, value }."],
+    ["data-flip-x / data-flip-y", "Set on a submenu that would leave the window: it opens to the left / upwards."],
+    ["[data-dropdown] / [data-dropdown-trigger]", "Behaviour: open/close, keyboard navigation, typeahead, submenus, checkbox and radio items, outside click."]
+  ], heading="Class / attribute") }}
 {% endblock %}

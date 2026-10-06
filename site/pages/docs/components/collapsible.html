@@ -1,0 +1,184 @@
+{% extends "layouts/docs.html" %}
+{% from "components/icon/icon.html" import icon %}
+{% from "docs/macros.html" import demo, classes %}
+{% set title = "Collapsible" %}
+{% set description = "A button that expands and collapses a panel: more details, extra settings, or a whole file tree." %}
+
+{% block content %}
+  {% call demo("min-h-72 items-start") %}
+    <div class="collapsible w-full max-w-sm gap-2" data-collapsible>
+      <div class="flex items-center justify-between gap-4 ps-4">
+        <h4 class="text-sm font-semibold">Order #4189</h4>
+        <button type="button" class="btn btn-ghost btn-icon btn-sm" data-collapsible-trigger aria-expanded="false" aria-label="Show order details">
+          {{ icon("chevrons-up-down") }}
+        </button>
+      </div>
+      <div class="flex items-center justify-between rounded-(--radius) border border-border px-4 py-2 text-sm">
+        <span class="text-muted-foreground">Status</span>
+        <span class="font-medium">Shipped</span>
+      </div>
+      <div class="collapsible-content gap-2" data-collapsible-content hidden>
+        <div class="rounded-(--radius) border border-border px-4 py-2 text-sm">
+          <p class="font-medium">Shipping address</p>
+          <p class="text-muted-foreground">100 Market St, San Francisco</p>
+        </div>
+        <div class="rounded-(--radius) border border-border px-4 py-2 text-sm">
+          <p class="font-medium">Items</p>
+          <p class="text-muted-foreground">2× Studio Headphones</p>
+        </div>
+      </div>
+    </div>
+  {% endcall %}
+
+  <h2 id="markup">Markup</h2>
+  <ul>
+    <li>Wrap everything in <code>.collapsible</code> with <code>data-collapsible</code>.</li>
+    <li>The trigger is a <code>&lt;button&gt;</code> with <code>data-collapsible-trigger</code> and <code>aria-expanded</code>. It can be anywhere inside — above the panel, below it, in a header — and look like anything: <code>.collapsible-trigger</code> for a full-width row, or any <a href="/docs/components/button">button</a> class. A collapsible may have several triggers; they stay in step.</li>
+    <li>The panel is a <code>.collapsible-content</code> with <code>data-collapsible-content</code>. It starts closed with <code>hidden</code>, or open without it. The behaviour links the triggers to it with <code>aria-controls</code>.</li>
+    <li>A <code>.collapsible-icon</code> in the trigger turns 180° while open (a chevron-down becomes a chevron-up). Set <code>--collapsible-rotate</code> to change the angle, such as <code>90deg</code> for a chevron-right.</li>
+    <li>For several sections where opening one may close the others, use an <a href="/docs/components/accordion">accordion</a>.</li>
+  </ul>
+
+  <h2 id="settings">Reveal more settings</h2>
+  <p>
+    A trigger below the panel, worded for both states. The text swaps with Tailwind's <code>group-aria-expanded</code>
+    variant, so no script is needed for it.
+  </p>
+  {% call demo("min-h-96 items-start") %}
+    <form class="card w-full max-w-sm" onsubmit="return false">
+      <div class="card-header">
+        <h3 class="card-title">Radius</h3>
+        <p class="card-description">Set the corner radius of the element.</p>
+      </div>
+      <div class="card-content collapsible gap-4" data-collapsible>
+        <div class="field-grid gap-y-4">
+          <div class="field">
+            <label class="label" for="radius-x">Radius X</label>
+            <input class="input" id="radius-x" value="0" inputmode="numeric" />
+          </div>
+          <div class="field">
+            <label class="label" for="radius-y">Radius Y</label>
+            <input class="input" id="radius-y" value="0" inputmode="numeric" />
+          </div>
+        </div>
+        <div class="collapsible-content" data-collapsible-content hidden>
+          <div class="field-grid gap-y-4">
+            <div class="field">
+              <label class="label" for="radius-tl">Top left</label>
+              <input class="input" id="radius-tl" value="0" inputmode="numeric" />
+            </div>
+            <div class="field">
+              <label class="label" for="radius-tr">Top right</label>
+              <input class="input" id="radius-tr" value="0" inputmode="numeric" />
+            </div>
+            <div class="field">
+              <label class="label" for="radius-bl">Bottom left</label>
+              <input class="input" id="radius-bl" value="0" inputmode="numeric" />
+            </div>
+            <div class="field">
+              <label class="label" for="radius-br">Bottom right</label>
+              <input class="input" id="radius-br" value="0" inputmode="numeric" />
+            </div>
+          </div>
+        </div>
+        <button type="button" class="group btn btn-outline btn-sm self-start" data-collapsible-trigger aria-expanded="false">
+          {{ icon("settings") }}
+          <span class="group-aria-expanded:hidden">Show each corner</span>
+          <span class="hidden group-aria-expanded:inline">Hide each corner</span>
+        </button>
+      </div>
+    </form>
+  {% endcall %}
+
+  <h2 id="file-tree">File tree</h2>
+  <p>
+    Collapsibles nest: each trigger only opens its own panel. Here every folder is one, with a chevron-right turned by
+    <code>[--collapsible-rotate:90deg]</code> on the tree and the folder icon swapped while open.
+  </p>
+  {% macro folder(name, open=false) %}
+    <li class="collapsible" data-collapsible>
+      <button type="button" class="group collapsible-trigger justify-start px-2 py-1.5 font-normal hover:bg-accent" data-collapsible-trigger aria-expanded="{{ 'true' if open else 'false' }}">
+        {{ icon("chevron-right", "collapsible-icon size-4") }}
+        {{ icon("folder", "size-4 group-aria-expanded:hidden") }}
+        {{ icon("folder-open", "hidden size-4 group-aria-expanded:block") }}
+        {{ name }}
+      </button>
+      <ul class="collapsible-content ms-4 border-s border-border ps-2" data-collapsible-content{% if not open %} hidden{% endif %}>
+        {{ caller() }}
+      </ul>
+    </li>
+  {% endmacro %}
+  {% macro file(name) %}
+    <li class="flex items-center gap-2 px-2 py-1.5 ps-8">{{ icon("file", "size-4 text-muted-foreground") }} {{ name }}</li>
+  {% endmacro %}
+  {% call demo("min-h-96 items-start") %}
+    <ul class="w-64 rounded-(--radius) border border-border p-2 text-sm [--collapsible-rotate:90deg]" aria-label="Files">
+      {% call folder("src", open=true) %}
+        {% call folder("components", open=true) %}
+          {{ file("button.ts") }}
+          {{ file("dialog.ts") }}
+        {% endcall %}
+        {% call folder("utils") %}
+          {{ file("dom.ts") }}
+        {% endcall %}
+        {{ file("index.ts") }}
+      {% endcall %}
+      {% call folder("public") %}
+        {{ file("favicon.svg") }}
+      {% endcall %}
+      {{ file("package.json") }}
+      {{ file("README.md") }}
+    </ul>
+  {% endcall %}
+
+  <h2 id="details">Without JavaScript</h2>
+  <p>
+    The same classes style a native <code>&lt;details&gt;</code>: the <code>&lt;summary&gt;</code> is the trigger and the
+    icon turns while it's open, with no behaviour at all. The trade-off is that the summary must come first, so the trigger
+    can't sit below the panel.
+  </p>
+  {% call demo("min-h-48 items-start") %}
+    <details class="collapsible w-full max-w-sm gap-2">
+      <summary class="collapsible-trigger rounded-(--radius) border border-border px-4 py-2">
+        What does it cost?
+        {{ icon("chevron-down", "collapsible-icon size-4") }}
+      </summary>
+      <p class="px-4 text-sm text-muted-foreground">Nothing: htmx-ui is MIT licensed.</p>
+    </details>
+  {% endcall %}
+
+  <h2 id="find">Find in page</h2>
+  <p>
+    Closed content is invisible to the browser's find-in-page. Close it with <code>hidden="until-found"</code> instead of
+    <code>hidden</code>, and searching for text inside opens the collapsible; it closes back to
+    <code>until-found</code>. Browsers without support treat it as plain <code>hidden</code>.
+  </p>
+
+  <h2 id="htmx">With htmx</h2>
+  <p>
+    Every open and close fires a bubbling <code>collapsible:toggle</code> with <code>detail.open</code>, and the wrapper
+    carries <code>data-open</code> while open. To fetch the panel's content the first time it opens, put the request on the
+    trigger:
+  </p>
+  {% call demo("min-h-64 items-start") %}
+    <div class="collapsible w-full max-w-sm gap-3" data-collapsible>
+      <button type="button" class="collapsible-trigger" data-collapsible-trigger aria-expanded="false"
+              hx-get="/api/hello" hx-trigger="click once" hx-target="next [data-collapsible-content]">
+        Latest message
+        {{ icon("chevron-down", "collapsible-icon size-4") }}
+      </button>
+      <div class="collapsible-content" data-collapsible-content hidden><p class="muted">Loading…</p></div>
+    </div>
+  {% endcall %}
+
+  <h2 id="reference">Reference</h2>
+  {{ classes([
+    [".collapsible", "Wrapper (a flex column). Add data-collapsible, or use it on a <details>."],
+    [".collapsible-trigger", "A full-width row button, or a <summary>. Optional: any button works."],
+    [".collapsible-icon", "Turns by --collapsible-rotate (180deg) while open."],
+    [".collapsible-content", "The panel. Add data-collapsible-content, and hidden to start closed."],
+    ["[data-collapsible-trigger]", "Toggles the panel; aria-expanded and aria-controls kept in sync."],
+    ["[data-open]", "On the wrapper while open."],
+    ["collapsible:toggle", "Event on the wrapper with detail { open }."]
+  ], heading="Class / attribute") }}
+{% endblock %}

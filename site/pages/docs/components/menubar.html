@@ -1,0 +1,367 @@
+{% extends "layouts/docs.html" %}
+{% from "components/icon/icon.html" import icon %}
+{% from "docs/macros.html" import demo, classes %}
+{% set title = "Menubar" %}
+{% set description = "A visually persistent menu common in desktop applications that provides quick access to a consistent set of commands." %}
+
+{% block content %}
+  {% call demo("min-h-96 items-start") %}
+    <div class="menubar" role="menubar" aria-label="Browser" data-menubar>
+      <div class="menubar-menu">
+        <button type="button" class="menubar-trigger" role="menuitem" aria-haspopup="menu" aria-expanded="false">File</button>
+        <div class="dropdown-menu" role="menu" hidden>
+          <button type="button" class="dropdown-item" role="menuitem">New tab <span class="dropdown-shortcut">⌘T</span></button>
+          <button type="button" class="dropdown-item" role="menuitem">New window <span class="dropdown-shortcut">⌘N</span></button>
+          <button type="button" class="dropdown-item" role="menuitem" aria-disabled="true">New incognito window</button>
+          <div class="dropdown-separator" role="separator"></div>
+          <div class="dropdown-sub">
+            <button type="button" class="dropdown-item" role="menuitem" aria-haspopup="menu" aria-expanded="false">Share {{ icon("chevron-right") }}</button>
+            <div class="dropdown-menu" role="menu" hidden>
+              <button type="button" class="dropdown-item" role="menuitem">Email link</button>
+              <button type="button" class="dropdown-item" role="menuitem">Messages</button>
+              <button type="button" class="dropdown-item" role="menuitem">Notes</button>
+            </div>
+          </div>
+          <div class="dropdown-separator" role="separator"></div>
+          <button type="button" class="dropdown-item" role="menuitem">Print… <span class="dropdown-shortcut">⌘P</span></button>
+        </div>
+      </div>
+      <div class="menubar-menu">
+        <button type="button" class="menubar-trigger" role="menuitem" aria-haspopup="menu" aria-expanded="false">Edit</button>
+        <div class="dropdown-menu" role="menu" hidden>
+          <button type="button" class="dropdown-item" role="menuitem">Undo <span class="dropdown-shortcut">⌘Z</span></button>
+          <button type="button" class="dropdown-item" role="menuitem">Redo <span class="dropdown-shortcut">⇧⌘Z</span></button>
+          <div class="dropdown-separator" role="separator"></div>
+          <div class="dropdown-sub">
+            <button type="button" class="dropdown-item" role="menuitem" aria-haspopup="menu" aria-expanded="false">Find {{ icon("chevron-right") }}</button>
+            <div class="dropdown-menu" role="menu" hidden>
+              <button type="button" class="dropdown-item" role="menuitem">Search the web</button>
+              <div class="dropdown-separator" role="separator"></div>
+              <button type="button" class="dropdown-item" role="menuitem">Find…</button>
+              <button type="button" class="dropdown-item" role="menuitem">Find next</button>
+              <button type="button" class="dropdown-item" role="menuitem">Find previous</button>
+            </div>
+          </div>
+          <div class="dropdown-separator" role="separator"></div>
+          <button type="button" class="dropdown-item" role="menuitem">Cut</button>
+          <button type="button" class="dropdown-item" role="menuitem">Copy</button>
+          <button type="button" class="dropdown-item" role="menuitem">Paste</button>
+        </div>
+      </div>
+      <div class="menubar-menu">
+        <button type="button" class="menubar-trigger" role="menuitem" aria-haspopup="menu" aria-expanded="false">View</button>
+        <div class="dropdown-menu w-64" role="menu" hidden>
+          <button type="button" class="dropdown-item" role="menuitemcheckbox" aria-checked="false">Always show bookmarks bar</button>
+          <button type="button" class="dropdown-item" role="menuitemcheckbox" aria-checked="true">Always show full URLs</button>
+          <div class="dropdown-separator" role="separator"></div>
+          <button type="button" class="dropdown-item dropdown-item-inset" role="menuitem">Reload <span class="dropdown-shortcut">⌘R</span></button>
+          <button type="button" class="dropdown-item dropdown-item-inset" role="menuitem" aria-disabled="true">Force reload <span class="dropdown-shortcut">⇧⌘R</span></button>
+          <div class="dropdown-separator" role="separator"></div>
+          <button type="button" class="dropdown-item dropdown-item-inset" role="menuitem">Toggle full screen</button>
+          <div class="dropdown-separator" role="separator"></div>
+          <button type="button" class="dropdown-item dropdown-item-inset" role="menuitem">Hide sidebar</button>
+        </div>
+      </div>
+      <div class="menubar-menu">
+        <button type="button" class="menubar-trigger" role="menuitem" aria-haspopup="menu" aria-expanded="false">Profiles</button>
+        <div class="dropdown-menu" role="menu" hidden>
+          <div role="group" aria-label="Profile">
+            <button type="button" class="dropdown-item" role="menuitemradio" aria-checked="false">Andy</button>
+            <button type="button" class="dropdown-item" role="menuitemradio" aria-checked="true">Benoit</button>
+            <button type="button" class="dropdown-item" role="menuitemradio" aria-checked="false">Luis</button>
+          </div>
+          <div class="dropdown-separator" role="separator"></div>
+          <button type="button" class="dropdown-item dropdown-item-inset" role="menuitem">Edit…</button>
+          <div class="dropdown-separator" role="separator"></div>
+          <button type="button" class="dropdown-item dropdown-item-inset" role="menuitem">Add profile…</button>
+        </div>
+      </div>
+    </div>
+  {% endcall %}
+
+  <h2 id="markup">Markup</h2>
+  <ul>
+    <li>The bar is <code>.menubar</code> with <code>role="menubar"</code>, <code>data-menubar</code> and an <code>aria-label</code>.</li>
+    <li>
+      Each top-level menu is a <code>.menubar-menu</code> holding its trigger and its panel. The trigger is a
+      <code>&lt;button class="menubar-trigger"&gt;</code> with <code>role="menuitem"</code>,
+      <code>aria-haspopup="menu"</code> and <code>aria-expanded="false"</code>.
+    </li>
+    <li>
+      The panel is a <a href="/docs/components/dropdown">dropdown</a> menu: <code>.dropdown-menu</code> with
+      <code>role="menu"</code>, starting <code>hidden</code>. Everything a dropdown menu can hold works here: items,
+      labels, separators, shortcuts, icons, checkbox and radio items, and submenus.
+    </li>
+    <li>A top-level <code>role="menuitem"</code> without a panel (a link, say) is fine too: it takes part in the keyboard navigation and has no menu to open.</li>
+  </ul>
+  <p>
+    The behaviour sets the rest: only one trigger is in the tab order at a time, menu items get
+    <code>tabindex="-1"</code>, and each trigger is linked to its menu with <code>aria-controls</code>.
+  </p>
+
+  <h2 id="shortcuts">Shortcuts and separators</h2>
+  <p>
+    <code>.dropdown-shortcut</code> right-aligns a keyboard hint inside an item. It is only a hint: the menubar does
+    not bind the key. If your page handles the shortcut, say so with <code>aria-keyshortcuts</code> on the item.
+    <code>.dropdown-separator</code> with <code>role="separator"</code> divides an item list into sections.
+  </p>
+  {% call demo("min-h-72 items-start") %}
+    <div class="menubar" role="menubar" aria-label="Document" data-menubar>
+      <div class="menubar-menu">
+        <button type="button" class="menubar-trigger" role="menuitem" aria-haspopup="menu" aria-expanded="false">Document</button>
+        <div class="dropdown-menu" role="menu" hidden>
+          <button type="button" class="dropdown-item" role="menuitem" aria-keyshortcuts="Control+S">Save <span class="dropdown-shortcut">Ctrl S</span></button>
+          <button type="button" class="dropdown-item" role="menuitem">Save as… <span class="dropdown-shortcut">⇧ Ctrl S</span></button>
+          <div class="dropdown-separator" role="separator"></div>
+          <button type="button" class="dropdown-item" role="menuitem">Close <span class="kbd">Esc</span></button>
+        </div>
+      </div>
+    </div>
+  {% endcall %}
+
+  <h2 id="submenus">Submenus</h2>
+  <p>
+    Wrap an item and a nested menu in <code>.dropdown-sub</code>. The item gets <code>aria-haspopup="menu"</code>
+    and <code>aria-expanded="false"</code>, and a <code>chevron-right</code> icon, which sits at the right edge.
+    The submenu opens beside the item when it is hovered, clicked, or focused and <kbd class="kbd">→</kbd>,
+    <kbd class="kbd">Enter</kbd> or <kbd class="kbd">Space</kbd> is pressed; <kbd class="kbd">←</kbd> and
+    <kbd class="kbd">Esc</kbd> close it. Near the edge of the window it opens to the left or upwards instead.
+    Submenus can nest.
+  </p>
+  {% call demo("min-h-72 items-start") %}
+    <div class="menubar" role="menubar" aria-label="Insert" data-menubar>
+      <div class="menubar-menu">
+        <button type="button" class="menubar-trigger" role="menuitem" aria-haspopup="menu" aria-expanded="false">Insert</button>
+        <div class="dropdown-menu" role="menu" hidden>
+          <button type="button" class="dropdown-item" role="menuitem">Image</button>
+          <div class="dropdown-sub">
+            <button type="button" class="dropdown-item" role="menuitem" aria-haspopup="menu" aria-expanded="false">Table {{ icon("chevron-right") }}</button>
+            <div class="dropdown-menu" role="menu" hidden>
+              <button type="button" class="dropdown-item" role="menuitem">2 × 2</button>
+              <button type="button" class="dropdown-item" role="menuitem">3 × 3</button>
+              <div class="dropdown-sub">
+                <button type="button" class="dropdown-item" role="menuitem" aria-haspopup="menu" aria-expanded="false">From template {{ icon("chevron-right") }}</button>
+                <div class="dropdown-menu" role="menu" hidden>
+                  <button type="button" class="dropdown-item" role="menuitem">Invoice</button>
+                  <button type="button" class="dropdown-item" role="menuitem">Timetable</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <button type="button" class="dropdown-item" role="menuitem">Link</button>
+        </div>
+      </div>
+    </div>
+  {% endcall %}
+
+  <h2 id="checkbox-items">Checkbox items</h2>
+  <p>
+    An item with <code>role="menuitemcheckbox"</code> and <code>aria-checked</code> toggles on and off. A check
+    shows in the inset slot on the left; add <code>.dropdown-item-inset</code> to the plain items around it so
+    their text lines up.
+  </p>
+  {% call demo("min-h-64 items-start") %}
+    <div class="menubar" role="menubar" aria-label="Layout" data-menubar>
+      <div class="menubar-menu">
+        <button type="button" class="menubar-trigger" role="menuitem" aria-haspopup="menu" aria-expanded="false">Layout</button>
+        <div class="dropdown-menu" role="menu" hidden>
+          <button type="button" class="dropdown-item" role="menuitemcheckbox" aria-checked="true">Status bar</button>
+          <button type="button" class="dropdown-item" role="menuitemcheckbox" aria-checked="false">Activity bar</button>
+          <button type="button" class="dropdown-item" role="menuitemcheckbox" aria-checked="false" aria-disabled="true">Panel</button>
+          <div class="dropdown-separator" role="separator"></div>
+          <button type="button" class="dropdown-item dropdown-item-inset" role="menuitem">Reset layout</button>
+        </div>
+      </div>
+    </div>
+  {% endcall %}
+
+  <h2 id="radio-items">Radio items</h2>
+  <p>
+    Items with <code>role="menuitemradio"</code> inside a <code>role="group"</code> form a set: checking one
+    unchecks the others in the same group (or, without a group, the others directly in the same menu). Label each
+    group: <code>aria-label</code>, or <code>aria-labelledby</code> pointing at a <code>.dropdown-label</code>.
+  </p>
+  {% call demo("min-h-72 items-start") %}
+    <div class="menubar" role="menubar" aria-label="Text" data-menubar>
+      <div class="menubar-menu">
+        <button type="button" class="menubar-trigger" role="menuitem" aria-haspopup="menu" aria-expanded="false">Text</button>
+        <div class="dropdown-menu" role="menu" hidden>
+          <p class="dropdown-label dropdown-item-inset" id="menubar-size-label">Size</p>
+          <div role="group" aria-labelledby="menubar-size-label">
+            <button type="button" class="dropdown-item" role="menuitemradio" aria-checked="false">Small</button>
+            <button type="button" class="dropdown-item" role="menuitemradio" aria-checked="true">Medium</button>
+            <button type="button" class="dropdown-item" role="menuitemradio" aria-checked="false">Large</button>
+          </div>
+          <div class="dropdown-separator" role="separator"></div>
+          <p class="dropdown-label dropdown-item-inset" id="menubar-align-label">Alignment</p>
+          <div role="group" aria-labelledby="menubar-align-label">
+            <button type="button" class="dropdown-item" role="menuitemradio" aria-checked="true">Left</button>
+            <button type="button" class="dropdown-item" role="menuitemradio" aria-checked="false">Centre</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endcall %}
+  <p>
+    Choosing a checkbox or radio item closes the menu, like any other item. To keep it open so several can be set
+    in a row, add <code>data-keep-open</code> to the item, to its group or to the whole menu.
+  </p>
+
+  <h2 id="icons">Icons</h2>
+  <p>
+    Put an <code>icon()</code> before the text. Icons in items are muted and sized to match; a submenu's chevron
+    and a trailing icon sit at the right edge. <code>.dropdown-item-destructive</code> marks an item that deletes
+    or discards something.
+  </p>
+  {% call demo("min-h-80 items-start") %}
+    <div class="menubar" role="menubar" aria-label="Files" data-menubar>
+      <div class="menubar-menu">
+        <button type="button" class="menubar-trigger" role="menuitem" aria-haspopup="menu" aria-expanded="false">File</button>
+        <div class="dropdown-menu" role="menu" hidden>
+          <button type="button" class="dropdown-item" role="menuitem">{{ icon("file") }} New file <span class="dropdown-shortcut">⌘N</span></button>
+          <button type="button" class="dropdown-item" role="menuitem">{{ icon("folder-open") }} Open… <span class="dropdown-shortcut">⌘O</span></button>
+          <button type="button" class="dropdown-item" role="menuitem">{{ icon("download") }} Download</button>
+          <div class="dropdown-sub">
+            <button type="button" class="dropdown-item" role="menuitem" aria-haspopup="menu" aria-expanded="false">{{ icon("send") }} Share {{ icon("chevron-right") }}</button>
+            <div class="dropdown-menu" role="menu" hidden>
+              <button type="button" class="dropdown-item" role="menuitem">{{ icon("mail") }} Email</button>
+              <button type="button" class="dropdown-item" role="menuitem">{{ icon("message-square") }} Message</button>
+              <button type="button" class="dropdown-item" role="menuitem">{{ icon("link") }} Copy link</button>
+            </div>
+          </div>
+          <div class="dropdown-separator" role="separator"></div>
+          <button type="button" class="dropdown-item dropdown-item-destructive" role="menuitem">{{ icon("trash") }} Delete</button>
+        </div>
+      </div>
+      <div class="menubar-menu">
+        <button type="button" class="menubar-trigger" role="menuitem" aria-haspopup="menu" aria-expanded="false">Account</button>
+        <div class="dropdown-menu" role="menu" hidden>
+          <a class="dropdown-item" role="menuitem" href="#profile">{{ icon("user") }} Profile</a>
+          <a class="dropdown-item" role="menuitem" href="#settings">{{ icon("settings") }} Settings</a>
+          <div class="dropdown-separator" role="separator"></div>
+          <button type="button" class="dropdown-item" role="menuitem">{{ icon("log-out") }} Log out</button>
+        </div>
+      </div>
+    </div>
+  {% endcall %}
+
+  <h2 id="vertical">Vertical</h2>
+  <p>
+    <code>aria-orientation="vertical"</code> stacks the triggers and opens each menu to their right (to the left
+    near the edge of the window). <kbd class="kbd">↑</kbd> <kbd class="kbd">↓</kbd> then move between the
+    triggers, <kbd class="kbd">→</kbd> opens a menu and <kbd class="kbd">←</kbd> closes it.
+  </p>
+  {% call demo("min-h-72 items-start") %}
+    <div class="menubar" role="menubar" aria-label="Drawing tools" aria-orientation="vertical" data-menubar>
+      <div class="menubar-menu">
+        <button type="button" class="menubar-trigger" role="menuitem" aria-haspopup="menu" aria-expanded="false">{{ icon("layers") }} Arrange {{ icon("chevron-right") }}</button>
+        <div class="dropdown-menu" role="menu" hidden>
+          <button type="button" class="dropdown-item" role="menuitem">Bring to front</button>
+          <button type="button" class="dropdown-item" role="menuitem">Send to back</button>
+        </div>
+      </div>
+      <div class="menubar-menu">
+        <button type="button" class="menubar-trigger" role="menuitem" aria-haspopup="menu" aria-expanded="false">{{ icon("align-left") }} Align {{ icon("chevron-right") }}</button>
+        <div class="dropdown-menu" role="menu" hidden>
+          <button type="button" class="dropdown-item" role="menuitem">{{ icon("align-left") }} Left</button>
+          <button type="button" class="dropdown-item" role="menuitem">{{ icon("align-center") }} Centre</button>
+          <button type="button" class="dropdown-item" role="menuitem">{{ icon("align-right") }} Right</button>
+        </div>
+      </div>
+      <div class="menubar-menu">
+        <button type="button" class="menubar-trigger" role="menuitem" aria-haspopup="menu" aria-expanded="false">{{ icon("palette") }} Colour {{ icon("chevron-right") }}</button>
+        <div class="dropdown-menu" role="menu" hidden>
+          <div role="group" aria-label="Colour">
+            <button type="button" class="dropdown-item" role="menuitemradio" aria-checked="true">Ink</button>
+            <button type="button" class="dropdown-item" role="menuitemradio" aria-checked="false">Accent</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endcall %}
+
+  <h2 id="htmx">With htmx</h2>
+  <p>
+    Items are buttons and links, so they make htmx requests like any other: give an item <code>hx-post</code> and
+    the menu closes as the request starts.
+  </p>
+  <p>
+    Checkbox and radio items fire a bubbling <code>menu:change</code> event when they change, with
+    <code>detail.checked</code>, <code>detail.name</code> and <code>detail.value</code>. Give them a
+    <code>name</code> (and a <code>value</code>; a checkbox item defaults to <code>on</code>) and each keeps a
+    hidden input inside it in step, so a surrounding form submits the checked ones like real checkboxes and
+    radios. Here the form posts on every change with <code>hx-trigger="menu:change"</code>:
+  </p>
+  {% call demo("min-h-72 flex-col items-start gap-4") %}
+    <form hx-post="/api/echo" hx-trigger="menu:change" hx-target="#menubar-result">
+      <div class="menubar" role="menubar" aria-label="Editor" data-menubar>
+        <div class="menubar-menu">
+          <button type="button" class="menubar-trigger" role="menuitem" aria-haspopup="menu" aria-expanded="false">File</button>
+          <div class="dropdown-menu" role="menu" hidden>
+            <button type="button" class="dropdown-item" role="menuitem" hx-post="/api/slow" hx-target="#menubar-result">Save</button>
+            <button type="button" class="dropdown-item" role="menuitem" hx-post="/api/slow" hx-target="#menubar-result">Save all</button>
+          </div>
+        </div>
+        <div class="menubar-menu">
+          <button type="button" class="menubar-trigger" role="menuitem" aria-haspopup="menu" aria-expanded="false">View</button>
+          <div class="dropdown-menu" role="menu" hidden>
+            <button type="button" class="dropdown-item" role="menuitemcheckbox" aria-checked="true" name="minimap">Minimap</button>
+            <button type="button" class="dropdown-item" role="menuitemcheckbox" aria-checked="false" name="wrap">Word wrap</button>
+            <div class="dropdown-separator" role="separator"></div>
+            <div role="group" aria-label="Zoom">
+              <button type="button" class="dropdown-item" role="menuitemradio" aria-checked="true" name="zoom" value="100">100%</button>
+              <button type="button" class="dropdown-item" role="menuitemradio" aria-checked="false" name="zoom" value="125">125%</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </form>
+    <span id="menubar-result" class="muted" aria-live="polite"></span>
+  {% endcall %}
+
+  <h2 id="keyboard">Keyboard</h2>
+  <div class="table-wrap not-prose">
+    <table class="table">
+      <thead><tr><th>Key</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr><td><kbd class="kbd">Tab</kbd></td><td class="text-muted-foreground">Into the menubar (the last trigger used), or on out of it, closing any menu</td></tr>
+        <tr><td><kbd class="kbd">←</kbd> <kbd class="kbd">→</kbd> on a trigger</td><td class="text-muted-foreground">Previous / next trigger (wraps); if a menu is open, opens that trigger's menu instead</td></tr>
+        <tr><td><kbd class="kbd">Home</kbd> <kbd class="kbd">End</kbd> on a trigger</td><td class="text-muted-foreground">First / last trigger</td></tr>
+        <tr><td><kbd class="kbd">↓</kbd> <kbd class="kbd">Enter</kbd> <kbd class="kbd">Space</kbd> on a trigger</td><td class="text-muted-foreground">Open its menu on the first item</td></tr>
+        <tr><td><kbd class="kbd">↑</kbd> on a trigger</td><td class="text-muted-foreground">Open its menu on the last item</td></tr>
+        <tr><td><kbd class="kbd">↓</kbd> <kbd class="kbd">↑</kbd> <kbd class="kbd">Home</kbd> <kbd class="kbd">End</kbd> in a menu</td><td class="text-muted-foreground">Next / previous / first / last item, skipping disabled ones</td></tr>
+        <tr><td>Letters</td><td class="text-muted-foreground">Next trigger or item starting with the typed letters</td></tr>
+        <tr><td><kbd class="kbd">Enter</kbd> <kbd class="kbd">Space</kbd> in a menu</td><td class="text-muted-foreground">Choose the item (toggle a checkbox, check a radio) and close; open a submenu</td></tr>
+        <tr><td><kbd class="kbd">→</kbd> in a menu</td><td class="text-muted-foreground">Open the submenu; on any other item, open the next top-level menu</td></tr>
+        <tr><td><kbd class="kbd">←</kbd> in a menu</td><td class="text-muted-foreground">Close the submenu; in a top-level menu, open the previous one</td></tr>
+        <tr><td><kbd class="kbd">Esc</kbd></td><td class="text-muted-foreground">Close the innermost menu and return focus to what opened it</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>In a vertical menubar, <kbd class="kbd">↑</kbd> <kbd class="kbd">↓</kbd> move between triggers, <kbd class="kbd">→</kbd> opens a menu and <kbd class="kbd">←</kbd> in a top-level menu closes it.</p>
+  <p>With the mouse: click a trigger to open or close its menu; while one is open, hovering another trigger switches to it. Clicking outside closes it.</p>
+
+  <h2 id="accessibility">Accessibility</h2>
+  <ul>
+    <li>The markup follows the <a href="https://www.w3.org/WAI/ARIA/apg/patterns/menubar/">WAI-ARIA menubar pattern</a>: <code>menubar</code>, <code>menuitem</code>, <code>menu</code>, <code>menuitemcheckbox</code>, <code>menuitemradio</code>, <code>group</code> and <code>separator</code> roles, with <code>aria-haspopup</code>, <code>aria-expanded</code>, <code>aria-controls</code> and <code>aria-checked</code> kept in step.</li>
+    <li>Give the menubar an <code>aria-label</code>, and each radio group a label. Name icon-only items with <code>aria-label</code>.</li>
+    <li>Only one trigger is in the tab order (roving <code>tabindex</code>), so <kbd class="kbd">Tab</kbd> moves past the whole bar in one step.</li>
+    <li>Disabled items use <code>aria-disabled="true"</code>: screen readers still announce them, but they can't be chosen and the arrow keys skip them.</li>
+    <li>A shortcut's text is read as part of the item's name. Add <code>aria-keyshortcuts</code> only for shortcuts your page really handles.</li>
+  </ul>
+
+  <h2 id="reference">Reference</h2>
+  {{ classes([
+    [".menubar", "The bar: a row of triggers in a bordered surface. Needs role=\"menubar\", data-menubar and aria-label."],
+    [".menubar[aria-orientation=\"vertical\"]", "Stacks the triggers; menus open to the side."],
+    [".menubar-menu", "Wraps one trigger and its menu (positioning)."],
+    [".menubar-trigger", "Top-level item: role=\"menuitem\", aria-haspopup=\"menu\", aria-expanded. Highlighted while its menu is open."],
+    [".dropdown-menu", "Each menu panel (role=\"menu\", hidden). All the dropdown item classes work inside it; see Dropdown."],
+    [".dropdown-sub", "Wraps a submenu trigger (aria-haspopup=\"menu\") and its nested menu."],
+    ["data-keep-open", "On an item, group or menu: choosing an item doesn't close the menu."],
+    ["name / value", "On checkbox and radio items: kept in a hidden input so a surrounding form submits them."],
+    ["menu:change", "Bubbling event from a checkbox or radio item that changed; detail { checked, name, value }."],
+    ["data-flip-x / data-flip-y", "Set on a menu that would leave the window: it opens the other way."],
+    ["[data-menubar]", "Behaviour: roving focus, keyboard navigation, opening and closing, hover switching."]
+  ], heading="Class / attribute") }}
+{% endblock %}

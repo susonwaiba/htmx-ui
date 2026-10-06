@@ -1,0 +1,96 @@
+{# Pagination: works out which page numbers to show, with ellipses for the gaps.
+   {% from "components/pagination/pagination.html" import pagination %}
+   {{ pagination(5, 10) }}                             1 … 4 [5] 6 … 10
+   {{ pagination(2, 10, href="/invoices?page={page}", first=true, last=true, icons=true) }}
+   page                the current page (clamped to 1…total)
+   total               the number of pages
+   href="?page={page}" each link's URL; {page} becomes the page number
+   siblings=1          pages shown on each side of the current one
+   boundaries=1        pages always shown at each end
+   numbers=true        false: no page numbers, only previous / next (and first / last)
+   previous=true, next=true    true for "Previous" / "Next", a string for other text, false to leave out
+   first=false, last=false     true for "First page" / "Last page" (icon-only), or a string label
+   icons=false         icon-only previous / next; their text becomes the aria-label
+   page_label="Page {page}"    each page link's aria-label
+   responsive=false    previous, current and next only below the sm breakpoint (.pagination-responsive)
+   size="sm" | "lg"    outline=false: every link outlined (.pagination-outline)
+   label="Pagination"  the <nav>'s aria-label
+   attrs=none          more attributes for every enabled link, as a dict; {page} is replaced in values:
+                       {"hx-get": "/invoices?page={page}", "hx-target": "#invoices", "hx-push-url": "true"}
+   class=""            more classes on the <nav>
+
+   The range always has the same number of items (2 × siblings + 2 × boundaries + 3) once there are
+   more pages than that, so the links don't jump about as the current page moves. An ellipsis only
+   stands in for two or more pages; a gap of one shows that page. #}
+{% from "components/icon/icon.html" import icon %}
+
+{% macro _attrs(attrs, n) %}
+{%- if attrs %}{% for k, v in attrs %} {{ k }}="{{ (v ~ '') | replace('{page}', n ~ '') }}"{% endfor %}{% endif -%}
+{% endmacro %}
+
+{% macro _link(n, href, attrs, cls, content, aria=none, rel=none, disabled=false) %}
+{%- if disabled -%}
+<a class="pagination-link{{ cls }}" aria-disabled="true"{% if aria %} aria-label="{{ aria }}"{% endif %}>{{ content | safe }}</a>
+{%- else -%}
+<a class="pagination-link{{ cls }}" href="{{ href | replace('{page}', n ~ '') }}"{% if aria %} aria-label="{{ aria }}"{% endif %}{% if rel %} rel="{{ rel }}"{% endif %}{{ _attrs(attrs, n) }}>{{ content | safe }}</a>
+{%- endif -%}
+{% endmacro %}
+
+{% macro pagination(page, total, href="?page={page}", siblings=1, boundaries=1, numbers=true, previous=true, next=true, first=false, last=false, icons=false, page_label="Page {page}", responsive=false, size=none, outline=false, label="Pagination", attrs=none, class="") %}
+{% set total = [total | int, 1] | sort | last %}
+{% set page = [[page | int, 1] | sort | last, total] | sort | first %}
+
+{# The range: numbers, and "…" for an ellipsis #}
+{% set slots = siblings * 2 + boundaries * 2 + 3 %}
+{% if total <= slots %}
+  {% set items = range(1, total + 1) %}
+{% else %}
+  {% set left = [page - siblings, boundaries] | sort | last %}
+  {% set right = [page + siblings, total - boundaries] | sort | first %}
+  {% set left_dots = left > boundaries + 2 %}
+  {% set right_dots = right < total - boundaries - 1 %}
+  {% set start = range(1, boundaries + 1) %}
+  {% set end = range(total - boundaries + 1, total + 1) %}
+  {% if not left_dots %}
+    {% set items = range(1, siblings * 2 + boundaries + 3).concat(["…"], end) %}
+  {% elif not right_dots %}
+    {% set items = start.concat(["…"], range(total - boundaries - siblings * 2 - 1, total + 1)) %}
+  {% else %}
+    {% set items = start.concat(["…"], range(left, right + 1), ["…"], end) %}
+  {% endif %}
+{% endif %}
+
+{% set prev_text = "Previous" if previous === true else previous %}
+{% set next_text = "Next" if next === true else next %}
+{% set first_text = "First page" if first === true else first %}
+{% set last_text = "Last page" if last === true else last %}
+<nav class="pagination{% if size %} pagination-{{ size }}{% endif %}{% if outline %} pagination-outline{% endif %}{% if responsive %} pagination-responsive{% endif %}{% if class %} {{ class }}{% endif %}" aria-label="{{ label }}">
+  <ul class="pagination-content">
+    {% if first %}
+    <li>{{ _link(1, href, attrs, " pagination-first", icon("chevrons-left"), aria=first_text, disabled=page == 1) }}</li>
+    {% endif %}
+    {% if previous %}
+    {% set content %}{{ icon("chevron-left") }}{% if not icons %}<span class="pagination-label">{{ prev_text }}</span>{% endif %}{% endset %}
+    <li>{{ _link(page - 1, href, attrs, " pagination-previous", content, aria=(prev_text if icons else none), rel="prev", disabled=page == 1) }}</li>
+    {% endif %}
+    {% if numbers %}
+    {% for n in items %}
+    {% if n == "…" %}
+    <li><span class="pagination-ellipsis" aria-hidden="true">{{ icon("ellipsis") }}</span></li>
+    {% elif n == page %}
+    <li><a class="pagination-link" href="{{ href | replace('{page}', n ~ '') }}" aria-label="{{ page_label | replace('{page}', n ~ '') }}" aria-current="page"{{ _attrs(attrs, n) }}>{{ n }}</a></li>
+    {% else %}
+    <li>{{ _link(n, href, attrs, "", n ~ "", aria=(page_label | replace('{page}', n ~ ''))) }}</li>
+    {% endif %}
+    {% endfor %}
+    {% endif %}
+    {% if next %}
+    {% set content %}{% if not icons %}<span class="pagination-label">{{ next_text }}</span>{% endif %}{{ icon("chevron-right") }}{% endset %}
+    <li>{{ _link(page + 1, href, attrs, " pagination-next", content, aria=(next_text if icons else none), rel="next", disabled=page == total) }}</li>
+    {% endif %}
+    {% if last %}
+    <li>{{ _link(total, href, attrs, " pagination-last", icon("chevrons-right"), aria=last_text, disabled=page == total) }}</li>
+    {% endif %}
+  </ul>
+</nav>
+{%- endmacro %}

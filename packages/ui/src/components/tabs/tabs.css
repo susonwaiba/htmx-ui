@@ -1,28 +1,84 @@
-/* <div class="tabs" data-tabs [data-tabs-sync="key"]>
+/* <div class="tabs" data-tabs [data-tabs-sync="key"] [data-orientation="vertical"]>
      <div class="tabs-list" role="tablist"><button class="tabs-trigger" role="tab" data-tab="a" aria-selected="true">A</button>…</div>
      <div class="tabs-panel" role="tabpanel" data-tab-panel="a">…</div>
      <div class="tabs-panel" role="tabpanel" data-tab-panel="b" hidden>…</div>
-   </div> */
+   </div>
+   Variants of .tabs-list: (default) a segmented control, .tabs-line (underlined), .tabs-pills
+   (filled with the primary colour), .tabs-outline (a bordered chip). .tabs-full stretches the
+   list and its triggers to the full width. Icons: put an icon() inside the trigger. A disabled
+   trigger (the disabled attribute) is skipped by the keyboard. */
 @layer components {
+  .tabs {
+    @apply flex flex-col gap-4;
+  }
   .tabs-list {
-    @apply inline-flex items-center gap-1 rounded-(--radius) bg-muted p-1 text-muted-foreground;
+    @apply inline-flex w-fit items-center gap-1 rounded-(--radius) bg-muted p-1 text-muted-foreground;
   }
   .tabs-trigger {
     @apply inline-flex h-7 cursor-pointer items-center justify-center gap-1.5 rounded-[calc(var(--radius)-2px)] px-3
       text-sm font-medium whitespace-nowrap transition-colors hover:text-foreground
       focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring
-      aria-selected:bg-background aria-selected:text-foreground aria-selected:shadow-xs [&_svg]:size-4;
+      disabled:pointer-events-none disabled:opacity-50
+      aria-selected:bg-background aria-selected:text-foreground aria-selected:shadow-xs [&_svg]:size-4 [&_svg]:shrink-0;
   }
   .tabs-panel {
-    @apply mt-4 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring;
+    @apply min-w-0 flex-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring;
+  }
+  /* A list used without the .tabs wrapper keeps the old spacing above its panels. */
+  :not(.tabs) > .tabs-list ~ .tabs-panel {
+    @apply mt-4;
   }
 
-  /* Underlined variant: <div class="tabs-list tabs-line"> */
+  /* Underlined */
   .tabs-line {
     @apply gap-4 rounded-none border-b border-border bg-transparent p-0;
   }
   .tabs-line .tabs-trigger {
     @apply -mb-px h-9 rounded-none border-b-2 border-transparent px-1 aria-selected:border-primary
       aria-selected:bg-transparent aria-selected:shadow-none;
+  }
+
+  /* Pills: the selected tab filled with the primary colour */
+  .tabs-pills {
+    @apply bg-transparent p-0;
+  }
+  .tabs-pills .tabs-trigger {
+    @apply h-8 rounded-full hover:bg-accent aria-selected:bg-primary aria-selected:text-primary-foreground
+      aria-selected:shadow-none;
+  }
+
+  /* Outline: the selected tab in a bordered chip on a plain background */
+  .tabs-outline {
+    @apply bg-transparent p-0;
+  }
+  .tabs-outline .tabs-trigger {
+    @apply h-8 border border-transparent aria-selected:border-border aria-selected:bg-surface aria-selected:shadow-xs;
+  }
+
+  /* Full width: triggers share the row equally */
+  .tabs-full {
+    @apply flex w-full;
+  }
+  .tabs-full .tabs-trigger {
+    @apply flex-1;
+  }
+
+  /* Vertical: the list on the side, its triggers stacked and start-aligned */
+  .tabs[data-orientation="vertical"] {
+    @apply flex-row items-start;
+  }
+  .tabs[data-orientation="vertical"] .tabs-list,
+  .tabs-list[aria-orientation="vertical"] {
+    @apply h-fit shrink-0 flex-col items-stretch;
+  }
+  .tabs[data-orientation="vertical"] .tabs-trigger,
+  .tabs-list[aria-orientation="vertical"] .tabs-trigger {
+    @apply w-full justify-start;
+  }
+  .tabs[data-orientation="vertical"] .tabs-line {
+    @apply gap-1 border-e border-b-0;
+  }
+  .tabs[data-orientation="vertical"] .tabs-line .tabs-trigger {
+    @apply -me-px mb-0 h-8 border-e-2 border-b-0 px-3 aria-selected:border-primary;
   }
 }

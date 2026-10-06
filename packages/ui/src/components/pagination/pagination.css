@@ -1,0 +1,102 @@
+/* Links to the pages of a long list, with previous and next.
+
+   <nav class="pagination" aria-label="Pagination">
+     <ul class="pagination-content">
+       <li><a class="pagination-link pagination-previous" href="?page=1" rel="prev">{{ icon("chevron-left") }}<span class="pagination-label">Previous</span></a></li>
+       <li><a class="pagination-link" href="?page=1" aria-label="Page 1">1</a></li>
+       <li><a class="pagination-link" href="?page=2" aria-label="Page 2" aria-current="page">2</a></li>
+       <li><span class="pagination-ellipsis" aria-hidden="true">{{ icon("ellipsis") }}</span></li>
+       <li><a class="pagination-link pagination-next" href="?page=3" rel="next"><span class="pagination-label">Next</span>{{ icon("chevron-right") }}</a></li>
+     </ul>
+   </nav>
+
+   Current page: aria-current="page". Disabled: aria-disabled="true" on a link without href, or a
+   disabled <button>. Icon-only: leave out the label and give the link an aria-label.
+   First / last: .pagination-first / .pagination-last. On the <nav>: .pagination-sm / -lg,
+   .pagination-outline (every link outlined), .pagination-responsive (below the sm breakpoint,
+   only previous, the current page and next show, and labels are visually hidden).
+   Macro, which works out the page range: pagination.html. */
+@layer components {
+  .pagination {
+    @apply mx-auto flex w-full justify-center;
+  }
+  .pagination-content {
+    @apply flex flex-row flex-wrap items-center gap-1;
+  }
+
+  /* A page, or previous / next: a ghost button; the current page is an outline one. */
+  .pagination-link {
+    @apply inline-flex h-9 min-w-9 shrink-0 cursor-pointer items-center justify-center gap-1 rounded-(--radius) border
+      border-transparent px-2 text-sm font-medium whitespace-nowrap text-foreground tabular-nums transition-colors
+      select-none hover:bg-accent hover:text-accent-foreground focus-visible:outline-2
+      focus-visible:outline-offset-2 focus-visible:outline-ring;
+  }
+  .pagination-link[aria-current="page"] {
+    @apply border-border bg-background shadow-xs hover:bg-accent;
+  }
+  .pagination-link:is([aria-disabled="true"], :disabled) {
+    @apply pointer-events-none opacity-50;
+  }
+  /* Icon size is !important: icon() gives every icon a size-4 utility, and utilities beat
+     component classes. */
+  .pagination-link > svg {
+    @apply size-4! shrink-0;
+  }
+  .pagination-previous,
+  .pagination-next,
+  .pagination-first,
+  .pagination-last {
+    @apply px-2.5;
+  }
+
+  .pagination-ellipsis {
+    @apply flex size-9 items-center justify-center text-muted-foreground [&>svg]:size-4!;
+  }
+
+  /* Sizes */
+  .pagination-sm .pagination-link {
+    @apply h-8 min-w-8 px-1.5;
+  }
+  .pagination-sm :is(.pagination-previous, .pagination-next, .pagination-first, .pagination-last) {
+    @apply px-2;
+  }
+  .pagination-sm .pagination-ellipsis {
+    @apply size-8;
+  }
+  .pagination-lg .pagination-link {
+    @apply h-10 min-w-10 px-2.5;
+  }
+  .pagination-lg :is(.pagination-previous, .pagination-next, .pagination-first, .pagination-last) {
+    @apply px-3;
+  }
+  .pagination-lg .pagination-ellipsis {
+    @apply size-10;
+  }
+
+  /* Outline: every link has a border, the current page is filled (data-table footers). */
+  .pagination-outline .pagination-link {
+    @apply border-border bg-background shadow-xs;
+  }
+  .pagination-outline .pagination-link[aria-current="page"] {
+    @apply bg-accent text-accent-foreground;
+  }
+
+  /* Responsive: on narrow screens, previous / current / next only; labels stay for screen readers. */
+  .pagination-responsive .pagination-label {
+    @apply max-sm:sr-only;
+  }
+  .pagination-responsive .pagination-content > li:has(> .pagination-ellipsis),
+  .pagination-responsive
+    .pagination-content
+    > li:has(
+      > .pagination-link:not(
+          [aria-current="page"],
+          .pagination-previous,
+          .pagination-next,
+          .pagination-first,
+          .pagination-last
+        )
+    ) {
+    @apply max-sm:hidden;
+  }
+}

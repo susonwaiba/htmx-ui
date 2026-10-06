@@ -1,18 +1,31 @@
 /* <div class="dropdown" data-dropdown>
      <button class="btn btn-outline" data-dropdown-trigger aria-haspopup="menu" aria-expanded="false">Options</button>
      <div class="dropdown-menu" role="menu" hidden>
-       <a class="dropdown-item" role="menuitem" href="…">Item</a>
+       <p class="dropdown-label">Account</p>
+       <a class="dropdown-item" role="menuitem" href="…">{{ icon("user") }} Profile <span class="dropdown-shortcut">⇧⌘P</span></a>
+       <button class="dropdown-item" role="menuitemcheckbox" aria-checked="true">Status bar</button>
+       <div role="group" aria-label="Panel position">
+         <button class="dropdown-item" role="menuitemradio" aria-checked="true">Top</button>
+         <button class="dropdown-item" role="menuitemradio" aria-checked="false">Bottom</button>
+       </div>
+       <div class="dropdown-sub">
+         <button class="dropdown-item" role="menuitem" aria-haspopup="menu" aria-expanded="false">Share {{ icon("chevron-right") }}</button>
+         <div class="dropdown-menu" role="menu" hidden>…items…</div>
+       </div>
        <div class="dropdown-separator" role="separator"></div>
-       <button class="dropdown-item" role="menuitem">Action</button>
+       <button class="dropdown-item dropdown-item-destructive" role="menuitem">Delete</button>
      </div>
-   </div> */
+   </div>
+   The menu classes are shared: the menubar's menus (menubar.css) are .dropdown-menu panels too.
+   Checkbox and radio items draw their check / dot in an inset slot on the left; .dropdown-item-inset
+   lines plain items and labels up with them. Behaviour: dropdown.ts and utils/menu.ts. */
 @layer components {
   .dropdown {
     @apply relative inline-block;
   }
   .dropdown-menu {
     @apply absolute top-full left-0 z-50 mt-1 min-w-48 rounded-(--radius) border border-border bg-surface p-1
-      text-foreground shadow-lg;
+      text-foreground shadow-lg outline-none;
   }
   /* Align to the trigger's right edge / open upwards */
   .dropdown-menu-end {
@@ -21,16 +34,79 @@
   .dropdown-menu-up {
     @apply top-auto bottom-full mt-0 mb-1;
   }
+
+  /* Items are highlighted on hover and focus (hovering focuses them, see utils/menu.ts). */
   .dropdown-item {
-    @apply flex w-full cursor-pointer items-center justify-between gap-2 rounded-[calc(var(--radius)-2px)] px-2 py-1.5
-      text-left text-sm outline-none select-none hover:bg-accent hover:text-accent-foreground
-      focus-visible:bg-accent focus-visible:text-accent-foreground aria-[current]:font-semibold
-      aria-disabled:pointer-events-none aria-disabled:opacity-50 [&_svg]:size-4 [&_svg]:shrink-0;
+    @apply relative flex w-full cursor-pointer items-center gap-2 rounded-[calc(var(--radius)-2px)] px-2 py-1.5
+      text-left text-sm outline-none select-none hover:bg-accent hover:text-accent-foreground focus:bg-accent
+      focus:text-accent-foreground aria-[current]:font-semibold aria-disabled:pointer-events-none
+      aria-disabled:opacity-50 disabled:pointer-events-none disabled:opacity-50 [&_svg]:size-4 [&_svg]:shrink-0;
   }
+  .dropdown-item > svg {
+    @apply text-muted-foreground;
+  }
+  /* An open submenu's trigger stays highlighted. */
+  .dropdown-item[aria-expanded="true"] {
+    @apply bg-accent text-accent-foreground;
+  }
+  /* Trailing parts (a shortcut, a badge, a submenu chevron) sit at the right edge. */
+  .dropdown-item > :is(.dropdown-shortcut, .badge, .kbd, .kbd-group),
+  .dropdown-item > svg:last-child:not(:first-child),
+  .dropdown-item[aria-haspopup] > svg:last-child {
+    @apply ml-auto;
+  }
+  .dropdown-shortcut {
+    @apply text-xs tracking-widest text-muted-foreground;
+  }
+
+  /* Destructive: danger text, a faint danger highlight. One color-mix() per rule. */
+  .dropdown-item-destructive,
+  .dropdown-item-destructive > svg {
+    @apply text-danger;
+  }
+  .dropdown-item-destructive:is(:hover, :focus) {
+    @apply bg-danger/10 text-danger;
+  }
+
+  /* Checkbox and radio items: the indicator in an inset slot on the left. */
+  .dropdown-item:is([role="menuitemcheckbox"], [role="menuitemradio"]),
+  .dropdown-item-inset {
+    @apply pl-8;
+  }
+  .dropdown-item:is([role="menuitemcheckbox"], [role="menuitemradio"])[aria-checked="true"]::before {
+    @apply absolute top-1/2 left-2 size-4 -translate-y-1/2 bg-current;
+    content: "";
+  }
+  .dropdown-item[role="menuitemcheckbox"][aria-checked="true"]::before {
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E")
+      center / contain no-repeat;
+  }
+  .dropdown-item[role="menuitemradio"][aria-checked="true"]::before {
+    @apply left-3 size-2 rounded-full;
+  }
+
   .dropdown-label {
     @apply px-2 py-1.5 text-xs font-medium text-muted-foreground;
   }
+  .dropdown-label.dropdown-item-inset {
+    @apply pl-8;
+  }
   .dropdown-separator {
     @apply -mx-1 my-1 h-px bg-border;
+  }
+
+  /* Submenu: opens beside its trigger, its first item level with the trigger. utils/menu.ts sets
+     data-flip-x / data-flip-y when it would leave the viewport: then it opens to the left / upwards. */
+  .dropdown-sub {
+    @apply relative;
+  }
+  .dropdown-sub > .dropdown-menu {
+    @apply -top-1.25 right-auto bottom-auto left-full mt-0 mb-0 ml-1;
+  }
+  .dropdown-sub > .dropdown-menu[data-flip-x] {
+    @apply right-full left-auto mr-1 ml-0;
+  }
+  .dropdown-sub > .dropdown-menu[data-flip-y] {
+    @apply top-auto -bottom-1.25;
   }
 }

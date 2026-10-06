@@ -1,0 +1,60 @@
+/* The path to the current page as a list of links.
+
+   <nav aria-label="Breadcrumb">
+     <ol class="breadcrumb">
+       <li class="breadcrumb-item"><a class="breadcrumb-link" href="/">Home</a></li>
+       <li class="breadcrumb-separator" aria-hidden="true">{{ icon("chevron-right") }}</li>     any icon or text
+       <li class="breadcrumb-item"><span class="breadcrumb-page" aria-current="page">Breadcrumb</span></li>
+     </ol>
+   </nav>
+
+   Collapsing when it doesn't fit: data-breadcrumb on the <nav>, and an ellipsis item after the
+   first one (see breadcrumb.ts). */
+@layer components {
+  .breadcrumb {
+    @apply flex flex-wrap items-center gap-1.5 text-sm break-words text-muted-foreground sm:gap-2;
+  }
+  .breadcrumb-item {
+    @apply inline-flex items-center gap-1.5;
+  }
+  .breadcrumb-link {
+    @apply inline-flex cursor-pointer items-center gap-1 rounded-sm transition-colors outline-none
+      hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring
+      aria-expanded:text-foreground;
+  }
+  .breadcrumb-page {
+    @apply inline-flex items-center gap-1 font-normal text-foreground;
+  }
+  /* Icon sizes are !important: icon() gives every icon a size-4 utility, and utilities beat
+     component classes. */
+  .breadcrumb-separator {
+    @apply inline-flex items-center [&>svg]:size-3.5!;
+  }
+  .breadcrumb :is(.breadcrumb-link, .breadcrumb-page) > svg {
+    @apply size-3.5!;
+  }
+  /* "…" standing in for hidden pages; usually the trigger of a dropdown listing them. */
+  .breadcrumb-ellipsis {
+    @apply inline-flex size-5 cursor-pointer items-center justify-center rounded-sm transition-colors outline-none
+      hover:bg-accent hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring
+      aria-expanded:bg-accent aria-expanded:text-foreground [&>svg]:size-4!;
+  }
+
+  /* Collapsing (data-breadcrumb): one line; the current page truncates as a last resort. */
+  [data-breadcrumb] .breadcrumb {
+    @apply flex-nowrap;
+  }
+  [data-breadcrumb] .breadcrumb > * {
+    @apply shrink-0;
+  }
+  [data-breadcrumb] .breadcrumb > :last-child {
+    @apply min-w-0 shrink;
+  }
+  [data-breadcrumb] .breadcrumb > :last-child > * {
+    @apply block truncate;
+  }
+  /* While measuring, nothing shrinks, so the list reports the width it needs. */
+  [data-breadcrumb][data-measuring] .breadcrumb > :last-child {
+    @apply shrink-0;
+  }
+}

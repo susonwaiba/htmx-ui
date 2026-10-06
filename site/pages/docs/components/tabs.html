@@ -1,7 +1,8 @@
 {% extends "layouts/docs.html" %}
-{% from "macros/docs.html" import demo, classes %}
+{% from "docs/macros.html" import demo, classes %}
+{% from "components/icon/icon.html" import icon %}
 {% set title = "Tabs" %}
-{% set description = "Switch between panels of related content. Groups can sync with each other and remember the reader's choice." %}
+{% set description = "Layered panels of content shown one at a time: segmented, underlined, pill and outline styles, icons, disabled tabs, vertical lists, and groups that sync and remember the choice." %}
 
 {% block content %}
   {% call demo("block") %}
@@ -24,6 +25,7 @@
     <li>Each <code>[data-tab]</code> button shows the <code>[data-tab-panel]</code> with the same value and hides the others.</li>
     <li>Mark the initial tab with <code>aria-selected="true"</code> and add <code>hidden</code> to the other panels, so the page is right before JavaScript runs.</li>
     <li>The behaviour fills in <code>id</code>, <code>aria-controls</code> and <code>aria-labelledby</code>, and moves focus with <kbd class="kbd">←</kbd> <kbd class="kbd">→</kbd> <kbd class="kbd">Home</kbd> <kbd class="kbd">End</kbd>.</li>
+    <li><code>.tabs</code> on the wrapper spaces the list and the panels and lays them out side by side when <a href="#vertical">vertical</a>.</li>
   </ul>
 
   <h2 id="line">Underlined</h2>
@@ -38,6 +40,91 @@
       <div class="tabs-panel" role="tabpanel" data-tab-panel="activity" hidden><p class="muted">Activity panel</p></div>
       <div class="tabs-panel" role="tabpanel" data-tab-panel="settings" hidden><p class="muted">Settings panel</p></div>
     </div>
+  {% endcall %}
+
+  <h2 id="variants">Pills and outline</h2>
+  <p><code>.tabs-pills</code> fills the selected tab with the primary colour; <code>.tabs-outline</code> sets it in a bordered chip on a plain background.</p>
+  {% call demo("flex-col gap-8") %}
+    {% for variant in ["tabs-pills", "tabs-outline"] %}
+      <div class="tabs" data-tabs>
+        <div class="tabs-list {{ variant }}" role="tablist" aria-label="Period">
+          <button type="button" class="tabs-trigger" role="tab" data-tab="day" aria-selected="true">Day</button>
+          <button type="button" class="tabs-trigger" role="tab" data-tab="week" aria-selected="false">Week</button>
+          <button type="button" class="tabs-trigger" role="tab" data-tab="month" aria-selected="false">Month</button>
+        </div>
+        <div class="tabs-panel" role="tabpanel" data-tab-panel="day"><p class="muted">Today's numbers.</p></div>
+        <div class="tabs-panel" role="tabpanel" data-tab-panel="week" hidden><p class="muted">This week's numbers.</p></div>
+        <div class="tabs-panel" role="tabpanel" data-tab-panel="month" hidden><p class="muted">This month's numbers.</p></div>
+      </div>
+    {% endfor %}
+  {% endcall %}
+
+  <h2 id="full-width">Full width</h2>
+  <p><code>.tabs-full</code> stretches the list across its container and shares the row between the triggers.</p>
+  {% call demo("block") %}
+    <div class="tabs mx-auto max-w-md" data-tabs>
+      <div class="tabs-list tabs-full" role="tablist" aria-label="Sign in">
+        <button type="button" class="tabs-trigger" role="tab" data-tab="email" aria-selected="true">Email</button>
+        <button type="button" class="tabs-trigger" role="tab" data-tab="phone" aria-selected="false">Phone</button>
+      </div>
+      <div class="tabs-panel" role="tabpanel" data-tab-panel="email"><input class="input" type="email" placeholder="you@example.com" aria-label="Email" /></div>
+      <div class="tabs-panel" role="tabpanel" data-tab-panel="phone" hidden><input class="input" type="tel" placeholder="+61 400 000 000" aria-label="Phone" /></div>
+    </div>
+  {% endcall %}
+
+  <h2 id="icons">Icons</h2>
+  <p>Put an <code>icon()</code> before (or instead of) the label. An icon-only tab needs an <code>aria-label</code>.</p>
+  {% call demo("flex-col gap-8") %}
+    <div class="tabs" data-tabs>
+      <div class="tabs-list" role="tablist" aria-label="View">
+        <button type="button" class="tabs-trigger" role="tab" data-tab="preview" aria-selected="true">{{ icon("eye") }} Preview</button>
+        <button type="button" class="tabs-trigger" role="tab" data-tab="code" aria-selected="false">{{ icon("code") }} Code</button>
+      </div>
+      <div class="tabs-panel" role="tabpanel" data-tab-panel="preview"><p class="muted">The rendered result.</p></div>
+      <div class="tabs-panel" role="tabpanel" data-tab-panel="code" hidden><p class="muted">The source.</p></div>
+    </div>
+    <div class="tabs" data-tabs>
+      <div class="tabs-list" role="tablist" aria-label="Alignment">
+        <button type="button" class="tabs-trigger px-2" role="tab" data-tab="left" aria-selected="true" aria-label="Left">{{ icon("align-left") }}</button>
+        <button type="button" class="tabs-trigger px-2" role="tab" data-tab="center" aria-selected="false" aria-label="Centre">{{ icon("align-center") }}</button>
+        <button type="button" class="tabs-trigger px-2" role="tab" data-tab="right" aria-selected="false" aria-label="Right">{{ icon("align-right") }}</button>
+      </div>
+      <div class="tabs-panel" role="tabpanel" data-tab-panel="left"><p class="muted">Aligned left.</p></div>
+      <div class="tabs-panel" role="tabpanel" data-tab-panel="center" hidden><p class="muted">Centred.</p></div>
+      <div class="tabs-panel" role="tabpanel" data-tab-panel="right" hidden><p class="muted">Aligned right.</p></div>
+    </div>
+  {% endcall %}
+
+  <h2 id="disabled">Disabled</h2>
+  <p>A <code>disabled</code> trigger fades, can't be picked, and the arrow keys skip it.</p>
+  {% call demo("block") %}
+    <div class="tabs mx-auto max-w-md" data-tabs>
+      <div class="tabs-list" role="tablist" aria-label="Plan">
+        <button type="button" class="tabs-trigger" role="tab" data-tab="free" aria-selected="true">Free</button>
+        <button type="button" class="tabs-trigger" role="tab" data-tab="team" aria-selected="false" disabled>Team</button>
+        <button type="button" class="tabs-trigger" role="tab" data-tab="enterprise" aria-selected="false">Enterprise</button>
+      </div>
+      <div class="tabs-panel" role="tabpanel" data-tab-panel="free"><p class="muted">Free plan.</p></div>
+      <div class="tabs-panel" role="tabpanel" data-tab-panel="team" hidden><p class="muted">Team plan.</p></div>
+      <div class="tabs-panel" role="tabpanel" data-tab-panel="enterprise" hidden><p class="muted">Enterprise plan.</p></div>
+    </div>
+  {% endcall %}
+
+  <h2 id="vertical">Vertical</h2>
+  <p><code>data-orientation="vertical"</code> on the <code>.tabs</code> wrapper puts the list beside the panels, its triggers stacked. The behaviour sets <code>aria-orientation</code> on the tablist and moves with <kbd class="kbd">↑</kbd> <kbd class="kbd">↓</kbd>. Every variant works; <code>.tabs-line</code> draws its line on the side.</p>
+  {% call demo("flex-col items-stretch gap-10") %}
+    {% for variant in ["", "tabs-line"] %}
+      <div class="tabs" data-tabs data-orientation="vertical">
+        <div class="tabs-list{% if variant %} {{ variant }}{% endif %}" role="tablist" aria-label="Settings">
+          <button type="button" class="tabs-trigger" role="tab" data-tab="general" aria-selected="true">{{ icon("settings") }} General</button>
+          <button type="button" class="tabs-trigger" role="tab" data-tab="team" aria-selected="false">{{ icon("users") }} Team</button>
+          <button type="button" class="tabs-trigger" role="tab" data-tab="billing" aria-selected="false">{{ icon("credit-card") }} Billing</button>
+        </div>
+        <div class="tabs-panel" role="tabpanel" data-tab-panel="general"><p class="muted">Name, language and time zone.</p></div>
+        <div class="tabs-panel" role="tabpanel" data-tab-panel="team" hidden><p class="muted">Invite people and set their roles.</p></div>
+        <div class="tabs-panel" role="tabpanel" data-tab-panel="billing" hidden><p class="muted">Plan, invoices and payment method.</p></div>
+      </div>
+    {% endfor %}
   {% endcall %}
 
   <h2 id="sync">Synced and remembered</h2>
@@ -77,11 +164,14 @@
 
   <h2 id="reference">Reference</h2>
   {{ classes([
+    [".tabs", "Wrapper: spaces the list and panels; side by side when vertical."],
     [".tabs-list", "Segmented control holding the tab buttons."],
-    [".tabs-trigger", "Tab button; selected style comes from aria-selected=\"true\"."],
-    [".tabs-panel", "Panel spacing and focus ring."],
-    [".tabs-line", "Underlined variant of .tabs-list."],
+    [".tabs-trigger", "Tab button; selected style comes from aria-selected=\"true\", faded when disabled."],
+    [".tabs-panel", "Panel focus ring."],
+    [".tabs-line / .tabs-pills / .tabs-outline", "Underlined, primary-filled and bordered variants of .tabs-list."],
+    [".tabs-full", "List and triggers stretched to the full width."],
     ["[data-tabs]", "Behaviour: wires up a tab group."],
+    ["[data-orientation=\"vertical\"]", "On .tabs: list beside the panels, Up/Down keys."],
     ["[data-tab] / [data-tab-panel]", "Matching values pair a tab with its panel."],
     ["[data-tabs-sync=\"key\"]", "Sync groups with the same key and remember the choice."]
   ]) }}

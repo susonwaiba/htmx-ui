@@ -40,4 +40,23 @@ describe("tabs", () => {
     a!.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight" }));
     expect(b!.getAttribute("aria-selected")).toBe("true");
   });
+
+  test("vertical groups use Up/Down and skip disabled tabs", () => {
+    document.body.innerHTML = `
+      <div data-tabs data-orientation="vertical">
+        <div role="tablist">
+          <button data-tab="a" aria-selected="true">A</button><button data-tab="b" disabled>B</button><button data-tab="c">C</button>
+        </div>
+        <div data-tab-panel="a">A</div><div data-tab-panel="b" hidden>B</div><div data-tab-panel="c" hidden>C</div>
+      </div>`;
+    initTabs(document);
+    const [a, b, c] = document.querySelectorAll<HTMLElement>("[data-tab]");
+    expect(document.querySelector('[role="tablist"]')!.getAttribute("aria-orientation")).toBe("vertical");
+    a!.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight" }));
+    expect(a!.getAttribute("aria-selected")).toBe("true");
+    a!.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowDown" }));
+    expect(c!.getAttribute("aria-selected")).toBe("true");
+    b!.click();
+    expect(b!.getAttribute("aria-selected")).toBe("false");
+  });
 });

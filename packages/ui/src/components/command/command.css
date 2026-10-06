@@ -1,0 +1,97 @@
+/* Command menu: a search box over a list of actions, filtered as you type and driven by the keyboard.
+
+   <div class="command" data-command>
+     <div class="command-input-wrapper">
+       {{ icon("search") }}
+       <input class="command-input" data-command-input placeholder="Type a command or search…" aria-label="Command" />
+     </div>
+     <div class="command-list" role="listbox" aria-label="Commands">
+       <div class="command-group" role="group" aria-labelledby="cmd-suggestions">
+         <div class="command-label" id="cmd-suggestions">Suggestions</div>
+         <div class="command-item" role="option" data-value="calendar">{{ icon("calendar") }} Calendar</div>
+         <a class="command-item" role="option" href="/settings" data-keywords="preferences">
+           {{ icon("settings") }} Settings <kbd class="command-shortcut">⌘S</kbd>
+         </a>
+       </div>
+       <div class="command-separator" role="separator"></div>
+       …
+     </div>
+     <p class="command-empty" data-command-empty hidden>No results found.</p>
+   </div>
+
+   In a dialog: <dialog class="dialog command-dialog" data-dialog> around it, opened by a button
+   (commandfor/command="show-modal") or by data-command-hotkey="mod+k" on the .command.
+   The list scrolls past max-h-72 (set another max-h-* on .command-list). Behaviour: command.ts. */
+@layer components {
+  .command {
+    @apply flex w-full flex-col overflow-hidden rounded-(--radius) border border-border bg-surface text-sm
+      text-foreground;
+  }
+  .command-input-wrapper {
+    @apply flex h-11 shrink-0 items-center gap-2 border-b border-border px-3 text-muted-foreground [&>svg]:size-4
+      [&>svg]:shrink-0;
+  }
+  .command-input {
+    @apply h-full w-full min-w-0 flex-1 border-0 bg-transparent text-sm text-foreground outline-none
+      placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 [&::-webkit-search-cancel-button]:hidden;
+  }
+  .command-list {
+    @apply max-h-72 scroll-py-1 overflow-x-hidden overflow-y-auto overscroll-contain p-1;
+  }
+  .command-group {
+    @apply flex flex-col;
+  }
+  .command-group[hidden],
+  .command-separator[hidden] {
+    @apply hidden;
+  }
+  .command-group + .command-group {
+    @apply mt-1;
+  }
+  .command-label {
+    @apply px-2 py-1.5 text-xs font-medium text-muted-foreground;
+  }
+  /* The highlight follows the keyboard and the pointer alike (data-highlighted, set by the
+     behaviour), so there is only ever one. */
+  .command-item {
+    @apply relative flex w-full cursor-pointer items-center gap-2 rounded-[calc(var(--radius)-2px)] px-2 py-1.5
+      text-left text-sm leading-normal text-foreground no-underline outline-none select-none
+      aria-disabled:pointer-events-none aria-disabled:opacity-50 data-highlighted:bg-accent
+      data-highlighted:text-accent-foreground [&_svg]:size-4 [&_svg]:shrink-0 [&>svg]:text-muted-foreground;
+  }
+  .command-item[hidden] {
+    @apply hidden;
+  }
+  .command-shortcut {
+    @apply ms-auto text-xs tracking-widest text-muted-foreground;
+  }
+  kbd.command-shortcut {
+    @apply font-sans;
+  }
+  .command-separator {
+    @apply -mx-1 my-1 h-px shrink-0 bg-border;
+  }
+  .command-empty {
+    @apply py-6 text-center text-sm text-muted-foreground;
+  }
+  /* A row of hints under the list: <div class="command-footer"><span><kbd class="kbd">↵</kbd> Open</span>…</div> */
+  .command-footer {
+    @apply flex shrink-0 items-center gap-4 border-t border-border px-3 py-2 text-xs text-muted-foreground
+      [&>span]:inline-flex [&>span]:items-center [&>span]:gap-1.5;
+  }
+
+  /* In a dialog: no padding, the command fills it, a little higher than centre. (.dialog too,
+     to beat dialog.css, which is imported after this file.) */
+  .dialog.command-dialog {
+    @apply mt-[12vh] max-w-xl gap-0 overflow-hidden p-0;
+  }
+  .command-dialog > .command {
+    @apply rounded-none border-0;
+  }
+  .command-dialog .command-input-wrapper {
+    @apply h-12;
+  }
+  .command-dialog .command-list {
+    @apply max-h-[min(24rem,60vh)];
+  }
+}

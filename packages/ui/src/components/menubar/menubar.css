@@ -1,0 +1,56 @@
+/* <div class="menubar" role="menubar" aria-label="Editor" data-menubar>
+     <div class="menubar-menu">
+       <button type="button" class="menubar-trigger" role="menuitem" aria-haspopup="menu" aria-expanded="false">File</button>
+       <div class="dropdown-menu" role="menu" hidden>
+         <button type="button" class="dropdown-item" role="menuitem">New tab <span class="dropdown-shortcut">⌘T</span></button>
+         …any dropdown items: checkbox, radio, submenus (see dropdown.css)…
+       </div>
+     </div>
+     …more .menubar-menu…
+   </div>
+   The menus are dropdown panels: every .dropdown-* item class works in them. aria-orientation="vertical"
+   stacks the triggers and opens the menus to the side. utils/menu.ts sets data-flip-x / data-flip-y on a
+   menu that would leave the viewport. Behaviour: menubar.ts. */
+@layer components {
+  .menubar {
+    @apply flex h-9 w-fit items-center gap-1 rounded-(--radius) border border-border bg-surface p-1 shadow-xs;
+  }
+  .menubar[aria-orientation="vertical"] {
+    @apply h-auto flex-col items-stretch;
+  }
+  .menubar-menu {
+    @apply relative;
+  }
+  .menubar-trigger {
+    @apply flex w-full cursor-default items-center gap-2 rounded-[calc(var(--radius)-2px)] px-2 py-1 text-sm
+      font-medium text-foreground outline-none select-none hover:bg-accent hover:text-accent-foreground
+      focus-visible:bg-accent focus-visible:text-accent-foreground aria-disabled:pointer-events-none
+      aria-disabled:opacity-50 aria-expanded:bg-accent aria-expanded:text-accent-foreground [&_svg]:size-4
+      [&_svg]:shrink-0;
+  }
+  .menubar-trigger > svg:last-child:not(:first-child) {
+    @apply ml-auto text-muted-foreground;
+  }
+
+  /* Horizontal: menus drop below, aligned to the trigger's left edge (right edge / upwards when flipped). */
+  .menubar-menu > .dropdown-menu {
+    @apply mt-2 -ml-1;
+  }
+  .menubar-menu > .dropdown-menu[data-flip-x] {
+    @apply right-0 left-auto -mr-1 ml-0;
+  }
+  .menubar-menu > .dropdown-menu[data-flip-y] {
+    @apply top-auto bottom-full mt-0 mb-2;
+  }
+
+  /* Vertical: menus open to the right of the trigger (left when flipped), level with it. */
+  .menubar[aria-orientation="vertical"] > .menubar-menu > .dropdown-menu {
+    @apply -top-1.25 bottom-auto left-full mt-0 mb-0 ml-2;
+  }
+  .menubar[aria-orientation="vertical"] > .menubar-menu > .dropdown-menu[data-flip-x] {
+    @apply right-full left-auto mr-2 ml-0;
+  }
+  .menubar[aria-orientation="vertical"] > .menubar-menu > .dropdown-menu[data-flip-y] {
+    @apply top-auto -bottom-1.25;
+  }
+}

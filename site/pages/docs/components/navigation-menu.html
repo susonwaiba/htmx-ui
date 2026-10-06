@@ -1,0 +1,366 @@
+{% extends "layouts/docs.html" %}
+{% from "components/icon/icon.html" import icon %}
+{% from "components/code/code.html" import code %}
+{% from "docs/macros.html" import demo, classes %}
+{% set title = "Navigation menu" %}
+{% set description = "A site's main navigation: links, and buttons that open panels of links, from simple lists to mega menus." %}
+
+{% set components = [
+  ["Dialog", "/docs/components/dialog", "A window over the page that holds focus until it is closed."],
+  ["Hover card", "/docs/components/hover-card", "For sighted users to preview content available behind a link."],
+  ["Progress", "/docs/components/progress", "Shows how far a task has got, typically as a bar."],
+  ["Separator", "/docs/components/separator", "A line that separates content, horizontally or vertically."],
+  ["Tabs", "/docs/components/tabs", "Layered sections of content, called tab panels, shown one at a time."],
+  ["Tooltip", "/docs/components/tooltip", "A short hint on hover or keyboard focus."]
+] %}
+
+{% block content %}
+  {% call demo("min-h-[28rem] items-start justify-start") %}
+    <nav class="navigation-menu" aria-label="Main" data-navigation-menu>
+      <ul class="navigation-menu-list flex-wrap justify-start">
+        <li class="navigation-menu-item">
+          <button class="navigation-menu-trigger" aria-expanded="false">Getting started {{ icon("chevron-down") }}</button>
+          <div class="navigation-menu-content">
+            <ul class="navigation-menu-grid w-[400px] md:w-[460px] md:grid-cols-[.75fr_1fr]">
+              <li class="md:row-span-3">
+                <a class="navigation-menu-featured" href="/docs">
+                  <span class="navigation-menu-link-title">htmx-ui</span>
+                  <span class="navigation-menu-link-description">Components for htmx apps, styled with Tailwind CSS.</span>
+                </a>
+              </li>
+              <li>
+                <a class="navigation-menu-link" href="/docs">
+                  <span class="navigation-menu-link-title">Introduction</span>
+                  <span class="navigation-menu-link-description">Plain HTML and CSS, with a little TypeScript where it helps.</span>
+                </a>
+              </li>
+              <li>
+                <a class="navigation-menu-link" href="/docs/installation">
+                  <span class="navigation-menu-link-title">Installation</span>
+                  <span class="navigation-menu-link-description">How to install the packages and structure your app.</span>
+                </a>
+              </li>
+              <li>
+                <a class="navigation-menu-link" href="/docs/components/text">
+                  <span class="navigation-menu-link-title">Typography</span>
+                  <span class="navigation-menu-link-description">Styles for headings, paragraphs, lists and more.</span>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </li>
+        <li class="navigation-menu-item">
+          <button class="navigation-menu-trigger" aria-expanded="false">Components {{ icon("chevron-down") }}</button>
+          <div class="navigation-menu-content">
+            <ul class="navigation-menu-grid w-[400px] md:w-[460px] md:grid-cols-2">
+              {% for c in components %}
+              <li>
+                <a class="navigation-menu-link" href="{{ c[1] }}">
+                  <span class="navigation-menu-link-title">{{ c[0] }}</span>
+                  <span class="navigation-menu-link-description">{{ c[2] }}</span>
+                </a>
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
+        </li>
+        <li class="navigation-menu-item"><a class="navigation-menu-link" href="/docs">Docs</a></li>
+        <li class="navigation-menu-item">
+          <button class="navigation-menu-trigger" aria-expanded="false">List {{ icon("chevron-down") }}</button>
+          <div class="navigation-menu-content">
+            <ul class="navigation-menu-grid w-[300px]">
+              <li>
+                <a class="navigation-menu-link" href="/docs/components">
+                  <span class="navigation-menu-link-title">Components</span>
+                  <span class="navigation-menu-link-description">Browse all components in the library.</span>
+                </a>
+              </li>
+              <li>
+                <a class="navigation-menu-link" href="/docs">
+                  <span class="navigation-menu-link-title">Documentation</span>
+                  <span class="navigation-menu-link-description">Learn how to use the library.</span>
+                </a>
+              </li>
+              <li>
+                <a class="navigation-menu-link" href="/docs/theming">
+                  <span class="navigation-menu-link-title">Theming</span>
+                  <span class="navigation-menu-link-description">Change colours, radius and dark mode.</span>
+                </a>
+              </li>
+            </ul>
+          </div>
+        </li>
+        <li class="navigation-menu-item">
+          <button class="navigation-menu-trigger" aria-expanded="false">Simple {{ icon("chevron-down") }}</button>
+          <div class="navigation-menu-content navigation-menu-content-end">
+            <ul class="navigation-menu-grid w-[200px]">
+              <li><a class="navigation-menu-link" href="/docs/components">Components</a></li>
+              <li><a class="navigation-menu-link" href="/docs">Documentation</a></li>
+              <li><a class="navigation-menu-link" href="/docs/theming">Theming</a></li>
+            </ul>
+          </div>
+        </li>
+        <li class="navigation-menu-item">
+          <button class="navigation-menu-trigger" aria-expanded="false">With icon {{ icon("chevron-down") }}</button>
+          <div class="navigation-menu-content navigation-menu-content-end">
+            <ul class="navigation-menu-grid w-[200px]">
+              <li><a class="navigation-menu-link" href="#">{{ icon("circle-alert") }} Backlog</a></li>
+              <li><a class="navigation-menu-link" href="#">{{ icon("circle") }} To do</a></li>
+              <li><a class="navigation-menu-link" href="#">{{ icon("check-circle") }} Done</a></li>
+            </ul>
+          </div>
+        </li>
+      </ul>
+    </nav>
+  {% endcall %}
+
+  <h2 id="markup">Markup</h2>
+  <ul>
+    <li>A <code>&lt;nav&gt;</code> with <code>.navigation-menu</code>, <code>data-navigation-menu</code> and an <code>aria-label</code> naming it (<q>Main</q>), holding a <code>&lt;ul class="navigation-menu-list"&gt;</code> of <code>&lt;li class="navigation-menu-item"&gt;</code>.</li>
+    <li>An item is either a link, <code>&lt;a class="navigation-menu-link"&gt;</code>, or a <code>&lt;button class="navigation-menu-trigger" aria-expanded="false"&gt;</code> followed by its panel, <code>&lt;div class="navigation-menu-content"&gt;</code>. End the trigger's label with <code>icon("chevron-down")</code>; it turns over while the panel is open.</li>
+    <li>The behaviour gives each panel an id, points its trigger's <code>aria-controls</code> at it and keeps <code>aria-expanded</code> in sync. CSS shows the panel of an expanded trigger.</li>
+    <li>In a panel, a <code>.navigation-menu-grid</code> lists <code>.navigation-menu-link</code>s. A link holds a <code>.navigation-menu-link-title</code> and a muted <code>.navigation-menu-link-description</code>, or an icon and a label, or just a label. A <code>.navigation-menu-featured</code> link is a large tile. Size and lay out the grid with utilities (<code>w-[400px]</code>, <code>md:grid-cols-2</code>, <code>md:row-span-3</code> on the tile's item).</li>
+    <li>It is the <a href="https://www.w3.org/WAI/ARIA/apg/patterns/disclosure/examples/disclosure-navigation/">disclosure navigation</a> pattern: plain buttons and links, not <code>role="menu"</code>, which is for application menus like a <a href="/docs/components/dropdown">dropdown</a>.</li>
+  </ul>
+
+  <h2 id="opening">Opening and closing</h2>
+  <ul>
+    <li>Clicking a trigger opens its panel, and clicking it again closes it. Only one panel is open at a time.</li>
+    <li>With a mouse, resting on a trigger opens its panel after <code>200ms</code>. While a panel is open, moving onto another trigger switches to its panel at once.</li>
+    <li>A panel opened by hovering closes <code>300ms</code> after the pointer leaves its item, so the pointer can cross the gap into it. Clicking the trigger of a hover-opened panel keeps it open instead: it then stays until it is closed on purpose.</li>
+    <li><kbd class="kbd">Esc</kbd>, a click outside the menu, focus leaving the menu or moving to another item, and following a link in the panel all close it.</li>
+    <li><code>--navigation-menu-open-delay</code> and <code>--navigation-menu-close-delay</code> on the nav (or any ancestor) change the delays.</li>
+    <li>Without JavaScript, CSS opens a panel while its item is hovered or holds focus.</li>
+  </ul>
+
+  <h2 id="active">Active link</h2>
+  <p>
+    Mark the link to the current page with <code>aria-current="page"</code>: screen readers announce it and it gets the
+    accent background. It works on top-level links and on links in a panel.
+  </p>
+  {% call demo() %}
+    <nav class="navigation-menu" aria-label="Site" data-navigation-menu>
+      <ul class="navigation-menu-list">
+        <li class="navigation-menu-item"><a class="navigation-menu-link" href="#">Home</a></li>
+        <li class="navigation-menu-item"><a class="navigation-menu-link" href="#" aria-current="page">Docs</a></li>
+        <li class="navigation-menu-item"><a class="navigation-menu-link" href="#">Components</a></li>
+        <li class="navigation-menu-item"><a class="navigation-menu-link" href="#">Blog</a></li>
+      </ul>
+    </nav>
+  {% endcall %}
+  <p>
+    A menu of links only, like this one, needs no panels; the behaviour still adds arrow-key movement between them.
+  </p>
+
+  <h2 id="alignment">Panel alignment</h2>
+  <p>
+    A panel opens below its trigger, lined up with the trigger's left edge. <code>.navigation-menu-content-center</code>
+    centres it and <code>.navigation-menu-content-end</code> lines it up with the right edge, for the last items of a menu
+    at the right of the page.
+  </p>
+  {% call demo("min-h-72 items-start") %}
+    <nav class="navigation-menu" aria-label="Alignment" data-navigation-menu>
+      <ul class="navigation-menu-list">
+        {% for align in ["start", "center", "end"] %}
+        <li class="navigation-menu-item">
+          <button class="navigation-menu-trigger" aria-expanded="false">{{ align | capitalize }} {{ icon("chevron-down") }}</button>
+          <div class="navigation-menu-content{% if align != 'start' %} navigation-menu-content-{{ align }}{% endif %}">
+            <ul class="navigation-menu-grid w-[220px]">
+              <li><a class="navigation-menu-link" href="#">Overview</a></li>
+              <li><a class="navigation-menu-link" href="#">Pricing</a></li>
+              <li><a class="navigation-menu-link" href="#">Customers</a></li>
+            </ul>
+          </div>
+        </li>
+        {% endfor %}
+      </ul>
+    </nav>
+  {% endcall %}
+
+  <h2 id="indicator">Indicator</h2>
+  <p><code>.navigation-menu-indicator</code> on the nav adds an arrow pointing from the open trigger to its panel.</p>
+  {% call demo("min-h-72 items-start") %}
+    <nav class="navigation-menu navigation-menu-indicator" aria-label="Products" data-navigation-menu>
+      <ul class="navigation-menu-list">
+        <li class="navigation-menu-item">
+          <button class="navigation-menu-trigger" aria-expanded="false">Products {{ icon("chevron-down") }}</button>
+          <div class="navigation-menu-content">
+            <ul class="navigation-menu-grid w-[240px]">
+              <li><a class="navigation-menu-link" href="#">{{ icon("layers") }} Components</a></li>
+              <li><a class="navigation-menu-link" href="#">{{ icon("server") }} Engine</a></li>
+              <li><a class="navigation-menu-link" href="#">{{ icon("search") }} Search plugin</a></li>
+            </ul>
+          </div>
+        </li>
+        <li class="navigation-menu-item"><a class="navigation-menu-link" href="#">Pricing</a></li>
+      </ul>
+    </nav>
+  {% endcall %}
+
+  <h2 id="vertical">Vertical</h2>
+  <p>
+    <code>.navigation-menu-vertical</code> stacks the items, for a sidebar or a menu on a small screen. Panels open in
+    place under their trigger and push the items below down; they open by click or keyboard only, never on hover, and
+    grids become a single column.
+  </p>
+  {% call demo("min-h-96 items-start") %}
+    <nav class="navigation-menu navigation-menu-vertical w-64" aria-label="Sections" data-navigation-menu>
+      <ul class="navigation-menu-list">
+        <li class="navigation-menu-item">
+          <button class="navigation-menu-trigger" aria-expanded="false">Getting started {{ icon("chevron-down") }}</button>
+          <div class="navigation-menu-content">
+            <ul class="navigation-menu-grid">
+              <li><a class="navigation-menu-link" href="#">Introduction</a></li>
+              <li><a class="navigation-menu-link" href="#">Installation</a></li>
+            </ul>
+          </div>
+        </li>
+        <li class="navigation-menu-item">
+          <button class="navigation-menu-trigger" aria-expanded="false">Components {{ icon("chevron-down") }}</button>
+          <div class="navigation-menu-content">
+            <ul class="navigation-menu-grid">
+              <li><a class="navigation-menu-link" href="#">Dialog</a></li>
+              <li><a class="navigation-menu-link" href="#">Hover card</a></li>
+              <li><a class="navigation-menu-link" href="#">Tooltip</a></li>
+            </ul>
+          </div>
+        </li>
+        <li class="navigation-menu-item"><a class="navigation-menu-link" href="#">Docs</a></li>
+      </ul>
+    </nav>
+  {% endcall %}
+
+  <h2 id="responsive">Small screens</h2>
+  <p>
+    A horizontal menu with wide panels doesn't fit a phone, and there is no hover there. Show it from the <code>md</code>
+    breakpoint up, and below that a button that opens the same links in a vertical menu: in a
+    <a href="/docs/components/collapsible">collapsible</a> under the header, as here, or in a
+    <a href="/docs/components/sheet">sheet</a> from the side. Narrow the window to see the switch.
+  </p>
+  {% call demo("min-h-80 items-start") %}
+    <div class="w-full">
+      <nav class="navigation-menu hidden md:flex" aria-label="Main (wide screens)" data-navigation-menu>
+        <ul class="navigation-menu-list">
+          <li class="navigation-menu-item">
+            <button class="navigation-menu-trigger" aria-expanded="false">Products {{ icon("chevron-down") }}</button>
+            <div class="navigation-menu-content">
+              <ul class="navigation-menu-grid w-[220px]">
+                <li><a class="navigation-menu-link" href="#">Components</a></li>
+                <li><a class="navigation-menu-link" href="#">Engine</a></li>
+              </ul>
+            </div>
+          </li>
+          <li class="navigation-menu-item"><a class="navigation-menu-link" href="#">Pricing</a></li>
+          <li class="navigation-menu-item"><a class="navigation-menu-link" href="#">Docs</a></li>
+        </ul>
+      </nav>
+      <div class="collapsible md:hidden" data-collapsible>
+        <button type="button" class="btn btn-outline btn-sm w-fit" data-collapsible-trigger aria-expanded="false">{{ icon("menu") }} Menu</button>
+        <div class="collapsible-content mt-2" data-collapsible-content hidden>
+          <nav class="navigation-menu navigation-menu-vertical" aria-label="Main (small screens)" data-navigation-menu>
+            <ul class="navigation-menu-list">
+              <li class="navigation-menu-item">
+                <button class="navigation-menu-trigger" aria-expanded="false">Products {{ icon("chevron-down") }}</button>
+                <div class="navigation-menu-content">
+                  <ul class="navigation-menu-grid">
+                    <li><a class="navigation-menu-link" href="#">Components</a></li>
+                    <li><a class="navigation-menu-link" href="#">Engine</a></li>
+                  </ul>
+                </div>
+              </li>
+              <li class="navigation-menu-item"><a class="navigation-menu-link" href="#">Pricing</a></li>
+              <li class="navigation-menu-item"><a class="navigation-menu-link" href="#">Docs</a></li>
+            </ul>
+          </nav>
+        </div>
+      </div>
+    </div>
+  {% endcall %}
+  <p>
+    Only one of the two menus is displayed at a time, so screen readers meet one navigation landmark. Render both from
+    the same data (a <code>json()</code> file and a loop) so they never drift apart.
+  </p>
+
+  <h2 id="keyboard">Keyboard</h2>
+  <div class="table-wrap not-prose">
+    <table class="table">
+      <thead><tr><th>Key</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr><td><kbd class="kbd">Tab</kbd></td><td class="text-muted-foreground">Moves through the triggers and links in page order, and into an open panel after its trigger. Leaving an item closes its panel.</td></tr>
+        <tr><td><kbd class="kbd">Enter</kbd> <kbd class="kbd">Space</kbd></td><td class="text-muted-foreground">On a trigger, opens or closes its panel. On a link, follows it (<kbd class="kbd">Enter</kbd>).</td></tr>
+        <tr><td><kbd class="kbd">→</kbd> <kbd class="kbd">←</kbd></td><td class="text-muted-foreground">On the top level, moves to the next or previous trigger or link, wrapping round.</td></tr>
+        <tr><td><kbd class="kbd">Home</kbd> <kbd class="kbd">End</kbd></td><td class="text-muted-foreground">Moves to the first or last top-level item; in a panel, to its first or last link.</td></tr>
+        <tr><td><kbd class="kbd">↓</kbd></td><td class="text-muted-foreground">On a trigger, opens its panel and moves to its first link. In a panel, moves to the next link.</td></tr>
+        <tr><td><kbd class="kbd">↑</kbd></td><td class="text-muted-foreground">In a panel, moves to the previous link, or from the first link back to the trigger.</td></tr>
+        <tr><td><kbd class="kbd">Esc</kbd></td><td class="text-muted-foreground">Closes the open panel and returns focus to its trigger.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>In a vertical menu, <kbd class="kbd">↓</kbd> and <kbd class="kbd">↑</kbd> move through the top-level items and the links of an open panel as one list.</p>
+
+  <h2 id="accessibility">Accessibility</h2>
+  <ul>
+    <li>The nav is a navigation landmark: give it an <code>aria-label</code>, and a different one to each navigation on the page.</li>
+    <li>Triggers are buttons with <code>aria-expanded</code> and <code>aria-controls</code>, so screen readers announce <q>collapsed</q> or <q>expanded</q>. Links stay links, read in order, and there are no menu roles to change how the keyboard works.</li>
+    <li>A closed panel is hidden with <code>visibility</code>, so it is out of the tab order and the accessibility tree, and can fade out as well as in.</li>
+    <li>Arrow keys are a shortcut on top of <kbd class="kbd">Tab</kbd>, which reaches everything.</li>
+    <li>Hover-opened panels can be dismissed with <kbd class="kbd">Esc</kbd> without moving the pointer, and wait for the pointer to cross into them (WCAG 1.4.13).</li>
+    <li>With reduced motion, panels fade without zooming and the chevron turns without animating.</li>
+  </ul>
+
+  <h2 id="htmx">With htmx</h2>
+  <p>
+    Boost the menu's links with <code>hx-boost:inherited="true"</code> on the nav, or on <code>&lt;body&gt;</code> as this
+    site does, so following one swaps the page without a full reload. The panel closes when one of its links is followed.
+    If the response replaces the whole body, the server renders the new <code>aria-current</code>; if it swaps only the main
+    content (<code>hx-target</code> and <code>hx-select</code>), also return the menu with <code>hx-swap-oob</code> so the
+    current link moves.
+  </p>
+  {% call code("html") %}
+<nav class="navigation-menu" aria-label="Main" data-navigation-menu hx-boost:inherited="true">
+  <ul class="navigation-menu-list">
+    <li class="navigation-menu-item"><a class="navigation-menu-link" href="/" aria-current="page">Home</a></li>
+    <li class="navigation-menu-item"><a class="navigation-menu-link" href="/docs">Docs</a></li>
+  </ul>
+</nav>
+  {% endcall %}
+  <p>
+    A panel fires <code>navigation-menu:open</code> and <code>navigation-menu:close</code> (they bubble) each time it opens
+    and closes. Fill a panel from the server the first time it opens with <code>hx-trigger="navigation-menu:open once"</code>:
+  </p>
+  {% call demo("min-h-60 items-start") %}
+    <nav class="navigation-menu" aria-label="Account" data-navigation-menu>
+      <ul class="navigation-menu-list">
+        <li class="navigation-menu-item">
+          <button class="navigation-menu-trigger" aria-expanded="false">Recent {{ icon("chevron-down") }}</button>
+          <div class="navigation-menu-content w-64" hx-get="/api/recent" hx-trigger="navigation-menu:open once">
+            <span class="flex items-center gap-2 p-2 text-muted-foreground">
+              <span class="spinner" role="status" aria-label="Loading"></span> Loading…
+            </span>
+          </div>
+        </li>
+      </ul>
+    </nav>
+  {% endcall %}
+
+  <h2 id="reference">Reference</h2>
+  {{ classes([
+    [".navigation-menu", "The <nav>. Add data-navigation-menu and an aria-label."],
+    [".navigation-menu-list", "The <ul> of top-level items, in a row."],
+    [".navigation-menu-item", "An <li>: a link, or a trigger and its panel."],
+    [".navigation-menu-trigger", "Button that opens the panel after it. Add aria-expanded=\"false\"; a chevron icon inside turns over while open."],
+    [".navigation-menu-link", "A link: top-level, styled like a trigger, or in a panel, with a title and description or an icon. aria-current=\"page\" marks the current page."],
+    [".navigation-menu-content", "A panel, below its trigger at its left edge."],
+    [".navigation-menu-content-center / -end", "Centre the panel on its trigger, or line it up with the right edge."],
+    [".navigation-menu-grid", "A <ul> of links in a panel. Lay it out with grid and width utilities."],
+    [".navigation-menu-link-title", "A link's title."],
+    [".navigation-menu-link-description", "A link's description: muted, at most two lines."],
+    [".navigation-menu-featured", "A large tile link, with a gradient background."],
+    [".navigation-menu-indicator", "On the nav: an arrow from the open trigger to its panel."],
+    [".navigation-menu-vertical", "On the nav: stacked items, panels opening in place, no hover."],
+    ["[data-navigation-menu]", "Behaviour: aria-expanded/aria-controls, hover delays, closing, arrow keys, events."],
+    ["--navigation-menu-open-delay", "How long the pointer rests on a trigger before its panel opens (200ms)."],
+    ["--navigation-menu-close-delay", "How long a hover-opened panel stays after the pointer leaves (300ms)."],
+    ["navigation-menu:open / navigation-menu:close", "Events fired on the panel (bubbling) when it opens and closes."]
+  ], heading="Class / attribute") }}
+{% endblock %}

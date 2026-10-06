@@ -1,0 +1,167 @@
+{% extends "layouts/docs.html" %}
+{% from "components/icon/icon.html" import icon %}
+{% from "docs/macros.html" import demo, classes %}
+{% set title = "Breadcrumb" %}
+{% set description = "Displays the path to the current resource using a hierarchy of links." %}
+
+{% block content %}
+  {% call demo() %}
+    <nav aria-label="Breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a class="breadcrumb-link" href="#home">Home</a></li>
+        <li class="breadcrumb-separator" aria-hidden="true">{{ icon("chevron-right") }}</li>
+        <li class="breadcrumb-item"><a class="breadcrumb-link" href="#docs">Docs</a></li>
+        <li class="breadcrumb-separator" aria-hidden="true">{{ icon("chevron-right") }}</li>
+        <li class="breadcrumb-item"><a class="breadcrumb-link" href="#components">Components</a></li>
+        <li class="breadcrumb-separator" aria-hidden="true">{{ icon("chevron-right") }}</li>
+        <li class="breadcrumb-item"><span class="breadcrumb-page" aria-current="page">Breadcrumb</span></li>
+      </ol>
+    </nav>
+  {% endcall %}
+
+  <h2 id="markup">Markup</h2>
+  <ul>
+    <li>A <code>&lt;nav aria-label="Breadcrumb"&gt;</code> around an <code>&lt;ol class="breadcrumb"&gt;</code>.</li>
+    <li>Each step is an <code>&lt;li class="breadcrumb-item"&gt;</code> holding an <code>&lt;a class="breadcrumb-link"&gt;</code>.</li>
+    <li>The last one is the current page: <code>&lt;span class="breadcrumb-page" aria-current="page"&gt;</code>, not a link.</li>
+    <li>Between steps, an <code>&lt;li class="breadcrumb-separator" aria-hidden="true"&gt;</code>. Screen readers skip it; the list already says how many steps there are.</li>
+  </ul>
+  <p>A long breadcrumb wraps onto more lines. To keep it on one, let it <a href="#collapsing">collapse</a>.</p>
+
+  <h2 id="custom-separator">Custom separator</h2>
+  <p>The separator is whatever you put in it: any icon, or text.</p>
+  {% call demo("flex-col gap-4") %}
+    <nav aria-label="Breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a class="breadcrumb-link" href="#home">Home</a></li>
+        <li class="breadcrumb-separator" aria-hidden="true">{{ icon("slash") }}</li>
+        <li class="breadcrumb-item"><a class="breadcrumb-link" href="#components">Components</a></li>
+        <li class="breadcrumb-separator" aria-hidden="true">{{ icon("slash") }}</li>
+        <li class="breadcrumb-item"><span class="breadcrumb-page" aria-current="page">Breadcrumb</span></li>
+      </ol>
+    </nav>
+    <nav aria-label="Breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a class="breadcrumb-link" href="#home">Home</a></li>
+        <li class="breadcrumb-separator" aria-hidden="true">·</li>
+        <li class="breadcrumb-item"><a class="breadcrumb-link" href="#components">Components</a></li>
+        <li class="breadcrumb-separator" aria-hidden="true">·</li>
+        <li class="breadcrumb-item"><span class="breadcrumb-page" aria-current="page">Breadcrumb</span></li>
+      </ol>
+    </nav>
+    <nav aria-label="Breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a class="breadcrumb-link" href="#home">{{ icon("house") }} Home</a></li>
+        <li class="breadcrumb-separator" aria-hidden="true">{{ icon("arrow-right") }}</li>
+        <li class="breadcrumb-item"><a class="breadcrumb-link" href="#components">{{ icon("box") }} Components</a></li>
+        <li class="breadcrumb-separator" aria-hidden="true">{{ icon("arrow-right") }}</li>
+        <li class="breadcrumb-item"><span class="breadcrumb-page" aria-current="page">{{ icon("file-text") }} Breadcrumb</span></li>
+      </ol>
+    </nav>
+  {% endcall %}
+
+  <h2 id="dropdown">Dropdown</h2>
+  <p>
+    A step can be a <a href="/docs/components/dropdown">dropdown</a> instead of a link, for jumping to a sibling page.
+    Make the trigger a <code>&lt;button class="breadcrumb-link"&gt;</code>; it stays highlighted while the menu is open.
+  </p>
+  {% call demo("min-h-56 items-start") %}
+    <nav aria-label="Breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a class="breadcrumb-link" href="#home">Home</a></li>
+        <li class="breadcrumb-separator" aria-hidden="true">{{ icon("chevron-right") }}</li>
+        <li class="breadcrumb-item">
+          <div class="dropdown" data-dropdown>
+            <button type="button" class="breadcrumb-link" data-dropdown-trigger aria-haspopup="menu" aria-expanded="false">
+              Components {{ icon("chevron-down") }}
+            </button>
+            <div class="dropdown-menu" role="menu" hidden>
+              <a class="dropdown-item" role="menuitem" href="#docs">Documentation</a>
+              <a class="dropdown-item" role="menuitem" href="#themes">Themes</a>
+              <a class="dropdown-item" role="menuitem" href="#github">GitHub</a>
+            </div>
+          </div>
+        </li>
+        <li class="breadcrumb-separator" aria-hidden="true">{{ icon("chevron-right") }}</li>
+        <li class="breadcrumb-item"><span class="breadcrumb-page" aria-current="page">Breadcrumb</span></li>
+      </ol>
+    </nav>
+  {% endcall %}
+
+  <h2 id="collapsed">Collapsed</h2>
+  <p>
+    <code>.breadcrumb-ellipsis</code> stands in for steps left out of a long path. Make it the trigger of a dropdown
+    that lists them, and give it an <code>aria-label</code>.
+  </p>
+  {% call demo("min-h-56 items-start") %}
+    <nav aria-label="Breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a class="breadcrumb-link" href="#home">Home</a></li>
+        <li class="breadcrumb-separator" aria-hidden="true">{{ icon("chevron-right") }}</li>
+        <li class="breadcrumb-item">
+          <div class="dropdown" data-dropdown>
+            <button type="button" class="breadcrumb-ellipsis" data-dropdown-trigger aria-haspopup="menu" aria-expanded="false" aria-label="Show hidden pages">{{ icon("ellipsis") }}</button>
+            <div class="dropdown-menu" role="menu" hidden>
+              <a class="dropdown-item" role="menuitem" href="#docs">Docs</a>
+              <a class="dropdown-item" role="menuitem" href="#components">Components</a>
+              <a class="dropdown-item" role="menuitem" href="#forms">Forms</a>
+            </div>
+          </div>
+        </li>
+        <li class="breadcrumb-separator" aria-hidden="true">{{ icon("chevron-right") }}</li>
+        <li class="breadcrumb-item"><a class="breadcrumb-link" href="#inputs">Inputs</a></li>
+        <li class="breadcrumb-separator" aria-hidden="true">{{ icon("chevron-right") }}</li>
+        <li class="breadcrumb-item"><span class="breadcrumb-page" aria-current="page">Input group</span></li>
+      </ol>
+    </nav>
+  {% endcall %}
+
+  <h2 id="collapsing">Collapsing when it doesn't fit</h2>
+  <p>
+    With <code>data-breadcrumb</code> on the <code>&lt;nav&gt;</code>, the breadcrumb stays on one line and collapses
+    by itself. Add a hidden ellipsis item, and a hidden separator, after the first step. Whenever the breadcrumb
+    changes width, steps in the middle are hidden from the left until it fits, the ellipsis appears, and its menu
+    lists the hidden steps as links. The first step and the current page always stay; the page name truncates as a
+    last resort. Drag the corner of the box to resize it:
+  </p>
+  {% call demo("items-start") %}
+    <div class="h-56 w-full max-w-full min-w-40 resize-x overflow-hidden rounded-(--radius) border border-dashed border-border p-3">
+      <nav aria-label="Breadcrumb" data-breadcrumb>
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a class="breadcrumb-link" href="#home">Home</a></li>
+          <li class="breadcrumb-separator" aria-hidden="true">{{ icon("chevron-right") }}</li>
+          <li class="breadcrumb-item" data-breadcrumb-ellipsis hidden>
+            <div class="dropdown" data-dropdown>
+              <button type="button" class="breadcrumb-ellipsis" data-dropdown-trigger aria-haspopup="menu" aria-expanded="false" aria-label="Show hidden pages">{{ icon("ellipsis") }}</button>
+              <div class="dropdown-menu" role="menu" hidden></div>
+            </div>
+          </li>
+          <li class="breadcrumb-separator" aria-hidden="true" hidden>{{ icon("chevron-right") }}</li>
+          <li class="breadcrumb-item"><a class="breadcrumb-link" href="#docs">Documentation</a></li>
+          <li class="breadcrumb-separator" aria-hidden="true">{{ icon("chevron-right") }}</li>
+          <li class="breadcrumb-item"><a class="breadcrumb-link" href="#components">Components</a></li>
+          <li class="breadcrumb-separator" aria-hidden="true">{{ icon("chevron-right") }}</li>
+          <li class="breadcrumb-item"><a class="breadcrumb-link" href="#forms">Forms and inputs</a></li>
+          <li class="breadcrumb-separator" aria-hidden="true">{{ icon("chevron-right") }}</li>
+          <li class="breadcrumb-item"><span class="breadcrumb-page" aria-current="page">Input group with addons</span></li>
+        </ol>
+      </nav>
+    </div>
+  {% endcall %}
+  <p>
+    It works the same in a fragment returned by htmx. To collapse a fixed number of steps instead, whatever the
+    width, write the ellipsis yourself as in <a href="#collapsed">Collapsed</a>, and leave out <code>data-breadcrumb</code>.
+  </p>
+
+  <h2 id="reference">Reference</h2>
+  {{ classes([
+    [".breadcrumb", "The <ol>: a wrapping row of steps."],
+    [".breadcrumb-item", "One step (<li>)."],
+    [".breadcrumb-link", "A link, or a button opening a dropdown; highlighted while expanded."],
+    [".breadcrumb-page", "The current page, with aria-current=\"page\"."],
+    [".breadcrumb-separator", "Between steps, aria-hidden. Any icon or text."],
+    [".breadcrumb-ellipsis", "\"…\" button standing in for hidden steps."],
+    ["[data-breadcrumb]", "On the <nav>: one line, collapsing middle steps into [data-breadcrumb-ellipsis] when it doesn't fit."],
+    ["[data-breadcrumb-ellipsis]", "The hidden ellipsis item; its [role=menu] is filled with the hidden steps."]
+  ]) }}
+{% endblock %}
