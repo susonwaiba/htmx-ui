@@ -1,0 +1,13 @@
+{
+  "categories": [
+    { "id": "forms", "title": "Forms & inputs", "description": "Controls that take input and submit with a form, and the fields that label them." },
+    { "id": "actions", "title": "Actions & menus", "description": "Buttons, toggles and menus that do something." },
+    { "id": "navigation", "title": "Navigation", "description": "Moving between pages and between views of a page." },
+    { "id": "overlays", "title": "Overlays", "description": "Content that opens above the page: modals, panels, popups and hints." },
+    { "id": "feedback", "title": "Feedback & status", "description": "Messages, progress, loading and empty states, and labels for status." },
+    { "id": "layout", "title": "Layout & disclosure", "description": "Containers that group, separate, reveal or scroll through content." },
+    { "id": "data", "title": "Data display", "description": "Rows, tables and people: structured content to scan." },
+    { "id": "content", "title": "Typography & media", "description": "Long-form text, code, keys and icons." },
+    { "id": "chat", "title": "Chat & AI", "description": "Conversations, attachments and assistant replies." }
+  ]
+}

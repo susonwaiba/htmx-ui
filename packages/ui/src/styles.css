@@ -41,6 +41,40 @@
     --danger: var(--color-red-600);
     --danger-foreground: var(--color-white);
 
+    /* Sidebar (components/sidebar). Its own set, so the navigation column can be tinted apart
+       from the page. All but --sidebar follow the tokens above, in light and dark. */
+    --sidebar: var(--color-zinc-50);
+    --sidebar-foreground: var(--foreground);
+    --sidebar-primary: var(--primary);
+    --sidebar-primary-foreground: var(--primary-foreground);
+    --sidebar-accent: var(--accent);
+    --sidebar-accent-foreground: var(--accent-foreground);
+    --sidebar-border: var(--border);
+    --sidebar-ring: var(--ring);
+
+    /* Motion. Every component animates with these, so one change retimes the library; they
+       collapse to 0s for prefers-reduced-motion (below). Use them in your own markup with
+       Tailwind's variable shorthand: duration-(--motion-duration-normal) ease-(--motion-ease-out).
+       fast: small state changes (hover, press, tooltips leaving); normal: popovers, menus and
+       other small panels; moderate: dialogs, disclosure; slow / slower: panels sliding from an edge. */
+    --motion-duration-fast: 100ms;
+    --motion-duration-normal: 150ms;
+    --motion-duration-moderate: 200ms;
+    --motion-duration-slow: 300ms;
+    --motion-duration-slower: 400ms;
+    /* ease-out: things appearing and responding, quick to start and soft to land (also for exits,
+       which should get out of the way at once). ease-in-out: things moving from one place to
+       another on screen. drawer: long slides from an edge. spring: a small overshoot (about 8%)
+       for playful moves such as a switch thumb; give it moderate or longer. */
+    --motion-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    --motion-ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+    --motion-ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+    --motion-ease-spring: linear(
+      0, 0.01 1.5%, 0.035 2.8%, 0.082 4.4%, 0.153 6.4%, 0.249 8.5%, 0.363 10.9%, 0.49 13.5%, 0.62 16.3%,
+      0.745 19.3%, 0.855 22.4%, 0.946 25.8%, 1.013 29.3%, 1.057 33%, 1.079 36.8%, 1.083 40.8%, 1.075 45%,
+      1.059 49.3%, 1.041 53.8%, 1.024 58.4%, 1.01 63.1%, 1.001 68%, 0.995 73%, 0.993 80%, 0.997 94%, 1
+    );
+
     /* Syntax highlighting colours, used by code blocks highlighted with Shiki's css-variables theme */
     --code-background: color-mix(in oklab, var(--color-zinc-100) 50%, var(--color-white));
     --code-foreground: var(--color-zinc-800);
@@ -81,6 +115,8 @@
     --danger: var(--color-red-500);
     --danger-foreground: var(--color-white);
 
+    --sidebar: var(--color-zinc-900);
+
     --code-background: color-mix(in oklab, var(--color-zinc-900) 60%, var(--color-zinc-950));
     --code-foreground: var(--color-zinc-200);
     --code-token-comment: var(--color-zinc-500);
@@ -94,6 +130,18 @@
     --code-token-link: var(--color-sky-400);
     --code-token-inserted: var(--color-emerald-400);
     --code-token-deleted: var(--color-red-400);
+  }
+
+  /* Reduced motion: no movement. Transitions finish at once (state changes stay correct, closing
+     panels still leave), and components drop their decorative loops in their own files. */
+  @media (prefers-reduced-motion: reduce) {
+    :root {
+      --motion-duration-fast: 0s;
+      --motion-duration-normal: 0s;
+      --motion-duration-moderate: 0s;
+      --motion-duration-slow: 0s;
+      --motion-duration-slower: 0s;
+    }
   }
 
   * {
@@ -162,36 +210,78 @@
   --color-warning: var(--warning);
   --color-danger: var(--danger);
   --color-danger-foreground: var(--danger-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
 }
 
 @import "./components/accordion/accordion.css";
 @import "./components/alert/alert.css";
+@import "./components/attachment/attachment.css";
+@import "./components/avatar/avatar.css";
 @import "./components/badge/badge.css";
-@import "./components/button/button.css";
+@import "./components/breadcrumb/breadcrumb.css";
 @import "./components/button-group/button-group.css";
+@import "./components/button/button.css";
 @import "./components/card/card.css";
+@import "./components/carousel/carousel.css";
+@import "./components/chain-of-thought/chain-of-thought.css";
 @import "./components/checkbox/checkbox.css";
 @import "./components/code/code.css";
+@import "./components/collapsible/collapsible.css";
+@import "./components/combobox/combobox.css";
+@import "./components/command/command.css";
+@import "./components/dialog/dialog.css";
+@import "./components/drawer/drawer.css";
 @import "./components/dropdown/dropdown.css";
+@import "./components/empty/empty.css";
 @import "./components/field/field.css";
-@import "./components/input/input.css";
+@import "./components/hover-card/hover-card.css";
 @import "./components/input-group/input-group.css";
+@import "./components/input-otp/input-otp.css";
+@import "./components/input/input.css";
+@import "./components/item/item.css";
+@import "./components/kbd/kbd.css";
+@import "./components/label/label.css";
+@import "./components/loader/loader.css";
+@import "./components/menubar/menubar.css";
+@import "./components/message-scroller/message-scroller.css";
+@import "./components/message/message.css";
+@import "./components/navigation-menu/navigation-menu.css";
+@import "./components/pagination/pagination.css";
 @import "./components/popover/popover.css";
+@import "./components/progress/progress.css";
+@import "./components/prompt-input/prompt-input.css";
 @import "./components/radio-group/radio-group.css";
+@import "./components/reasoning/reasoning.css";
+@import "./components/scroll-button/scroll-button.css";
 @import "./components/select/select.css";
+@import "./components/separator/separator.css";
+@import "./components/sheet/sheet.css";
 @import "./components/sidebar/sidebar.css";
+@import "./components/skeleton/skeleton.css";
+@import "./components/slider/slider.css";
 @import "./components/spinner/spinner.css";
 @import "./components/switch/switch.css";
 @import "./components/table/table.css";
 @import "./components/tabs/tabs.css";
 @import "./components/text/text.css";
-@import "./components/toggle/toggle.css";
+@import "./components/textarea/textarea.css";
+@import "./components/toast/toast.css";
 @import "./components/toggle-group/toggle-group.css";
+@import "./components/toggle/toggle.css";
+@import "./components/tooltip/tooltip.css";
+@import "./motion.css";
 
 /* htmx request indicator */
 .htmx-indicator {
   opacity: 0;
-  transition: opacity 150ms ease-in;
+  transition: opacity var(--motion-duration-normal) var(--motion-ease-out);
 }
 .htmx-request .htmx-indicator,
 .htmx-request.htmx-indicator {

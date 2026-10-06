@@ -2,6 +2,8 @@
 //
 //   bun run component:new date-picker              stylesheet only
 //   bun run component:new date-picker --behaviour  + TypeScript behaviour and test
+//   bun run component:new date-picker --category forms   its group on /docs/components
+//                                                  (ids in site/data/component-categories.json)
 //
 // Creates packages/ui/src/components/<name>/, imports its CSS in packages/ui/src/styles.css,
 // registers the behaviour in initComponents, and adds a docs page stub plus a docs-nav entry.
@@ -14,10 +16,19 @@ import { PAGES, SITE, SRC } from "./paths";
 
 const [name, ...flags] = process.argv.slice(2);
 if (!name || !/^[a-z][a-z0-9]*(-[a-z0-9]+)*$/.test(name)) {
-  console.error("Usage: bun run component:new <kebab-case-name> [--behaviour]");
+  console.error("Usage: bun run component:new <kebab-case-name> [--behaviour] [--category <id>]");
   process.exit(1);
 }
 const behaviour = flags.includes("--behaviour");
+const categoryFlag = flags.indexOf("--category");
+const category = categoryFlag >= 0 ? flags[categoryFlag + 1] : undefined;
+const categoryIds: string[] = (await Bun.file(join(SITE, "data/component-categories.json")).json()).categories.map(
+  (c: { id: string }) => c.id,
+);
+if (category !== undefined && !categoryIds.includes(category)) {
+  console.error(`Unknown category "${category}". One of: ${categoryIds.join(", ")}`);
+  process.exit(1);
+}
 const dir = join(SRC, "components", name);
 if (existsSync(dir)) {
   console.error(`packages/ui/src/components/${name}/ already exists`);
@@ -100,7 +111,7 @@ await Bun.write(stylesFile, styles.replace(cssImports.join("\n"), allCss.join("\
 await write(
   join(PAGES, `docs/components/${name}.html`),
   `{% extends "layouts/docs.html" %}
-{% from "macros/docs.html" import demo, classes %}
+{% from "docs/macros.html" import demo, classes %}
 {% set title = "${title}" %}
 {% set description = "TODO: one sentence on what ${title.toLowerCase()} is for." %}
 
@@ -117,18 +128,41 @@ await write(
 `,
 );
 
-// Docs navigation: Components section, alphabetical after "Overview"
+// Docs navigation: Components section, after "Overview", in its category
 const navFile = join(SITE, "data/docs-nav.json");
 const nav = await Bun.file(navFile).json();
 const section = nav.sections.find((s: { title: string }) => s.title === "Components");
 const [overview, ...rest] = section.items;
-rest.push({ title, href: `/docs/components/${name}`, description: `TODO: ${title} description.`, component: true });
-rest.sort((a: { title: string }, b: { title: string }) => a.title.localeCompare(b.title));
+rest.push({
+  title,
+  href: `/docs/components/${name}`,
+  description: `TODO: ${title} description.`,
+  component: true,
+  category: category ?? "TODO",
+});
+// Grouped by category (in component-categories.json order; uncategorised last), A–Z within one,
+// so the sidebar, prev/next and llms.txt follow the components page.
+const rank = (c?: string) => (c && categoryIds.includes(c) ? categoryIds.indexOf(c) : categoryIds.length);
+rest.sort(
+  (a: { title: string; category?: string }, b: { title: string; category?: string }) =>
+    rank(a.category) - rank(b.category) || a.title.localeCompare(b.title),
+);
 section.items = [overview, ...rest];
-await Bun.write(navFile, JSON.stringify(nav, null, 2) + "\n");
+// Written back in the file's own layout: one line per page, so a new entry is a one-line diff.
+const line = (item: object) =>
+  `{ ${Object.entries(item)
+    .map(([k, v]) => `${JSON.stringify(k)}: ${JSON.stringify(v)}`)
+    .join(", ")} }`;
+const sections = nav.sections.map(
+  (s: { title: string; items: object[] }) =>
+    `    {\n      "title": ${JSON.stringify(s.title)},\n      "items": [\n${s.items
+      .map((i) => `        ${line(i)}`)
+      .join(",\n")}\n      ]\n    }`,
+);
+await Bun.write(navFile, `{\n  "sections": [\n${sections.join(",\n")}\n  ]\n}\n`);
 
 console.log(`Created ${title}:
 ${created.map((f) => `  ${f}`).join("\n")}
 Updated packages/ui/src/styles.css${behaviour ? ", packages/ui/src/components/index.ts" : ""}, site/data/docs-nav.json
 
-Next: fill in the TODOs in the docs page and nav entry, then restart \`bun run dev\` to see /docs/components/${name}.`);
+Next: fill in the TODOs in the docs page and nav entry${category ? "" : ` (category: one of ${categoryIds.join(", ")})`}, then restart \`bun run dev\` to see /docs/components/${name}.`);

@@ -1,20 +1,41 @@
 // UI component library: behaviour for components (styles live in the matching .css files).
 // Register each component's init here; called once on load and after every htmx swap.
 import { initAccordion } from "./accordion/accordion";
+import { initAvatar } from "./avatar/avatar";
+import { initBreadcrumb } from "./breadcrumb/breadcrumb";
+import { initCarousel } from "./carousel/carousel";
 import { initCheckbox } from "./checkbox/checkbox";
 import { initCode } from "./code/code";
+import { initCollapsible } from "./collapsible/collapsible";
+import { initCombobox } from "./combobox/combobox";
+import { initCommand } from "./command/command";
+import { initDialog } from "./dialog/dialog";
 import { initDismissible } from "./dismissible/dismissible";
+import { initDrawer } from "./drawer/drawer";
 import { initDropdown } from "./dropdown/dropdown";
+import { initHoverCard } from "./hover-card/hover-card";
+import { initInputOtp } from "./input-otp/input-otp";
+import { initMenubar } from "./menubar/menubar";
+import { initMessageScroller } from "./message-scroller/message-scroller";
+import { initNavigationMenu } from "./navigation-menu/navigation-menu";
 import { initPopover } from "./popover/popover";
+import { initPromptInput } from "./prompt-input/prompt-input";
+import { initReasoning } from "./reasoning/reasoning";
+import { initScrollButton } from "./scroll-button/scroll-button";
 import { initSelect } from "./select/select";
 import { initSidebar } from "./sidebar/sidebar";
+import { initSlider } from "./slider/slider";
 import { initTabs } from "./tabs/tabs";
-import { initToggle } from "./toggle/toggle";
+import { initTextarea } from "./textarea/textarea";
+import { initToast } from "./toast/toast";
 import { initToggleGroup } from "./toggle-group/toggle-group";
+import { initToggle } from "./toggle/toggle";
+import { initTooltip } from "./tooltip/tooltip";
 
 export function initComponents(root: ParentNode = document) {
   initTabs(root);
   initAccordion(root);
+  initAvatar(root);
   initCheckbox(root);
   initCode(root);
   initDismissible(root);
@@ -24,4 +45,23 @@ export function initComponents(root: ParentNode = document) {
   initSidebar(root);
   initToggle(root);
   initToggleGroup(root);
+  initDialog(root);
+  initBreadcrumb(root);
+  initCollapsible(root);
+  initCombobox(root);
+  initInputOtp(root);
+  initTooltip(root);
+  initMenubar(root);
+  initNavigationMenu(root);
+  initHoverCard(root);
+  initDrawer(root);
+  initCarousel(root);
+  initCommand(root);
+  initSlider(root);
+  initTextarea(root);
+  initToast(root);
+  initScrollButton(root);
+  initReasoning(root);
+  initPromptInput(root);
+  initMessageScroller(root);
 }

@@ -2,26 +2,41 @@
 {% from "components/icon/icon.html" import icon %}
 {% set sections = json("data/docs-nav.json").sections %}
 {% set title = "Components" %}
-{% set description = "Every component is a set of CSS classes, plus a small behaviour where one is needed. Pick one to see live examples and the full class reference." %}
+{% set description = "Every component, grouped by what it is for: forms, actions, navigation, overlays, feedback, layout, data, typography and chat. Each is a set of CSS classes, plus a small behaviour where one is needed." %}
 
 {% block content %}
-  <div class="not-prose grid gap-4 sm:grid-cols-2">
-    {% for group in sections %}
-      {% for item in group.items %}
-        {% if item.component %}
-          <a href="{{ item.href }}" class="card card-link group">
-            <div class="card-header pb-6">
-              <div class="flex items-center justify-between">
-                <h2 class="card-title">{{ item.title }}</h2>
-                <span class="text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary">{{ icon("arrow-right") }}</span>
-              </div>
-              <p class="card-description">{{ item.description }}</p>
-            </div>
-          </a>
-        {% endif %}
-      {% endfor %}
+  {% set categories = json("data/component-categories.json").categories %}
+  {% set components = [] %}
+  {% for group in sections %}{% for item in group.items %}{% if item.component %}{% set _ = components.push(item) %}{% endif %}{% endfor %}{% endfor %}
+  {# Category id -> its components, in docs-nav order #}
+  {% set grouped = components | groupby("category") %}
+
+  <p>{{ components | length }} components in {{ categories | length }} groups. Jump to one:</p>
+  <nav class="not-prose flex flex-wrap gap-2" aria-label="Component groups">
+    {% for category in categories %}
+      <a href="#{{ category.id }}" class="badge badge-outline gap-1.5 px-2.5 py-1 text-sm">
+        {{ category.title }} <span class="text-muted-foreground">{{ grouped[category.id] | length }}</span>
+      </a>
     {% endfor %}
-  </div>
+  </nav>
+
+  {% for category in categories %}
+    <h2 id="{{ category.id }}">{{ category.title }}</h2>
+    <p>{{ category.description }}</p>
+    <div class="not-prose grid gap-4 sm:grid-cols-2">
+      {% for item in grouped[category.id] %}
+        <a href="{{ item.href }}" class="card card-link group">
+          <div class="card-header pb-6">
+            <div class="flex items-center justify-between">
+              <h3 class="card-title">{{ item.title }}</h3>
+              <span class="text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:text-primary">{{ icon("arrow-right") }}</span>
+            </div>
+            <p class="card-description">{{ item.description }}</p>
+          </div>
+        </a>
+      {% endfor %}
+    </div>
+  {% endfor %}
 
   <h2 id="anatomy">Anatomy of a component</h2>
   <p>Each component has its own directory, <code>htmx-ui/components/&lt;name&gt;/</code> (<code>packages/ui/src/components/&lt;name&gt;/</code> in the repository), holding:</p>

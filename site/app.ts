@@ -1,11 +1,16 @@
 import "htmx.org"; // registers window.htmx
 import "./styles/app.css";
-import { initComponents } from "htmx-ui";
-import { initMarkdownCopy } from "./features/markdown-copy";
+import Autoplay from "embla-carousel-autoplay";
+import { initComponents, registerCarouselPlugin } from "htmx-ui";
 import { initTheme } from "htmx-ui/theme";
-import { initSearch } from "./features/search";
-import { initVersions } from "./features/versions";
+import { initMarkdownCopy } from "htmx-ui-plugin-docs/client";
+import { initSearch } from "htmx-ui-plugin-search/client";
+import { initVersions } from "htmx-ui-plugin-versions/client";
+import { initChatDemo } from "./features/chat-demo";
 import { initYear } from "./features/year";
+
+// Carousel plugins, by the name data-carousel-plugins uses (the carousel docs demo autoplay)
+registerCarouselPlugin("autoplay", Autoplay);
 
 function init(root: ParentNode = document) {
   initComponents(root);
@@ -14,6 +19,7 @@ function init(root: ParentNode = document) {
 document.addEventListener("DOMContentLoaded", () => {
   initTheme();
   initYear();
+  initChatDemo();
   initMarkdownCopy();
   initVersions();
   initSearch();
