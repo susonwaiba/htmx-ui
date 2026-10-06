@@ -18,7 +18,7 @@
   </div>
 
   <h2 id="breaking">Breaking changes</h2>
-  <p>Two changes need an edit in your config or your command line.</p>
+  <p>Three changes need an edit in your config, your command line or your sidebar markup.</p>
   <h3>templates is now roots</h3>
   <p>
     The two options are one, and <code>roots[0]</code> is the project root, which <code>templates</code> never moved.
@@ -44,6 +44,23 @@
     <code>package.json</code> scripts and lockfile.
   </p>
 
+  <h3>Sidebar is a composable app sidebar</h3>
+  <p>
+    The sidebar is rebuilt from parts: a layout, header, content, groups, menus, footer, rail and trigger, with variants,
+    collapsible modes and a mobile panel. Rename the old classes:
+  </p>
+  <ul>
+    <li><code>.sidebar-link</code> becomes <code>.sidebar-menu-button</code>, in a <code>&lt;li class="sidebar-menu-item"&gt;</code> of a <code>&lt;ul class="sidebar-menu"&gt;</code>.</li>
+    <li><code>.sidebar-label</code> becomes <code>.sidebar-group-label</code>.</li>
+    <li><code>.sidebar-backdrop</code> is gone: wrap the sidebar and its main area in <code>.sidebar-layout</code>, which draws the backdrop.</li>
+    <li><code>[data-sidebar-toggle]</code> becomes <code>[data-sidebar-trigger]</code>; <code>[data-sidebar-close]</code> is now for close buttons inside the panel.</li>
+  </ul>
+  <p>
+    For the old sticky column from <code>lg</code>, set <code>data-collapsible="none" data-breakpoint="lg"</code>,
+    <code>--sidebar-top: 3.5rem</code> and <code>--sidebar-width: 15rem</code>. See
+    <a href="/docs/components/sidebar">Sidebar</a> for the full upgrade table.
+  </p>
+
   <h2 id="added">Added</h2>
   <h3>Components</h3>
   <ul>
@@ -63,6 +80,140 @@
       <a href="/docs/components/switch">Switch</a>: an on/off setting that applies at once, drawn as a sliding track on
       a real checkbox, so it needs no JavaScript.
     </li>
+    <li>
+      <a href="/docs/components/dialog">Dialog</a>: a modal on the native <code>&lt;dialog&gt;</code>, opened with
+      invoker commands and closed by Escape, a click outside or any <code>[data-dialog-close]</code>. Scrolling content,
+      a sticky footer, dialogs over dialogs, and htmx support: a dialog a request returns opens itself, and
+      <code>HX-Trigger: dialog:close</code> closes one from the server.
+    </li>
+    <li>
+      <a href="/docs/components/alert-dialog">Alert dialog</a>: a dialog with <code>role="alertdialog"</code> that
+      waits for an answer, with a small size, media and destructive actions.
+    </li>
+    <li>
+      <a href="/docs/components/attachment">Attachment</a>: files, images, video and audio with upload states (and a
+      shimmer while in progress), three sizes, a vertical orientation and a scrolling, snapping group.
+    </li>
+    <li>
+      <a href="/docs/components/avatar">Avatar</a>: an image with a fallback, in sizes, with status badges, groups and
+      a count, and as a menu trigger.
+    </li>
+    <li>
+      <a href="/docs/components/breadcrumb">Breadcrumb</a>: custom separators, dropdowns, an ellipsis, and collapsing on
+      its own when it doesn't fit.
+    </li>
+    <li>
+      <a href="/docs/components/badge">Badge</a>: ghost and link variants, solid status badges, any colour with
+      <code>.badge-tone</code>, and hover and focus styles on badges that are links.
+    </li>
+    <li>
+      <a href="/docs/components/tooltip">Tooltip</a>: a short hint on hover or keyboard focus, on any side, shown by CSS
+      alone; a small behaviour adds <code>aria-describedby</code> and dismissing with <kbd class="kbd">Esc</kbd>.
+    </li>
+    <li>
+      <a href="/docs/components/label">Label</a>: <code>.label</code> for any control, around checkboxes, radios and
+      switches, or as a <code>.label-card</code> choice card. It works as <code>.field-label</code> inside a field.
+    </li>
+    <li>
+      <a href="/docs/components/separator">Separator</a>: a horizontal or vertical line, semantic or decorative.
+    </li>
+    <li>
+      <a href="/docs/components/collapsible">Collapsible</a>: a button anywhere inside shows and hides a panel; collapsibles
+      nest into file trees, and the same classes style <code>&lt;details&gt;</code> with no JavaScript.
+    </li>
+    <li>
+      <a href="/docs/components/combobox">Combobox</a>: an input with suggestions that filters as you type (ignoring case,
+      accents and word order, with keywords), groups and separators, auto highlight, multiple picks as chips, a clear
+      button, form states, a macro, and server-side search with htmx.
+    </li>
+    <li>
+      <a href="/docs/components/input-otp">Input OTP</a>: a one-time code in slots over one real input, so pasting, SMS
+      autofill and the phone's number pad just work; digit, alphanumeric or custom patterns, groups and separators,
+      masking, sizes and states.
+    </li>
+    <li>
+      <a href="/docs/components/kbd">Kbd</a>: keys and shortcuts with <code>.kbd</code> and <code>.kbd-group</code>, at
+      home in buttons, tooltips and input groups.
+    </li>
+    <li>
+      <a href="/docs/components/popover">Popover</a>: a header and footer, explicit start alignment, and
+      <code>data-popover-close</code> buttons for forms.
+    </li>
+    <li>
+      <a href="/docs/components/progress">Progress</a>: a styled native <code>&lt;progress&gt;</code> with a label, value and help text, sizes, colours, an indeterminate state and a <code>progress()</code> macro.
+    </li>
+    <li>
+      <a href="/docs/components/pagination">Pagination</a>: page links with previous and next, first and last, icon-only buttons for data tables, a responsive mode, and a <code>pagination()</code> macro that works out the page range with ellipses.
+    </li>
+    <li>
+      <a href="/docs/components/item">Item</a>: media, a title, a description and actions, in variants and sizes, with icons, avatars, images, headers, groups, whole-item links and dropdowns.
+    </li>
+    <li>
+      <a href="/docs/components/empty">Empty</a>: empty states with an icon or avatars, a message and actions, in outline and muted variants, with an <code>empty()</code> macro.
+    </li>
+    <li>
+      <a href="/docs/components/menubar">Menubar</a>: a persistent row of menus with roving focus, typeahead, submenus, checkbox and radio items, shortcuts and a vertical orientation.
+    </li>
+    <li>
+      <a href="/docs/components/navigation-menu">Navigation menu</a>: site navigation with links and triggers opening panels, from simple lists to mega menus, with hover delays and arrow keys.
+    </li>
+    <li>
+      <a href="/docs/components/hover-card">Hover card</a>: a preview of what is behind a link, on hover or keyboard focus, on any side and alignment, flipping at the viewport edge, and lazy-loadable with htmx.
+    </li>
+    <li>
+      <a href="/docs/components/sheet">Sheet</a>: a dialog attached to any edge of the screen, in sizes, with every dialog feature and a <code>sheet()</code> macro.
+    </li>
+    <li>
+      <a href="/docs/components/drawer">Drawer</a>: a panel you swipe away in any of four directions, with a drag handle, nested drawers that stack behind the frontmost, and a responsive dialog from <code>md</code>.
+    </li>
+    <li>
+      <a href="/docs/components/slider">Slider</a>: one value, a range or several thumbs on native range inputs, vertical too, with form states, sizes, <code>&lt;output&gt;</code> values and a <code>slider()</code> macro.
+    </li>
+    <li>
+      <a href="/docs/components/skeleton">Skeleton</a>: placeholders of any shape, text lines, pulse or shimmer, and macros for avatars, cards, lists, tables and forms.
+    </li>
+    <li>
+      <a href="/docs/components/toast">Toast</a>: stacking, swipeable notifications in five types with actions and promises, from script, markup, the <code>HX-Trigger</code> header or any htmx request.
+    </li>
+    <li>
+      <a href="/docs/components/command">Command</a>: a command menu with filtering, keyboard navigation, groups, shortcuts, a ⌘K dialog and server-side search.
+    </li>
+    <li>
+      <a href="/docs/components/carousel">Carousel</a>: Embla Carousel, loaded on demand, with item sizes, spacing, a vertical orientation, options and plugins.
+    </li>
+    <li>
+      <a href="/docs/components/message">Message</a>: chat messages with avatars, headers, footers, alignment, variants, groups and attachments, plus reasoning, tool calls and typing for AI chat.
+    </li>
+    <li>
+      <a href="/docs/components/loader">Loader</a>: eight pure-CSS loading indicators, from bouncing dots and waves to shimmering text, sized, timed and coloured with custom properties.
+    </li>
+    <li>
+      <a href="/docs/components/scroll-button">Scroll button</a>: a floating button that appears once the reader scrolls away from an edge, and jumps back to the bottom of a container or the top of the page.
+    </li>
+    <li>
+      <a href="/docs/components/reasoning">Reasoning</a>: a collapsible for AI reasoning that opens while it streams and closes, with how long it took, when the stream ends.
+    </li>
+    <li>
+      <a href="/docs/components/chain-of-thought">Chain of thought</a>: steps on a connecting line, each with a status and details that fold away, for reasoning traces, tool calls and logs.
+    </li>
+    <li>
+      <a href="/docs/components/prompt-input">Prompt input</a>: the text box of an AI chat: a growing textarea, tools, send and stop, and <code>@</code> mention and <code>/</code> command menus.
+    </li>
+    <li>
+      <a href="/docs/components/message-scroller">Message scroller</a>: scrolling for a streaming chat transcript: new questions rise to the top, replies grow beneath them, the reader\'s place survives layout changes and loaded history, and links jump to any message.
+    </li>
+    <li>
+      <a href="/docs/components/textarea">Textarea</a>: its own page, a character count, keyboard submit, sizes and states.
+    </li>
+    <li>
+      <a href="/docs/components/tabs">Tabs</a>: vertical tabs, disabled tabs, icons, and pill, outline and full-width styles.
+    </li>
+    <li>
+      <a href="/docs/components/dropdown">Dropdown</a>: checkbox and radio items, shortcuts, destructive items, submenus, typeahead, a <code>menu:change</code> event and form fields for named items.
+    </li>
+    <li>
+      <a href="/docs/components/sidebar">Sidebar</a>: variants, collapsing to icons with tooltips or off the screen, either side, Ctrl/⌘+B, a rail, a saved state in a cookie, a mobile panel and <code>--sidebar-*</code> tokens.
+    </li>
   </ul>
   <h3>Templates and data</h3>
   <ul>
@@ -77,8 +228,31 @@
       <code>asset()</code> &mdash; because resolution moved into a loader Nunjucks uses for every template load.
     </li>
     <li>
-      <a href="/docs/servers#static-and-dynamic">Deploying templates</a> a server renders at runtime: copy the roots
+      <a href="/docs/servers/deploying#static-and-dynamic">Deploying templates</a> a server renders at runtime: copy the roots
       next to <code>dist/</code> and point <code>roots</code> at the copy.
+    </li>
+  </ul>
+  <h3>Plugins</h3>
+  <ul>
+    <li>
+      <a href="/docs/plugins">Plugins</a>: optional features as separate packages, listed under <code>plugins</code> in
+      <code>htmx-ui.config.ts</code>. A plugin can add template roots, globals, filters, a transform, routes, a fetch
+      fallback, files written by the build and CLI commands; the project's own options always win. They work in
+      <code>htmx-ui dev</code>, builds, on Bun and Node, and behind every server adapter.
+    </li>
+    <li>
+      The first three, which this website's docs now run on: <a href="/docs/plugins/docs">htmx-ui-plugin-docs</a>
+      (heading anchors, Markdown for every page, llms.txt, sitemaps, <code>docsNav()</code> and page macros),
+      <a href="/docs/plugins/versions">htmx-ui-plugin-versions</a> (archived docs versions, the version switcher and
+      banner, <code>htmx-ui versions:name</code> and <code>htmx-ui versions:archive</code>) and
+      <a href="/docs/plugins/search">htmx-ui-plugin-search</a> (the Ctrl/⌘K palette). They release with the other
+      packages, at the same version.
+    </li>
+    <li>
+      <a href="/docs/plugins/writing">Writing a plugin</a>: <code>definePlugin()</code>, <code>editHtml()</code> (a
+      streaming HTML editor for transforms that runs on Bun and Node alike) and <code>contentType()</code> from
+      <code>htmx-ui-engine</code>, plugin commands listed by <code>htmx-ui --help</code>, and an <code>api</code> for
+      plugins that build on each other.
     </li>
   </ul>
   <h3>Engine</h3>
@@ -86,14 +260,30 @@
     <li>
       <a href="/docs/servers">Serving a site from your own backend</a>: <code>createSite()</code> is the framework-free
       core of the dev servers, wrapped by <code>htmx-ui-engine/elysia</code> (recommended),
-      <code>htmx-ui-engine/express</code> and <code>htmx-ui-engine/hono</code>. None of them imports its framework.
+      <code>htmx-ui-engine/fastify</code>, <code>htmx-ui-engine/koa</code>, <code>htmx-ui-engine/express</code> and
+      <code>htmx-ui-engine/hono</code>. None of them imports its framework. Elysia, Fastify and Koa answer only what
+      your own routes don't, whatever the order; Express and Hono are mounted last. Recipes cover
+      <a href="/docs/servers/bun">Bun.serve</a>, <a href="/docs/servers/other">Deno, node:http, h3 and NestJS</a>, and
+      <a href="/docs/servers/any-backend">backends in other languages</a>.
     </li>
     <li>
       <code>site.render()</code> renders a full page, <code>site.fragment()</code> renders any template as an htmx
       fragment, and <code>site.handle()</code> answers a request from config <code>routes</code>, the built
-      <code>dist/</code>, the config's <code>fetch</code>, the built 404, then returns <code>null</code> so your
-      framework can answer.
+      <code>dist/</code>, the config's <code>fetch</code>, then a <a href="/docs/servers#not-found">404 page</a>.
+      Outside production it renders a page from its template when nothing is built yet, with the
+      <code>context</code> you pass.
     </li>
+    <li>
+      A default 404 page: a project without <code>pages/404.html</code> gets htmx-ui's own, from the adapters,
+      <code>htmx-ui dev</code>, <code>htmx-ui preview</code> and as <code>dist/404.html</code> in every build. Add
+      <code>pages/404.html</code> to replace it.
+    </li>
+    <li>
+      Request bodies a framework's body parser already read (<code>express.urlencoded()</code>,
+      <code>express.json()</code>, Fastify's JSON parser, Koa body parsers) reach the config's <code>routes</code>
+      intact.
+    </li>
+    <li>Code blocks highlight <code>docker</code> and <code>nginx</code>.</li>
     <li>
       <code>render: true</code> in the config checks at startup that the template roots and pages directory arrived, so
       a packaging mistake fails the boot instead of the first request.
@@ -127,16 +317,43 @@
   <h2 id="changed">Changed</h2>
   <ul>
     <li>
+      Components animate with shared <a href="/docs/theming#motion">motion tokens</a>
+      (<code>--motion-duration-*</code>, <code>--motion-ease-*</code>), which collapse to <code>0s</code> for reduced
+      motion. Popovers, dropdown and menubar menus, select and combobox lists fade and zoom in from their trigger and
+      fade out, in CSS only; dialogs also rise slightly as they open.
+    </li>
+    <li>
       The dev watcher honours <code>.gitignore</code> and skips <code>node_modules</code>, <code>dist</code>,
       <code>public</code> and <code>.git</code> whatever the roots say, so a root of <code>.</code> no longer adds a
       file watcher for every directory in <code>node_modules</code>. The trade-off: a new file under one of those
       directories shows up on the next refresh rather than immediately.
     </li>
     <li>The dev server watches the roots you configured, so a template that moved is still watched.</li>
+    <li>
+      Dropdown items no longer spread their content apart: content is left-aligned and trailing badges, shortcuts and
+      icons are pushed right. Hovering an item focuses it, and choosing one returns focus to the trigger.
+    </li>
+    <li>
+      <code>.tabs</code> is styled: a column with a gap between the list and the panels (side by side when vertical),
+      in place of the margin on <code>.tabs-panel</code>.
+    </li>
+    <li>
+      <code>data-dialog-remove</code> waits for the dialog's own transition before removing it, so sheets and drawers
+      finish sliding out.
+    </li>
   </ul>
 
   <h2 id="fixed">Fixed</h2>
   <ul>
+    <li>Links in a <code>.field-description</code> are underlined again; the minified build dropped the underline.</li>
+    <li>
+      <code>htmx-ui build</code> on Bun prints the bundler's own errors, such as an import that doesn't resolve,
+      instead of only "Bundle failed".
+    </li>
+    <li>
+      Icons in a <a href="/docs/components/badge">badge</a> are badge-sized again; the <code>size-4</code> class
+      <code>icon()</code> adds used to win over the badge's own icon size.
+    </li>
     <li>
       <code>assetVer()</code>'s <code>?ver=</code> can no longer break a build or be dropped by the bundler. Neither Bun
       nor Vite can resolve an asset URL carrying a query string, so the version is parked in a <code>data-ver</code>

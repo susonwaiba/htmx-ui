@@ -5,7 +5,7 @@ description: Write and edit this project's Nunjucks HTML templates — pages in 
 
 # Nunjucks templates in htmx-ui
 
-Every page is rendered by Nunjucks first (htmx-ui-engine: the Bun plugin `packages/engine/src/bun/plugin.ts` → `renderPage()` in `packages/engine/src/core/config.ts` → `render()` in `packages/engine/src/core/render.ts`), then handed to Bun's HTML bundler, then to Tailwind. The site's render settings (origin, heading anchors) are in `site/lib/engine.ts`. Rendering happens **at build time only** — there is no runtime templating, no request data, and htmx fragments from `site/server/api.ts` are plain strings, not templates.
+Every page is rendered by Nunjucks first (htmx-ui-engine: the Bun plugin `packages/engine/src/bun/plugin.ts` → `renderPage()` in `packages/engine/src/core/config.ts` → `render()` in `packages/engine/src/core/render.ts`), then handed to Bun's HTML bundler, then to Tailwind. The site's render settings are its config, `site/htmx-ui.config.ts`, including its plugins (htmx-ui-plugin-docs adds heading anchors and `docsNav()`; htmx-ui-plugin-versions adds `docsVersions()`); `site/lib/engine.ts` resolves it for tests. Rendering happens **at build time only** — there is no runtime templating, no request data, and htmx fragments from `site/server/api.ts` are plain strings, not templates.
 
 Upstream syntax reference (Jinja2-like): https://mozilla.github.io/nunjucks/templating.html
 
@@ -13,7 +13,7 @@ Upstream syntax reference (Jinja2-like): https://mozilla.github.io/nunjucks/temp
 
 | Setting | Consequence |
 | :--- | :--- |
-| Roots: `site/` (default `roots: ["."]`), then htmx-ui's `src/` (`packages/ui/src`) | Names are root-relative; first match wins. `"layouts/docs.html"`, `"partials/header.html"` and `"macros/docs.html"` come from `site/`; `"components/icon/icon.html"` from the package. Don't write `"../layouts/docs.html"`. A root may carry a `name` (`{ name: "layouts", dir: "..." }`), which is the prefix templates reach it by; this site uses plain directories, so names are for projects that move a directory without moving its references. Resolution goes through `tryLocate()` in `core/render.ts` via `RootsLoader`, so a name works in `extends`/`include`/`import`/`from`, `json()`, `svg()`, `glob()` and `asset()` alike. |
+| Roots: `site/` (default `roots: ["."]`), then each plugin's `src/templates/`, then htmx-ui's `src/` (`packages/ui/src`) | Names are root-relative; first match wins. `"layouts/docs.html"` and `"partials/header.html"` come from `site/`; `"docs/macros.html"`, `"versions/macros.html"` and `"search/macros.html"` from the plugins (`packages/plugin-*/src/templates/`); `"components/icon/icon.html"` from the package. Don't write `"../layouts/docs.html"`. A root may carry a `name` (`{ name: "layouts", dir: "..." }`), which is the prefix templates reach it by; this site uses plain directories, so names are for projects that move a directory without moving its references. Resolution goes through `tryLocate()` in `core/render.ts` via `RootsLoader`, so a name works in `extends`/`include`/`import`/`from`, `json()`, `svg()`, `glob()` and `asset()` alike. |
 | `throwOnUndefined: true` | Outputting an undefined value fails the build (see the guards below). |
 | `autoescape: true` | `{{ value }}` is HTML-escaped. Use `| safe` only for markup you wrote. |
 | `trimBlocks` + `lstripBlocks` | A line holding only a `{% tag %}` disappears entirely, so indent tags freely. |
@@ -37,7 +37,7 @@ A page is `site/pages/<route>.html` (nested folders map to nested routes; `docs/
 
 ```jinja
 {% extends "layouts/docs.html" %}
-{% from "macros/docs.html" import demo, classes %}
+{% from "docs/macros.html" import demo, classes %}
 {% set title = "Button" %}
 {% set description = "Triggers an action or an htmx request." %}
 
@@ -48,8 +48,8 @@ A page is `site/pages/<route>.html` (nested folders map to nested routes; `docs/
 
 - A docs page must also be listed in `site/data/docs-nav.json`. That list drives the sidebar, the active link, the section label, prev/next, and page order in `llms.txt`/`sitemap.json`. Component pages get `component: true` so they appear on the components index.
 - Docs h2/h3 get an id and a `#` link automatically at build time, except headings inside links, `not-prose` component markup, demos and `data-md-skip` blocks (card titles are not sections); only write `id="…"` yourself to pin a link target that must survive rewording. Search results and shared links use these ids.
-- Every docs page is also published as Markdown (`<url>.md`) for AI agents, converted from the rendered article (`site/lib/markdown.ts`). Write examples whose source is a complete spec. `demo()` output becomes just its code; mark purely visual blocks `data-md-skip`.
-- Docs helpers in `macros/docs.html`: `demo(class="", source=true)` renders the call body as a live preview with its escaped source underneath. `classes(rows)` renders a `[name, description]` reference table.
+- Every docs page is also published as Markdown (`<url>.md`) for AI agents, converted from the rendered article (htmx-ui-plugin-docs, `packages/plugin-docs/src/markdown.ts`). Write examples whose source is a complete spec. `demo()` output becomes just its code; mark purely visual blocks `data-md-skip`.
+- Docs helpers in `docs/macros.html` (htmx-ui-plugin-docs): `demo(class="", source=true)` renders the call body as a live preview with its escaped source underneath. `classes(rows)` renders a `[name, description]` reference table.
 - The docs `content` block sits inside `.prose` (`@tailwindcss/typography`, mapped to the tokens), so plain `h2`/`p`/`ul`/`code`/`a` are styled with no classes. Add `not-prose` to components and custom blocks (card grids, tables) so prose doesn't restyle them. `demo()`, `classes()`, `code` and `alert` already do.
 - `.prose` nested *inside* a `not-prose` element gets no styles (the plugin skips everything under `not-prose`). A page that demos prose itself sets `{% set prose = false %}`, wraps its own text sections in `<div class="prose docs-prose max-w-none">`, and uses `demo(..., isolate=false)` for prose previews (see the Text page).
 - In a child template, **anything outside a `{% block %}` is silently dropped**. A top-level `{% set %}` still runs, though, and the layout and its includes can read it. Use this for page-level flags such as `active` or `description`.
@@ -157,7 +157,7 @@ Don't use `asyncEach`/`asyncAll`. Rendering is synchronous.
 
 - Don't put Nunjucks syntax in strings returned by `site/server/api.ts`. Those aren't rendered.
 - Don't let templates read secrets or environment data. Everything rendered ends up in static `dist/`.
-- Don't add custom filters or globals inline in templates. For the site, add them to `globals`/`filters` in `site/lib/engine.ts`; for every engine user, register them in `env()` in `packages/engine/src/core/render.ts` and add a test in `render.test.ts` beside it.
+- Don't add custom filters or globals inline in templates. For the site, add them to `globals`/`filters` in `site/htmx-ui.config.ts` (or ship them in a plugin's `globals`); for every engine user, register them in `env()` in `packages/engine/src/core/render.ts` and add a test in `render.test.ts` beside it.
 
 ## Verify
 

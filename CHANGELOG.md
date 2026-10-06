@@ -1,7 +1,7 @@
 # Changelog
 
-All notable changes to htmx-ui, htmx-ui-engine and create-htmx-ui are listed here. The three packages are
-released together with one version. Versions follow [semantic versioning](https://semver.org); before 1.0, minor
+All notable changes to htmx-ui, htmx-ui-engine, the official plugins (htmx-ui-plugin-docs, -versions, -search) and
+create-htmx-ui are listed here. The packages are released together with one version. Versions follow [semantic versioning](https://semver.org); before 1.0, minor
 versions may contain breaking changes, each listed with migration notes.
 The docs site has a fuller page per release (`/docs/changelog`).
 
@@ -27,12 +27,114 @@ The docs site has a fuller page per release (`/docs/changelog`).
   behaviour. `bun create htmx-ui` already ran Bun, so this mostly changes what the scaffolder *writes* into a new
   project's `package.json` scripts and lockfile.
 
+- **Sidebar is now a composable app sidebar** (header, content, groups, menus, footer, rail, trigger; variants,
+  collapsible modes, a mobile panel). The old classes and attributes are renamed:
+
+  | 0.1 | 0.2 |
+  | :--- | :--- |
+  | `.sidebar-link` | `.sidebar-menu-button`, in a `<li class="sidebar-menu-item">` of a `<ul class="sidebar-menu">` |
+  | `.sidebar-label` | `.sidebar-group-label` |
+  | `.sidebar-backdrop` | removed: wrap the sidebar and its main area in `.sidebar-layout`, which draws the backdrop |
+  | `[data-sidebar-toggle]` | `[data-sidebar-trigger]` |
+  | `[data-sidebar-close]` | unchanged, but for close buttons inside the panel (not the backdrop) |
+
+  `.sidebar-group` now has padding and no margin between groups (put groups in `.sidebar-content` and set its gap).
+  `.sidebar` is no longer a fixed sticky 240px column from `lg`: for the old layout use
+  `data-collapsible="none" data-breakpoint="lg"` with `--sidebar-top: 3.5rem` and `--sidebar-width: 15rem`, as the docs
+  layout does. The default mobile breakpoint is `md`. The [sidebar page](https://susonwaiba.github.io/htmx-ui/docs/components/sidebar)
+  has the full upgrade table.
+
 ### Added
 
+- **Plugins** (`plugins` in `htmx-ui.config.ts`): optional features as separate packages. A plugin can add template
+  roots (searched after the project's, before htmx-ui's), globals, filters, a transform, routes, a fetch fallback, a
+  `build.done` hook and CLI commands (`htmx-ui <name>`, listed by `htmx-ui --help`); the project's own options always
+  win. Plugins work in dev, builds, on Bun and Node and behind every server adapter, because they are merged into the
+  config once, in `resolveConfig()`. `htmx-ui-engine` exports `definePlugin()`, `editHtml()` (a streaming HTML editor
+  for transforms, on both runtimes) and `contentType()` for writing them.
+- **The first three plugins**, new packages released with the others: `htmx-ui-plugin-docs` (heading anchors,
+  Markdown for every docs page, llms.txt, sitemaps, `docsNav()`, `demo()`/`classes()`/`markdown_actions()`),
+  `htmx-ui-plugin-versions` (archived docs versions, the switcher and banner, `htmx-ui versions:name` and
+  `htmx-ui versions:archive`) and `htmx-ui-plugin-search` (the Ctrl/⌘K palette). The docs site runs on them.
 - **Components:** checkbox (a native checkbox styled with tokens, sizes and every field state), radio-group (native
   radios as cards or inline rows, submitting with the form), select (a listbox in a popup opened from a button,
   searchable and keyboard driven, with a no-JS fallback to the native `<select>`), and switch (an on/off setting that
   applies immediately, drawn as a sliding track on a real checkbox).
+- **More components:** dialog (a modal on the native `<dialog>`: opened with invoker commands, closed by Escape, a
+  click outside or any `[data-dialog-close]`, with scrolling content, a sticky footer, stacking over another dialog,
+  and htmx support: `data-dialog-show` / `data-dialog-remove` for dialogs a request returns, and `HX-Trigger:
+  dialog:close` to close one from the server), alert dialog (`role="alertdialog"` on a dialog: no light dismiss, a
+  small size, media and destructive actions), attachment (file, image, video and audio attachments with upload
+  states, three sizes, vertical orientation and a scrolling, snapping group), avatar (image with a fallback that
+  shows if it fails to load, sizes, status badges, groups with a count) and breadcrumb (custom separators,
+  dropdowns, an ellipsis, and collapsing on its own when it doesn't fit).
+- **Even more components:** tooltip (shown by CSS on hover and keyboard focus, on any side, with Escape to dismiss and
+  `aria-describedby` wired by a small behaviour), label (`.label` for any control, wrapping checkboxes, radios and
+  switches, and `.label-card` choice cards; it works as `.field-label` inside a field), separator (horizontal or
+  vertical, semantic or decorative), collapsible (a button anywhere inside toggles a panel; nests into file trees, and
+  styles `<details>` for no-JS use), combobox (an input with suggestions: accent- and order-insensitive filtering,
+  keywords, groups with separators, auto highlight, multiple picks as chips, a clear button, form states, a macro, and
+  server-side search with htmx), input OTP (one real input under the slots, so paste, SMS autofill and mobile keyboards
+  work; digit, alphanumeric or custom patterns, groups, masking, sizes and states, a macro and an `input-otp:complete`
+  event) and kbd (`.kbd` and `.kbd-group`, moved out of the text styles, adapting to buttons, tooltips and input
+  groups).
+- **New components:** progress (a styled native `<progress>` with label, value, help text, sizes, colours, an
+  indeterminate state and a `progress()` macro), pagination (page links, previous/next, first/last, icon-only for data
+  tables, a responsive mode, and a `pagination()` macro that computes the page range with ellipses), item (media, title,
+  description and actions in variants and sizes, with icons, avatars, images, headers, groups, whole-item links and
+  dropdowns), empty (empty states with media, outline and muted variants, and an `empty()` macro), menubar (the ARIA
+  menubar pattern with roving focus, typeahead, submenus, checkbox and radio items, shortcuts and a vertical
+  orientation), navigation menu (the disclosure navigation pattern: links and triggers opening panels, from lists to
+  mega menus, with hover delays and arrow keys), hover card (a preview on hover or keyboard focus, on any side and
+  alignment, in three widths, flipping at the viewport edge, with `hover-card:open` for lazy loading), sheet (a dialog
+  attached to any edge, in sizes, with a `sheet()` macro) and drawer (swipe to dismiss in four directions, a drag
+  handle, handle-only dragging, nested drawers stacking behind the frontmost, and a responsive dialog from `md`).
+- **Components for apps and chat:** slider (one value, a range or any number of thumbs on native range inputs, so it
+  submits and takes the keyboard with no JavaScript; thumbs that can't cross, an optional gap, a press on the track
+  moving the nearest thumb, `<output for>` values, a vertical orientation, form states, sizes and a `slider()` macro),
+  skeleton (any shape from utilities, text lines that follow the font size, avatar/button/input/badge/image shapes,
+  pulse or shimmer, and macros for text, avatars, cards, lists, tables and forms), toast (stacking, Sonner-style
+  notifications: success, info, warning, error and loading types, actions and cancel buttons, `toast.promise()`,
+  updates by id, swipe to dismiss, a stack that fans out on hover and pauses its timers, six positions, rich colours;
+  from script with `toast()`, from markup with `data-toast`, from the server with `HX-Trigger: {"toast": …}`, and
+  loading-to-outcome toasts for any htmx request with `data-toast-loading`), command (a command menu filtered as you
+  type, with groups, icons, separators, shortcuts, `aria-activedescendant`, a scrolling list, a ⌘K-style dialog with
+  `data-command-hotkey`, item hotkeys, a `command:select` event and server-side search), carousel (on Embla Carousel,
+  loaded on demand: item sizes, spacing, vertical orientation, prev/next and dots, Embla options and plugins from
+  data attributes, `registerCarouselPlugin()` and `getCarousel()`) and message (chat messages with avatar, header,
+  footer, start/end alignment, five variants, groups for consecutive messages, attachments, and reasoning, tool-call
+  and typing parts for AI chat).
+- **Components for AI chat:** loader (eight pure-CSS indicators: pulse, pulse dot, dots, typing, wave, text blink,
+  text shimmer and loading dots, tuned with `--loader-size`, `--loader-duration`, `--loader-color` and
+  `--loader-spread`, and a `loader()` macro), scroll button (a floating button that appears away from an edge of a
+  container or the page and jumps back to the bottom or the top), reasoning (a `<details>` that opens while
+  `data-streaming` is set and closes, with "Thought for N seconds", when it ends, unless the reader toggled it),
+  chain of thought (steps on a connecting line, each with a status and details that fold away), prompt input (a
+  growing textarea in one box with tools, send and stop driven by htmx request events, and `@` mention and `/` command
+  menus from markup or the server) and message scroller (scrolling for a streaming chat transcript: a sent question rises to near the top and the
+  reply grows into the room below it; the view follows the reply only from the bottom, holds the reader's place when
+  content above changes or history loads, opens at the last question, jumps to linked messages and announces finished
+  replies once).
+- **Textarea** has its own page and directory: a character count against `maxlength`, Ctrl/⌘+Enter (or Enter) to
+  submit, growing in browsers without `field-sizing`, `.textarea-fixed`, `.textarea-sm` / `-lg`, and
+  `.textarea-warning` / `.textarea-success`.
+- **Tabs:** `data-orientation="vertical"` (Up/Down keys, `aria-orientation`), disabled tabs that the keyboard skips,
+  `.tabs-pills`, `.tabs-outline` and `.tabs-full`, and icon tabs.
+- **Exports:** `toast` and its types, `registerCarouselPlugin`, `getCarousel`, `matchesHotkey`, `commandMatches`,
+  `getMessageScroller`, `scrollToEdge`, `distanceFromEdge` and `scrollTargetOf` from `htmx-ui`. htmx-ui now depends on `embla-carousel`.
+- **Dropdown:** checkbox and radio items (`role="menuitemcheckbox"` / `"menuitemradio"`), groups,
+  `.dropdown-item-inset`, `.dropdown-shortcut`, `.dropdown-item-destructive`, submenus (`.dropdown-sub`) that flip at the
+  viewport edge, typeahead, `data-keep-open`, a `menu:change` event, and hidden form fields for named checkbox and radio
+  items, so a surrounding form submits them. Dropdowns and menubars share one menu engine.
+- **Sidebar:** `data-variant` (sidebar, floating, inset), `data-collapsible` (offcanvas, icon with tooltips, none),
+  `data-side`, the Ctrl/⌘+B shortcut, a rail, an opt-in cookie (`data-cookie`) so a server can render the saved state,
+  an off-canvas mobile panel below a configurable breakpoint, badges, actions, sub-menus, skeletons, and
+  `--sidebar-*` theme tokens.
+- **Popover:** `.popover-header` and `.popover-footer`, `.popover-content-start` for explicit alignment, and
+  `[data-popover-close]` buttons that close the panel and return focus to the trigger (forms in a popover).
+- **Icons:** `chevrons-up-down`, `command`, `folder`, `folder-open` and `settings`.
+- **Badge:** `.badge-ghost` and `.badge-link` variants, `.badge-solid` for filled status badges, `.badge-tone` with
+  `--badge-tone` for any colour, and hover and focus styles on badges that are links or buttons.
 - **`roots` in `htmx-ui.config.ts`:** an ordered list of template directories, each optionally named. The first entry is
   the project root (it decides `pages`, `outDir`, `publicDir` and `asset()` URLs); the rest are extra places to look. A
   `name` is the prefix templates reach that directory by, so a directory can move without a single template changing:
@@ -68,14 +170,30 @@ The docs site has a fuller page per release (`/docs/changelog`).
 
 ### Changed
 
+- **Motion tokens and animated panels.** Components animate with shared `--motion-duration-*` and `--motion-ease-*`
+  tokens (see `/docs/theming#motion`), which collapse to `0s` for `prefers-reduced-motion`. Popovers, dropdown and
+  menubar menus, select and combobox lists now fade and zoom in from their trigger and fade out (CSS only:
+  `@starting-style` and `display` transitions); dialogs also rise slightly as they open. Tooltips, hover cards, the
+  navigation menu, sheets and drawers use the tokens in place of fixed timings.
 - **The dev watcher honours `.gitignore`** and skips `node_modules`, `dist`, `public` and `.git` whatever the roots say,
   so a root of `.` no longer adds a file watcher for every directory in `node_modules`. The trade-off: a new file under
   one of those directories shows up on the next refresh rather than immediately.
 - **`bun run version:set <x.y.z>`** names the docs version in development, dates it, and sets all three package versions
   at once, so a release cannot leave them out of step.
 
+- **Dropdown items** no longer spread their content apart (`justify-between`): content is left-aligned and trailing
+  badges, shortcuts and icons are pushed right. Hovering an item focuses it, choosing one returns focus to the trigger,
+  and Enter or Space on the trigger opens the menu on its first item.
+- **`.tabs` is styled:** the wrapper is a column with a gap between the list and the panels (side by side when
+  vertical), in place of the margin on `.tabs-panel`. A list and panels without the `.tabs` wrapper keep the margin.
+- **`data-dialog-remove`** waits for the dialog's own transition before removing it, instead of a fixed 200ms, so
+  sheets and drawers finish sliding out.
+
 ### Fixed
 
+- `htmx-ui build` on Bun prints the bundler's errors (an unresolved import, say) instead of only "Bundle failed".
+- **Icons in a badge are badge-sized** (0.75rem). The `size-4` class `icon()` puts on every icon used to win over the
+  badge's own icon size.
 - **`assetVer()`'s `?ver=` can no longer break a build** or be dropped by the bundler. Neither Bun nor Vite can resolve
   an asset URL with a query string, so the version is parked in a `data-ver` attribute before the bundler sees the page
   and moved onto the finished URL after it.
@@ -84,6 +202,7 @@ The docs site has a fuller page per release (`/docs/changelog`).
 - **A field whose label sits in `.field-content`** — what a switch or a radio group produces — now marks an invalid
   field the same way a top-level label does, instead of losing the danger colour.
 - **The dev server watches template roots**, not a hardcoded list, so a template that moved is still watched.
+- **Links in a `.field-description` are underlined** again: the minified build dropped `[&_a]:underline` inside `@apply`.
 
 ## 0.1.0 — 2026-10-02
 

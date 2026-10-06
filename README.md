@@ -140,19 +140,28 @@ Override the tokens; every component follows.
 
 ## Packages
 
-All three release together, one version.
+All of them release together, one version.
 
 | Package | |
 | :--- | :--- |
 | [`htmx-ui`](https://www.npmjs.com/package/htmx-ui) ([source](packages/ui)) | The component library: CSS classes, design tokens, dark mode, and small behaviours that work inside htmx swaps |
 | [`htmx-ui-engine`](https://www.npmjs.com/package/htmx-ui-engine) ([source](packages/engine)) | `htmx-ui dev` / `build` / `preview`: Nunjucks pages, file-based routing, Tailwind, HMR, mock htmx endpoints. Runs on Bun or Node (Vite) |
+| [`htmx-ui-plugin-docs`](https://www.npmjs.com/package/htmx-ui-plugin-docs) ([source](packages/plugin-docs)) | Optional engine plugin: heading anchors, Markdown for every docs page, llms.txt, sitemaps, docs navigation |
+| [`htmx-ui-plugin-versions`](https://www.npmjs.com/package/htmx-ui-plugin-versions) ([source](packages/plugin-versions)) | Optional engine plugin: older releases' docs as frozen builds, a version switcher, `versions:name` / `versions:archive` |
+| [`htmx-ui-plugin-search`](https://www.npmjs.com/package/htmx-ui-plugin-search) ([source](packages/plugin-search)) | Optional engine plugin: a Ctrl/⌘K command palette over every page and section |
 | [`create-htmx-ui`](https://www.npmjs.com/package/create-htmx-ui) ([source](packages/create-htmx-ui)) | The scaffolder behind `create htmx-ui` |
+
+Plugins are listed in `htmx-ui.config.ts` (`plugins: [docs(), search()]`); a site that doesn't need one doesn't
+install it. The docs site (`/docs/plugins`) covers using them and writing your own.
 
 ## Components
 
-`accordion` · `alert` · `badge` · `button` · `button-group` · `card` · `code` · `dismissible` · `dropdown` ·
-`field` · `icon` · `input` · `input-group` · `popover` · `sidebar` · `spinner` · `table` · `tabs` · `text` ·
-`toggle` · `toggle-group`
+`accordion` · `alert` · `attachment` · `avatar` · `badge` · `breadcrumb` · `button` · `button-group` · `card` ·
+`carousel` · `checkbox` · `code` · `collapsible` · `combobox` · `command` · `dialog` · `dismissible` ·
+`drawer` · `dropdown` · `empty` · `field` · `hover-card` · `icon` · `input` · `input-group` · `input-otp` ·
+`item` · `kbd` · `label` · `menubar` · `message` · `navigation-menu` · `pagination` · `popover` · `progress` ·
+`radio-group` · `select` · `separator` · `sheet` · `sidebar` · `skeleton` · `slider` · `spinner` · `switch` ·
+`table` · `tabs` · `text` · `textarea` · `toast` · `toggle` · `toggle-group` · `tooltip`
 
 Each one is a directory in [`packages/ui/src/components`](packages/ui/src/components): a `.css` file, an
 optional `.ts` behaviour and a Nunjucks macro. Documented with live examples on the docs site — and every page
