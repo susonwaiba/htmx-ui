@@ -1,0 +1,138 @@
+/* A panel that slides in from an edge of the screen, on the native <dialog> element. The
+   behaviour is the dialog's (data-dialog): see dialog.css and dialog.ts.
+
+   <button class="btn btn-outline" commandfor="settings" command="show-modal">Open</button>
+   <dialog id="settings" class="sheet" data-dialog aria-labelledby="settings-title">   right edge
+     <div class="sheet-header">
+       <h2 class="sheet-title" id="settings-title">Settings</h2>
+       <p class="sheet-description">…</p>
+     </div>
+     <div class="sheet-content">…</div>                    optional; scrolls on its own
+     <div class="sheet-footer">
+       <button class="btn btn-outline" data-dialog-close>Cancel</button>
+       <button class="btn btn-primary">Save</button>
+     </div>
+     <button class="sheet-close" data-dialog-close aria-label="Close">{{ icon("x") }}</button>   optional
+   </dialog>
+
+   Sides: .sheet-right (the default), .sheet-left, .sheet-top, .sheet-bottom.
+   Widths of left and right sheets: .sheet-sm, .sheet-lg, .sheet-xl, or any max-w-* utility. */
+@layer components {
+  .sheet {
+    /* fixed, not the UA's absolute: it must stay put while it slides out after close() */
+    @apply fixed inset-y-0 right-0 left-auto m-0 h-dvh max-h-none w-3/4 max-w-sm flex-col gap-4 overflow-y-auto
+      overscroll-contain border-l border-border bg-surface p-6 text-sm text-foreground shadow-lg outline-none;
+    --sheet-from: 100% 0;
+  }
+  .sheet[open] {
+    @apply flex;
+  }
+  .sheet::backdrop {
+    @apply bg-black/50;
+  }
+
+  /* Sides. :where() keeps them at the specificity of .sheet, so size classes and utilities
+     still win. */
+  .sheet:where(.sheet-left) {
+    @apply right-auto left-0 border-r border-l-0;
+    --sheet-from: -100% 0;
+  }
+  .sheet:where(.sheet-top, .sheet-bottom) {
+    @apply inset-x-0 h-auto max-h-[calc(100dvh-2rem)] w-full max-w-none border-l-0;
+  }
+  .sheet:where(.sheet-top) {
+    @apply top-0 bottom-auto border-b;
+    --sheet-from: 0 -100%;
+  }
+  .sheet:where(.sheet-bottom) {
+    @apply top-auto bottom-0 border-t;
+    --sheet-from: 0 100%;
+  }
+
+  /* Slide in from the edge and back out. Closing keeps the sheet (and its backdrop) in the
+     top layer until the transition ends; @starting-style is where opening starts from. */
+  .sheet,
+  .sheet::backdrop {
+    transition:
+      translate var(--motion-duration-slow) var(--motion-ease-drawer),
+      opacity var(--motion-duration-slow) var(--motion-ease-drawer),
+      overlay var(--motion-duration-slow) allow-discrete,
+      display var(--motion-duration-slow) allow-discrete;
+  }
+  .sheet {
+    translate: var(--sheet-from);
+  }
+  .sheet[open] {
+    translate: 0 0;
+  }
+  .sheet::backdrop {
+    opacity: 0;
+  }
+  .sheet[open]::backdrop {
+    opacity: 1;
+  }
+  @starting-style {
+    .sheet[open] {
+      translate: var(--sheet-from);
+    }
+    .sheet[open]::backdrop {
+      opacity: 0;
+    }
+  }
+
+  /* The page behind an open sheet doesn't scroll. */
+  html:has(.sheet[open]:modal) {
+    @apply overflow-hidden;
+  }
+
+  .sheet-header {
+    @apply flex shrink-0 flex-col gap-1.5;
+  }
+  .sheet-title {
+    @apply text-lg leading-none font-semibold tracking-tight;
+  }
+  .sheet-description {
+    @apply text-muted-foreground;
+  }
+  /* The body. It takes the room the header and footer leave and scrolls on its own, so they
+     stay in view; its scrollbar sits at the sheet's edge. */
+  .sheet-content {
+    @apply -mx-6 min-h-0 flex-1 overflow-y-auto overscroll-contain px-6;
+  }
+  /* Actions at the bottom: stacked (the last one on top), a right-aligned row in top and
+     bottom sheets from sm. */
+  .sheet-footer {
+    @apply mt-auto flex shrink-0 flex-col-reverse gap-2;
+  }
+  .sheet:where(.sheet-top, .sheet-bottom) .sheet-footer {
+    @apply sm:flex-row sm:justify-end;
+  }
+  /* A footer set apart from the scrolling content: tinted, edge to edge, a border on top. */
+  .sheet-footer-sticky {
+    @apply -mx-6 -mb-6 border-t border-border bg-muted/50 px-6 py-4;
+  }
+  /* The corner close button. Leave it out to close with Escape, a click outside or a button of
+     your own. */
+  .sheet-close {
+    @apply absolute top-4 right-4 inline-flex size-7 cursor-pointer items-center justify-center rounded-md
+      text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-2
+      focus-visible:outline-ring [&_svg]:size-4;
+  }
+  .sheet:has(> .sheet-close) .sheet-header {
+    @apply pr-8;
+  }
+
+  /* Widths of left and right sheets (default max-w-sm). */
+  .sheet-sm {
+    @apply max-w-xs;
+  }
+  .sheet-lg {
+    @apply max-w-lg;
+  }
+  .sheet-xl {
+    @apply max-w-2xl;
+  }
+  .sheet:where(.sheet-top, .sheet-bottom):where(.sheet-sm, .sheet-lg, .sheet-xl) {
+    @apply max-w-none;
+  }
+}

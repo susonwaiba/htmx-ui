@@ -1,0 +1,216 @@
+/* A panel attached to an edge of the screen that can be swiped away, on the native <dialog>.
+   data-dialog gives it the dialog's behaviour (opening, closing, light dismiss: dialog.ts);
+   data-drawer adds swiping and nested drawers (drawer.ts).
+
+   <button class="btn btn-outline" commandfor="goal" command="show-modal">Open</button>
+   <dialog id="goal" class="drawer" data-dialog data-drawer data-swipe-direction="down" aria-labelledby="goal-title">
+     <div class="drawer-handle"></div>                     optional; a bar on the free edge
+     <div class="drawer-header">
+       <h2 class="drawer-title" id="goal-title">Move goal</h2>
+       <p class="drawer-description">…</p>
+     </div>
+     <div class="drawer-content">…</div>                  optional; scrolls on its own
+     <div class="drawer-footer">
+       <button class="btn btn-outline" data-dialog-close>Cancel</button>
+       <button class="btn btn-primary">Submit</button>
+     </div>
+   </dialog>
+
+   data-swipe-direction: the way a swipe dismisses it, which is also the edge it sits on:
+   down (default, bottom edge), up (top), right (right edge), left (left edge).
+   data-drawer-handle-only: only the handle starts a drag.
+   .drawer-responsive: a centred dialog, with no swiping, from the md breakpoint up.
+
+   Set by drawer.ts while it runs: [data-swiping], --drawer-swipe-movement (px towards
+   dismissal), --drawer-swipe-progress (0-1), and on stacked drawers --nested-drawers (how many
+   are open in front of it), [data-nested-drawer-open] (one is) and [data-drawer-nested] (it
+   was opened over another drawer). --drawer-swipe: none (CSS) turns swiping off. */
+@layer components {
+  .drawer {
+    /* fixed, not the UA's absolute: it must stay put while it slides out after close() */
+    @apply fixed inset-x-0 top-auto bottom-0 m-0 h-auto max-h-[80dvh] w-full max-w-none flex-col gap-4
+      overflow-y-auto overscroll-contain border-border bg-surface p-4 text-sm text-foreground shadow-lg outline-none;
+    border-width: 1px 0 0;
+    border-radius: calc(var(--radius) + 4px) calc(var(--radius) + 4px) 0 0;
+    /* The direction a swipe dismisses it, as a unit vector */
+    --drawer-x: 0;
+    --drawer-y: 1;
+    --drawer-duration: var(--motion-duration-slower);
+    --drawer-closed-scale: 1;
+    --drawer-closed-opacity: 1;
+  }
+  .drawer[open] {
+    @apply flex;
+  }
+  .drawer::backdrop {
+    @apply bg-black/50;
+  }
+  /* A drawer opened over another: the one behind is already dimmed by the first backdrop. */
+  .drawer[data-drawer-nested]::backdrop {
+    @apply bg-black/20;
+  }
+
+  /* Edges. :where() keeps these at the specificity of .drawer, so utilities still win. */
+  .drawer:where([data-swipe-direction="up"]) {
+    @apply top-0 bottom-auto;
+    border-width: 0 0 1px;
+    border-radius: 0 0 calc(var(--radius) + 4px) calc(var(--radius) + 4px);
+    --drawer-y: -1;
+  }
+  .drawer:where([data-swipe-direction="left"], [data-swipe-direction="right"]) {
+    @apply inset-y-0 h-dvh max-h-none w-3/4 max-w-sm;
+    --drawer-y: 0;
+  }
+  .drawer:where([data-swipe-direction="right"]) {
+    @apply right-0 left-auto;
+    border-width: 0 0 0 1px;
+    border-radius: calc(var(--radius) + 4px) 0 0 calc(var(--radius) + 4px);
+    --drawer-x: 1;
+  }
+  .drawer:where([data-swipe-direction="left"]) {
+    @apply right-auto left-0;
+    border-width: 0 1px 0 0;
+    border-radius: 0 calc(var(--radius) + 4px) calc(var(--radius) + 4px) 0;
+    --drawer-x: -1;
+  }
+
+  /* Slide in from the edge and back out; a swipe moves it by --drawer-swipe-movement. Drawers
+     with others open in front of them shrink towards their free edge and step back. */
+  .drawer,
+  .drawer::backdrop {
+    transition:
+      translate var(--drawer-duration) var(--motion-ease-drawer),
+      scale var(--drawer-duration) var(--motion-ease-drawer),
+      opacity var(--drawer-duration) var(--motion-ease-drawer),
+      overlay var(--drawer-duration) allow-discrete,
+      display var(--drawer-duration) allow-discrete;
+  }
+  .drawer {
+    transform-origin: calc(50% - var(--drawer-x) * 50%) calc(50% - var(--drawer-y) * 50%);
+    translate: calc(var(--drawer-x) * 100%) calc(var(--drawer-y) * 100%);
+    scale: var(--drawer-closed-scale);
+    opacity: var(--drawer-closed-opacity);
+  }
+  .drawer[open] {
+    --drawer-offset: calc(var(--drawer-swipe-movement, 0px) - var(--nested-drawers, 0) * 1rem);
+    translate: calc(var(--drawer-x) * var(--drawer-offset)) calc(var(--drawer-y) * var(--drawer-offset));
+    scale: calc(1 - var(--nested-drawers, 0) * 0.05);
+    opacity: 1;
+  }
+  .drawer::backdrop {
+    opacity: 0;
+  }
+  .drawer[open]::backdrop {
+    opacity: calc(1 - var(--drawer-swipe-progress, 0));
+  }
+  @starting-style {
+    .drawer[open] {
+      translate: calc(var(--drawer-x) * 100%) calc(var(--drawer-y) * 100%);
+      scale: var(--drawer-closed-scale);
+      opacity: var(--drawer-closed-opacity);
+    }
+    .drawer[open]::backdrop {
+      opacity: 0;
+    }
+  }
+  /* Follow the pointer exactly while it drags. */
+  .drawer[data-swiping],
+  .drawer[data-swiping]::backdrop {
+    transition: none;
+  }
+  .drawer[data-swiping] {
+    @apply cursor-grabbing select-none;
+  }
+
+  /* The page behind an open drawer doesn't scroll. */
+  html:has(.drawer[open]:modal) {
+    @apply overflow-hidden;
+  }
+
+  /* The handle: a strip along the free edge (the one a swipe pulls away from the screen's
+     edge), drawn as a pill. The drawer leaves room for it. */
+  .drawer-handle {
+    @apply absolute inset-x-0 top-0 h-7 cursor-grab touch-none;
+  }
+  .drawer-handle::before {
+    @apply absolute inset-0 m-auto h-1.5 w-12 rounded-full bg-muted-foreground/30;
+    content: "";
+  }
+  .drawer:where(:has(> .drawer-handle)) {
+    @apply pt-8;
+  }
+  .drawer:where([data-swipe-direction="up"]) > .drawer-handle {
+    @apply top-auto bottom-0;
+  }
+  .drawer:where([data-swipe-direction="up"]):where(:has(> .drawer-handle)) {
+    @apply pt-4 pb-8;
+  }
+  .drawer:where([data-swipe-direction="left"], [data-swipe-direction="right"]) > .drawer-handle {
+    @apply inset-y-0 h-auto w-7;
+  }
+  .drawer:where([data-swipe-direction="left"], [data-swipe-direction="right"]) > .drawer-handle::before {
+    @apply h-12 w-1.5;
+  }
+  .drawer:where([data-swipe-direction="right"]) > .drawer-handle {
+    @apply right-auto left-0;
+  }
+  .drawer:where([data-swipe-direction="left"]) > .drawer-handle {
+    @apply right-0 left-auto;
+  }
+  .drawer:where([data-swipe-direction="right"]):where(:has(> .drawer-handle)) {
+    @apply pt-4 pl-8;
+  }
+  .drawer:where([data-swipe-direction="left"]):where(:has(> .drawer-handle)) {
+    @apply pt-4 pr-8;
+  }
+
+  .drawer-header {
+    @apply flex shrink-0 flex-col gap-1.5 text-center;
+  }
+  .drawer:where([data-swipe-direction="left"], [data-swipe-direction="right"]) .drawer-header {
+    @apply text-left;
+  }
+  .drawer-title {
+    @apply text-lg leading-none font-semibold tracking-tight;
+  }
+  .drawer-description {
+    @apply text-muted-foreground;
+  }
+  /* The body. It takes the room the header and footer leave and scrolls on its own, so they
+     stay in view. A swipe that starts in it waits until it is scrolled to the end. */
+  .drawer-content {
+    @apply -mx-4 min-h-0 flex-1 overflow-y-auto overscroll-contain px-4;
+  }
+  /* Actions at the bottom, stacked (the last one on top). */
+  .drawer-footer {
+    @apply mt-auto flex shrink-0 flex-col-reverse gap-2;
+  }
+
+  /* Responsive: a bottom (or other edge) drawer on small screens, a centred dialog from md,
+     where swiping is off. Last in the file so it beats the edge rules above. */
+  .drawer:where(.drawer-responsive) {
+    @variant md {
+      @apply inset-0 m-auto h-fit max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-lg p-6;
+      border-width: 1px;
+      border-radius: calc(var(--radius) + 4px);
+      --drawer-x: 0;
+      --drawer-y: 0;
+      --drawer-duration: var(--motion-duration-moderate);
+      --drawer-closed-scale: 0.96;
+      --drawer-closed-opacity: 0;
+      --drawer-swipe: none;
+    }
+  }
+  .drawer:where(.drawer-responsive) > .drawer-handle {
+    @apply md:hidden;
+  }
+  .drawer:where(.drawer-responsive) .drawer-header {
+    @apply md:text-left;
+  }
+  .drawer:where(.drawer-responsive) .drawer-content {
+    @apply md:-mx-6 md:px-6;
+  }
+  .drawer:where(.drawer-responsive) .drawer-footer {
+    @apply md:flex-row md:justify-end;
+  }
+}

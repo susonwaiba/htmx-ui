@@ -1,0 +1,120 @@
+{% extends "layouts/docs.html" %}
+{% from "components/icon/icon.html" import icon %}
+{% from "docs/macros.html" import demo, classes %}
+{% set title = "Tooltip" %}
+{% set description = "A short hint that appears when an element is hovered or receives keyboard focus, on any side, with no JavaScript needed to show it." %}
+
+{% block content %}
+  {% call demo() %}
+    <span class="tooltip" data-tooltip>
+      <button class="btn btn-outline">Hover</button>
+      <span class="tooltip-content">Add to library</span>
+    </span>
+  {% endcall %}
+
+  <h2 id="markup">Markup</h2>
+  <ul>
+    <li>Wrap the trigger and the text in <code>.tooltip</code> with <code>data-tooltip</code>. The trigger is the first focusable element inside: a button, a link, an input.</li>
+    <li>The text is a <code>.tooltip-content</code> placed after the trigger. The behaviour gives it <code>role="tooltip"</code> and an id, and points the trigger's <code>aria-describedby</code> at it, keeping any description the trigger already had.</li>
+    <li>Showing and hiding is CSS: the tooltip appears while the wrapper is hovered, after a short delay, and at once when the trigger gets focus from the keyboard. Clicking a button with the mouse doesn't leave its tooltip open, and on touch screens there is no hover, so a tooltip never sticks after a tap.</li>
+    <li>The pointer can move from the trigger onto the tooltip without it closing, so its text can be selected.</li>
+  </ul>
+  <p>
+    A tooltip is a <em>description</em>: keep it short, plain text, and never the only place something is said. An
+    icon-only button still needs an <code>aria-label</code>. For interactive content — links, buttons, a form — use a
+    <a href="/docs/components/popover">popover</a>, which opens on click and holds focus.
+  </p>
+
+  <h2 id="side">Side</h2>
+  <p>
+    Tooltips open above their trigger. <code>.tooltip-content-bottom</code>, <code>.tooltip-content-left</code> and
+    <code>.tooltip-content-right</code> put them on another side; the arrow follows.
+  </p>
+  {% call demo("min-h-48") %}
+    <span class="tooltip" data-tooltip>
+      <button class="btn btn-outline">Top</button>
+      <span class="tooltip-content">Opens above</span>
+    </span>
+    <span class="tooltip" data-tooltip>
+      <button class="btn btn-outline">Bottom</button>
+      <span class="tooltip-content tooltip-content-bottom">Opens below</span>
+    </span>
+    <span class="tooltip" data-tooltip>
+      <button class="btn btn-outline">Left</button>
+      <span class="tooltip-content tooltip-content-left">Opens to the left</span>
+    </span>
+    <span class="tooltip" data-tooltip>
+      <button class="btn btn-outline">Right</button>
+      <span class="tooltip-content tooltip-content-right">Opens to the right</span>
+    </span>
+  {% endcall %}
+  <p>
+    Tooltips are positioned with CSS only, so they don't flip when they would leave the screen: pick the side with room,
+    such as <code>-bottom</code> for a toolbar at the top of the page. Like any absolutely positioned element they are clipped
+    by an ancestor with <code>overflow: hidden</code>.
+  </p>
+
+  <h2 id="icon-buttons">Icon buttons and toolbars</h2>
+  <p>The usual home of a tooltip: naming what an icon does, with the shortcut beside it in a <a href="/docs/components/kbd">kbd</a>.</p>
+  {% call demo("min-h-44") %}
+    <div class="btn-group" role="toolbar" aria-label="Text formatting">
+      <span class="tooltip" data-tooltip>
+        <button class="btn btn-outline btn-icon" aria-label="Bold">{{ icon("bold") }}</button>
+        <span class="tooltip-content">Bold <kbd class="kbd">Ctrl B</kbd></span>
+      </span>
+      <span class="tooltip" data-tooltip>
+        <button class="btn btn-outline btn-icon" aria-label="Italic">{{ icon("italic") }}</button>
+        <span class="tooltip-content">Italic <kbd class="kbd">Ctrl I</kbd></span>
+      </span>
+      <span class="tooltip" data-tooltip>
+        <button class="btn btn-outline btn-icon" aria-label="Underline">{{ icon("underline") }}</button>
+        <span class="tooltip-content">Underline <kbd class="kbd">Ctrl U</kbd></span>
+      </span>
+    </div>
+  {% endcall %}
+
+  <h2 id="disabled">Disabled buttons</h2>
+  <p>
+    A disabled button can't take focus, so keyboard users never reach its tooltip. Use <code>aria-disabled="true"</code>
+    instead, which keeps it focusable and greys it out the same way, and say why it's unavailable in the tooltip:
+  </p>
+  {% call demo("min-h-44") %}
+    <span class="tooltip" data-tooltip>
+      <button class="btn btn-primary" aria-disabled="true">Publish</button>
+      <span class="tooltip-content">Add a title before publishing</span>
+    </span>
+  {% endcall %}
+
+  <h2 id="delay">Delay</h2>
+  <p>
+    A tooltip waits <code>150ms</code> under the pointer before it shows, so it doesn't flash while the mouse passes over a
+    toolbar. Set <code>--tooltip-delay</code> on the wrapper (or anywhere above it) to change that:
+  </p>
+  {% call demo("min-h-44") %}
+    <span class="tooltip [--tooltip-delay:0ms]" data-tooltip>
+      <button class="btn btn-outline">Instant</button>
+      <span class="tooltip-content">No delay</span>
+    </span>
+    <span class="tooltip [--tooltip-delay:700ms]" data-tooltip>
+      <button class="btn btn-outline">Patient</button>
+      <span class="tooltip-content">700ms delay</span>
+    </span>
+  {% endcall %}
+
+  <h2 id="keyboard">Keyboard</h2>
+  <p>
+    <kbd class="kbd">Tab</kbd> to a trigger shows its tooltip; moving focus away hides it. <kbd class="kbd">Esc</kbd> hides
+    any open tooltip without moving focus or the pointer, so it can be dismissed when it covers something. It shows again
+    once focus moves or the pointer comes back.
+  </p>
+
+  <h2 id="reference">Reference</h2>
+  {{ classes([
+    [".tooltip", "Wrapper around the trigger and the text. Add data-tooltip."],
+    [".tooltip-content", "The tooltip. Opens above the trigger, centred, with an arrow."],
+    [".tooltip-content-bottom / -left / -right", "Open on another side."],
+    ["--tooltip-delay", "How long the pointer rests before it shows (150ms). Keyboard focus shows it at once."],
+    ["[data-tooltip]", "Behaviour: role=\"tooltip\", aria-describedby on the trigger, Escape to dismiss."],
+    ["[data-tooltip-trigger]", "Marks the trigger when it isn't the first focusable element inside."]
+  ], heading="Class / attribute") }}
+{% endblock %}

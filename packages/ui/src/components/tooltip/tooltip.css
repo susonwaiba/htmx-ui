@@ -1,0 +1,110 @@
+/* <span class="tooltip" data-tooltip>
+     <button class="btn btn-outline">Hover me</button>
+     <span class="tooltip-content" role="tooltip">Add to library</span>
+   </span>
+   Shows while the wrapper is hovered or its trigger has keyboard focus, so it works without
+   JavaScript. The behaviour (tooltip.ts) links the trigger to the text with aria-describedby
+   and lets Escape hide it. Opens above; .tooltip-content-bottom / -left / -right move it.
+   --tooltip-delay (default 150ms) is how long a pointer must rest before it appears. */
+@layer components {
+  .tooltip {
+    --tooltip-delay: 150ms;
+    @apply relative inline-flex w-fit;
+  }
+
+  /* Side "top" by default: centred above the trigger, sliding in from it. */
+  .tooltip-content {
+    --tooltip-x: -50%;
+    --tooltip-y: 0px;
+    --tooltip-shift-x: 0px;
+    --tooltip-shift-y: 0.25rem;
+    @apply pointer-events-none invisible absolute bottom-full left-1/2 z-50 mb-2 flex w-max max-w-xs items-center
+      gap-2 rounded-[calc(var(--radius)-2px)] bg-foreground px-3 py-1.5 text-left text-xs leading-snug
+      font-normal text-balance whitespace-normal text-background opacity-0 shadow-md;
+    translate: calc(var(--tooltip-x) + var(--tooltip-shift-x)) calc(var(--tooltip-y) + var(--tooltip-shift-y));
+    transition:
+      opacity var(--motion-duration-fast) var(--motion-ease-out),
+      translate var(--motion-duration-fast) var(--motion-ease-out),
+      visibility 0s var(--motion-duration-fast);
+  }
+  /* The arrow, a rotated square in the tooltip's colour. */
+  .tooltip-content::after {
+    @apply absolute top-full left-1/2 size-2 -translate-x-1/2 -translate-y-1/2 rotate-45 rounded-[2px] bg-inherit
+      content-[''];
+  }
+  /* An invisible bridge over the gap, so the pointer can move onto the tooltip
+     (to select its text) without it closing. */
+  .tooltip-content::before {
+    @apply absolute inset-x-0 top-full h-2 content-[''];
+  }
+
+  .tooltip-content-bottom {
+    --tooltip-shift-y: -0.25rem;
+    @apply top-full bottom-auto mt-2 mb-0;
+  }
+  .tooltip-content-bottom::after {
+    @apply top-0 translate-y-[-50%];
+  }
+  .tooltip-content-bottom::before {
+    @apply top-auto bottom-full;
+  }
+
+  .tooltip-content-left,
+  .tooltip-content-right {
+    --tooltip-x: 0px;
+    --tooltip-y: -50%;
+    --tooltip-shift-y: 0px;
+    @apply top-1/2 bottom-auto mb-0;
+  }
+  .tooltip-content-left {
+    --tooltip-shift-x: 0.25rem;
+    @apply right-full left-auto mr-2;
+  }
+  .tooltip-content-right {
+    --tooltip-shift-x: -0.25rem;
+    @apply left-full ml-2;
+  }
+  .tooltip-content-left::after,
+  .tooltip-content-right::after {
+    @apply top-1/2 -translate-y-1/2;
+  }
+  .tooltip-content-left::after {
+    @apply left-full -translate-x-1/2;
+  }
+  .tooltip-content-right::after {
+    @apply left-0 -translate-x-1/2;
+  }
+  .tooltip-content-left::before,
+  .tooltip-content-right::before {
+    @apply inset-y-0 top-0 h-auto w-2;
+  }
+  .tooltip-content-left::before {
+    @apply right-auto left-full;
+  }
+  .tooltip-content-right::before {
+    @apply right-full left-auto;
+  }
+
+  /* Open: on hover after --tooltip-delay (only where there is a real pointer, so a tap
+     on a phone doesn't leave one stuck open), at once on keyboard focus. Escape sets
+     data-dismissed (tooltip.ts) until the pointer leaves or focus moves. */
+  @media (hover: hover) {
+    .tooltip:hover:not([data-dismissed]) > .tooltip-content {
+      @apply pointer-events-auto visible opacity-100;
+      --tooltip-shift-x: 0px;
+      --tooltip-shift-y: 0px;
+      transition:
+        opacity var(--motion-duration-normal) var(--motion-ease-out) var(--tooltip-delay),
+        translate var(--motion-duration-normal) var(--motion-ease-out) var(--tooltip-delay),
+        visibility 0s var(--tooltip-delay);
+    }
+  }
+  .tooltip:has(:focus-visible):not([data-dismissed]) > .tooltip-content {
+    @apply pointer-events-auto visible opacity-100;
+    --tooltip-shift-x: 0px;
+    --tooltip-shift-y: 0px;
+    transition:
+      opacity var(--motion-duration-normal) var(--motion-ease-out),
+      translate var(--motion-duration-normal) var(--motion-ease-out);
+  }
+}

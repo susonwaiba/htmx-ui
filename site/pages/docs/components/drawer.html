@@ -1,0 +1,374 @@
+{% extends "layouts/docs.html" %}
+{% from "components/icon/icon.html" import icon %}
+{% from "components/code/code.html" import code %}
+{% from "docs/macros.html" import demo, classes %}
+{% set title = "Drawer" %}
+{% set description = "A panel that slides in from an edge of the screen and can be swiped away, on the native <dialog> element." %}
+
+{% block content %}
+  {% call demo() %}
+    <button type="button" class="btn btn-outline" commandfor="drawer-goal" command="show-modal">Open drawer</button>
+    <dialog id="drawer-goal" class="drawer" data-dialog data-drawer data-swipe-direction="down" aria-labelledby="drawer-goal-title" aria-describedby="drawer-goal-description">
+      <div class="drawer-handle"></div>
+      <div class="mx-auto flex w-full max-w-sm flex-col gap-4">
+        <div class="drawer-header">
+          <h2 class="drawer-title" id="drawer-goal-title">Move goal</h2>
+          <p class="drawer-description" id="drawer-goal-description">Set your daily activity goal.</p>
+        </div>
+        <div class="flex items-center justify-center gap-4">
+          <button type="button" class="btn btn-outline btn-icon btn-rounded" aria-label="Decrease">{{ icon("minus") }}</button>
+          <div class="flex-1 text-center">
+            <p class="text-7xl font-bold tracking-tighter">350</p>
+            <p class="text-xs text-muted-foreground uppercase">Calories/day</p>
+          </div>
+          <button type="button" class="btn btn-outline btn-icon btn-rounded" aria-label="Increase">{{ icon("plus") }}</button>
+        </div>
+        <div class="flex h-24 items-end gap-1" role="img" aria-label="Calories burned on each of the last 13 days, between 189 and 400">
+          {% for goal in [400, 300, 200, 300, 200, 278, 189, 239, 300, 200, 278, 189, 349] %}
+          <div class="flex-1 rounded-sm bg-primary" style="height: {{ (goal / 4) | round }}%"></div>
+          {% endfor %}
+        </div>
+        <div class="drawer-footer">
+          <button type="button" class="btn btn-outline" data-dialog-close>Cancel</button>
+          <button type="button" class="btn btn-primary" data-dialog-close="submit">Submit</button>
+        </div>
+      </div>
+    </dialog>
+  {% endcall %}
+
+  <h2 id="markup">Markup</h2>
+  <p>
+    A drawer is a native <code>&lt;dialog&gt;</code> with <code>.drawer</code>, <code>data-dialog</code> and
+    <code>data-drawer</code>. <code>data-dialog</code> makes it a <a href="/docs/components/dialog">dialog</a>: it opens
+    and closes the same ways, puts the rest of the page out of reach while it is open, and works with htmx the same
+    way. <code>data-drawer</code> adds swiping and stacking. Without JavaScript it still opens (in browsers with invoker
+    commands) and closes with <kbd class="kbd">Esc</kbd> or a <code>&lt;form method="dialog"&gt;</code>.
+  </p>
+  <ul>
+    <li><code>.drawer-handle</code> is the bar on the drawer's free edge. It is optional: the whole drawer can be dragged.</li>
+    <li><code>.drawer-header</code> holds <code>.drawer-title</code> and <code>.drawer-description</code>. Point <code>aria-labelledby</code> and <code>aria-describedby</code> at them.</li>
+    <li><code>.drawer-content</code> is an optional body that scrolls on its own, keeping the header and footer in view.</li>
+    <li><code>.drawer-footer</code> holds the actions, stacked with the last one on top.</li>
+  </ul>
+  <p>
+    A drawer on the bottom or top edge is full width and as tall as its content, up to 80% of the viewport. To keep
+    its content narrow on wide screens, wrap it in a centred column, as the demo above does with
+    <code>mx-auto w-full max-w-sm</code>.
+  </p>
+
+  <h2 id="swipe-direction">Swipe direction</h2>
+  <p>
+    <code>data-swipe-direction</code> is the way a swipe dismisses the drawer, and so the edge it is attached to:
+    <code>down</code> (the default) on the bottom edge, <code>up</code> on the top, <code>right</code> on the right and
+    <code>left</code> on the left. Side drawers are full height, three quarters of the screen wide and at most
+    <code>max-w-sm</code>; change that with <code>max-w-*</code> or <code>w-*</code> utilities.
+  </p>
+  {% call demo() %}
+    {% for dir in ["up", "right", "down", "left"] %}
+    <button type="button" class="btn btn-outline" commandfor="drawer-dir-{{ dir }}" command="show-modal">{{ dir | title }}</button>
+    <dialog id="drawer-dir-{{ dir }}" class="drawer" data-dialog data-drawer data-swipe-direction="{{ dir }}" aria-labelledby="drawer-dir-{{ dir }}-title" aria-describedby="drawer-dir-{{ dir }}-description">
+      <div class="drawer-handle"></div>
+      <div class="drawer-header">
+        <h2 class="drawer-title" id="drawer-dir-{{ dir }}-title">Swipe {{ dir }}</h2>
+        <p class="drawer-description" id="drawer-dir-{{ dir }}-description">Drag this drawer {{ dir }} to dismiss it.</p>
+      </div>
+      <div class="drawer-footer">
+        <button type="button" class="btn btn-outline" data-dialog-close>Close</button>
+      </div>
+    </dialog>
+    {% endfor %}
+  {% endcall %}
+
+  <h2 id="swipe-handle">Swipe handle</h2>
+  <p>
+    <code>.drawer-handle</code>, first inside the drawer, draws a bar on its free edge (the top of a bottom drawer, the
+    left of a right one) and leaves room for it. It tells people the drawer can be dragged. By default a drag can start
+    anywhere on the drawer; <code>data-drawer-handle-only</code> limits it to the handle, so the content stays free for
+    selecting text or for gestures of its own.
+  </p>
+  {% call demo() %}
+    <button type="button" class="btn btn-outline" commandfor="drawer-handle-only" command="show-modal">Handle only</button>
+    <dialog id="drawer-handle-only" class="drawer" data-dialog data-drawer data-drawer-handle-only aria-labelledby="drawer-handle-only-title">
+      <div class="drawer-handle"></div>
+      <div class="mx-auto flex w-full max-w-sm flex-col gap-4">
+        <div class="drawer-header">
+          <h2 class="drawer-title" id="drawer-handle-only-title">API key</h2>
+          <p class="drawer-description">Only the handle drags this drawer, so the key below can be selected.</p>
+        </div>
+        <p class="rounded-md bg-muted p-3 text-center font-mono break-all">demo-7f3a9c2e-1b4d-4e8a-9c61-2d5f0b8e7a13</p>
+        <div class="drawer-footer">
+          <button type="button" class="btn btn-outline" data-dialog-close>Done</button>
+        </div>
+      </div>
+    </dialog>
+  {% endcall %}
+
+  <h2 id="nested">Nested drawers</h2>
+  <p>
+    A button inside a drawer can open another drawer. The first one stays open behind it, shrinks a little and steps
+    back, so the stack shows; it returns when the one in front closes. <kbd class="kbd">Esc</kbd>, a swipe or a click
+    outside closes only the frontmost. The inner <code>&lt;dialog&gt;</code> can sit inside the outer one's markup or
+    anywhere else on the page, referenced by <code>commandfor</code>; in this demo the second level is inside the first
+    and the third is not.
+  </p>
+  {% call demo() %}
+    <button type="button" class="btn btn-outline" commandfor="drawer-nested-1" command="show-modal">Open drawer</button>
+    <dialog id="drawer-nested-1" class="drawer" data-dialog data-drawer aria-labelledby="drawer-nested-1-title">
+      <div class="drawer-handle"></div>
+      <div class="mx-auto flex w-full max-w-sm flex-col gap-4">
+        <div class="drawer-header">
+          <h2 class="drawer-title" id="drawer-nested-1-title">Account</h2>
+          <p class="drawer-description">The first drawer.</p>
+        </div>
+        <div class="drawer-footer">
+          <button type="button" class="btn btn-outline" data-dialog-close>Close</button>
+          <button type="button" class="btn btn-primary" commandfor="drawer-nested-2" command="show-modal">Security settings</button>
+        </div>
+      </div>
+      <dialog id="drawer-nested-2" class="drawer" data-dialog data-drawer aria-labelledby="drawer-nested-2-title">
+        <div class="drawer-handle"></div>
+        <div class="mx-auto flex w-full max-w-sm flex-col gap-4">
+          <div class="drawer-header">
+            <h2 class="drawer-title" id="drawer-nested-2-title">Security</h2>
+            <p class="drawer-description">The second drawer, inside the first one's markup.</p>
+          </div>
+          <div class="drawer-footer">
+            <button type="button" class="btn btn-outline" data-dialog-close>Back</button>
+            <button type="button" class="btn btn-primary" commandfor="drawer-nested-3" command="show-modal">Change password</button>
+          </div>
+        </div>
+      </dialog>
+    </dialog>
+    <dialog id="drawer-nested-3" class="drawer" data-dialog data-drawer aria-labelledby="drawer-nested-3-title">
+      <div class="drawer-handle"></div>
+      <div class="mx-auto flex w-full max-w-sm flex-col gap-4">
+        <div class="drawer-header">
+          <h2 class="drawer-title" id="drawer-nested-3-title">Change password</h2>
+          <p class="drawer-description">The third drawer, elsewhere on the page.</p>
+        </div>
+        <form class="contents" method="dialog">
+          <div class="field">
+            <label class="field-label" for="drawer-nested-password">New password</label>
+            <input class="input" id="drawer-nested-password" type="password" name="password" autocomplete="new-password" />
+          </div>
+          <div class="drawer-footer">
+            <button type="button" class="btn btn-outline" data-dialog-close>Back</button>
+            <button class="btn btn-primary" value="save">Save</button>
+          </div>
+        </form>
+      </div>
+    </dialog>
+  {% endcall %}
+  <p>
+    Each open drawer gets <code>--nested-drawers</code>, the number of drawers open in front of it, and
+    <code>data-nested-drawer-open</code> while that is more than zero; a drawer opened over another gets
+    <code>data-drawer-nested</code> and a lighter backdrop. Style the stack with them, for example to fade the content
+    of the drawers behind:
+  </p>
+  {% call code("css") %}
+    .drawer[data-nested-drawer-open] > :not(dialog) {
+      opacity: 0.5;
+    }
+  {% endcall %}
+
+  <h2 id="responsive">Responsive dialog</h2>
+  <p>
+    <code>.drawer-responsive</code> makes one element serve as a drawer on small screens and as a centred
+    <a href="/docs/components/dialog">dialog</a> from the <code>md</code> breakpoint up, where the handle is hidden and
+    swiping is off. Resize the window to see both.
+  </p>
+  {% call demo() %}
+    <button type="button" class="btn btn-outline" commandfor="drawer-responsive" command="show-modal">Edit profile</button>
+    <dialog id="drawer-responsive" class="drawer drawer-responsive" data-dialog data-drawer aria-labelledby="drawer-responsive-title" aria-describedby="drawer-responsive-description">
+      <div class="drawer-handle"></div>
+      <div class="drawer-header">
+        <h2 class="drawer-title" id="drawer-responsive-title">Edit profile</h2>
+        <p class="drawer-description" id="drawer-responsive-description">Make changes to your profile here. Click save when you're done.</p>
+      </div>
+      <form class="contents" method="dialog">
+        <div class="grid gap-4">
+          <div class="field">
+            <label class="field-label" for="drawer-responsive-email">Email</label>
+            <input class="input" id="drawer-responsive-email" type="email" name="email" value="rin@example.com" />
+          </div>
+          <div class="field">
+            <label class="field-label" for="drawer-responsive-username">Username</label>
+            <input class="input" id="drawer-responsive-username" name="username" value="@rin" />
+          </div>
+        </div>
+        <div class="drawer-footer">
+          <button type="button" class="btn btn-outline" data-dialog-close>Cancel</button>
+          <button class="btn btn-primary" value="save">Save changes</button>
+        </div>
+      </form>
+    </dialog>
+  {% endcall %}
+  <p>
+    The switch is the custom property <code>--drawer-swipe: none</code>, which <code>.drawer-responsive</code> sets from
+    <code>md</code>. Set it yourself, in any media query or on any drawer, to turn swiping off.
+  </p>
+
+  <h2 id="scrolling-content">Scrolling content</h2>
+  <p>
+    Long content goes in <code>.drawer-content</code>, which scrolls between a header and footer that stay in view. A
+    swipe that starts in it scrolls the content until it reaches the end it is moving towards; only then does the
+    drawer move. Here, scroll the list back to the top and keep pulling down to dismiss it.
+  </p>
+  {% call demo() %}
+    <button type="button" class="btn btn-outline" commandfor="drawer-scroll" command="show-modal">Notifications</button>
+    <dialog id="drawer-scroll" class="drawer" data-dialog data-drawer aria-labelledby="drawer-scroll-title">
+      <div class="drawer-handle"></div>
+      <div class="drawer-header">
+        <h2 class="drawer-title" id="drawer-scroll-title">Notifications</h2>
+        <p class="drawer-description">You have 20 unread messages.</p>
+      </div>
+      <ul class="drawer-content mx-auto w-full max-w-md divide-y divide-border">
+        {% for n in range(1, 21) %}
+        <li class="py-3">
+          <p class="font-medium">Deployment {{ n }} finished</p>
+          <p class="muted">htmx-ui · production · {{ n * 3 }} minutes ago</p>
+        </li>
+        {% endfor %}
+      </ul>
+      <div class="drawer-footer mx-auto w-full max-w-md">
+        <button type="button" class="btn btn-outline" data-dialog-close>Close</button>
+      </div>
+    </dialog>
+  {% endcall %}
+
+  <h2 id="gestures">Keyboard and gestures</h2>
+  <ul>
+    <li><kbd class="kbd">Esc</kbd> closes the frontmost drawer.</li>
+    <li><kbd class="kbd">Tab</kbd> and <kbd class="kbd">Shift</kbd> + <kbd class="kbd">Tab</kbd> move through the drawer's controls; the page behind it is inert.</li>
+    <li>Dragging the drawer (with a finger, a pen or the mouse) towards its edge moves it. Released more than 30% of the way, or flicked, it closes; otherwise it springs back.</li>
+    <li>A drag doesn't start on inputs, text areas, selects, buttons or links, on anything marked <code>data-drawer-no-drag</code>, or in content that can still scroll the way the pointer moves.</li>
+    <li>A click outside the drawer closes it, as for a dialog.</li>
+  </ul>
+  <p>
+    A swipe that dismisses the drawer fires a cancelable <code>cancel</code> event first, as <kbd class="kbd">Esc</kbd>
+    does: call <code>preventDefault()</code> on it to keep the drawer open (it springs back). Then the native
+    <code>close</code> event fires, with an empty <code>returnValue</code>. While a drag is under way the drawer has
+    <code>data-swiping</code>, <code>--drawer-swipe-movement</code> (pixels towards its edge) and
+    <code>--drawer-swipe-progress</code> (0 to 1), which also fades the backdrop.
+  </p>
+
+  <h2 id="htmx">With htmx</h2>
+  <h3 id="post-a-form">Posting a form, closing from the server</h3>
+  <p>
+    A form in a drawer posts with htmx like any other. When the server has saved it, the response header
+    <code>HX-Trigger: dialog:close</code> closes the drawer it came from, while the body goes to the form's
+    <code>hx-target</code>. On a validation error, leave the header off and return the form with its messages. This
+    demo posts to the same endpoint as the dialog's.
+  </p>
+  {% call demo("flex-col gap-4") %}
+    <button type="button" class="btn btn-outline" commandfor="drawer-rename" command="show-modal">Rename project</button>
+    <span id="drawer-rename-result" class="muted"></span>
+    <dialog id="drawer-rename" class="drawer drawer-responsive" data-dialog data-drawer aria-labelledby="drawer-rename-title">
+      <div class="drawer-handle"></div>
+      <div class="drawer-header">
+        <h2 class="drawer-title" id="drawer-rename-title">Rename project</h2>
+        <p class="drawer-description">The server closes this drawer once it has saved the name.</p>
+      </div>
+      <form class="contents" hx-post="/api/dialog/save" hx-target="#drawer-rename-result">
+        <div class="field">
+          <label class="field-label" for="drawer-rename-name">Name</label>
+          <input class="input" id="drawer-rename-name" name="name" value="htmx-ui" required />
+        </div>
+        <div class="drawer-footer">
+          <button type="button" class="btn btn-outline" data-dialog-close>Cancel</button>
+          <button class="btn btn-primary">Save</button>
+        </div>
+      </form>
+    </dialog>
+  {% endcall %}
+  {% call code("text") %}
+    HTTP/1.1 200 OK
+    Content-Type: text/html; charset=utf-8
+    HX-Trigger: dialog:close
+
+    <span class="text-success">Renamed to htmx-ui</span>
+  {% endcall %}
+
+  <h3 id="from-the-server">A drawer from the server</h3>
+  <p>
+    A drawer can also come from the server. <code>data-dialog-show</code> opens it as soon as htmx inserts it, and
+    <code>data-dialog-remove</code> takes it out of the page once it has slid away (swiped or not), so every click loads
+    a fresh one. Append it to the body:
+  </p>
+  {% call code("html") %}
+    <button class="btn btn-outline" hx-get="/api/share" hx-target="body" hx-swap="beforeend">Share</button>
+
+    <!-- The response -->
+    <dialog class="drawer" data-dialog data-drawer data-dialog-show data-dialog-remove aria-labelledby="share-title">
+      <div class="drawer-handle"></div>
+      <div class="drawer-header">
+        <h2 class="drawer-title" id="share-title">Share</h2>
+      </div>
+      <div class="drawer-content">…</div>
+    </dialog>
+  {% endcall %}
+
+  <h2 id="macro">Macro</h2>
+  <p>
+    <code>drawer()</code> writes the <code>&lt;dialog&gt;</code>, its handle and header, with the ids and ARIA attributes
+    wired up. The call body is everything after the header.
+  </p>
+  {% call code("jinja") %}
+    {% raw %}
+    {% from "components/drawer/drawer.html" import drawer %}
+
+    <button class="btn btn-outline" commandfor="filters" command="show-modal">Filters</button>
+    {% call drawer("filters", "Filters", "Narrow down the list.", responsive=true) %}
+      <div class="drawer-content">…</div>
+      <div class="drawer-footer">
+        <button class="btn btn-outline" data-dialog-close>Reset</button>
+        <button class="btn btn-primary" data-dialog-close="apply">Apply</button>
+      </div>
+    {% endcall %}
+    {% endraw %}
+  {% endcall %}
+  {{ classes([
+    ["id", "Required. The id buttons point commandfor at; also prefixes the title and description ids."],
+    ["title, description", "Header text. Each sets aria-labelledby / aria-describedby."],
+    ["direction=\"down\"", "data-swipe-direction: \"down\", \"up\", \"left\" or \"right\"."],
+    ["handle=true", "The .drawer-handle bar. false leaves it out."],
+    ["handle_only=false", "true adds data-drawer-handle-only."],
+    ["responsive=false", "true adds .drawer-responsive: a centred dialog from md."],
+    ["show, remove", "data-dialog-show and data-dialog-remove, for drawers returned by htmx."],
+    ["class", "More classes on the <dialog>."]
+  ], heading="Parameter") }}
+
+  <h2 id="accessibility">Accessibility</h2>
+  <ul>
+    <li>A drawer is a modal dialog: the browser moves focus into it, makes the page behind it inert and returns focus to the opening button when it closes.</li>
+    <li>Give every drawer a name: <code>aria-labelledby</code> pointing at its title, or <code>aria-label</code>.</li>
+    <li>Swiping is never the only way out. Keep a close or cancel button in the drawer for people who can't drag; <kbd class="kbd">Esc</kbd> and a click outside work too.</li>
+    <li>The handle is decoration for pointers and is not focusable.</li>
+    <li>The slide is skipped for people who ask for reduced motion; dragging still works.</li>
+  </ul>
+
+  <h2 id="reference">Reference</h2>
+  {{ classes([
+    [".drawer", "The <dialog>: attached to an edge, slides in and out, follows a drag. Bottom and top: full width, up to 80dvh tall. Left and right: full height, w-3/4 up to max-w-sm."],
+    [".drawer-handle", "The bar on the free edge; the drawer leaves room for it."],
+    [".drawer-header / .drawer-title / .drawer-description", "Title block: centred on bottom and top drawers."],
+    [".drawer-content", "Body that scrolls on its own."],
+    [".drawer-footer", "Actions, stacked with the last on top (a right-aligned row in a responsive drawer from md)."],
+    [".drawer-responsive", "A centred dialog with no handle and no swiping from md up."],
+    ["[data-dialog]", "The dialog behaviour: closes on a click outside and on [data-dialog-close], opens command buttons in older browsers."],
+    ["[data-drawer]", "Swiping and nested-drawer state."],
+    ["[data-swipe-direction]", "down (default), up, right or left: the way a swipe dismisses it and the edge it is on."],
+    ["[data-drawer-handle-only]", "Only .drawer-handle starts a drag."],
+    ["[data-drawer-no-drag]", "On any element inside: a drag can't start there."],
+    ["[data-swiping]", "Set while it is being dragged."],
+    ["[data-nested-drawer-open]", "Set while another drawer is open in front of it."],
+    ["[data-drawer-nested]", "Set on a drawer opened over another; it gets a lighter backdrop."],
+    ["--nested-drawers", "The number of drawers open in front of it (0 for the frontmost)."],
+    ["--drawer-swipe-movement / --drawer-swipe-progress", "During a drag: pixels towards its edge, and that as a fraction (0 to 1) of its size."],
+    ["--drawer-swipe: none", "Turns swiping off (set by .drawer-responsive from md)."],
+    ["[data-dialog-close=\"value\"]", "Closes the drawer it is in; the value becomes returnValue."],
+    ["[data-dialog-show] / [data-dialog-remove]", "Open as a modal when initialised / remove from the page once closed."],
+    ["cancel, close events", "A dismissing swipe fires cancel (cancelable), then close."],
+    ["dialog:close event", "Closes the drawer it is dispatched in, e.g. from an HX-Trigger response header."]
+  ]) }}
+{% endblock %}

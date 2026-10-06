@@ -1,7 +1,14 @@
 /* <div class="popover" data-popover>
      <button class="btn btn-outline" data-popover-trigger aria-expanded="false">Details</button>
-     <div class="popover-content" data-popover-content hidden>…any content, forms included…</div>
-   </div> */
+     <div class="popover-content" data-popover-content hidden>
+       <div class="popover-header">
+         <h2 class="popover-title">Dimensions</h2>
+         <p class="popover-description">Set the dimensions for the layer.</p>
+       </div>
+       …any content, forms included; a [data-popover-close] button closes it…
+     </div>
+   </div>
+   Horizontal alignment: .popover-content-start (default) / -center / -end. Above: -up. */
 @layer components {
   .popover {
     @apply relative inline-block;
@@ -10,7 +17,10 @@
     @apply absolute top-full left-0 z-50 mt-2 w-72 rounded-(--radius) border border-border bg-surface p-4 text-sm
       text-foreground shadow-lg outline-none;
   }
-  /* Align to the trigger's right edge / centre / open upwards */
+  /* Align to the trigger's left edge (the default) / right edge / centre, or open upwards */
+  .popover-content-start {
+    @apply right-auto left-0 translate-x-0;
+  }
   .popover-content-end {
     @apply right-0 left-auto;
   }
@@ -20,10 +30,21 @@
   .popover-content-up {
     @apply top-auto bottom-full mt-0 mb-2;
   }
+  /* Title and description, stacked; the header spaces itself from what follows. */
+  .popover-header {
+    @apply mb-4 flex flex-col gap-1.5 last:mb-0;
+  }
   .popover-title {
-    @apply leading-none font-semibold;
+    @apply m-0 text-sm leading-none font-semibold;
   }
   .popover-description {
     @apply mt-1.5 text-muted-foreground;
+  }
+  .popover-header > .popover-description {
+    @apply mt-0;
+  }
+  /* Buttons at the bottom of a form panel */
+  .popover-footer {
+    @apply mt-4 flex justify-end gap-2;
   }
 }

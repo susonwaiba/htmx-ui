@@ -1,0 +1,33 @@
+{# Dialog / alert dialog: the <dialog>, its header and close button, with ids and ARIA wired up.
+   {% from "components/dialog/dialog.html" import dialog %}
+   {% call dialog("edit-profile", "Edit profile", "Make changes to your profile.") %}
+     <div class="dialog-content">…</div>
+     <div class="dialog-footer">…</div>
+   {% endcall %}
+   Open it with <button commandfor="edit-profile" command="show-modal">.
+   close=false         no corner close button (Escape and a click outside still close it)
+   alert=true          role="alertdialog": no corner button, no closing on a click outside
+   size="sm" | "lg" | "xl"
+   media="trash"       an icon above (or beside) the title; media_variant="danger" tints it
+   show=true, remove=true   data-dialog-show / data-dialog-remove, for a dialog htmx returns
+   class=""            more classes on the <dialog> #}
+{% from "components/icon/icon.html" import icon %}
+
+{% macro dialog(id, title=none, description=none, close=true, alert=false, size=none, media=none, media_variant=none, show=false, remove=false, class="") %}
+<dialog id="{{ id }}" class="dialog{% if size %} dialog-{{ size }}{% endif %}{% if class %} {{ class }}{% endif %}" data-dialog
+  {%- if alert %} role="alertdialog"{% endif %}
+  {%- if title %} aria-labelledby="{{ id }}-title"{% endif %}
+  {%- if description %} aria-describedby="{{ id }}-description"{% endif %}
+  {%- if show %} data-dialog-show{% endif %}
+  {%- if remove %} data-dialog-remove{% endif %}>
+  {% if title or description or media %}
+  <div class="dialog-header">
+    {% if media %}<div class="dialog-media{% if media_variant %} dialog-media-{{ media_variant }}{% endif %}">{{ icon(media, "size-8") }}</div>{% endif %}
+    {% if title %}<h2 class="dialog-title" id="{{ id }}-title">{{ title }}</h2>{% endif %}
+    {% if description %}<p class="dialog-description" id="{{ id }}-description">{{ description }}</p>{% endif %}
+  </div>
+  {% endif %}
+  {{ caller() }}
+  {% if close and not alert %}<button type="button" class="dialog-close" data-dialog-close aria-label="Close">{{ icon("x") }}</button>{% endif %}
+</dialog>
+{%- endmacro %}

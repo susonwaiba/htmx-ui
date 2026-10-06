@@ -2,6 +2,8 @@
 // - The trigger toggles the panel and keeps aria-expanded / aria-controls in sync.
 // - Escape closes it and returns focus to the trigger; clicking outside or tabbing out closes it.
 // - An [autofocus] element inside the panel is focused when it opens.
+// - A [data-popover-close] element inside the panel closes it and returns focus to the trigger
+//   (a Cancel button, or a form's submit button: the form still submits).
 import { queryAll } from "../../utils/dom";
 
 let ids = 0;
@@ -35,6 +37,10 @@ export function initPopover(root: ParentNode) {
     }
 
     trigger.addEventListener("click", () => (panel.hidden ? open() : close(false)));
+    panel.addEventListener("click", (e) => {
+      const closer = (e.target as Element).closest("[data-popover-close]");
+      if (closer && closer.closest("[data-popover]") === popover) close(true);
+    });
     popover.addEventListener("keydown", (e) => {
       if (e.key === "Escape" && !panel.hidden) {
         e.preventDefault();

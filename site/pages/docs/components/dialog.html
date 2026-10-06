@@ -1,0 +1,307 @@
+{% extends "layouts/docs.html" %}
+{% from "components/icon/icon.html" import icon %}
+{% from "components/code/code.html" import code %}
+{% from "docs/macros.html" import demo, classes %}
+{% set title = "Dialog" %}
+{% set description = "A window overlaid on the page or on another dialog, rendering the content underneath inert. Built on the native <dialog> element." %}
+
+{% block content %}
+  {% call demo() %}
+    <button type="button" class="btn btn-outline" commandfor="edit-profile" command="show-modal">Edit profile</button>
+    <dialog id="edit-profile" class="dialog dialog-sm" data-dialog aria-labelledby="edit-profile-title" aria-describedby="edit-profile-description">
+      <div class="dialog-header">
+        <h2 class="dialog-title" id="edit-profile-title">Edit profile</h2>
+        <p class="dialog-description" id="edit-profile-description">Make changes to your profile here. Click save when you're done.</p>
+      </div>
+      <form class="contents" method="dialog">
+        <div class="grid gap-4">
+          <div class="field">
+            <label class="field-label" for="edit-profile-name">Name</label>
+            <input class="input" id="edit-profile-name" name="name" value="Pedro Duarte" />
+          </div>
+          <div class="field">
+            <label class="field-label" for="edit-profile-username">Username</label>
+            <input class="input" id="edit-profile-username" name="username" value="@peduarte" />
+          </div>
+        </div>
+        <div class="dialog-footer">
+          <button type="button" class="btn btn-outline" data-dialog-close>Cancel</button>
+          <button class="btn btn-primary" value="save">Save changes</button>
+        </div>
+      </form>
+      <button type="button" class="dialog-close" data-dialog-close aria-label="Close">{{ icon("x") }}</button>
+    </dialog>
+  {% endcall %}
+
+  <h2 id="markup">Markup</h2>
+  <p>
+    A dialog is a native <code>&lt;dialog&gt;</code> with <code>.dialog</code> and <code>data-dialog</code>. Opened as a
+    modal, the browser puts it in the top layer above everything else, makes the rest of the page inert (no clicks, no
+    focus, hidden from screen readers), moves focus into it and returns focus to the button that opened it when it
+    closes. The page behind it stops scrolling.
+  </p>
+  <ul>
+    <li><code>.dialog-header</code> holds <code>.dialog-title</code> and <code>.dialog-description</code>. Point <code>aria-labelledby</code> and <code>aria-describedby</code> at them.</li>
+    <li><code>.dialog-content</code> is an optional body that scrolls on its own, keeping the header and footer in view.</li>
+    <li><code>.dialog-footer</code> is a row of actions: stacked on small screens with the last button on top, right-aligned from the <code>sm</code> breakpoint.</li>
+    <li><code>.dialog-close</code> is the corner close button. It is optional.</li>
+  </ul>
+  <p>
+    The same behaviour drives the <a href="/docs/components/sheet">sheet</a>, a dialog that slides in from an edge of
+    the screen, and the <a href="/docs/components/drawer">drawer</a>, one that can also be swiped away.
+  </p>
+
+  <h2 id="open-and-close">Opening and closing</h2>
+  <p>
+    Open it with an <a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/button#command">invoker
+    command</a>: a button with <code>commandfor="&lt;dialog id&gt;"</code> and <code>command="show-modal"</code>. Browsers
+    with invoker commands need no script for it; for the rest, the dialog behaviour handles the click. From script,
+    call <code>dialog.showModal()</code>.
+  </p>
+  <p>It closes on any of these:</p>
+  <ul>
+    <li><kbd class="kbd">Esc</kbd>.</li>
+    <li>A click outside it, on the backdrop. (Not for an <a href="/docs/components/alert-dialog">alert dialog</a>.)</li>
+    <li>A click on any element inside with <code>data-dialog-close</code>. Its value, or the button's <code>value</code>, becomes <code>dialog.returnValue</code>.</li>
+    <li>Submitting a <code>&lt;form method="dialog"&gt;</code> inside it (no JavaScript). The submit button's <code>value</code> becomes <code>returnValue</code>.</li>
+    <li>A button with <code>commandfor</code> and <code>command="close"</code>.</li>
+  </ul>
+  <p>
+    Each fires the native <code>close</code> event on the <code>&lt;dialog&gt;</code>, so
+    <code>hx-trigger="close"</code> on it, or a listener reading <code>returnValue</code>, can act on the answer.
+  </p>
+
+  <h2 id="no-close-button">No close button</h2>
+  <p>Leave out <code>.dialog-close</code> for a dialog that closes only with <kbd class="kbd">Esc</kbd> or a click outside.</p>
+  {% call demo() %}
+    <button type="button" class="btn btn-outline" commandfor="no-close" command="show-modal">No close button</button>
+    <dialog id="no-close" class="dialog" data-dialog aria-labelledby="no-close-title" aria-describedby="no-close-description">
+      <div class="dialog-header">
+        <h2 class="dialog-title" id="no-close-title">No close button</h2>
+        <p class="dialog-description" id="no-close-description">This dialog has no close button. Press Escape or click outside to close it.</p>
+      </div>
+    </dialog>
+  {% endcall %}
+
+  <h2 id="custom-close-button">Custom close button</h2>
+  <p>Any element with <code>data-dialog-close</code> closes the dialog it is in, so the footer's own button can do it.</p>
+  {% call demo() %}
+    <button type="button" class="btn btn-outline" commandfor="share-link" command="show-modal">Share</button>
+    <dialog id="share-link" class="dialog dialog-sm" data-dialog aria-labelledby="share-link-title" aria-describedby="share-link-description">
+      <div class="dialog-header">
+        <h2 class="dialog-title" id="share-link-title">Share link</h2>
+        <p class="dialog-description" id="share-link-description">Anyone who has this link will be able to view this.</p>
+      </div>
+      <div class="field">
+        <label class="field-label sr-only" for="share-link-url">Link</label>
+        <input class="input" id="share-link-url" value="https://htmx-ui.dev/docs/installation" readonly />
+      </div>
+      <div class="dialog-footer sm:justify-start">
+        <button type="button" class="btn btn-secondary" data-dialog-close>Close</button>
+      </div>
+    </dialog>
+  {% endcall %}
+
+  <h2 id="scrollable-content">Scrollable content</h2>
+  <p>
+    Long content scrolls inside <code>.dialog-content</code> while the header stays in view. A dialog is never taller
+    than the viewport less a margin; give it a <code>max-h-*</code> to cap it lower.
+  </p>
+  {% call demo() %}
+    <button type="button" class="btn btn-outline" commandfor="scrollable" command="show-modal">Scrollable content</button>
+    <dialog id="scrollable" class="dialog max-h-[min(30rem,calc(100dvh-2rem))]" data-dialog aria-labelledby="scrollable-title">
+      <div class="dialog-header">
+        <h2 class="dialog-title" id="scrollable-title">Scrollable content</h2>
+        <p class="dialog-description">This is a dialog with scrollable content.</p>
+      </div>
+      <div class="dialog-content space-y-4 leading-relaxed">
+        <p>Pages are plain HTML rendered by Nunjucks at build time. Components are CSS classes, with a small behaviour where one is needed.</p>
+        <p>htmx swaps fragments from your server into the page. Components inside a fragment initialise as soon as it arrives, so a dialog returned by a request works like one written in the page.</p>
+        <p>Every colour is a CSS variable. Override the tokens on :root, or on any element, to theme the whole library, in light and dark.</p>
+        <p>The native dialog element does the hard parts: the top layer, an inert page underneath, focus moving in and coming back, and Escape.</p>
+        <p>Dialogs can open over other dialogs. Each new one stacks on top with its own backdrop, and Escape closes the topmost first.</p>
+        <p>A form inside a dialog can post with htmx. The server answers with a fragment for the page and closes the dialog with a response header.</p>
+        <p>Alert dialogs are the same element with role="alertdialog". They don't close on a click outside, because they need an answer.</p>
+        <p>Without JavaScript, a form with method="dialog" still closes it, and browsers with invoker commands still open it.</p>
+      </div>
+      <button type="button" class="dialog-close" data-dialog-close aria-label="Close">{{ icon("x") }}</button>
+    </dialog>
+  {% endcall %}
+
+  <h2 id="sticky-footer">Sticky footer</h2>
+  <p>
+    With a <code>.dialog-content</code> between them, the footer stays visible while the content scrolls.
+    <code>.dialog-footer-sticky</code> sets it apart: tinted, edge to edge, with a border on top.
+  </p>
+  {% call demo() %}
+    <button type="button" class="btn btn-outline" commandfor="terms" command="show-modal">Sticky footer</button>
+    <dialog id="terms" class="dialog max-h-[min(30rem,calc(100dvh-2rem))]" data-dialog aria-labelledby="terms-title">
+      <div class="dialog-header">
+        <h2 class="dialog-title" id="terms-title">Terms of service</h2>
+        <p class="dialog-description">Please read and accept the terms to continue.</p>
+      </div>
+      <div class="dialog-content space-y-4 leading-relaxed">
+        <p><strong>1. Acceptance.</strong> By using the service you agree to these terms. If you don't agree, don't use it.</p>
+        <p><strong>2. Accounts.</strong> You are responsible for your account and for everything done with it. Keep your password safe.</p>
+        <p><strong>3. Content.</strong> You keep the rights to what you upload. You give us the permission we need to store and show it to the people you share it with.</p>
+        <p><strong>4. Acceptable use.</strong> Don't break the law, don't attack the service, and don't use it to harm other people.</p>
+        <p><strong>5. Payment.</strong> Paid plans are billed in advance and renew until you cancel. Cancelling stops the next renewal.</p>
+        <p><strong>6. Termination.</strong> You can stop using the service at any time. We may suspend accounts that break these terms.</p>
+        <p><strong>7. Changes.</strong> We will tell you before these terms change. Using the service after a change means you accept it.</p>
+      </div>
+      <div class="dialog-footer dialog-footer-sticky">
+        <button type="button" class="btn btn-outline" data-dialog-close="decline">Decline</button>
+        <button type="button" class="btn btn-primary" data-dialog-close="accept">Accept</button>
+      </div>
+    </dialog>
+  {% endcall %}
+
+  <h2 id="sizes">Sizes</h2>
+  <p>
+    A dialog is <code>max-w-lg</code> wide. <code>.dialog-sm</code>, <code>.dialog-lg</code> and
+    <code>.dialog-xl</code> change that, or use any <code>max-w-*</code> utility.
+  </p>
+  {% call demo() %}
+    <button type="button" class="btn btn-outline" commandfor="size-sm" command="show-modal">Small</button>
+    <button type="button" class="btn btn-outline" commandfor="size-xl" command="show-modal">Extra large</button>
+    <dialog id="size-sm" class="dialog dialog-sm" data-dialog aria-labelledby="size-sm-title">
+      <div class="dialog-header"><h2 class="dialog-title" id="size-sm-title">Small dialog</h2></div>
+      <p class="muted">.dialog-sm is max-w-sm.</p>
+      <button type="button" class="dialog-close" data-dialog-close aria-label="Close">{{ icon("x") }}</button>
+    </dialog>
+    <dialog id="size-xl" class="dialog dialog-xl" data-dialog aria-labelledby="size-xl-title">
+      <div class="dialog-header"><h2 class="dialog-title" id="size-xl-title">Extra large dialog</h2></div>
+      <p class="muted">.dialog-xl is max-w-4xl.</p>
+      <button type="button" class="dialog-close" data-dialog-close aria-label="Close">{{ icon("x") }}</button>
+    </dialog>
+  {% endcall %}
+
+  <h2 id="nested">Dialog over a dialog</h2>
+  <p>
+    A button inside one dialog can open another. It stacks on top with its own backdrop, the first dialog becomes
+    inert, and <kbd class="kbd">Esc</kbd> or a click outside closes the topmost one first.
+  </p>
+  {% call demo() %}
+    <button type="button" class="btn btn-outline" commandfor="nested-outer" command="show-modal">Open settings</button>
+    <dialog id="nested-outer" class="dialog" data-dialog aria-labelledby="nested-outer-title">
+      <div class="dialog-header">
+        <h2 class="dialog-title" id="nested-outer-title">Settings</h2>
+        <p class="dialog-description">Manage your workspace.</p>
+      </div>
+      <div class="dialog-footer sm:justify-between">
+        <button type="button" class="btn btn-danger" commandfor="nested-inner" command="show-modal">{{ icon("trash") }} Delete workspace</button>
+        <button type="button" class="btn btn-outline" data-dialog-close>Done</button>
+      </div>
+    </dialog>
+    <dialog id="nested-inner" class="dialog dialog-sm" data-dialog aria-labelledby="nested-inner-title">
+      <div class="dialog-header">
+        <h2 class="dialog-title" id="nested-inner-title">Are you sure?</h2>
+        <p class="dialog-description">This is a second dialog, over the first.</p>
+      </div>
+      <div class="dialog-footer">
+        <button type="button" class="btn btn-outline" data-dialog-close>Cancel</button>
+        <button type="button" class="btn btn-danger" data-dialog-close>Delete</button>
+      </div>
+    </dialog>
+  {% endcall %}
+
+  <h2 id="htmx">With htmx</h2>
+  <h3 id="from-the-server">A dialog from the server</h3>
+  <p>
+    A dialog can come from the server instead of the page. <code>data-dialog-show</code> opens it as a modal as soon as
+    htmx inserts it, and <code>data-dialog-remove</code> takes it out of the page again once it has closed, so every
+    click loads a fresh one. Append it to the body:
+  </p>
+  {% call demo("flex-col gap-4") %}
+    <button type="button" class="btn btn-outline" hx-get="/api/dialog" hx-target="body" hx-swap="beforeend">
+      Rename project
+    </button>
+    <span id="server-dialog-result" class="muted"></span>
+  {% endcall %}
+  <p>The server returns:</p>
+  {% call code("html") %}
+    <dialog class="dialog" data-dialog data-dialog-show data-dialog-remove aria-labelledby="rename-title">
+      <div class="dialog-header">
+        <h2 class="dialog-title" id="rename-title">Rename project</h2>
+      </div>
+      <form class="contents" hx-post="/api/dialog/save" hx-target="#server-dialog-result">
+        <div class="field">
+          <label class="field-label" for="rename-name">Name</label>
+          <input class="input" id="rename-name" name="name" required autofocus />
+        </div>
+        <div class="dialog-footer">
+          <button type="button" class="btn btn-outline" data-dialog-close>Cancel</button>
+          <button class="btn btn-primary">Save</button>
+        </div>
+      </form>
+    </dialog>
+  {% endcall %}
+
+  <h3 id="close-from-the-server">Closing it from the server</h3>
+  <p>
+    A <code>dialog:close</code> event dispatched inside a dialog closes it. htmx dispatches the events named in an
+    <code>HX-Trigger</code> response header on the element that made the request, so a server that has saved the
+    form closes the dialog it came from with one header, while the response body goes to the form's
+    <code>hx-target</code>. On a validation error, leave the header off and return the form with its messages instead.
+  </p>
+  {% call code("text") %}
+    HTTP/1.1 200 OK
+    Content-Type: text/html; charset=utf-8
+    HX-Trigger: dialog:close
+
+    <span class="text-success">Renamed to htmx-ui</span>
+  {% endcall %}
+
+  <h2 id="macro">Macro</h2>
+  <p>
+    <code>dialog()</code> writes the <code>&lt;dialog&gt;</code>, its header and the close button, with the ids and ARIA
+    attributes wired up. The call body is everything after the header.
+  </p>
+  {% call code("jinja") %}
+    {% raw %}
+    {% from "components/dialog/dialog.html" import dialog %}
+
+    <button class="btn btn-outline" commandfor="invite" command="show-modal">Invite</button>
+    {% call dialog("invite", "Invite people", "They will get an email with a link.", size="sm") %}
+      <div class="dialog-footer">
+        <button class="btn btn-outline" data-dialog-close>Cancel</button>
+        <button class="btn btn-primary" data-dialog-close="send">Send invites</button>
+      </div>
+    {% endcall %}
+    {% endraw %}
+  {% endcall %}
+  {{ classes([
+    ["id", "Required. The id buttons point commandfor at; also prefixes the title and description ids."],
+    ["title, description", "Header text. Each sets aria-labelledby / aria-describedby."],
+    ["close=true", "The corner close button. false leaves it out."],
+    ["alert=false", "true makes it an alert dialog: role=\"alertdialog\", no corner button, no closing on a click outside."],
+    ["size", "\"sm\", \"lg\" or \"xl\"."],
+    ["media, media_variant", "An icon name shown above the title, and \"danger\" to tint it."],
+    ["show, remove", "data-dialog-show and data-dialog-remove, for dialogs returned by htmx."],
+    ["class", "More classes on the <dialog>."]
+  ], heading="Parameter") }}
+
+  <h2 id="accessibility">Accessibility</h2>
+  <ul>
+    <li>Give every dialog a name: <code>aria-labelledby</code> pointing at its title, or <code>aria-label</code>.</li>
+    <li>Focus moves to the first focusable element inside, or to one marked <code>autofocus</code>. Put <code>autofocus</code> on the field the user needs first, or on the safest button.</li>
+    <li>An icon-only close button needs an <code>aria-label</code>.</li>
+    <li>Use an <a href="/docs/components/alert-dialog">alert dialog</a> when the user must answer before going on.</li>
+  </ul>
+
+  <h2 id="reference">Reference</h2>
+  {{ classes([
+    [".dialog", "The <dialog>: centred, padded, scrolls when taller than the viewport. Fades and zooms in and out."],
+    [".dialog-header / .dialog-title / .dialog-description", "Title block, centred on small screens."],
+    [".dialog-content", "Body that scrolls on its own, keeping the header and footer in view."],
+    [".dialog-footer", "Actions: stacked on small screens, a right-aligned row from sm."],
+    [".dialog-footer-sticky", "Tinted, edge-to-edge footer with a top border."],
+    [".dialog-close", "Corner close button."],
+    [".dialog-sm / -lg / -xl", "Widths: max-w-sm, max-w-2xl, max-w-4xl (default max-w-lg)."],
+    [".dialog-media / .dialog-media-danger", "An icon or image above the title; see Alert dialog."],
+    ["[data-dialog]", "Behaviour: closes on a click outside and on [data-dialog-close], opens command buttons in older browsers."],
+    ["[data-dialog-close=\"value\"]", "Closes the dialog it is in; the value becomes returnValue."],
+    ["[data-dialog-show] / [data-dialog-remove]", "Open as a modal when initialised / remove from the page once closed."],
+    ["dialog:close event", "Closes the dialog it is dispatched in, e.g. from an HX-Trigger response header."]
+  ]) }}
+{% endblock %}

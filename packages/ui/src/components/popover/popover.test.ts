@@ -43,3 +43,20 @@ describe("popover", () => {
     expect(panel.hidden).toBe(true);
   });
 });
+
+describe("popover close buttons", () => {
+  test("[data-popover-close] closes and refocuses the trigger", () => {
+    document.body.innerHTML = `
+      <div data-popover>
+        <button data-popover-trigger>Open</button>
+        <div data-popover-content hidden><button data-popover-close>Cancel</button></div>
+      </div>`;
+    initPopover(document);
+    const trigger = document.querySelector<HTMLElement>("[data-popover-trigger]")!;
+    const panel = document.querySelector<HTMLElement>("[data-popover-content]")!;
+    trigger.click();
+    panel.querySelector<HTMLElement>("[data-popover-close]")!.click();
+    expect(panel.hidden).toBe(true);
+    expect(document.activeElement).toBe(trigger);
+  });
+});

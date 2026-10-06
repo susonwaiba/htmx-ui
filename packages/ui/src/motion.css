@@ -1,0 +1,53 @@
+/* Shared enter and exit animations, on the --motion-* tokens (styles.css).
+
+   Floating panels that their behaviours open and close with the hidden attribute (popover,
+   dropdown and menubar menus, select and combobox lists) fade and zoom in from the edge
+   nearest their trigger, sliding a little away from it, and fade back out. No JavaScript is
+   involved: @starting-style is where opening starts from, and display transitions with
+   allow-discrete, so a panel stays on screen while it fades out after [hidden] is set (it
+   ignores the pointer meanwhile). Browsers without them just show and hide the panel.
+
+   The zoom grows from --panel-origin-x / --panel-origin-y (left top by default) and the slide
+   is --panel-shift-x / --panel-shift-y; the rules below set them for each placement. */
+@layer components {
+  :is(.popover-content, .dropdown-menu, .select-content, .combobox-content) {
+    transform-origin: var(--panel-origin-x, left) var(--panel-origin-y, top);
+    transition:
+      opacity var(--motion-duration-normal) var(--motion-ease-out),
+      transform var(--motion-duration-normal) var(--motion-ease-out),
+      display var(--motion-duration-normal) allow-discrete;
+  }
+  :is(.popover-content, .dropdown-menu, .select-content, .combobox-content)[hidden] {
+    @apply pointer-events-none;
+    opacity: 0;
+    transform: translate(var(--panel-shift-x, 0px), var(--panel-shift-y, -0.25rem)) scale(0.96);
+    transition-duration: var(--motion-duration-fast);
+  }
+  @starting-style {
+    :is(.popover-content, .dropdown-menu, .select-content, .combobox-content):not([hidden]) {
+      opacity: 0;
+      transform: translate(var(--panel-shift-x, 0px), var(--panel-shift-y, -0.25rem)) scale(0.96);
+    }
+  }
+
+  /* Placements: aligned to the trigger's right edge or centre, opening upwards, or flipped by
+     utils/menu.ts (data-flip-x / data-flip-y) to stay in the viewport. */
+  :is(.popover-content-end, .dropdown-menu-end, .select-content-end, .combobox-content-end),
+  :is(.dropdown-menu)[data-flip-x] {
+    --panel-origin-x: right;
+  }
+  .popover-content-center {
+    --panel-origin-x: center;
+  }
+  :is(.popover-content-up, .dropdown-menu-up, .select-content-up, .combobox-content-up),
+  :is(.dropdown-menu)[data-flip-y] {
+    --panel-origin-y: bottom;
+    --panel-shift-y: 0.25rem;
+  }
+  /* Submenus and the menus of a vertical menubar open beside their trigger: they zoom out of
+     it without sliding. */
+  .dropdown-sub > .dropdown-menu,
+  .menubar[aria-orientation="vertical"] > .menubar-menu > .dropdown-menu {
+    --panel-shift-y: 0px;
+  }
+}

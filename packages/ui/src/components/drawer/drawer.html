@@ -1,0 +1,31 @@
+{# Drawer: a <dialog> on an edge that a swipe dismisses, with its handle and header, ids and ARIA wired up.
+   {% from "components/drawer/drawer.html" import drawer %}
+   {% call drawer("goal", "Move goal", "Set your daily activity goal.") %}
+     <div class="drawer-content">…</div>
+     <div class="drawer-footer">…</div>
+   {% endcall %}
+   Open it with <button commandfor="goal" command="show-modal">.
+   direction="down" | "up" | "left" | "right"   the way a swipe dismisses it (and the edge it sits on)
+   handle=false        no .drawer-handle bar
+   handle_only=true    data-drawer-handle-only: only the handle drags
+   responsive=true     .drawer-responsive: a centred dialog from md up
+   show=true, remove=true   data-dialog-show / data-dialog-remove, for a drawer htmx returns
+   class=""            more classes on the <dialog> #}
+
+{% macro drawer(id, title=none, description=none, direction="down", handle=true, handle_only=false, responsive=false, show=false, remove=false, class="") %}
+<dialog id="{{ id }}" class="drawer{% if responsive %} drawer-responsive{% endif %}{% if class %} {{ class }}{% endif %}" data-dialog data-drawer data-swipe-direction="{{ direction }}"
+  {%- if handle_only %} data-drawer-handle-only{% endif %}
+  {%- if title %} aria-labelledby="{{ id }}-title"{% endif %}
+  {%- if description %} aria-describedby="{{ id }}-description"{% endif %}
+  {%- if show %} data-dialog-show{% endif %}
+  {%- if remove %} data-dialog-remove{% endif %}>
+  {% if handle %}<div class="drawer-handle"></div>{% endif %}
+  {% if title or description %}
+  <div class="drawer-header">
+    {% if title %}<h2 class="drawer-title" id="{{ id }}-title">{{ title }}</h2>{% endif %}
+    {% if description %}<p class="drawer-description" id="{{ id }}-description">{{ description }}</p>{% endif %}
+  </div>
+  {% endif %}
+  {{ caller() }}
+</dialog>
+{%- endmacro %}

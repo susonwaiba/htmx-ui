@@ -1,0 +1,248 @@
+{% extends "layouts/docs.html" %}
+{% from "components/icon/icon.html" import icon %}
+{% from "docs/macros.html" import demo, classes %}
+{% set title = "Hover card" %}
+{% set description = "A card that previews what is behind a link when a mouse rests on it or the link gets keyboard focus, for sighted users." %}
+
+{% block content %}
+  {% call demo("min-h-72 items-start") %}
+    <span class="hover-card" data-hover-card>
+      <a class="btn btn-link" href="#" data-hover-card-trigger>@htmx-ui</a>
+      <span class="hover-card-content hover-card-content-lg" data-hover-card-content>
+        <span class="hover-card-header">
+          <span class="avatar avatar-lg" aria-hidden="true">
+            <img class="avatar-image" src="{{ asset('images/avatar-2.svg') }}" alt="" />
+            <span class="avatar-fallback">HU</span>
+          </span>
+          <span class="hover-card-body">
+            <span class="hover-card-title">@htmx-ui</span>
+            <span class="hover-card-description">Components for htmx apps – plain HTML, CSS and a little TypeScript.</span>
+            <span class="hover-card-meta">{{ icon("calendar") }} Joined December 2021</span>
+          </span>
+        </span>
+      </span>
+    </span>
+  {% endcall %}
+
+  <h2 id="markup">Markup</h2>
+  <ul>
+    <li>Wrap a link and its card in <code>.hover-card</code> with <code>data-hover-card</code>. The trigger is the element with <code>data-hover-card-trigger</code>, else the first link inside.</li>
+    <li>The card is a <code>.hover-card-content</code> with <code>data-hover-card-content</code>, placed after the trigger. It may hold anything, links included.</li>
+    <li>Write the wrapper, the card and its parts as <code>&lt;span&gt;</code>s, as above: a hover card is often inside a paragraph, and a <code>&lt;div&gt;</code> or <code>&lt;p&gt;</code> there would end the paragraph.</li>
+    <li>For a profile preview, <code>.hover-card-header</code> puts an <a href="/docs/components/avatar">avatar</a> beside a <code>.hover-card-body</code>, which stacks a <code>.hover-card-title</code>, a <code>.hover-card-description</code> and a muted <code>.hover-card-meta</code> line with an icon.</li>
+    <li>The trigger stays an ordinary link: clicking or tapping it follows it. The card only adds a preview of what is there, so nothing must be reachable through the card alone.</li>
+  </ul>
+
+  <h2 id="opening">Opening and closing</h2>
+  <ul>
+    <li>A mouse or pen resting on the trigger opens the card after <code>700ms</code>, so it doesn't flash while the pointer crosses the page. Leaving before then opens nothing.</li>
+    <li>Once the pointer has left both the trigger and the card, the card closes after <code>300ms</code>. The pointer can travel from the trigger onto the card, across the gap, to select text or follow a link in it.</li>
+    <li>Keyboard focus on the trigger opens it at once. The card stays open while focus is inside it and closes when focus leaves. A mouse click that focuses the trigger doesn't open it.</li>
+    <li>Touch never opens it: on a phone the link simply navigates.</li>
+    <li><kbd class="kbd">Esc</kbd> closes it.</li>
+  </ul>
+  <p>
+    The behaviour sets <code>data-open</code> on the wrapper while the card is open. Without JavaScript, CSS opens it on
+    hover and keyboard focus, with the same delays.
+  </p>
+
+  <h2 id="side">Side</h2>
+  <p>
+    Cards open below their trigger. <code>.hover-card-content-top</code>, <code>.hover-card-content-right</code> and
+    <code>.hover-card-content-left</code> put them on another side.
+  </p>
+  {% call demo("min-h-[34rem] flex-col gap-10 py-40") %}
+    <span class="hover-card" data-hover-card>
+      <a class="btn btn-outline btn-sm" href="#" data-hover-card-trigger>Top</a>
+      <span class="hover-card-content hover-card-content-sm hover-card-content-top" data-hover-card-content>Opens above the trigger.</span>
+    </span>
+    <span class="flex gap-24">
+      <span class="hover-card" data-hover-card>
+        <a class="btn btn-outline btn-sm" href="#" data-hover-card-trigger>Left</a>
+        <span class="hover-card-content hover-card-content-sm hover-card-content-left" data-hover-card-content>Opens to the left.</span>
+      </span>
+      <span class="hover-card" data-hover-card>
+        <a class="btn btn-outline btn-sm" href="#" data-hover-card-trigger>Right</a>
+        <span class="hover-card-content hover-card-content-sm hover-card-content-right" data-hover-card-content>Opens to the right.</span>
+      </span>
+    </span>
+    <span class="hover-card" data-hover-card>
+      <a class="btn btn-outline btn-sm" href="#" data-hover-card-trigger>Bottom</a>
+      <span class="hover-card-content hover-card-content-sm" data-hover-card-content>Opens below the trigger (the default).</span>
+    </span>
+  {% endcall %}
+  <p>
+    If the card would stick out of the window on its side, it opens on the opposite side instead, provided that side has
+    more room: a card set to open above a link at the top of the screen opens below it. <code>data-side</code> on the card
+    says which side it opened on. Like any absolutely positioned element, it is still clipped by an ancestor with
+    <code>overflow: hidden</code>.
+  </p>
+
+  <h2 id="alignment">Alignment</h2>
+  <p>
+    A card is centred on its trigger. <code>.hover-card-content-start</code> lines it up with the trigger's start edge
+    and <code>.hover-card-content-end</code> with its end edge (the top and bottom edges for cards on the left or right).
+  </p>
+  {% call demo("min-h-56 items-start gap-6") %}
+    {% for align in ["start", "center", "end"] %}
+    <span class="hover-card" data-hover-card>
+      <a class="btn btn-outline btn-sm" href="#" data-hover-card-trigger>{{ align | capitalize }}</a>
+      <span class="hover-card-content hover-card-content-sm{% if align != 'center' %} hover-card-content-{{ align }}{% endif %}" data-hover-card-content>Aligned to the {{ "start edge" if align == "start" else ("centre" if align == "center" else "end edge") }} of its trigger.</span>
+    </span>
+    {% endfor %}
+  {% endcall %}
+
+  <h2 id="size">Size</h2>
+  <p>
+    Cards are <code>16rem</code> wide. <code>.hover-card-content-sm</code> makes them <code>12rem</code> and
+    <code>.hover-card-content-lg</code> <code>20rem</code>; any <code>w-*</code> utility sets another width. They never get
+    wider than the window.
+  </p>
+  {% call demo("min-h-60 items-start gap-6") %}
+    {% for size in [["sm", "Small"], ["", "Default"], ["lg", "Large"]] %}
+    <span class="hover-card" data-hover-card>
+      <a class="btn btn-outline btn-sm" href="#" data-hover-card-trigger>{{ size[1] }}</a>
+      <span class="hover-card-content{% if size[0] %} hover-card-content-{{ size[0] }}{% endif %}" data-hover-card-content>
+        <span class="hover-card-title">{{ size[1] }}</span>
+        <span class="hover-card-description text-muted-foreground">A hover card with{% if size[0] %} .hover-card-content-{{ size[0] }}{% else %} the default width{% endif %}.</span>
+      </span>
+    </span>
+    {% endfor %}
+  {% endcall %}
+
+  <h2 id="offset">Offset</h2>
+  <p>
+    The gap between trigger and card is <code>--hover-card-offset</code>, <code>0.25rem</code> by default. Set it on the
+    wrapper or any ancestor; the invisible bridge the pointer crosses grows with it.
+  </p>
+  {% call demo("min-h-52 items-start") %}
+    <span class="hover-card [--hover-card-offset:1rem]" data-hover-card>
+      <a class="btn btn-outline btn-sm" href="#" data-hover-card-trigger>1rem away</a>
+      <span class="hover-card-content hover-card-content-sm" data-hover-card-content>Opens 1rem below its trigger.</span>
+    </span>
+  {% endcall %}
+
+  <h2 id="inline">In a paragraph</h2>
+  <p>The usual home of a hover card: names and references in running text, each previewing the page it links to.</p>
+  {% call demo("min-h-72 items-start") %}
+    <p class="max-w-md text-sm leading-relaxed text-muted-foreground">
+      This release was written by
+      <span class="hover-card" data-hover-card>
+        <a class="link" href="#" data-hover-card-trigger>Ada Moreno</a>
+        <span class="hover-card-content" data-hover-card-content>
+          <span class="hover-card-header">
+            <span class="avatar" aria-hidden="true">
+              <img class="avatar-image" src="{{ asset('images/avatar-1.svg') }}" alt="" />
+              <span class="avatar-fallback">AM</span>
+            </span>
+            <span class="hover-card-body">
+              <span class="hover-card-title">Ada Moreno</span>
+              <span class="hover-card-description">Maintainer. Works on the engine and the docs plugin.</span>
+            </span>
+          </span>
+        </span>
+      </span>
+      and reviewed by
+      <span class="hover-card" data-hover-card>
+        <a class="link" href="#" data-hover-card-trigger>Sam Okafor</a>
+        <span class="hover-card-content" data-hover-card-content>
+          <span class="hover-card-header">
+            <span class="avatar" aria-hidden="true">
+              <img class="avatar-image" src="{{ asset('images/avatar-3.svg') }}" alt="" />
+              <span class="avatar-fallback">SO</span>
+            </span>
+            <span class="hover-card-body">
+              <span class="hover-card-title">Sam Okafor</span>
+              <span class="hover-card-description">Reviews accessibility across the component library.</span>
+            </span>
+          </span>
+        </span>
+      </span>.
+      It closes three issues.
+    </p>
+  {% endcall %}
+
+  <h2 id="delay">Delays</h2>
+  <p>
+    <code>--hover-card-open-delay</code> (<code>700ms</code>) is how long the pointer must rest on the trigger, and
+    <code>--hover-card-close-delay</code> (<code>300ms</code>) how long the card waits after the pointer has left. Set them on
+    the wrapper or any ancestor, in <code>ms</code> or <code>s</code>. Keyboard focus ignores the open delay.
+  </p>
+  {% call demo("min-h-52 items-start gap-6") %}
+    <span class="hover-card [--hover-card-open-delay:100ms]" data-hover-card>
+      <a class="btn btn-outline btn-sm" href="#" data-hover-card-trigger>Quick</a>
+      <span class="hover-card-content hover-card-content-sm" data-hover-card-content>Opens after 100ms.</span>
+    </span>
+    <span class="hover-card [--hover-card-close-delay:1s]" data-hover-card>
+      <a class="btn btn-outline btn-sm" href="#" data-hover-card-trigger>Lingering</a>
+      <span class="hover-card-content hover-card-content-sm" data-hover-card-content>Stays for a second after the pointer leaves.</span>
+    </span>
+  {% endcall %}
+
+  <h2 id="keyboard">Keyboard</h2>
+  <div class="table-wrap not-prose">
+    <table class="table">
+      <thead><tr><th>Key</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr><td><kbd class="kbd">Tab</kbd></td><td class="text-muted-foreground">Focusing the trigger opens the card. The next <kbd class="kbd">Tab</kbd> moves into the card's links, if it has any; leaving the card closes it.</td></tr>
+        <tr><td><kbd class="kbd">Enter</kbd></td><td class="text-muted-foreground">Follows the trigger link, as usual.</td></tr>
+        <tr><td><kbd class="kbd">Esc</kbd></td><td class="text-muted-foreground">Closes the card. Focus inside the card returns to the trigger. It opens again when the pointer comes back or focus returns to the trigger.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2 id="accessibility">Accessibility</h2>
+  <ul>
+    <li>A hover card is for sighted mouse and keyboard users. The trigger is a real link that leads to the same information, so everyone else loses nothing.</li>
+    <li>The card has no role and isn't a dialog: it doesn't take focus or trap it, and opening it isn't announced.</li>
+    <li>While closed it is hidden with <code>visibility</code>, so screen readers and <kbd class="kbd">Tab</kbd> skip it. While open it is ordinary content after the link, which keyboard users can tab into.</li>
+    <li>The trigger isn't linked to the card with <code>aria-describedby</code>, as a <a href="/docs/components/tooltip">tooltip</a> is: a profile card is too long to read out after every mention. For a short card, add it yourself: give the card an <code>id</code> and put it in the trigger's <code>aria-describedby</code>.</li>
+    <li>It meets WCAG 1.4.13 (content on hover or focus): it can be dismissed with <kbd class="kbd">Esc</kbd> without moving the pointer, the pointer can move onto it, and it stays until the pointer or focus leaves.</li>
+    <li>With reduced motion, the card fades without sliding or zooming.</li>
+  </ul>
+
+  <h2 id="htmx">With htmx</h2>
+  <p>
+    The card fires <code>hover-card:open</code> and <code>hover-card:close</code> (they bubble) each time it opens and
+    closes. Load the preview from the server the first time it opens with <code>hx-trigger="hover-card:open once"</code> on
+    the card, so a page full of mentions doesn't fetch every profile up front:
+  </p>
+  {% call demo("min-h-52 items-start") %}
+    <span class="hover-card" data-hover-card>
+      <a class="link" href="#" data-hover-card-trigger>@htmx-ui</a>
+      <span class="hover-card-content" data-hover-card-content
+            hx-get="/api/profile?user=htmx-ui" hx-trigger="hover-card:open once">
+        <span class="flex items-center gap-2 text-muted-foreground">
+          <span class="spinner" role="status" aria-label="Loading"></span> Loading profile…
+        </span>
+      </span>
+    </span>
+  {% endcall %}
+  <p>
+    The server returns the card's inner markup, which replaces the placeholder. Components in it are initialised as usual,
+    since htmx-ui runs its initialisers on new content.
+  </p>
+
+  <h2 id="reference">Reference</h2>
+  {{ classes([
+    [".hover-card", "Wrapper around the trigger and the card. Add data-hover-card."],
+    [".hover-card-content", "The card: below the trigger, centred, 16rem wide. Add data-hover-card-content."],
+    [".hover-card-content-top / -right / -bottom / -left", "The side it opens on (bottom by default)."],
+    [".hover-card-content-start / -end", "Align with the trigger's start or end edge (centred by default)."],
+    [".hover-card-content-sm / -lg", "12rem / 20rem wide."],
+    [".hover-card-header", "An avatar beside the body."],
+    [".hover-card-body", "Stacks the title, description and meta line."],
+    [".hover-card-title", "The name or title, in bold."],
+    [".hover-card-description", "A line or two of text."],
+    [".hover-card-meta", "A small muted line with an icon, such as a join date."],
+    ["[data-hover-card]", "Behaviour: delays, keyboard focus, Escape, flipping, events."],
+    ["[data-hover-card-trigger]", "Marks the trigger when it isn't the first link inside."],
+    ["[data-hover-card-content]", "Marks the card."],
+    ["[data-open]", "Set on the wrapper while the card is open."],
+    ["[data-side]", "Set on the card when it opens: the side it opened on, after any flip."],
+    ["--hover-card-open-delay", "How long the pointer rests on the trigger before the card opens (700ms)."],
+    ["--hover-card-close-delay", "How long the card stays after the pointer leaves (300ms)."],
+    ["--hover-card-offset", "Gap between trigger and card (0.25rem)."],
+    ["hover-card:open / hover-card:close", "Events fired on the card (bubbling) when it opens and closes."]
+  ], heading="Class / attribute") }}
+{% endblock %}

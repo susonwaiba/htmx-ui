@@ -1,0 +1,173 @@
+/* A card that previews what is behind a link, for sighted pointer users.
+
+   <span class="hover-card" data-hover-card>
+     <a href="/u/htmx" data-hover-card-trigger>@htmx</a>
+     <span class="hover-card-content" data-hover-card-content>…avatar, name, bio, joined date…</span>
+   </span>
+
+   Opens below the trigger, centred. Side: .hover-card-content-top / -right / -bottom / -left;
+   alignment: .hover-card-content-start / -end; width: .hover-card-content-sm / -lg.
+   hover-card.ts opens it after --hover-card-open-delay (700ms) under a mouse or pen, at once on
+   keyboard focus, and closes it --hover-card-close-delay (300ms) after the pointer has left both
+   the trigger and the card; it sets data-open on the wrapper and flips the card to the opposite
+   side when it would leave the viewport. Without the script, CSS opens it on hover and focus.
+   --hover-card-offset (0.25rem) is the gap between trigger and card.
+   Inside a paragraph, use <span>s for the card and its parts: a <div> would end the paragraph. */
+@layer components {
+  .hover-card {
+    @apply relative inline-block;
+  }
+
+  /* Side "bottom" by default: centred below the trigger, sliding and zooming in from it. */
+  .hover-card-content {
+    --hover-card-x: -50%;
+    --hover-card-y: 0px;
+    --hover-card-shift-x: 0px;
+    --hover-card-shift-y: -0.25rem;
+    @apply invisible absolute z-50 block w-64 max-w-[calc(100vw-2rem)] rounded-(--radius) border border-border
+      bg-surface p-4 text-left text-sm leading-normal font-normal tracking-normal whitespace-normal text-foreground
+      normal-case no-underline opacity-0 shadow-md outline-none;
+    top: 100%;
+    right: auto;
+    bottom: auto;
+    left: 50%;
+    margin: var(--hover-card-offset, 0.25rem) 0 0;
+    translate: calc(var(--hover-card-x) + var(--hover-card-shift-x))
+      calc(var(--hover-card-y) + var(--hover-card-shift-y));
+    scale: 0.96;
+    transition:
+      opacity var(--motion-duration-fast) var(--motion-ease-out),
+      translate var(--motion-duration-fast) var(--motion-ease-out),
+      scale var(--motion-duration-fast) var(--motion-ease-out),
+      visibility 0s var(--motion-duration-fast);
+  }
+  /* An invisible bridge over the gap, so the pointer can travel from the trigger onto the card. */
+  .hover-card-content::before {
+    @apply absolute inset-x-0 content-[''];
+    bottom: 100%;
+    height: calc(var(--hover-card-offset, 0.25rem) + 2px);
+  }
+
+  /* Sides */
+  .hover-card-content-bottom {
+    --hover-card-shift-y: -0.25rem;
+  }
+  .hover-card-content-top {
+    --hover-card-shift-y: 0.25rem;
+    top: auto;
+    bottom: 100%;
+    margin: 0 0 var(--hover-card-offset, 0.25rem);
+  }
+  .hover-card-content-top::before {
+    top: 100%;
+    bottom: auto;
+  }
+  .hover-card-content-left,
+  .hover-card-content-right {
+    --hover-card-x: 0px;
+    --hover-card-y: -50%;
+    --hover-card-shift-y: 0px;
+    top: 50%;
+    bottom: auto;
+  }
+  .hover-card-content-left {
+    --hover-card-shift-x: 0.25rem;
+    right: 100%;
+    left: auto;
+    margin: 0 var(--hover-card-offset, 0.25rem) 0 0;
+  }
+  .hover-card-content-right {
+    --hover-card-shift-x: -0.25rem;
+    left: 100%;
+    margin: 0 0 0 var(--hover-card-offset, 0.25rem);
+  }
+  .hover-card-content-left::before,
+  .hover-card-content-right::before {
+    @apply inset-y-0 h-auto;
+    width: calc(var(--hover-card-offset, 0.25rem) + 2px);
+  }
+  .hover-card-content-left::before {
+    right: auto;
+    left: 100%;
+  }
+  .hover-card-content-right::before {
+    right: 100%;
+    left: auto;
+  }
+
+  /* Alignment along the side: start / end edge of the trigger (centre by default) */
+  .hover-card-content-start:not(.hover-card-content-left, .hover-card-content-right) {
+    --hover-card-x: 0px;
+    left: 0;
+  }
+  .hover-card-content-end:not(.hover-card-content-left, .hover-card-content-right) {
+    --hover-card-x: 0px;
+    right: 0;
+    left: auto;
+  }
+  .hover-card-content-start:is(.hover-card-content-left, .hover-card-content-right) {
+    --hover-card-y: 0px;
+    top: 0;
+  }
+  .hover-card-content-end:is(.hover-card-content-left, .hover-card-content-right) {
+    --hover-card-y: 0px;
+    top: auto;
+    bottom: 0;
+  }
+
+  /* Widths */
+  .hover-card-content-sm {
+    @apply w-48;
+  }
+  .hover-card-content-lg {
+    @apply w-80;
+  }
+
+  /* Open: data-open from hover-card.ts. Without the script (no data-init yet), on hover where
+     there is a real pointer and on keyboard focus, with the same delays done in CSS. */
+  .hover-card[data-open] > .hover-card-content,
+  .hover-card:not([data-init]):has(:focus-visible) > .hover-card-content {
+    @apply visible opacity-100;
+    --hover-card-shift-x: 0px;
+    --hover-card-shift-y: 0px;
+    scale: 1;
+    transition:
+      opacity var(--motion-duration-normal) var(--motion-ease-out),
+      translate var(--motion-duration-normal) var(--motion-ease-out),
+      scale var(--motion-duration-normal) var(--motion-ease-out);
+  }
+  @media (hover: hover) {
+    .hover-card:not([data-init]) > .hover-card-content {
+      transition-delay: var(--hover-card-close-delay, 300ms);
+    }
+    .hover-card:not([data-init]):hover > .hover-card-content {
+      @apply visible opacity-100;
+      --hover-card-shift-x: 0px;
+      --hover-card-shift-y: 0px;
+      scale: 1;
+      transition:
+        opacity var(--motion-duration-normal) var(--motion-ease-out) var(--hover-card-open-delay, 700ms),
+        translate var(--motion-duration-normal) var(--motion-ease-out) var(--hover-card-open-delay, 700ms),
+        scale var(--motion-duration-normal) var(--motion-ease-out) var(--hover-card-open-delay, 700ms),
+        visibility 0s var(--hover-card-open-delay, 700ms);
+    }
+  }
+
+  /* Parts for the usual profile preview: avatar beside a title, text and a muted footer line. */
+  .hover-card-header {
+    @apply flex items-start gap-4;
+  }
+  .hover-card-body {
+    @apply flex min-w-0 flex-1 flex-col gap-1;
+  }
+  .hover-card-title {
+    @apply m-0 block text-sm leading-snug font-semibold;
+  }
+  .hover-card-description {
+    @apply m-0 block text-sm;
+  }
+  .hover-card-meta {
+    @apply mt-1 flex items-center gap-2 text-xs text-muted-foreground [&>svg]:size-4! [&>svg]:shrink-0
+      [&>svg]:opacity-70;
+  }
+}

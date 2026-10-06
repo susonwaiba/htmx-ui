@@ -1,0 +1,180 @@
+{% extends "layouts/docs.html" %}
+{% from "components/icon/icon.html" import icon %}
+{% from "components/code/code.html" import code %}
+{% from "docs/macros.html" import demo, classes %}
+{% set title = "Alert dialog" %}
+{% set description = "A modal dialog that interrupts the user with important content and expects a response." %}
+
+{% block content %}
+  {% call demo() %}
+    <button type="button" class="btn btn-outline" commandfor="alert-basic" command="show-modal">Show dialog</button>
+    <dialog id="alert-basic" class="dialog" data-dialog role="alertdialog" aria-labelledby="alert-basic-title" aria-describedby="alert-basic-description">
+      <div class="dialog-header">
+        <h2 class="dialog-title" id="alert-basic-title">Are you absolutely sure?</h2>
+        <p class="dialog-description" id="alert-basic-description">This action cannot be undone. This will permanently delete your account and remove your data from our servers.</p>
+      </div>
+      <div class="dialog-footer">
+        <button type="button" class="btn btn-outline" data-dialog-close="cancel" autofocus>Cancel</button>
+        <button type="button" class="btn btn-primary" data-dialog-close="continue">Continue</button>
+      </div>
+    </dialog>
+  {% endcall %}
+
+  <h2 id="markup">Markup</h2>
+  <p>
+    An alert dialog is a <a href="/docs/components/dialog">dialog</a> with <code>role="alertdialog"</code>: the same
+    classes, the same behaviour, the same ways to open it. The role changes two things. Screen readers announce it as an
+    alert, and a click outside doesn't close it, because the user has to answer. <kbd class="kbd">Esc</kbd> still
+    closes it, as a cancel.
+  </p>
+  <ul>
+    <li>Give it a title and a description, linked with <code>aria-labelledby</code> and <code>aria-describedby</code>.</li>
+    <li>Leave out the corner close button; the footer's buttons are the answers.</li>
+    <li>Put <code>autofocus</code> on the least destructive button, usually Cancel, so <kbd class="kbd">Enter</kbd> can't confirm by accident.</li>
+    <li>Give each button a <code>data-dialog-close</code> value. It becomes the dialog's <code>returnValue</code>, which tells the <code>close</code> event which answer was given.</li>
+  </ul>
+
+  <h2 id="small">Small</h2>
+  <p><code>.dialog-sm</code> makes it narrower, centres the text and sets the two buttons side by side at equal width.</p>
+  {% call demo() %}
+    <button type="button" class="btn btn-outline" commandfor="alert-small" command="show-modal">Show dialog</button>
+    <dialog id="alert-small" class="dialog dialog-sm" data-dialog role="alertdialog" aria-labelledby="alert-small-title" aria-describedby="alert-small-description">
+      <div class="dialog-header">
+        <h2 class="dialog-title" id="alert-small-title">Allow accessory to connect?</h2>
+        <p class="dialog-description" id="alert-small-description">Do you want to allow the USB accessory to connect to this device?</p>
+      </div>
+      <div class="dialog-footer">
+        <button type="button" class="btn btn-outline" data-dialog-close="deny" autofocus>Don't allow</button>
+        <button type="button" class="btn btn-primary" data-dialog-close="allow">Allow</button>
+      </div>
+    </dialog>
+  {% endcall %}
+
+  <h2 id="media">Media</h2>
+  <p>
+    <code>.dialog-media</code>, first in the header, adds an icon or an image. In the default size it sits beside the
+    title and description from the <code>sm</code> breakpoint, and above them on smaller screens.
+  </p>
+  {% call demo() %}
+    <button type="button" class="btn btn-outline" commandfor="alert-media" command="show-modal">Share project</button>
+    <dialog id="alert-media" class="dialog" data-dialog role="alertdialog" aria-labelledby="alert-media-title" aria-describedby="alert-media-description">
+      <div class="dialog-header">
+        <div class="dialog-media">{{ icon("send", "size-8") }}</div>
+        <h2 class="dialog-title" id="alert-media-title">Share this project?</h2>
+        <p class="dialog-description" id="alert-media-description">Anyone with the link will be able to view and edit this project.</p>
+      </div>
+      <div class="dialog-footer">
+        <button type="button" class="btn btn-outline" data-dialog-close="cancel" autofocus>Cancel</button>
+        <button type="button" class="btn btn-primary" data-dialog-close="share">Share</button>
+      </div>
+    </dialog>
+  {% endcall %}
+
+  <h2 id="small-with-media">Small with media</h2>
+  <p>In a small alert dialog the media is centred above the title. It can hold an image as well as an icon.</p>
+  {% call demo() %}
+    <button type="button" class="btn btn-outline" commandfor="alert-small-icon" command="show-modal">With an icon</button>
+    <button type="button" class="btn btn-outline" commandfor="alert-small-image" command="show-modal">With an image</button>
+    <dialog id="alert-small-icon" class="dialog dialog-sm" data-dialog role="alertdialog" aria-labelledby="alert-small-icon-title" aria-describedby="alert-small-icon-description">
+      <div class="dialog-header">
+        <div class="dialog-media">{{ icon("bot", "size-8") }}</div>
+        <h2 class="dialog-title" id="alert-small-icon-title">Enable the assistant?</h2>
+        <p class="dialog-description" id="alert-small-icon-description">It can read the pages you open in this workspace.</p>
+      </div>
+      <div class="dialog-footer">
+        <button type="button" class="btn btn-outline" data-dialog-close="cancel" autofocus>Not now</button>
+        <button type="button" class="btn btn-primary" data-dialog-close="enable">Enable</button>
+      </div>
+    </dialog>
+    <dialog id="alert-small-image" class="dialog dialog-sm" data-dialog role="alertdialog" aria-labelledby="alert-small-image-title" aria-describedby="alert-small-image-description">
+      <div class="dialog-header">
+        <div class="dialog-media size-20 rounded-full"><img src="{{ asset('images/landscape.svg') }}" alt="" /></div>
+        <h2 class="dialog-title" id="alert-small-image-title">Use as cover image?</h2>
+        <p class="dialog-description" id="alert-small-image-description">Everyone in the workspace will see it at the top of the project.</p>
+      </div>
+      <div class="dialog-footer">
+        <button type="button" class="btn btn-outline" data-dialog-close="cancel" autofocus>Cancel</button>
+        <button type="button" class="btn btn-primary" data-dialog-close="use">Use image</button>
+      </div>
+    </dialog>
+  {% endcall %}
+
+  <h2 id="destructive">Destructive</h2>
+  <p>
+    For an action that destroys something, make the confirming button <code>.btn-danger</code> and tint the media with
+    <code>.dialog-media-danger</code>. Name the action on the button (&ldquo;Delete chat&rdquo;), not just
+    &ldquo;Continue&rdquo;.
+  </p>
+  {% call demo() %}
+    <button type="button" class="btn btn-danger" commandfor="alert-destructive" command="show-modal">Delete chat</button>
+    <dialog id="alert-destructive" class="dialog dialog-sm" data-dialog role="alertdialog" aria-labelledby="alert-destructive-title" aria-describedby="alert-destructive-description">
+      <div class="dialog-header">
+        <div class="dialog-media dialog-media-danger">{{ icon("trash", "size-8") }}</div>
+        <h2 class="dialog-title" id="alert-destructive-title">Delete chat?</h2>
+        <p class="dialog-description" id="alert-destructive-description">This will permanently delete this chat conversation. View <a class="link" href="#settings">Settings</a> to delete any memories saved during this chat.</p>
+      </div>
+      <div class="dialog-footer">
+        <button type="button" class="btn btn-outline" data-dialog-close="cancel" autofocus>Cancel</button>
+        <button type="button" class="btn btn-danger" data-dialog-close="delete">Delete</button>
+      </div>
+    </dialog>
+  {% endcall %}
+
+  <h2 id="htmx">Confirming an htmx request</h2>
+  <p>
+    Put the request on the confirming button. <code>data-dialog-close</code> closes the dialog at once and htmx sends
+    the request; the response goes to the button's <code>hx-target</code>.
+  </p>
+  {% call demo("flex-col gap-4") %}
+    <button type="button" class="btn btn-outline" commandfor="alert-htmx" command="show-modal">{{ icon("refresh-cw") }} Reset API key</button>
+    <dialog id="alert-htmx" class="dialog" data-dialog role="alertdialog" aria-labelledby="alert-htmx-title" aria-describedby="alert-htmx-description">
+      <div class="dialog-header">
+        <h2 class="dialog-title" id="alert-htmx-title">Reset your API key?</h2>
+        <p class="dialog-description" id="alert-htmx-description">Apps using the current key will stop working until you update them.</p>
+      </div>
+      <div class="dialog-footer">
+        <button type="button" class="btn btn-outline" data-dialog-close="cancel" autofocus>Cancel</button>
+        <button type="button" class="btn btn-danger" data-dialog-close="reset" hx-post="/api/slow" hx-target="#alert-htmx-result">Reset key</button>
+      </div>
+    </dialog>
+    <span id="alert-htmx-result" class="muted"></span>
+  {% endcall %}
+  <p>
+    To act on the answer in your own script instead, listen for the dialog's <code>close</code> event and read
+    <code>returnValue</code>:
+  </p>
+  {% call code("ts") %}
+    const dialog = document.querySelector<HTMLDialogElement>("#alert-basic")!;
+    dialog.addEventListener("close", () => {
+      if (dialog.returnValue === "continue") deleteAccount();
+      dialog.returnValue = ""; // reset for the next time it opens
+    });
+  {% endcall %}
+
+  <h2 id="macro">Macro</h2>
+  <p><code>dialog()</code> with <code>alert=true</code> writes an alert dialog: the role, no corner button, and the header with optional media.</p>
+  {% call code("jinja") %}
+    {% raw %}
+    {% from "components/dialog/dialog.html" import dialog %}
+
+    <button class="btn btn-danger" commandfor="delete-project" command="show-modal">Delete project</button>
+    {% call dialog("delete-project", "Delete project?", "All of its pages and files will be removed.",
+                   alert=true, size="sm", media="trash", media_variant="danger") %}
+      <div class="dialog-footer">
+        <button class="btn btn-outline" data-dialog-close="cancel" autofocus>Cancel</button>
+        <button class="btn btn-danger" data-dialog-close="delete" hx-delete="/projects/42">Delete</button>
+      </div>
+    {% endcall %}
+    {% endraw %}
+  {% endcall %}
+
+  <h2 id="reference">Reference</h2>
+  <p>Alert dialogs use the <a href="/docs/components/dialog#reference">dialog classes</a>. These are the parts specific to them:</p>
+  {{ classes([
+    ["role=\"alertdialog\"", "On the .dialog: announced as an alert, and a click outside doesn't close it."],
+    [".dialog-sm", "Narrow, centred text, buttons side by side at equal width."],
+    [".dialog-media", "Icon or image first in the header: beside the title in the default size from sm, centred above it in .dialog-sm."],
+    [".dialog-media-danger", "Danger-tinted media, for destructive actions."],
+    ["[data-dialog-close=\"value\"]", "An answer button: closes the dialog and sets returnValue."]
+  ]) }}
+{% endblock %}

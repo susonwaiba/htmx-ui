@@ -1,0 +1,153 @@
+/* A modal on the native <dialog> element: showModal() puts it in the top layer and makes
+   everything underneath inert (no clicks, no focus, hidden from screen readers).
+
+   <button class="btn btn-outline" commandfor="edit-profile" command="show-modal">Edit profile</button>
+   <dialog id="edit-profile" class="dialog" data-dialog aria-labelledby="edit-profile-title">
+     <div class="dialog-header">
+       <h2 class="dialog-title" id="edit-profile-title">Edit profile</h2>
+       <p class="dialog-description">…</p>
+     </div>
+     <div class="dialog-content">…</div>                  optional; scrolls on its own
+     <div class="dialog-footer">
+       <button class="btn btn-outline" data-dialog-close>Cancel</button>
+       <button class="btn btn-primary">Save</button>
+     </div>
+     <button class="dialog-close" data-dialog-close aria-label="Close">{{ icon("x") }}</button>   optional
+   </dialog>
+
+   Alert dialog: role="alertdialog" (no light dismiss), .dialog-sm, .dialog-media. */
+@layer components {
+  .dialog {
+    @apply m-auto max-h-[calc(100dvh-2rem)] w-[calc(100%-2rem)] max-w-lg flex-col gap-4 overflow-y-auto
+      overscroll-contain rounded-[calc(var(--radius)+4px)] border border-border bg-surface p-6 text-sm
+      text-foreground shadow-lg outline-none;
+  }
+  .dialog[open] {
+    @apply flex;
+  }
+  .dialog::backdrop {
+    @apply bg-black/50;
+  }
+
+  /* Fade, zoom and rise in; fade and zoom out, quicker. Closing keeps the dialog (and its
+     backdrop) in the top layer until the transition ends; @starting-style is where opening
+     starts from. The transition that runs is the one on the state it goes to: [open] when
+     opening, the closed rule when closing. Reduced motion: the tokens are 0s (styles.css). */
+  .dialog,
+  .dialog::backdrop {
+    transition:
+      opacity var(--motion-duration-normal) var(--motion-ease-out),
+      scale var(--motion-duration-normal) var(--motion-ease-out),
+      translate var(--motion-duration-normal) var(--motion-ease-out),
+      overlay var(--motion-duration-normal) allow-discrete,
+      display var(--motion-duration-normal) allow-discrete;
+    opacity: 0;
+  }
+  .dialog {
+    scale: 0.96;
+  }
+  .dialog[open],
+  .dialog[open]::backdrop {
+    opacity: 1;
+    transition-duration: var(--motion-duration-moderate);
+  }
+  .dialog[open] {
+    scale: 1;
+    translate: 0 0;
+  }
+  @starting-style {
+    .dialog[open],
+    .dialog[open]::backdrop {
+      opacity: 0;
+    }
+    .dialog[open] {
+      scale: 0.96;
+      translate: 0 0.5rem;
+    }
+  }
+
+  /* The page behind an open modal doesn't scroll. */
+  html:has(.dialog[open]:modal) {
+    @apply overflow-hidden;
+  }
+
+  .dialog-header {
+    @apply flex shrink-0 flex-col gap-1.5 text-center sm:text-left;
+  }
+  .dialog-title {
+    @apply text-lg leading-none font-semibold tracking-tight;
+  }
+  .dialog-description {
+    @apply text-muted-foreground;
+  }
+  /* The body. Inside a dialog with a header or footer it scrolls on its own, so they stay in
+     view; its scrollbar sits at the dialog's edge. */
+  .dialog-content {
+    @apply -mx-6 min-h-0 flex-1 overflow-y-auto overscroll-contain px-6;
+  }
+  .dialog-footer {
+    @apply flex shrink-0 flex-col-reverse gap-2 sm:flex-row sm:justify-end;
+  }
+  /* A footer set apart from the scrolling content: tinted, edge to edge, a border on top. */
+  .dialog-footer-sticky {
+    @apply -mx-6 -mb-6 rounded-b-[calc(var(--radius)+3px)] border-t border-border bg-muted/50 px-6 py-4;
+  }
+  /* The corner close button. Leave it out to close with Escape, a click outside or a button of
+     your own. */
+  .dialog-close {
+    @apply absolute top-4 right-4 inline-flex size-7 cursor-pointer items-center justify-center rounded-md
+      text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-2
+      focus-visible:outline-ring [&_svg]:size-4;
+  }
+  .dialog:has(> .dialog-close) .dialog-header {
+    @apply pr-8;
+  }
+
+  /* Widths */
+  .dialog-sm {
+    @apply max-w-sm;
+  }
+  .dialog-lg {
+    @apply max-w-2xl;
+  }
+  .dialog-xl {
+    @apply max-w-4xl;
+  }
+
+  /* An icon or image above the title (beside it in a default-size alert dialog). */
+  .dialog-media {
+    @apply mx-auto mb-2 inline-flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-(--radius)
+      bg-muted text-foreground sm:mx-0 [&_img]:size-full [&_img]:object-cover [&>svg]:size-8!;
+  }
+  .dialog-media-danger {
+    @apply bg-danger/10 text-danger;
+  }
+
+  /* Alert dialog layout: in the default size, media sits beside the title and description. */
+  .dialog[role="alertdialog"]:not(.dialog-sm) .dialog-header:has(> .dialog-media) {
+    @apply sm:grid sm:grid-cols-[auto_1fr] sm:gap-x-4 sm:gap-y-1.5;
+  }
+  .dialog[role="alertdialog"]:not(.dialog-sm) .dialog-header > .dialog-media {
+    @apply sm:row-span-2 sm:mb-0;
+  }
+  .dialog[role="alertdialog"]:not(.dialog-sm) .dialog-header:has(> .dialog-media) > :not(.dialog-media) {
+    @apply sm:col-start-2;
+  }
+  .dialog[role="alertdialog"]:not(.dialog-sm) .dialog-header:has(> .dialog-media) > .dialog-title {
+    @apply sm:self-end;
+  }
+
+  /* Small alert dialog: centred text, the footer's buttons side by side at equal width. */
+  .dialog-sm[role="alertdialog"] .dialog-header {
+    @apply items-center text-center sm:text-center;
+  }
+  .dialog-sm[role="alertdialog"] .dialog-media {
+    @apply sm:mx-auto;
+  }
+  .dialog-sm[role="alertdialog"] .dialog-footer:not(.dialog-footer-sticky) {
+    @apply grid grid-cols-2;
+  }
+  .dialog-sm[role="alertdialog"] .dialog-footer > :only-child {
+    @apply col-span-2;
+  }
+}

@@ -1,0 +1,30 @@
+{# Sheet: a <dialog> that slides in from an edge, its header and close button, with ids and ARIA wired up.
+   {% from "components/sheet/sheet.html" import sheet %}
+   {% call sheet("settings", "Settings", "Changes apply at once.", side="left") %}
+     <div class="sheet-content">…</div>
+     <div class="sheet-footer">…</div>
+   {% endcall %}
+   Open it with <button commandfor="settings" command="show-modal">.
+   side="right" | "left" | "top" | "bottom"
+   close=false         no corner close button (Escape and a click outside still close it)
+   size="sm" | "lg" | "xl"   width of a left or right sheet
+   show=true, remove=true   data-dialog-show / data-dialog-remove, for a sheet htmx returns
+   class=""            more classes on the <dialog> #}
+{% from "components/icon/icon.html" import icon %}
+
+{% macro sheet(id, title=none, description=none, side="right", close=true, size=none, show=false, remove=false, class="") %}
+<dialog id="{{ id }}" class="sheet{% if side != "right" %} sheet-{{ side }}{% endif %}{% if size %} sheet-{{ size }}{% endif %}{% if class %} {{ class }}{% endif %}" data-dialog
+  {%- if title %} aria-labelledby="{{ id }}-title"{% endif %}
+  {%- if description %} aria-describedby="{{ id }}-description"{% endif %}
+  {%- if show %} data-dialog-show{% endif %}
+  {%- if remove %} data-dialog-remove{% endif %}>
+  {% if title or description %}
+  <div class="sheet-header">
+    {% if title %}<h2 class="sheet-title" id="{{ id }}-title">{{ title }}</h2>{% endif %}
+    {% if description %}<p class="sheet-description" id="{{ id }}-description">{{ description }}</p>{% endif %}
+  </div>
+  {% endif %}
+  {{ caller() }}
+  {% if close %}<button type="button" class="sheet-close" data-dialog-close aria-label="Close">{{ icon("x") }}</button>{% endif %}
+</dialog>
+{%- endmacro %}
