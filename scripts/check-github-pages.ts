@@ -21,7 +21,9 @@
 // CSS url()/@import, JS string literals, JSON string values, Markdown link
 // targets and frontmatter, XML text. Code examples inside <pre><code> and fenced
 // Markdown blocks are skipped: there a relative path is documentation, not a
-// link.
+// link. A data-* attribute counts only when its value is rooted at the site
+// (isUrlDataValue): component state such as data-value="README.md" or the
+// prompt-input demo's data-prompt-input-menu="/" is not a link.
 //
 // Exits 1 when anything is found, so it can gate a deploy.
 
@@ -33,6 +35,7 @@ import {
   dirExists,
   inlineBlockRanges,
   isExternalUrl,
+  isUrlDataValue,
   maskedHtmlRanges,
   normalizePath,
   splitUrl,
@@ -215,7 +218,7 @@ function checkHtml(file: string, text: string) {
     const offset = match.index! + match[0].length - match[2]!.length;
     const { value } = unquote(match[2]!);
 
-    if (URL_ATTRS.has(name) || name.startsWith("data-") || name === "content") {
+    if (URL_ATTRS.has(name) || name === "content" || (name.startsWith("data-") && isUrlDataValue(value))) {
       inspectUrl(file, name, offset, value, true);
     } else if (SRCSET_ATTRS.has(name)) {
       let cursor = offset;

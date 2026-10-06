@@ -41,6 +41,25 @@ export function isExternalUrl(url: string): boolean {
   return SELF_CONTAINED.test(url);
 }
 
+/**
+ * Whether a `data-*` value is a URL rather than component state.
+ *
+ * `data-*` holds both, and nothing else tells them apart: the docs plugin writes
+ * `data-markdown-copy="/docs/button.md"` and the search palette
+ * `data-search-src="/sitemap.json"`, while the prompt-input demo puts file
+ * names and trigger keystrokes in `data-value="README.md"`, `data-value="docs/"`
+ * and `data-prompt-input-menu="/"` — all of which look exactly like paths.
+ *
+ * So the rule is the shape, and it is also the convention: a URL written into a
+ * `data-*` attribute is rooted at the site, the way the bundle's own request
+ * paths are (`rewriteJsPaths` reads the same shape). State is not rooted, and
+ * the bare `/` is the commands trigger — the same keystroke the JS rewriter
+ * deliberately leaves alone. `//host` is another origin, already handled as one.
+ */
+export function isUrlDataValue(value: string): boolean {
+  return value.startsWith("/") && value !== "/" && !value.startsWith("//");
+}
+
 /** `/a/b?x=1#y` -> `{ path: "/a/b", suffix: "?x=1#y" }` */
 export function splitUrl(url: string): { path: string; suffix: string } {
   const match = url.match(/^([^?#]*)([?#][\s\S]*)?$/);

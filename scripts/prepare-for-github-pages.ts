@@ -8,9 +8,9 @@
 // root-absolute "/docs" escapes the subdirectory entirely. Both become
 // `${baseUrl}/…`.
 //
-// Covered: HTML (links, assets, inline styles/scripts, srcset, data-* paths),
-// CSS (url(), @import), the bundle's own request paths, and the build's
-// JSON/text/Markdown outputs.
+// Covered: HTML (links, assets, inline styles/scripts, srcset, and the rooted
+// paths in data-*), CSS (url(), @import), the bundle's own request paths, and
+// the build's JSON/text/Markdown outputs.
 //
 // Absolute URLs left behind by a build with no $SITE_URL are re-pointed in the
 // machine-readable manifests only (sitemap.xml, robots.txt, the sitemaps).
@@ -34,6 +34,7 @@ import {
   dirExists,
   fileExists,
   inlineBlockRanges,
+  isUrlDataValue,
   maskedHtmlRanges,
   normalizePath,
   replaceOutside,
@@ -210,8 +211,10 @@ function rewriteTagUrls(tag: string): string {
         next = rewriteSrcset(value);
       } else if (attribute === "style") {
         next = rewriteCssUrls(value);
-      } else if (attribute.startsWith("data-")) {
-        // data-markdown-copy="/docs/x.md", data-versions-src="/docs/versions.json"
+      } else if (attribute.startsWith("data-") && isUrlDataValue(value)) {
+        // data-markdown-copy="/docs/x.md", data-versions-src="/docs/versions.json".
+        // Only a rooted value: an unrooted data-* is component state
+        // (data-value="README.md", data-prompt-input-menu="/"), not a link.
         next = toAbsolute(value) ?? value;
       }
 
