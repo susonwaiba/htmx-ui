@@ -1,0 +1,132 @@
+{% extends "layouts/docs.html" %}
+{% from "docs/macros.html" import demo, classes %}
+{% from "components/code/code.html" import code %}
+{% set title = "Toast" %}
+{% set description = "A short message that stacks in a corner and leaves on its own: success, info, warning, error and loading types, actions, promises, swipe to dismiss, and toasts sent by the server." %}
+
+{% block content %}
+  {% call demo() %}
+    <button type="button" class="btn btn-outline" data-toast="Event has been created" data-toast-description="Sunday, December 3 at 9:00 AM" data-toast-action="Undo">Show toast</button>
+  {% endcall %}
+
+  <h2 id="how-it-works">How it works</h2>
+  <ul>
+    <li>Toasts stack in a corner, newest in front, the next two peeking out behind it. Hover or focus the stack to fan it out; that also pauses their timers (as does switching browser tab).</li>
+    <li>Each slides in from its edge and leaves after 4 seconds, or when closed with its × (on hover), swiped towards the edge, or <kbd class="kbd">Esc</kbd> while focused. <kbd class="kbd">Alt</kbd>+<kbd class="kbd">T</kbd> moves focus to the newest one.</li>
+    <li>The toasts sit in a live region, so screen readers read them out; errors are <code>role="alert"</code>.</li>
+    <li>Show one from script with <code>toast()</code>, from markup with <code>data-toast</code>, or from the server with an <code>HX-Trigger</code> header. No markup is needed in the page: the toaster is created with the first toast.</li>
+  </ul>
+
+  <h2 id="types">Types</h2>
+  <p><code>data-toast-type</code> (or <code>toast.success()</code> and friends) sets the icon and its colour: <code>success</code>, <code>info</code>, <code>warning</code>, <code>error</code> and <code>loading</code>, which spins and stays until it's updated or dismissed.</p>
+  {% call demo("gap-2") %}
+    <button type="button" class="btn btn-outline" data-toast="Event has been created">Default</button>
+    <button type="button" class="btn btn-outline" data-toast="Changes saved" data-toast-type="success">Success</button>
+    <button type="button" class="btn btn-outline" data-toast="Be at the venue by 8:45" data-toast-type="info">Info</button>
+    <button type="button" class="btn btn-outline" data-toast="Your trial ends in 3 days" data-toast-type="warning">Warning</button>
+    <button type="button" class="btn btn-outline" data-toast="Could not reach the server" data-toast-type="error" data-toast-description="Check your connection and try again.">Error</button>
+    <button type="button" class="btn btn-outline" data-toast="Uploading report.pdf…" data-toast-type="loading" data-toast-duration="3000">Loading</button>
+  {% endcall %}
+
+  <h2 id="action">Action and cancel</h2>
+  <p>
+    <code>data-toast-action="Undo"</code> adds a button that dismisses the toast and fires <code>toast:action</code> on the element that showed it,
+    so <code>hx-trigger="toast:action"</code> can send a request; <code>data-toast-cancel</code> adds a quieter one that fires <code>toast:cancel</code>.
+    From script, pass <code>action</code> / <code>cancel</code> with an <code>onClick</code> (call <code>event.preventDefault()</code> to keep the toast open).
+  </p>
+  {% call demo("flex-col gap-4") %}
+    <button type="button" class="btn btn-outline" data-toast="Message archived" data-toast-action="Undo" data-toast-duration="8000" hx-post="/api/echo" hx-vals='{"undo": "archive"}' hx-trigger="toast:action" hx-target="#toast-undo-result">Archive</button>
+    <button type="button" class="btn btn-outline" data-toast="Delete 3 files?" data-toast-type="warning" data-toast-cancel="Keep" data-toast-action="Delete" data-toast-duration="infinite">Delete files</button>
+    <p class="text-sm text-muted-foreground" id="toast-undo-result">Archive, then Undo: the request goes out from the toast.</p>
+  {% endcall %}
+
+  <h2 id="script">From script</h2>
+  <p><code>toast(message, options)</code> returns the toast's id. Showing another toast with the same <code>id</code> updates that one in place.</p>
+  {% call code("ts", title="app.ts") %}
+    import { toast } from "htmx-ui";
+
+    toast("Event has been created", {
+      description: "Sunday, December 3 at 9:00 AM",
+      action: { label: "Undo", onClick: () => undo() },
+    });
+    toast.success("Saved");            // also .info, .warning, .error, .loading
+    const id = toast.loading("Uploading…");
+    toast.success("Uploaded", { id }); // replaces the loading toast
+    toast.dismiss(id);                 // or toast.dismiss() for all
+
+    // Loading, then success or error when the promise settles
+    toast.promise(fetch("/api/save", { method: "POST" }), {
+      loading: "Saving…",
+      success: (res) => `Saved (${res.status})`,
+      error: "Could not save",
+    });
+  {% endcall %}
+  {{ classes([
+    ["type", "\"default\" | \"success\" | \"info\" | \"warning\" | \"error\" | \"loading\"."],
+    ["description", "A second, muted line."],
+    ["duration", "Milliseconds before it leaves (default 4000; loading: Infinity). Infinity keeps it."],
+    ["action / cancel", "{ label, onClick(event) }: buttons that dismiss the toast unless onClick calls preventDefault()."],
+    ["id", "Update the toast with this id instead of adding one."],
+    ["position", "top-left, top-center, top-right, bottom-left, bottom-center or bottom-right."],
+    ["dismissible", "false: no close button, swipe or Escape."],
+    ["closeButton / icon", "false hides the close button / the type's icon."],
+    ["onDismiss / onAutoClose", "Called with the id when the reader dismisses it / its timer ends."],
+    ["class", "More classes on the toast."]
+  ], heading="Option") }}
+
+  <h2 id="htmx-request">An htmx request</h2>
+  <p>
+    <code>data-toast-loading</code> on the element that makes a request shows a loading toast while it runs, which becomes
+    <code>data-toast-success</code> or <code>data-toast-error</code> (any status from 400) when it finishes. Leave one out and the toast just goes.
+  </p>
+  {% call demo("gap-2") %}
+    <button type="button" class="btn btn-outline" hx-post="/api/toast/save" hx-swap="none" data-toast-loading="Saving changes…" data-toast-success="Changes saved" data-toast-error="Could not save">Save</button>
+    <button type="button" class="btn btn-outline" hx-post="/api/toast/save?fail" hx-swap="none" data-toast-loading="Saving changes…" data-toast-success="Changes saved" data-toast-error="Could not save" data-toast-description="The server answered 500.">Save (fails)</button>
+  {% endcall %}
+
+  <h2 id="server">From the server</h2>
+  <p>Send a <code>toast</code> event in the <code>HX-Trigger</code> response header, with the options as its value (a string is taken as the message):</p>
+  {% call code("http") %}
+    HX-Trigger: {"toast": {"message": "Profile updated", "type": "success", "description": "Saved at 09:41."}}
+  {% endcall %}
+  {% call demo() %}
+    <button type="button" class="btn btn-outline" hx-post="/api/toast" hx-swap="none">Update profile</button>
+  {% endcall %}
+  <p>
+    htmx fires the event on the element that made the request. If the response swaps that element out, it never reaches the page, so add
+    <code>"target": "body"</code> to the value. Or return an element instead: <code>&lt;div data-toast-show="Saved" data-toast-type="success" hidden&gt;&lt;/div&gt;</code>
+    shows its toast as it's swapped in and removes itself, which suits an <code>hx-swap-oob</code> fragment.
+  </p>
+
+  <h2 id="position">Position and the toaster</h2>
+  <p>
+    Place a <code>&lt;section data-toaster&gt;</code> anywhere in your layout to change the defaults: <code>data-position</code>,
+    <code>data-duration</code>, <code>data-visible</code> (toasts shown in the stack, 3), <code>data-expand</code> (always fanned out),
+    <code>data-close-button="false"</code> and <code>data-rich-colors</code> (tint the whole toast by its type).
+    A toast's own <code>position</code> (<code>data-toast-position</code>) overrides the toaster's.
+  </p>
+  {% call demo("gap-2") %}
+    {% for p in ["top-left", "top-center", "top-right", "bottom-left", "bottom-center", "bottom-right"] %}
+      <button type="button" class="btn btn-outline btn-sm" data-toast="Toast at {{ p }}" data-toast-position="{{ p }}">{{ p }}</button>
+    {% endfor %}
+  {% endcall %}
+  {% call code("html", title="layouts/base.html") %}
+    <section data-toaster data-position="top-center" data-rich-colors data-visible="4"></section>
+  {% endcall %}
+  <p>Width, spacing and distance from the edge are CSS variables on <code>.toaster-list</code>: <code>--toast-width</code> (356px), <code>--toast-gap</code> (14px) and <code>--toast-inset</code> (1.5rem). On narrow screens toasts span the width.</p>
+
+  <h2 id="reference">Reference</h2>
+  {{ classes([
+    ["toast(message, options)", "Show a toast (or update one by id); returns its id."],
+    ["toast.success / info / warning / error / loading", "toast() with that type."],
+    ["toast.promise(promise, { loading, success, error })", "A loading toast that turns into the outcome."],
+    ["toast.dismiss(id?)", "Dismiss one toast, or all."],
+    ["[data-toast=\"message\"]", "Shows a toast on click; data-toast-type, -description, -duration, -position, -action, -cancel, -id."],
+    ["[data-toast-loading] / -success / -error", "On an element making an htmx request: loading toast, then the outcome."],
+    ["[data-toast-show=\"message\"]", "An element that shows a toast when it's added to the page, then removes itself."],
+    ["HX-Trigger: {\"toast\": …}", "A toast from a response header."],
+    ["toast:action / toast:cancel", "Fired on the trigger element when the toast's buttons are clicked."],
+    ["[data-toaster]", "The toaster's defaults: data-position, -duration, -visible, -expand, -close-button, -rich-colors."],
+    [".toast, .toast-title, .toast-description, .toast-action …", "The toast's parts, to restyle; data-type on .toast."]
+  ]) }}
+{% endblock %}

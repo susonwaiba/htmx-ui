@@ -1,0 +1,160 @@
+/* A row of content: media, a title and description, and actions. For lists of people, files,
+   settings, search results, notifications.
+
+   <div class="item item-outline">                                 variants: (default) -outline -muted; sizes -sm -xs
+     <div class="item-media item-media-icon">{{ icon("inbox") }}</div>   or -image (an <img> inside), or an .avatar
+     <div class="item-content">
+       <p class="item-title">…</p>
+       <p class="item-description">…</p>                          clamped to two lines
+     </div>
+     <div class="item-actions"><button class="btn btn-outline btn-sm">…</button></div>
+     <div class="item-header">…</div> / <div class="item-footer">…</div>   optional, full-width rows
+   </div>
+
+   The item wraps: on narrow widths the actions move to a line of their own.
+   Whole item as a link (no interactive children): <a class="item" href="…">.
+   A link item with actions: <a class="item-link" href="…"> around the title stretches over the
+   item, and the actions stay clickable above it.
+   List: <div class="item-group" role="list"><div class="item" role="listitem">…</div>
+         <div class="item-separator" aria-hidden="true"></div>…</div> */
+@layer components {
+  .item {
+    @apply flex flex-wrap items-center gap-4 rounded-(--radius) border border-transparent p-4 text-sm text-foreground
+      transition-colors;
+  }
+  /* The whole item is a link or button */
+  :is(a, button).item {
+    @apply cursor-pointer outline-none focus-visible:outline-2 focus-visible:outline-offset-2
+      focus-visible:outline-ring;
+  }
+  button.item {
+    @apply w-full text-left;
+  }
+  :is(a, button).item:hover {
+    @apply bg-accent/50;
+  }
+
+  /* Variants */
+  .item-outline {
+    @apply border-border;
+  }
+  .item-muted {
+    @apply bg-muted/50;
+  }
+
+  /* Sizes */
+  .item-sm {
+    @apply gap-2.5 px-4 py-3;
+  }
+  .item-xs {
+    @apply gap-2 rounded-[calc(var(--radius)-2px)] px-3 py-2;
+  }
+
+  /* Media. Icon sizes are !important: icon() gives every icon a size-4 utility, and utilities
+     beat component classes. */
+  .item-media {
+    @apply flex shrink-0 items-center justify-center gap-2 [&_svg]:pointer-events-none [&_svg]:shrink-0;
+  }
+  /* Next to a title and description, the media lines up with the title. */
+  .item:has(> .item-content > .item-description) > .item-media {
+    @apply translate-y-0.5 self-start;
+  }
+  .item-media-icon {
+    @apply size-8 rounded-[calc(var(--radius)-2px)] border border-border bg-muted text-foreground [&>svg]:size-4!;
+  }
+  .item-media-image {
+    @apply size-10 overflow-hidden rounded-[calc(var(--radius)-2px)] [&>img]:size-full [&>img]:object-cover;
+  }
+  img.item-media-image {
+    @apply object-cover;
+  }
+  .item-sm .item-media-image {
+    @apply size-8;
+  }
+  .item-xs .item-media-icon {
+    @apply size-6 [&>svg]:size-3.5!;
+  }
+  .item-xs .item-media-image {
+    @apply size-6 rounded-[calc(var(--radius)-4px)];
+  }
+
+  /* Content. Its 10rem basis is what makes the item wrap: once media, content and actions no
+     longer fit, the actions move to the next line (kept at the end). */
+  .item-content {
+    @apply flex min-w-0 flex-1 basis-40 flex-col gap-1;
+  }
+  /* A second content block (a date, an amount) only takes the room it needs. */
+  .item-content + .item-content {
+    @apply flex-none basis-auto;
+  }
+  .item-title {
+    @apply flex w-fit max-w-full items-center gap-2 leading-snug font-medium break-words;
+  }
+  .item-description {
+    @apply line-clamp-2 text-sm leading-normal font-normal text-balance text-muted-foreground;
+  }
+  /* Links in the text: written as a separate rule because Tailwind drops [&_a]:underline here. */
+  .item-description a {
+    @apply underline underline-offset-4 hover:text-primary;
+  }
+  .item-xs .item-description {
+    @apply text-xs;
+  }
+  .item-actions {
+    @apply ms-auto flex shrink-0 items-center gap-2;
+  }
+
+  /* Full-width rows above and below the media and content: an image, a label and a menu. */
+  .item-header,
+  .item-footer {
+    @apply flex basis-full items-center justify-between gap-2;
+  }
+  .item-header > :is(img, video),
+  .item-footer > :is(img, video) {
+    @apply block w-full rounded-[calc(var(--radius)-2px)] object-cover;
+  }
+
+  /* A link (usually around the title) whose ::after covers the item, so a click anywhere follows
+     it. Actions and the footer come after it in the source and are positioned, so they paint
+     above it and stay clickable. */
+  .item:has(.item-link) {
+    @apply relative;
+  }
+  .item:has(.item-link):hover {
+    @apply bg-accent/50;
+  }
+  .item:has(.item-link:focus-visible) {
+    @apply outline-2 outline-offset-2 outline-ring;
+  }
+  .item-link {
+    @apply outline-none after:absolute after:inset-0 after:rounded-(--radius) after:content-[''];
+  }
+  .item-xs .item-link {
+    @apply after:rounded-[calc(var(--radius)-2px)];
+  }
+  .item:has(.item-link) :is(.item-actions, .item-footer) {
+    @apply relative;
+  }
+
+  /* A list of items, with optional separators between them */
+  .item-group {
+    @apply flex flex-col;
+  }
+  .item-separator {
+    @apply m-0 h-px w-full shrink-0 border-0 bg-border;
+  }
+
+  /* Items as menu entries: <a class="item item-sm" role="menuitem"> inside a .dropdown-menu */
+  .dropdown-menu .item {
+    @apply w-full gap-2 rounded-[calc(var(--radius)-2px)] px-2 py-1.5 outline-none;
+  }
+  .dropdown-menu .item:is(:hover, :focus-visible) {
+    @apply bg-accent text-accent-foreground outline-none;
+  }
+  .dropdown-menu .item-content {
+    @apply basis-auto gap-0;
+  }
+  .dropdown-menu .item-description {
+    @apply line-clamp-1 text-xs;
+  }
+}

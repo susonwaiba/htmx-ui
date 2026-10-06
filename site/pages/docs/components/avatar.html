@@ -1,0 +1,191 @@
+{% extends "layouts/docs.html" %}
+{% from "components/icon/icon.html" import icon %}
+{% from "docs/macros.html" import demo, classes %}
+{% set title = "Avatar" %}
+{% set description = "An image element with a fallback for representing the user." %}
+
+{% block content %}
+  {% call demo() %}
+    <span class="avatar" role="img" aria-label="Ana Lima">
+      <img class="avatar-image" src="{{ asset('images/avatar-1.svg') }}" alt="" />
+      <span class="avatar-fallback" aria-hidden="true">AL</span>
+    </span>
+    <span class="avatar" role="img" aria-label="Kofi Mensah">
+      <span class="avatar-fallback" aria-hidden="true">KM</span>
+    </span>
+    <span class="avatar avatar-square" role="img" aria-label="Ravi Patel">
+      <img class="avatar-image" src="{{ asset('images/avatar-3.svg') }}" alt="" />
+      <span class="avatar-fallback" aria-hidden="true">RP</span>
+    </span>
+  {% endcall %}
+
+  <h2 id="image-and-fallback">Image and fallback</h2>
+  <p>
+    <code>.avatar</code> holds an <code>.avatar-image</code> on top of an <code>.avatar-fallback</code>, usually
+    initials or an icon. The fallback shows while the image loads, when there is no image, and when it fails to load:
+    the avatar behaviour hides an image that errors, so the fallback shows instead of a broken-image icon. It runs on
+    avatars in fragments from the server too.
+  </p>
+  <p>
+    Name the person once, on the avatar: <code>role="img"</code> and <code>aria-label</code> on
+    <code>.avatar</code>, <code>alt=""</code> on the image and <code>aria-hidden="true"</code> on the fallback. Next to
+    the visible name, the avatar is decorative: drop the role and label and give it <code>aria-hidden="true"</code>.
+  </p>
+  {% call demo() %}
+    <span class="avatar avatar-lg" role="img" aria-label="Ana Lima">
+      <img class="avatar-image" src="{{ asset('images/avatar-1.svg') }}" alt="" />
+      <span class="avatar-fallback" aria-hidden="true">AL</span>
+    </span>
+    <span class="avatar avatar-lg" role="img" aria-label="Kofi Mensah">
+      <span class="avatar-fallback" aria-hidden="true">KM</span>
+    </span>
+    <span class="avatar avatar-lg" role="img" aria-label="Unknown user">
+      <span class="avatar-fallback" aria-hidden="true">{{ icon("user") }}</span>
+    </span>
+  {% endcall %}
+
+  <h2 id="sizes">Sizes</h2>
+  <p><code>.avatar-sm</code> (1.5rem), the default (2rem), <code>.avatar-lg</code> (2.5rem) and <code>.avatar-xl</code> (3.5rem). The fallback text and badge scale with them; any <code>size-*</code> utility works too.</p>
+  {% call demo() %}
+    {% for size in ["avatar-sm", "", "avatar-lg", "avatar-xl"] %}
+    <span class="avatar {{ size }}" role="img" aria-label="Mei Chen">
+      <img class="avatar-image" src="{{ asset('images/avatar-4.svg') }}" alt="" />
+      <span class="avatar-fallback" aria-hidden="true">MC</span>
+    </span>
+    {% endfor %}
+    {% for size in ["avatar-sm", "", "avatar-lg", "avatar-xl"] %}
+    <span class="avatar {{ size }}" role="img" aria-label="Mei Chen">
+      <span class="avatar-fallback" aria-hidden="true">MC</span>
+    </span>
+    {% endfor %}
+  {% endcall %}
+
+  <h2 id="badge">Badge</h2>
+  <p>
+    <code>.avatar-badge</code> adds a dot at the bottom right, ringed in the page colour. It is
+    <code>bg-primary</code>; colour it with any <code>bg-*</code> utility for a status. A dot means nothing to a screen
+    reader, so say the status in the avatar's label.
+  </p>
+  {% call demo() %}
+    <span class="avatar" role="img" aria-label="Ana Lima, online">
+      <img class="avatar-image" src="{{ asset('images/avatar-1.svg') }}" alt="" />
+      <span class="avatar-fallback" aria-hidden="true">AL</span>
+      <span class="avatar-badge bg-success"></span>
+    </span>
+    <span class="avatar avatar-lg" role="img" aria-label="Kofi Mensah, away">
+      <img class="avatar-image" src="{{ asset('images/avatar-2.svg') }}" alt="" />
+      <span class="avatar-fallback" aria-hidden="true">KM</span>
+      <span class="avatar-badge bg-warning"></span>
+    </span>
+    <span class="avatar avatar-xl" role="img" aria-label="Ravi Patel, offline">
+      <img class="avatar-image" src="{{ asset('images/avatar-3.svg') }}" alt="" />
+      <span class="avatar-fallback" aria-hidden="true">RP</span>
+      <span class="avatar-badge bg-muted-foreground"></span>
+    </span>
+  {% endcall %}
+
+  <h3 id="badge-with-icon">Badge with an icon</h3>
+  <p>An icon inside the badge makes it big enough to read.</p>
+  {% call demo() %}
+    <span class="avatar" role="img" aria-label="Ana Lima, verified">
+      <img class="avatar-image" src="{{ asset('images/avatar-1.svg') }}" alt="" />
+      <span class="avatar-fallback" aria-hidden="true">AL</span>
+      <span class="avatar-badge">{{ icon("check") }}</span>
+    </span>
+    <span class="avatar avatar-lg" role="img" aria-label="Kofi Mensah, admin">
+      <img class="avatar-image" src="{{ asset('images/avatar-2.svg') }}" alt="" />
+      <span class="avatar-fallback" aria-hidden="true">KM</span>
+      <span class="avatar-badge bg-warning">{{ icon("star") }}</span>
+    </span>
+    <span class="avatar avatar-xl" role="img" aria-label="Ravi Patel, 2 new messages">
+      <img class="avatar-image" src="{{ asset('images/avatar-3.svg') }}" alt="" />
+      <span class="avatar-fallback" aria-hidden="true">RP</span>
+      <span class="avatar-badge bg-danger">{{ icon("mail") }}</span>
+    </span>
+  {% endcall %}
+
+  <h2 id="group">Group</h2>
+  <p>
+    <code>.avatar-group</code> overlaps avatars in a row and rings each one in the page colour. Give it
+    <code>role="group"</code> and a label.
+  </p>
+  {% call demo() %}
+    <div class="avatar-group" role="group" aria-label="Project members">
+      <span class="avatar" role="img" aria-label="Ana Lima"><img class="avatar-image" src="{{ asset('images/avatar-1.svg') }}" alt="" /><span class="avatar-fallback" aria-hidden="true">AL</span></span>
+      <span class="avatar" role="img" aria-label="Kofi Mensah"><img class="avatar-image" src="{{ asset('images/avatar-2.svg') }}" alt="" /><span class="avatar-fallback" aria-hidden="true">KM</span></span>
+      <span class="avatar" role="img" aria-label="Ravi Patel"><img class="avatar-image" src="{{ asset('images/avatar-3.svg') }}" alt="" /><span class="avatar-fallback" aria-hidden="true">RP</span></span>
+      <span class="avatar" role="img" aria-label="Mei Chen"><img class="avatar-image" src="{{ asset('images/avatar-4.svg') }}" alt="" /><span class="avatar-fallback" aria-hidden="true">MC</span></span>
+    </div>
+  {% endcall %}
+
+  <h3 id="group-count">With a count</h3>
+  <p><code>.avatar-group-count</code> on an <code>.avatar</code> ends the group with the number of people not shown. It takes the avatar size classes.</p>
+  {% call demo("flex-col gap-6") %}
+    <div class="avatar-group" role="group" aria-label="Project members">
+      <span class="avatar" role="img" aria-label="Ana Lima"><img class="avatar-image" src="{{ asset('images/avatar-1.svg') }}" alt="" /><span class="avatar-fallback" aria-hidden="true">AL</span></span>
+      <span class="avatar" role="img" aria-label="Kofi Mensah"><img class="avatar-image" src="{{ asset('images/avatar-2.svg') }}" alt="" /><span class="avatar-fallback" aria-hidden="true">KM</span></span>
+      <span class="avatar" role="img" aria-label="Ravi Patel"><img class="avatar-image" src="{{ asset('images/avatar-3.svg') }}" alt="" /><span class="avatar-fallback" aria-hidden="true">RP</span></span>
+      <span class="avatar avatar-group-count" role="img" aria-label="and 3 more">+3</span>
+    </div>
+    <div class="avatar-group" role="group" aria-label="Reviewers">
+      <span class="avatar avatar-lg" role="img" aria-label="Mei Chen"><img class="avatar-image" src="{{ asset('images/avatar-4.svg') }}" alt="" /><span class="avatar-fallback" aria-hidden="true">MC</span></span>
+      <span class="avatar avatar-lg" role="img" aria-label="Ana Lima"><img class="avatar-image" src="{{ asset('images/avatar-1.svg') }}" alt="" /><span class="avatar-fallback" aria-hidden="true">AL</span></span>
+      <span class="avatar avatar-lg avatar-group-count" role="img" aria-label="and 12 more">+12</span>
+    </div>
+  {% endcall %}
+
+  <h3 id="group-icon">With an icon</h3>
+  <p>An icon in the count, on a button, makes an action at the end of the group, such as inviting someone.</p>
+  {% call demo() %}
+    <div class="avatar-group" role="group" aria-label="Project members">
+      <span class="avatar avatar-lg" role="img" aria-label="Ana Lima"><img class="avatar-image" src="{{ asset('images/avatar-1.svg') }}" alt="" /><span class="avatar-fallback" aria-hidden="true">AL</span></span>
+      <span class="avatar avatar-lg" role="img" aria-label="Kofi Mensah"><img class="avatar-image" src="{{ asset('images/avatar-2.svg') }}" alt="" /><span class="avatar-fallback" aria-hidden="true">KM</span></span>
+      <span class="avatar avatar-lg" role="img" aria-label="Ravi Patel"><img class="avatar-image" src="{{ asset('images/avatar-3.svg') }}" alt="" /><span class="avatar-fallback" aria-hidden="true">RP</span></span>
+      <button type="button" class="avatar avatar-lg avatar-group-count" aria-label="Invite people">{{ icon("plus") }}</button>
+    </div>
+  {% endcall %}
+
+  <h2 id="dropdown">As a menu trigger</h2>
+  <p>
+    An avatar can be the button itself, here opening a <a href="/docs/components/dropdown">dropdown</a> of account
+    actions. <code>.avatar</code> on a <code>&lt;button&gt;</code> or <code>&lt;a&gt;</code> gets a pointer and a focus
+    ring. Label the button for what it does.
+  </p>
+  {% call demo("min-h-72 items-start") %}
+    <div class="dropdown" data-dropdown>
+      <button type="button" class="avatar avatar-lg" data-dropdown-trigger aria-haspopup="menu" aria-expanded="false" aria-label="Account menu for Ana Lima">
+        <img class="avatar-image" src="{{ asset('images/avatar-1.svg') }}" alt="" />
+        <span class="avatar-fallback" aria-hidden="true">AL</span>
+      </button>
+      <div class="dropdown-menu" role="menu" hidden>
+        <div class="flex items-center gap-2 px-2 py-1.5">
+          <span class="avatar" aria-hidden="true">
+            <img class="avatar-image" src="{{ asset('images/avatar-1.svg') }}" alt="" />
+            <span class="avatar-fallback">AL</span>
+          </span>
+          <div class="grid text-sm leading-tight">
+            <span class="font-medium">Ana Lima</span>
+            <span class="text-xs text-muted-foreground">ana@example.com</span>
+          </div>
+        </div>
+        <div class="dropdown-separator" role="separator"></div>
+        <a class="dropdown-item" role="menuitem" href="#profile"><span class="flex items-center gap-2">{{ icon("user") }} Profile</span></a>
+        <a class="dropdown-item" role="menuitem" href="#billing"><span class="flex items-center gap-2">{{ icon("badge-check") }} Billing</span></a>
+        <div class="dropdown-separator" role="separator"></div>
+        <button type="button" class="dropdown-item" role="menuitem"><span class="flex items-center gap-2">{{ icon("log-out") }} Log out</span></button>
+      </div>
+    </div>
+  {% endcall %}
+
+  <h2 id="reference">Reference</h2>
+  {{ classes([
+    [".avatar", "Round frame, 2rem. On a button or link: pointer and focus ring."],
+    [".avatar-image", "The picture, covering the fallback. Give it alt=\"\". Hidden if it fails to load."],
+    [".avatar-fallback", "Initials or an icon underneath; shows when there is no image or it fails."],
+    [".avatar-sm / -lg / -xl", "1.5rem, 2.5rem, 3.5rem; fallback text and badge scale."],
+    [".avatar-square", "Rounded square instead of a circle."],
+    [".avatar-badge", "Bottom-right dot (bg-primary; colour with bg-*). Bigger with an icon inside."],
+    [".avatar-group", "Overlapping row, each avatar ringed in the page colour."],
+    [".avatar-group-count", "On an .avatar: \"+3\" or an icon at the end of a group."]
+  ]) }}
+{% endblock %}

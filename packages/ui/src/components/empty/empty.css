@@ -1,0 +1,84 @@
+/* An empty state: there is nothing here yet, no results, a page that doesn't exist.
+
+   <div class="empty empty-outline">                       variants: (default) -outline -muted; size -sm
+     <div class="empty-header">
+       <div class="empty-media empty-media-icon">{{ icon("inbox") }}</div>   or an .avatar / .avatar-group inside
+       <h3 class="empty-title">No messages</h3>
+       <p class="empty-description">New messages show up here. <a href="…">Learn more</a></p>
+     </div>
+     <div class="empty-content">…buttons, an input…</div>
+   </div>
+
+   It grows to fill its container (flex-1) and centres its content. */
+@layer components {
+  .empty {
+    @apply flex min-w-0 flex-1 flex-col items-center justify-center gap-6 rounded-[calc(var(--radius)+4px)] p-6
+      text-center text-balance text-foreground md:p-12;
+  }
+
+  /* Variants */
+  .empty-outline {
+    @apply border border-dashed border-border;
+  }
+  /* Background: a muted wash fading out towards the bottom */
+  .empty-muted {
+    @apply bg-linear-to-b from-muted/60 from-30% to-transparent;
+  }
+
+  .empty-header {
+    @apply flex max-w-sm flex-col items-center gap-2;
+  }
+
+  /* Media. Icon sizes are !important: icon() gives every icon a size-4 utility, and utilities
+     beat component classes. */
+  .empty-media {
+    @apply mb-2 flex shrink-0 items-center justify-center [&_svg]:pointer-events-none [&_svg]:shrink-0;
+  }
+  .empty-media-icon {
+    @apply size-10 rounded-(--radius) bg-muted text-foreground [&>svg]:size-6!;
+  }
+  /* An avatar, or a group of them, is shown large; a group in grey (nobody there yet). */
+  .empty-media > .avatar:not(.avatar-sm, .avatar-lg, .avatar-xl),
+  .empty-media > .avatar-group > .avatar:not(.avatar-sm, .avatar-lg, .avatar-xl) {
+    @apply size-12 text-base;
+  }
+  .empty-media > .avatar-group {
+    @apply -space-x-3;
+  }
+  .empty-media > .avatar-group > .avatar:not(.avatar-group-count) {
+    @apply grayscale;
+  }
+
+  .empty-title {
+    @apply text-lg font-medium tracking-tight;
+  }
+  .empty-description {
+    @apply text-sm/relaxed text-muted-foreground;
+  }
+  /* Links in the text: written as a separate rule because Tailwind drops [&_a]:underline here. */
+  .empty-description a {
+    @apply underline underline-offset-4 hover:text-primary;
+  }
+
+  /* Actions and inputs under the text */
+  .empty-content {
+    @apply flex w-full max-w-sm min-w-0 flex-col items-center gap-4 text-sm text-balance;
+  }
+
+  /* Compact, for small panels, table bodies and menus */
+  .empty-sm {
+    @apply gap-4 p-4 md:p-6;
+  }
+  .empty-sm .empty-header {
+    @apply gap-1;
+  }
+  .empty-sm .empty-media-icon {
+    @apply size-8 [&>svg]:size-4!;
+  }
+  .empty-sm .empty-title {
+    @apply text-base;
+  }
+  .empty-sm .empty-content {
+    @apply gap-2;
+  }
+}

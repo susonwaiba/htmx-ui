@@ -1,0 +1,24 @@
+{# Empty state.
+   {% from "components/empty/empty.html" import empty %}
+   {% call empty("No projects yet", "Create a project to get started.", icon="folder-plus", variant="outline") %}
+     <button class="btn btn-primary btn-sm">Create project</button>
+   {% endcall %}
+   Without a call body ({{ empty("No results") }}) there is no .empty-content.
+   description=none   text under the title (escaped; pass markup with | safe for a link)
+   icon=none          icon name, shown in a muted square (.empty-media-icon)
+   variant=none       "outline" | "muted"
+   size=none          "sm" for small panels and table bodies
+   heading="h3"       the title element: a heading level that fits the page, or "p"
+   class=""           more classes on .empty #}
+{% from "components/icon/icon.html" import icon as icon_svg %}
+
+{% macro empty(title, description=none, icon=none, variant=none, size=none, heading="h3", class="") %}
+<div class="empty{% if variant %} empty-{{ variant }}{% endif %}{% if size %} empty-{{ size }}{% endif %}{% if class %} {{ class }}{% endif %}">
+  <div class="empty-header">
+    {% if icon %}<div class="empty-media empty-media-icon">{{ icon_svg(icon) }}</div>{% endif %}
+    <{{ heading }} class="empty-title">{{ title }}</{{ heading }}>
+    {% if description %}<p class="empty-description">{{ description }}</p>{% endif %}
+  </div>
+  {% if caller %}<div class="empty-content">{{ caller() }}</div>{% endif %}
+</div>
+{%- endmacro %}

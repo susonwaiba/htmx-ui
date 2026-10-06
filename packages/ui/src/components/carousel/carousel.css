@@ -1,0 +1,97 @@
+/* A carousel of slides that drags, swipes and snaps with momentum (Embla Carousel; carousel.ts).
+
+   <div class="carousel" data-carousel aria-label="Featured" data-carousel-options='{"loop": true}'>
+     <div class="carousel-viewport">
+       <div class="carousel-container">
+         <div class="carousel-item">…</div>
+         <div class="carousel-item">…</div>
+       </div>
+     </div>
+     <button class="btn btn-outline btn-icon carousel-prev" data-carousel-prev aria-label="Previous slide">{{ icon("arrow-left") }}</button>
+     <button class="btn btn-outline btn-icon carousel-next" data-carousel-next aria-label="Next slide">{{ icon("arrow-right") }}</button>
+     <div class="carousel-dots" data-carousel-dots></div>                                optional
+   </div>
+
+   Item size: basis-* utilities on the items (basis-1/2, md:basis-1/3), or --carousel-size on the
+   .carousel for all of them. Spacing: --carousel-gap on the .carousel (default 1rem).
+   Orientation: data-orientation="vertical", with a height on the .carousel-viewport.
+   The buttons sit outside the slides, at the sides (above and below when vertical); leave room
+   for them, or use .carousel-controls for a row of buttons under the slides instead. */
+@layer components {
+  .carousel {
+    --carousel-gap: 1rem;
+    --carousel-size: 100%;
+    @apply relative;
+  }
+  .carousel-viewport {
+    @apply overflow-hidden rounded-(--radius);
+  }
+  /* The gap is padding on each item, with the container pulled back by one gap, as Embla
+     recommends: margins would throw off its snap points. */
+  .carousel-container {
+    @apply flex touch-pan-y touch-pinch-zoom;
+    margin-inline-start: calc(var(--carousel-gap) * -1);
+  }
+  .carousel-item {
+    @apply min-w-0 shrink-0 grow-0;
+    flex-basis: var(--carousel-size);
+    padding-inline-start: var(--carousel-gap);
+  }
+
+  .carousel[data-orientation="vertical"] .carousel-container {
+    @apply h-full touch-pan-x flex-col;
+    margin-inline-start: 0;
+    margin-top: calc(var(--carousel-gap) * -1);
+  }
+  .carousel[data-orientation="vertical"] .carousel-item {
+    padding-inline-start: 0;
+    padding-top: var(--carousel-gap);
+  }
+
+  /* Previous / next, centred on the sides */
+  .carousel-prev,
+  .carousel-next {
+    @apply absolute top-1/2 size-8 -translate-y-1/2 rounded-full;
+  }
+  .carousel-prev {
+    @apply -left-12;
+  }
+  .carousel-next {
+    @apply -right-12;
+  }
+  .carousel[data-orientation="vertical"] :is(.carousel-prev, .carousel-next) {
+    @apply left-1/2 -translate-x-1/2 translate-y-0 [&>svg]:rotate-90;
+  }
+  .carousel[data-orientation="vertical"] .carousel-prev {
+    @apply -top-12;
+  }
+  .carousel[data-orientation="vertical"] .carousel-next {
+    @apply top-auto -bottom-12;
+  }
+  [dir="rtl"] .carousel:not([data-orientation="vertical"]) :is(.carousel-prev, .carousel-next) > svg {
+    @apply rotate-180;
+  }
+
+  /* A row of controls under the slides; buttons inside it are not positioned. */
+  .carousel-controls {
+    @apply mt-4 flex items-center justify-center gap-2;
+  }
+  .carousel-controls :is(.carousel-prev, .carousel-next) {
+    @apply static translate-x-0 translate-y-0;
+  }
+
+  /* Dots, built by the behaviour */
+  .carousel-dots {
+    @apply mt-4 flex items-center justify-center gap-2;
+  }
+  .carousel-controls .carousel-dots {
+    @apply mt-0;
+  }
+  .carousel-dot {
+    @apply size-2 cursor-pointer rounded-full bg-muted-foreground/30 transition-[background-color,width]
+      focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring;
+  }
+  .carousel-dot[aria-current="true"] {
+    @apply w-5 bg-primary;
+  }
+}

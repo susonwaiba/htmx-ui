@@ -1,0 +1,95 @@
+{# Skeleton placeholders for common layouts, built from the shapes in skeleton.css. Each is a
+   loading region: role="status", aria-busy and a hidden "Loading…" for screen readers, the
+   shapes aria-hidden. Put one where htmx will swap the real content in:
+     <div hx-get="/orders" hx-trigger="load" hx-swap="outerHTML">{{ skeleton_table(rows=5) }}</div>
+   {% from "components/skeleton/skeleton.html" import skeleton_text, skeleton_card, … %}
+
+   skeleton_text(lines=3)                          a paragraph
+   skeleton_avatar(lines=2)                        an avatar with a name and a line beside it
+   skeleton_card(media=true, lines=2, footer=true) a card: image, title, text and a button
+   skeleton_list(items=3, avatar=true)             rows of avatar + two lines
+   skeleton_table(rows=5, columns=4, header=true)  a table
+   skeleton_form(fields=3, submit=true)            labels and inputs, then a button
+   Every macro takes label="Loading…" (the screen-reader text), shimmer=false (sweep instead
+   of pulse) and class="" (more classes on the wrapper). #}
+
+{# The loading region around each placeholder #}
+{% macro _open(label, shimmer, class, base) -%}
+<div class="{{ base }}{% if shimmer %} skeleton-shimmer{% endif %}{% if class %} {{ class }}{% endif %}" role="status" aria-busy="true">
+  <span class="sr-only">{{ label }}</span>
+{%- endmacro %}
+
+{% macro skeleton_text(lines=3, label="Loading…", shimmer=false, class="") %}
+{{ _open(label, shimmer, class, "skeleton-lines") }}
+  {% for i in range(lines) %}<div class="skeleton-text" aria-hidden="true"></div>{% endfor %}
+</div>
+{%- endmacro %}
+
+{% macro skeleton_avatar(lines=2, label="Loading…", shimmer=false, class="") %}
+{{ _open(label, shimmer, class, "flex items-center gap-3") }}
+  <div class="skeleton-avatar" aria-hidden="true"></div>
+  <div class="flex flex-1 flex-col gap-2" aria-hidden="true">
+    {% for i in range(lines) %}<div class="skeleton h-3.5 {{ 'w-32' if loop.first else 'w-48' }} max-w-full"></div>{% endfor %}
+  </div>
+</div>
+{%- endmacro %}
+
+{% macro skeleton_card(media=true, lines=2, footer=true, label="Loading…", shimmer=false, class="") %}
+{{ _open(label, shimmer, class, "card w-full overflow-hidden") }}
+  {% if media %}<div class="skeleton-image rounded-none" aria-hidden="true"></div>{% endif %}
+  <div class="card-header" aria-hidden="true">
+    <div class="skeleton-heading w-2/3 text-base"></div>
+  </div>
+  <div class="card-content text-sm" aria-hidden="true">
+    <div class="skeleton-lines">{% for i in range(lines) %}<div class="skeleton-text"></div>{% endfor %}</div>
+  </div>
+  {% if footer %}
+  <div class="card-footer gap-2" aria-hidden="true">
+    <div class="skeleton-button"></div>
+    <div class="skeleton-button w-20"></div>
+  </div>
+  {% endif %}
+</div>
+{%- endmacro %}
+
+{% macro skeleton_list(items=3, avatar=true, label="Loading…", shimmer=false, class="") %}
+{{ _open(label, shimmer, class, "flex w-full flex-col divide-y divide-border") }}
+  {% for i in range(items) %}
+  <div class="flex items-center gap-3 py-3" aria-hidden="true">
+    {% if avatar %}<div class="skeleton-avatar"></div>{% endif %}
+    <div class="flex flex-1 flex-col gap-2">
+      <div class="skeleton h-3.5 w-2/5"></div>
+      <div class="skeleton h-3 w-4/5"></div>
+    </div>
+    <div class="skeleton h-3 w-10"></div>
+  </div>
+  {% endfor %}
+</div>
+{%- endmacro %}
+
+{% macro skeleton_table(rows=5, columns=4, header=true, label="Loading…", shimmer=false, class="") %}
+{{ _open(label, shimmer, class, "table-wrap w-full") }}
+  <table class="table" aria-hidden="true">
+    {% if header %}
+    <thead><tr>{% for c in range(columns) %}<th><div class="skeleton h-3.5 w-16"></div></th>{% endfor %}</tr></thead>
+    {% endif %}
+    <tbody>
+      {% for r in range(rows) %}
+      <tr>{% for c in range(columns) %}<td><div class="skeleton h-3.5 {{ ['w-24', 'w-32', 'w-16', 'w-20'][(r + c) % 4] }} max-w-full"></div></td>{% endfor %}</tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{%- endmacro %}
+
+{% macro skeleton_form(fields=3, submit=true, label="Loading…", shimmer=false, class="") %}
+{{ _open(label, shimmer, class, "flex w-full flex-col gap-6") }}
+  {% for i in range(fields) %}
+  <div class="flex flex-col gap-2" aria-hidden="true">
+    <div class="skeleton h-3.5 w-24"></div>
+    <div class="skeleton-input"></div>
+  </div>
+  {% endfor %}
+  {% if submit %}<div class="skeleton-button" aria-hidden="true"></div>{% endif %}
+</div>
+{%- endmacro %}

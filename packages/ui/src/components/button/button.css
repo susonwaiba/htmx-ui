@@ -3,6 +3,7 @@
     @apply inline-flex h-9 shrink-0 cursor-pointer items-center justify-center gap-2 rounded-(--radius) px-4
       text-sm font-medium whitespace-nowrap transition-colors select-none
       focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring
+      active:translate-y-px
       disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50
       [&_svg]:size-4 [&_svg]:shrink-0;
   }

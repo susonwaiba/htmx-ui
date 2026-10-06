@@ -1,7 +1,17 @@
+/* <span class="badge badge-primary">New</span>
+   Variants: -primary -secondary -outline -ghost -link, status -info -success -warning -danger
+   (soft; add .badge-solid for a filled one), or any colour with .badge-tone and --badge-tone.
+   On an <a> or <button> it gets hover and focus styles. */
 @layer components {
+  /* Icon size is !important: icon() gives every icon a size-4 utility, and utilities beat
+     component classes. Spinners size themselves (spinner.css). */
   .badge {
     @apply inline-flex w-fit shrink-0 items-center gap-1 rounded-full border border-transparent px-2.5 py-0.5
-      text-xs font-medium whitespace-nowrap [&_svg]:size-3;
+      text-xs font-medium whitespace-nowrap transition-colors [&_svg:not(.spinner)]:size-3!;
+  }
+  :is(a, button).badge {
+    @apply cursor-pointer outline-none focus-visible:outline-2 focus-visible:outline-offset-2
+      focus-visible:outline-ring;
   }
 
   .badge-primary {
@@ -13,10 +23,31 @@
   .badge-outline {
     @apply border-border text-foreground;
   }
-  /* Status tints. Written as plain color-mix() in separate rules on purpose:
-     Tailwind's optimiser lowers color-mix(..., transparent) into a solid fallback
-     plus an @supports override, and keeps only one override per rule. Putting
-     border and background in one rule (or one @apply) leaves the other solid. */
+  .badge-ghost {
+    @apply text-muted-foreground;
+  }
+  .badge-link {
+    @apply px-0 text-primary underline-offset-4;
+  }
+  a.badge-primary {
+    @apply hover:bg-primary/90;
+  }
+  a.badge-secondary {
+    @apply hover:bg-secondary/80;
+  }
+  :is(a, button):is(.badge-outline, .badge-ghost) {
+    @apply hover:bg-accent hover:text-accent-foreground;
+  }
+  :is(a, button).badge-link {
+    @apply hover:underline;
+  }
+
+  /* Status tints, and any colour through --badge-tone:
+     <span class="badge badge-tone [--badge-tone:var(--color-violet-600)]">
+     Written as plain color-mix() in separate rules on purpose: Tailwind's optimiser lowers
+     color-mix(..., transparent) into a solid fallback plus an @supports override, and keeps
+     only one override per rule. Putting border and background in one rule (or one @apply)
+     leaves the other solid. */
   .badge-info {
     --badge-tone: var(--info);
   }
@@ -29,12 +60,27 @@
   .badge-danger {
     --badge-tone: var(--danger);
   }
-  :is(.badge-info, .badge-success, .badge-warning, .badge-danger) {
+  :is(.badge-info, .badge-success, .badge-warning, .badge-danger, .badge-tone) {
     border-color: color-mix(in oklab, var(--badge-tone) 25%, transparent);
   }
-  .badge:is(.badge-info, .badge-success, .badge-warning, .badge-danger) {
+  .badge:is(.badge-info, .badge-success, .badge-warning, .badge-danger, .badge-tone) {
     background-color: color-mix(in oklab, var(--badge-tone) 10%, transparent);
     color: var(--badge-tone);
+  }
+  a.badge:is(.badge-info, .badge-success, .badge-warning, .badge-danger, .badge-tone):hover {
+    background-color: color-mix(in oklab, var(--badge-tone) 18%, transparent);
+  }
+
+  /* Filled status: <span class="badge badge-danger badge-solid">. The text is the page colour,
+     which reads on the status tokens in both themes (dark tones in light, light tones in dark).
+     For a custom tone, set --badge-solid-foreground (or a text-* utility) if it doesn't. */
+  .badge.badge-solid {
+    border-color: transparent;
+    background-color: var(--badge-tone);
+    color: var(--badge-solid-foreground, var(--background));
+  }
+  a.badge.badge-solid:hover {
+    background-color: color-mix(in oklab, var(--badge-tone) 90%, black);
   }
 
   /* Leading status dot: <span class="badge badge-success badge-dot">Live</span> */

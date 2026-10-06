@@ -1,0 +1,302 @@
+{% extends "layouts/docs.html" %}
+{% from "components/icon/icon.html" import icon %}
+{% from "components/code/code.html" import code %}
+{% from "components/empty/empty.html" import empty %}
+{% from "docs/macros.html" import demo, classes %}
+{% set title = "Empty" %}
+{% set description = "Displays an empty state: no data yet, no results, nothing to show, with a way forward." %}
+
+{% block content %}
+  {% call demo() %}
+    <div class="empty">
+      <div class="empty-header">
+        <div class="empty-media empty-media-icon">{{ icon("folder-plus") }}</div>
+        <h3 class="empty-title">No projects yet</h3>
+        <p class="empty-description">You haven't created any projects yet. Get started by creating your first project.</p>
+      </div>
+      <div class="empty-content">
+        <div class="flex gap-2">
+          <button type="button" class="btn btn-primary">Create project</button>
+          <button type="button" class="btn btn-outline">Import project</button>
+        </div>
+      </div>
+      <a class="btn btn-link btn-sm text-muted-foreground" href="#">Learn more {{ icon("arrow-up-right") }}</a>
+    </div>
+  {% endcall %}
+
+  <h2 id="markup">Markup</h2>
+  {% call code("html") %}
+    <div class="empty">
+      <div class="empty-header">
+        <div class="empty-media empty-media-icon">…icon…</div>
+        <h3 class="empty-title">No projects yet</h3>
+        <p class="empty-description">…</p>
+      </div>
+      <div class="empty-content">…buttons, an input…</div>
+    </div>
+  {% endcall %}
+  <ul>
+    <li><code>.empty</code> centres everything in a column and grows to fill its container. It has generous padding, more from the <code>md</code> breakpoint.</li>
+    <li><code>.empty-header</code> holds the media, title and description, at most 24rem wide.</li>
+    <li><code>.empty-media</code> holds an icon, an avatar or an avatar group. With <code>.empty-media-icon</code> it is a muted rounded square around an icon.</li>
+    <li><code>.empty-title</code> says what is missing; <code>.empty-description</code> says why, or what to do. Links in the description are underlined.</li>
+    <li><code>.empty-content</code> holds the way forward: buttons, a search field, a link.</li>
+  </ul>
+
+  <h2 id="outline">Outline</h2>
+  <p><code>.empty-outline</code> adds a dashed border, as for a drop zone or a slot waiting to be filled.</p>
+  {% call demo() %}
+    <div class="empty empty-outline">
+      <div class="empty-header">
+        <div class="empty-media empty-media-icon">{{ icon("cloud") }}</div>
+        <h3 class="empty-title">Cloud storage empty</h3>
+        <p class="empty-description">Upload files to your cloud storage to access them anywhere.</p>
+      </div>
+      <div class="empty-content">
+        <button type="button" class="btn btn-outline btn-sm">{{ icon("upload") }} Upload files</button>
+      </div>
+    </div>
+  {% endcall %}
+
+  <h2 id="background">Background</h2>
+  <p><code>.empty-muted</code> adds a muted wash that fades out towards the bottom.</p>
+  {% call demo() %}
+    <div class="empty empty-muted">
+      <div class="empty-header">
+        <div class="empty-media empty-media-icon">{{ icon("bell") }}</div>
+        <h3 class="empty-title">No notifications</h3>
+        <p class="empty-description">You're all caught up. New notifications will appear here.</p>
+      </div>
+      <div class="empty-content">
+        <button type="button" class="btn btn-outline btn-sm">{{ icon("refresh-cw") }} Refresh</button>
+      </div>
+    </div>
+  {% endcall %}
+
+  <h2 id="avatar">Avatar</h2>
+  <p>
+    An <a href="/docs/components/avatar">avatar</a> in <code>.empty-media</code> (without
+    <code>.empty-media-icon</code>) is shown at 3rem unless it has a size class of its own. It names the person in the
+    title, so it is decorative here.
+  </p>
+  {% call demo() %}
+    <div class="empty">
+      <div class="empty-header">
+        <div class="empty-media">
+          <span class="avatar" aria-hidden="true"><img class="avatar-image" src="{{ asset('images/avatar-2.svg') }}" alt="" /><span class="avatar-fallback">KM</span></span>
+        </div>
+        <h3 class="empty-title">Kofi is offline</h3>
+        <p class="empty-description">Kofi is away right now. Leave a message and they'll see it when they're back.</p>
+      </div>
+      <div class="empty-content">
+        <button type="button" class="btn btn-primary btn-sm">{{ icon("message-square") }} Leave a message</button>
+      </div>
+    </div>
+  {% endcall %}
+
+  <h2 id="avatar-group">Avatar group</h2>
+  <p>An avatar group is shown large and in grey, for a team that hasn't joined yet. A <code>.avatar-group-count</code> keeps its colour.</p>
+  {% call demo() %}
+    <div class="empty">
+      <div class="empty-header">
+        <div class="empty-media">
+          <div class="avatar-group" aria-hidden="true">
+            <span class="avatar"><img class="avatar-image" src="{{ asset('images/avatar-1.svg') }}" alt="" /><span class="avatar-fallback">AL</span></span>
+            <span class="avatar"><img class="avatar-image" src="{{ asset('images/avatar-3.svg') }}" alt="" /><span class="avatar-fallback">RP</span></span>
+            <span class="avatar"><img class="avatar-image" src="{{ asset('images/avatar-4.svg') }}" alt="" /><span class="avatar-fallback">MC</span></span>
+          </div>
+        </div>
+        <h3 class="empty-title">No team members</h3>
+        <p class="empty-description">Invite your team to collaborate on this project.</p>
+      </div>
+      <div class="empty-content">
+        <button type="button" class="btn btn-outline btn-sm">{{ icon("plus") }} Invite members</button>
+      </div>
+    </div>
+  {% endcall %}
+
+  <h2 id="input-group">Input group</h2>
+  <p>
+    <code>.empty-content</code> is a column up to 24rem wide, so a field fills it. Here a not-found page offers a
+    search, using an <a href="/docs/components/input-group">input group</a>, and a link to help.
+  </p>
+  {% call demo() %}
+    <div class="empty">
+      <div class="empty-header">
+        <h3 class="empty-title">404 – Page not found</h3>
+        <p class="empty-description">The page you're looking for doesn't exist. Try searching for what you need below.</p>
+      </div>
+      <div class="empty-content">
+        <form class="w-full" role="search" action="#">
+          <div class="input-group">
+            <input class="input" type="search" name="q" placeholder="Search pages…" aria-label="Search pages" />
+            <span class="input-group-addon">{{ icon("search") }}</span>
+            <span class="input-group-addon input-group-addon-inline-end"><kbd class="kbd">/</kbd></span>
+          </div>
+        </form>
+        <p class="empty-description">Need help? <a href="#">Contact support</a></p>
+      </div>
+    </div>
+  {% endcall %}
+
+  <h2 id="sizes">Sizes</h2>
+  <p>
+    <code>.empty-sm</code> is compact, for small panels, sidebars and table bodies: less padding and smaller gaps, a
+    smaller icon square and title.
+  </p>
+  {% call demo("items-start") %}
+    <div class="w-full max-w-xs rounded-[calc(var(--radius)+4px)] border border-border bg-surface">
+      <div class="border-b border-border px-4 py-3 text-sm font-medium">Activity</div>
+      <div class="empty empty-sm">
+        <div class="empty-header">
+          <div class="empty-media empty-media-icon">{{ icon("bar-chart") }}</div>
+          <p class="empty-title">No activity this week</p>
+          <p class="empty-description">Activity from your projects shows up here.</p>
+        </div>
+      </div>
+    </div>
+  {% endcall %}
+
+  <h2 id="card">In a card</h2>
+  <p>Put the empty state in <code>.card-content</code> in place of the content that's missing. Without a variant it has no frame of its own, so it sits in the card's.</p>
+  {% call demo() %}
+    <div class="card w-full max-w-md">
+      <div class="card-header">
+        <h3 class="card-title">Payment methods</h3>
+        <p class="card-description">Cards and accounts you pay with.</p>
+      </div>
+      <div class="card-content">
+        <div class="empty empty-outline empty-sm">
+          <div class="empty-header">
+            <div class="empty-media empty-media-icon">{{ icon("credit-card") }}</div>
+            <p class="empty-title">No payment methods</p>
+            <p class="empty-description">Add a card to pay for your subscription.</p>
+          </div>
+          <div class="empty-content">
+            <button type="button" class="btn btn-primary btn-sm">{{ icon("plus") }} Add a card</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endcall %}
+
+  <h2 id="table">In a table</h2>
+  <p>
+    For a table with no rows, keep the header (so the columns still explain the data) and put a compact empty state
+    in a single cell spanning every column.
+  </p>
+  {% call demo("block p-4 sm:p-6") %}
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>Invoice</th><th>Status</th><th class="text-right">Amount</th></tr></thead>
+        <tbody>
+          <tr>
+            <td colspan="3">
+              <div class="empty empty-sm">
+                <div class="empty-header">
+                  <div class="empty-media empty-media-icon">{{ icon("search") }}</div>
+                  <p class="empty-title">No invoices found</p>
+                  <p class="empty-description">No invoices match &ldquo;acme&rdquo;. Try another search, or clear the filters.</p>
+                </div>
+                <div class="empty-content">
+                  <button type="button" class="btn btn-outline btn-sm">Clear filters</button>
+                </div>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  {% endcall %}
+
+  <h2 id="htmx">With htmx</h2>
+  <p>
+    The empty state is ordinary markup, so a request can replace it with content. Here the button loads rows from the
+    server into the table body with <code>hx-swap="innerHTML"</code>, which replaces the empty row with them:
+  </p>
+  {% call demo("block p-4 sm:p-6") %}
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>Invoice</th><th>Status</th><th class="text-right">Amount</th></tr></thead>
+        <tbody id="empty-invoices">
+          <tr>
+            <td colspan="3">
+              <div class="empty empty-sm">
+                <div class="empty-header">
+                  <div class="empty-media empty-media-icon">{{ icon("file-text") }}</div>
+                  <p class="empty-title">No invoices yet</p>
+                  <p class="empty-description">Invoices you send show up here.</p>
+                </div>
+                <div class="empty-content">
+                  <button type="button" class="btn btn-primary btn-sm" hx-get="/api/invoices" hx-target="#empty-invoices" hx-swap="innerHTML">Load invoices</button>
+                </div>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  {% endcall %}
+  <p>
+    The other way round, have the server return an empty state when a search or a filter finds nothing, and the same
+    swap shows it. An error can return one with a retry button that repeats the request and replaces the whole empty
+    state:
+  </p>
+  {% call code("html") %}
+    <div class="empty empty-outline" id="feed">
+      <div class="empty-header">
+        <div class="empty-media empty-media-icon">…icon…</div>
+        <h3 class="empty-title">Couldn't load the feed</h3>
+        <p class="empty-description">Check your connection and try again.</p>
+      </div>
+      <div class="empty-content">
+        <button class="btn btn-outline btn-sm" hx-get="/feed" hx-target="#feed" hx-swap="outerHTML">Retry</button>
+      </div>
+    </div>
+  {% endcall %}
+
+  <h2 id="macro">Macro</h2>
+  <p>
+    The <code>empty()</code> macro writes the header for you. Pass the title, and optionally a
+    <code>description</code>, an <code>icon</code> name, a <code>variant</code> (<code>"outline"</code> or
+    <code>"muted"</code>), a <code>size</code> (<code>"sm"</code>), the title element as <code>heading</code>
+    (<code>"h3"</code> by default; use the level that fits the page, or <code>"p"</code>) and extra
+    <code>class</code>es. Call it with a body to fill <code>.empty-content</code>.
+  </p>
+  {% call code("html") %}
+{% raw %}
+{% from "components/empty/empty.html" import empty %}
+
+{% call empty("No messages", "New messages show up here.", icon="inbox", variant="outline") %}
+  <button class="btn btn-primary btn-sm">Compose</button>
+{% endcall %}
+{% endraw %}
+  {% endcall %}
+  {% call demo() %}
+    {% call empty("No messages", "New messages show up here.", icon="inbox", variant="outline") %}
+      <button type="button" class="btn btn-primary btn-sm">{{ icon("mail") }} Compose</button>
+    {% endcall %}
+  {% endcall %}
+
+  <h2 id="accessibility">Accessibility</h2>
+  <ul>
+    <li>Make the title a heading at the level that fits where the empty state sits (it stands in for a section's content), or a <code>&lt;p&gt;</code> in small panels and table cells.</li>
+    <li>Media is decorative: the icon is hidden from screen readers, and avatars take <code>aria-hidden="true"</code>. Say everything that matters in the title and description.</li>
+    <li>Write button labels that make sense on their own: &ldquo;Create project&rdquo;, not &ldquo;Get started&rdquo;.</li>
+    <li>When an empty state replaces results that were there a moment ago (after a search), announce it: swap it into a container with <code>aria-live="polite"</code>.</li>
+  </ul>
+
+  <h2 id="reference">Reference</h2>
+  {{ classes([
+    [".empty", "Centred column with padding (more from md) that grows to fill its container."],
+    [".empty-outline", "Dashed border."],
+    [".empty-muted", "Muted background that fades out towards the bottom."],
+    [".empty-sm", "Compact: less padding, smaller gaps, icon square and title."],
+    [".empty-header", "Media, title and description; at most 24rem wide."],
+    [".empty-media", "Holds an icon, an .avatar (shown at 3rem) or an .avatar-group (large, grey)."],
+    [".empty-media-icon", "A muted rounded square around an icon."],
+    [".empty-title", "What is missing."],
+    [".empty-description", "Muted text below the title. Links are underlined."],
+    [".empty-content", "Actions and inputs: a centred column, at most 24rem wide."]
+  ]) }}
+{% endblock %}

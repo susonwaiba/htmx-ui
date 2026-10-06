@@ -1,0 +1,356 @@
+{% extends "layouts/docs.html" %}
+{% from "components/icon/icon.html" import icon %}
+{% from "components/code/code.html" import code %}
+{% from "docs/macros.html" import demo, classes %}
+{% set title = "Attachment" %}
+{% set description = "Displays a file or image attachment with media, metadata, upload state and actions." %}
+
+{% block content %}
+  {% call demo() %}
+    <div class="attachment">
+      <div class="attachment-media">{{ icon("file-text") }}</div>
+      <div class="attachment-content">
+        <p class="attachment-title">quarterly-report.pdf</p>
+        <p class="attachment-description">2.4 MB · PDF</p>
+      </div>
+      <div class="attachment-actions">
+        <button type="button" class="btn btn-ghost btn-icon btn-xs" aria-label="Remove quarterly-report.pdf">{{ icon("x") }}</button>
+      </div>
+    </div>
+    <div class="attachment" data-state="uploading">
+      <img class="attachment-media" src="{{ asset('images/landscape.svg') }}" alt="" />
+      <div class="attachment-content">
+        <p class="attachment-title">mountains-at-dusk.svg</p>
+        <p class="attachment-description">Uploading · 64%</p>
+      </div>
+      <div class="attachment-actions">
+        <button type="button" class="btn btn-ghost btn-icon btn-xs" aria-label="Cancel upload of mountains-at-dusk.svg">{{ icon("x") }}</button>
+      </div>
+      <progress class="attachment-progress" value="64" max="100" aria-label="Upload progress"></progress>
+    </div>
+  {% endcall %}
+
+  <h2 id="parts">Parts</h2>
+  <ul>
+    <li><code>.attachment</code> is the frame: media, content and actions in a row.</li>
+    <li><code>.attachment-media</code> holds an icon, or an image. It can also be the <code>&lt;img&gt;</code> or <code>&lt;video&gt;</code> itself.</li>
+    <li><code>.attachment-content</code> holds <code>.attachment-title</code> (the file name) and <code>.attachment-description</code> (size, type, progress or an error). Both truncate.</li>
+    <li><code>.attachment-actions</code> holds small icon buttons: remove, download, retry.</li>
+    <li><code>.attachment-progress</code> is an optional native <code>&lt;progress&gt;</code> along the bottom edge.</li>
+    <li><code>.attachment-trigger</code> is an optional link or button covering the whole attachment.</li>
+  </ul>
+
+  <h2 id="states">Upload states</h2>
+  <p>
+    Set <code>data-state</code> to <code>idle</code>, <code>uploading</code>, <code>processing</code>,
+    <code>error</code> or <code>done</code> (the default). Idle attachments have a dashed border. While uploading or
+    processing, the title shimmers and the media pulses. An error turns the border, media and description red; write
+    what went wrong in the description, so it isn't told by colour alone.
+  </p>
+  {% call demo("flex-col") %}
+    <div class="attachment" data-state="idle">
+      <div class="attachment-media">{{ icon("file") }}</div>
+      <div class="attachment-content">
+        <p class="attachment-title">contract-draft.docx</p>
+        <p class="attachment-description">Waiting to upload</p>
+      </div>
+      <div class="attachment-actions">
+        <button type="button" class="btn btn-ghost btn-icon btn-xs" aria-label="Remove contract-draft.docx">{{ icon("x") }}</button>
+      </div>
+    </div>
+    <div class="attachment" data-state="uploading" aria-busy="true">
+      <div class="attachment-media">{{ icon("file-text") }}</div>
+      <div class="attachment-content">
+        <p class="attachment-title">quarterly-report.pdf</p>
+        <p class="attachment-description">Uploading · 42%</p>
+      </div>
+      <div class="attachment-actions">
+        <button type="button" class="btn btn-ghost btn-icon btn-xs" aria-label="Cancel upload of quarterly-report.pdf">{{ icon("x") }}</button>
+      </div>
+      <progress class="attachment-progress" value="42" max="100" aria-label="Upload progress"></progress>
+    </div>
+    <div class="attachment" data-state="processing" aria-busy="true">
+      <div class="attachment-media">{{ icon("video") }}</div>
+      <div class="attachment-content">
+        <p class="attachment-title">product-demo.mp4</p>
+        <p class="attachment-description">Processing…</p>
+      </div>
+    </div>
+    <div class="attachment" data-state="error">
+      <div class="attachment-media">{{ icon("circle-alert") }}</div>
+      <div class="attachment-content">
+        <p class="attachment-title">raw-footage.mov</p>
+        <p class="attachment-description">Too large: the limit is 100 MB</p>
+      </div>
+      <div class="attachment-actions">
+        <button type="button" class="btn btn-ghost btn-icon btn-xs" aria-label="Retry raw-footage.mov">{{ icon("refresh-cw") }}</button>
+        <button type="button" class="btn btn-ghost btn-icon btn-xs" aria-label="Remove raw-footage.mov">{{ icon("x") }}</button>
+      </div>
+    </div>
+    <div class="attachment" data-state="done">
+      <div class="attachment-media">{{ icon("file-text") }}</div>
+      <div class="attachment-content">
+        <p class="attachment-title">meeting-notes.md</p>
+        <p class="attachment-description">12 KB · Markdown</p>
+      </div>
+      <div class="attachment-actions">
+        <button type="button" class="btn btn-ghost btn-icon btn-xs" aria-label="Download meeting-notes.md">{{ icon("download") }}</button>
+      </div>
+    </div>
+  {% endcall %}
+
+  <h2 id="sizes">Sizes</h2>
+  <p><code>.attachment-sm</code> and <code>.attachment-xs</code> shrink the frame, media and text. The extra small size drops the description.</p>
+  {% call demo("flex-col") %}
+    <div class="attachment">
+      <div class="attachment-media">{{ icon("file-text") }}</div>
+      <div class="attachment-content">
+        <p class="attachment-title">design-brief.pdf</p>
+        <p class="attachment-description">840 KB · PDF</p>
+      </div>
+    </div>
+    <div class="attachment attachment-sm">
+      <div class="attachment-media">{{ icon("file-text") }}</div>
+      <div class="attachment-content">
+        <p class="attachment-title">design-brief.pdf</p>
+        <p class="attachment-description">840 KB · PDF</p>
+      </div>
+    </div>
+    <div class="attachment attachment-xs">
+      <div class="attachment-media">{{ icon("file-text") }}</div>
+      <div class="attachment-content">
+        <p class="attachment-title">design-brief.pdf</p>
+      </div>
+    </div>
+  {% endcall %}
+
+  <h2 id="orientation">Orientation</h2>
+  <p>
+    <code>.attachment-vertical</code> puts the media on top at full width, for previews. The actions float over the
+    media's corner. It combines with the sizes.
+  </p>
+  {% call demo("items-start") %}
+    <div class="attachment attachment-vertical">
+      <img class="attachment-media" src="{{ asset('images/forest.svg') }}" alt="" />
+      <div class="attachment-content">
+        <p class="attachment-title">forest.svg</p>
+        <p class="attachment-description">1.2 MB</p>
+      </div>
+      <div class="attachment-actions">
+        <button type="button" class="btn btn-ghost btn-icon btn-xs" aria-label="Remove forest.svg">{{ icon("x") }}</button>
+      </div>
+    </div>
+    <div class="attachment attachment-vertical attachment-sm">
+      <img class="attachment-media" src="{{ asset('images/forest.svg') }}" alt="" />
+      <div class="attachment-content">
+        <p class="attachment-title">forest.svg</p>
+        <p class="attachment-description">1.2 MB</p>
+      </div>
+    </div>
+    <div class="attachment attachment-vertical attachment-xs">
+      <img class="attachment-media" src="{{ asset('images/forest.svg') }}" alt="" />
+      <div class="attachment-content">
+        <p class="attachment-title">forest.svg</p>
+      </div>
+    </div>
+  {% endcall %}
+
+  <h2 id="variants">Image, video, audio and file</h2>
+  <p>
+    The media says what kind of file it is: an image shows itself, a video its thumbnail with a play icon on top, audio
+    and other files an icon. An icon placed over an image or video is centred and drawn in white. Each works in both
+    orientations.
+  </p>
+  {% call demo("flex-col") %}
+    <div class="flex flex-wrap justify-center gap-3">
+      <div class="attachment">
+        <img class="attachment-media" src="{{ asset('images/ocean.svg') }}" alt="" />
+        <div class="attachment-content">
+          <p class="attachment-title">sunset.svg</p>
+          <p class="attachment-description">Image · 3.1 MB</p>
+        </div>
+      </div>
+      <div class="attachment">
+        <div class="attachment-media"><img src="{{ asset('images/landscape.svg') }}" alt="" />{{ icon("play") }}</div>
+        <div class="attachment-content">
+          <p class="attachment-title">timelapse.mp4</p>
+          <p class="attachment-description">Video · 0:48</p>
+        </div>
+      </div>
+      <div class="attachment">
+        <div class="attachment-media">{{ icon("music") }}</div>
+        <div class="attachment-content">
+          <p class="attachment-title">interview.mp3</p>
+          <p class="attachment-description">Audio · 12:04</p>
+        </div>
+      </div>
+      <div class="attachment">
+        <div class="attachment-media">{{ icon("file") }}</div>
+        <div class="attachment-content">
+          <p class="attachment-title">archive.zip</p>
+          <p class="attachment-description">File · 18 MB</p>
+        </div>
+      </div>
+    </div>
+    <div class="flex flex-wrap items-start justify-center gap-3">
+      <div class="attachment attachment-vertical">
+        <img class="attachment-media" src="{{ asset('images/ocean.svg') }}" alt="" />
+        <div class="attachment-content">
+          <p class="attachment-title">sunset.svg</p>
+          <p class="attachment-description">Image · 3.1 MB</p>
+        </div>
+      </div>
+      <div class="attachment attachment-vertical">
+        <div class="attachment-media"><img src="{{ asset('images/landscape.svg') }}" alt="" />{{ icon("play") }}</div>
+        <div class="attachment-content">
+          <p class="attachment-title">timelapse.mp4</p>
+          <p class="attachment-description">Video · 0:48</p>
+        </div>
+      </div>
+      <div class="attachment attachment-vertical">
+        <div class="attachment-media">{{ icon("music") }}</div>
+        <div class="attachment-content">
+          <p class="attachment-title">interview.mp3</p>
+          <p class="attachment-description">Audio · 12:04</p>
+        </div>
+      </div>
+      <div class="attachment attachment-vertical">
+        <div class="attachment-media">{{ icon("file") }}</div>
+        <div class="attachment-content">
+          <p class="attachment-title">archive.zip</p>
+          <p class="attachment-description">File · 18 MB</p>
+        </div>
+      </div>
+    </div>
+  {% endcall %}
+
+  <h2 id="group">Group</h2>
+  <p>
+    <code>.attachment-group</code> lays attachments out in a row that scrolls sideways, snapping to each one, with its
+    edges fading out. Give it <code>role="group"</code> and an <code>aria-label</code>. Each attachment keeps its own
+    width, so mix sizes and orientations freely.
+  </p>
+  {% call demo("flex-col items-stretch") %}
+    <div class="attachment-group mx-auto w-full max-w-xl" role="group" aria-label="Attachments">
+      <div class="attachment attachment-vertical attachment-sm">
+        <img class="attachment-media" src="{{ asset('images/landscape.svg') }}" alt="" />
+        <div class="attachment-content"><p class="attachment-title">mountains.svg</p><p class="attachment-description">2.2 MB</p></div>
+      </div>
+      <div class="attachment attachment-vertical attachment-sm">
+        <img class="attachment-media" src="{{ asset('images/ocean.svg') }}" alt="" />
+        <div class="attachment-content"><p class="attachment-title">sunset.svg</p><p class="attachment-description">3.1 MB</p></div>
+      </div>
+      <div class="attachment attachment-vertical attachment-sm" data-state="uploading">
+        <img class="attachment-media" src="{{ asset('images/forest.svg') }}" alt="" />
+        <div class="attachment-content"><p class="attachment-title">forest.svg</p><p class="attachment-description">Uploading · 30%</p></div>
+        <progress class="attachment-progress" value="30" max="100" aria-label="Upload progress"></progress>
+      </div>
+      <div class="attachment attachment-vertical attachment-sm">
+        <div class="attachment-media">{{ icon("music") }}</div>
+        <div class="attachment-content"><p class="attachment-title">interview.mp3</p><p class="attachment-description">12:04</p></div>
+      </div>
+      <div class="attachment attachment-vertical attachment-sm">
+        <div class="attachment-media">{{ icon("file-text") }}</div>
+        <div class="attachment-content"><p class="attachment-title">notes.pdf</p><p class="attachment-description">96 KB</p></div>
+      </div>
+      <div class="attachment attachment-vertical attachment-sm">
+        <div class="attachment-media">{{ icon("file") }}</div>
+        <div class="attachment-content"><p class="attachment-title">archive.zip</p><p class="attachment-description">18 MB</p></div>
+      </div>
+    </div>
+  {% endcall %}
+  <p>Horizontal attachments scroll the same way, as in a chat composer above the message box:</p>
+  {% call demo("flex-col items-stretch") %}
+    <div class="mx-auto w-full max-w-md rounded-[calc(var(--radius)+4px)] border border-border bg-surface py-2">
+      <div class="attachment-group" role="group" aria-label="Attachments">
+        <div class="attachment attachment-sm w-48">
+          <img class="attachment-media" src="{{ asset('images/ocean.svg') }}" alt="" />
+          <div class="attachment-content"><p class="attachment-title">sunset.svg</p><p class="attachment-description">3.1 MB</p></div>
+          <div class="attachment-actions"><button type="button" class="btn btn-ghost btn-icon btn-xs" aria-label="Remove sunset.svg">{{ icon("x") }}</button></div>
+        </div>
+        <div class="attachment attachment-sm w-48">
+          <div class="attachment-media">{{ icon("file-text") }}</div>
+          <div class="attachment-content"><p class="attachment-title">quarterly-report.pdf</p><p class="attachment-description">2.4 MB</p></div>
+          <div class="attachment-actions"><button type="button" class="btn btn-ghost btn-icon btn-xs" aria-label="Remove quarterly-report.pdf">{{ icon("x") }}</button></div>
+        </div>
+        <div class="attachment attachment-sm w-48">
+          <div class="attachment-media">{{ icon("music") }}</div>
+          <div class="attachment-content"><p class="attachment-title">interview.mp3</p><p class="attachment-description">12:04</p></div>
+          <div class="attachment-actions"><button type="button" class="btn btn-ghost btn-icon btn-xs" aria-label="Remove interview.mp3">{{ icon("x") }}</button></div>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 px-3 pt-2">
+        <button type="button" class="btn btn-ghost btn-icon btn-sm" aria-label="Attach files">{{ icon("paperclip") }}</button>
+        <input class="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground" placeholder="Write a message…" aria-label="Message" />
+        <button type="button" class="btn btn-primary btn-icon btn-sm" aria-label="Send">{{ icon("send") }}</button>
+      </div>
+    </div>
+  {% endcall %}
+
+  <h2 id="trigger">Opening an attachment</h2>
+  <p>
+    <code>.attachment-trigger</code> on an empty link or button stretches it over the whole attachment, so a click
+    anywhere opens or previews the file, while the actions stay separately clickable above it. It has no text, so give
+    it an <code>aria-label</code> saying what it does.
+  </p>
+  {% call demo() %}
+    <div class="attachment">
+      <div class="attachment-media">{{ icon("file-text") }}</div>
+      <div class="attachment-content">
+        <p class="attachment-title">quarterly-report.pdf</p>
+        <p class="attachment-description">2.4 MB · PDF</p>
+      </div>
+      <div class="attachment-actions">
+        <a class="btn btn-ghost btn-icon btn-xs" href="#download" aria-label="Download quarterly-report.pdf">{{ icon("download") }}</a>
+      </div>
+      <a class="attachment-trigger" href="#preview" aria-label="Open quarterly-report.pdf"></a>
+    </div>
+  {% endcall %}
+
+  <h2 id="htmx">Upload progress with htmx</h2>
+  <p>
+    The server can own the state. Return the attachment as a fragment that asks for its next state with
+    <code>hx-trigger="load delay:…"</code> and <code>hx-swap="outerHTML"</code>, and stop polling once it is
+    <code>done</code> or in <code>error</code>. Each click below adds one that moves from uploading to processing to
+    done:
+  </p>
+  {% call demo("flex-col items-center gap-4") %}
+    <button type="button" class="btn btn-outline" hx-get="/api/attachment" hx-target="#upload-list" hx-swap="beforeend">{{ icon("upload") }} Upload a file</button>
+    <div id="upload-list" class="flex flex-col gap-2"></div>
+  {% endcall %}
+  <p>One step of the server's response:</p>
+  {% call code("html") %}
+    <div class="attachment" data-state="uploading"
+         hx-get="/uploads/42?step=3" hx-trigger="load delay:600ms" hx-swap="outerHTML">
+      <div class="attachment-media">…icon…</div>
+      <div class="attachment-content">
+        <p class="attachment-title">quarterly-report.pdf</p>
+        <p class="attachment-description">Uploading · 60%</p>
+      </div>
+      <progress class="attachment-progress" value="60" max="100" aria-label="Upload progress"></progress>
+    </div>
+  {% endcall %}
+
+  <h2 id="accessibility">Accessibility</h2>
+  <ul>
+    <li>Icon-only actions need an <code>aria-label</code> naming the file: &ldquo;Remove quarterly-report.pdf&rdquo;, not just &ldquo;Remove&rdquo;.</li>
+    <li>So does <code>.attachment-trigger</code>, which has no text of its own.</li>
+    <li>Media images are decorative next to the file name: give them <code>alt=""</code>.</li>
+    <li>Mark attachments in progress with <code>aria-busy="true"</code>, and put errors in words in the description.</li>
+    <li>A group of attachments gets <code>role="group"</code> and an <code>aria-label</code>.</li>
+  </ul>
+
+  <h2 id="reference">Reference</h2>
+  {{ classes([
+    [".attachment", "The frame: media, content and actions in a row, 16rem wide (override with w-*)."],
+    [".attachment-media", "Icon box, or an image/video (inside it or as it). An icon over an image is centred and white."],
+    [".attachment-content / -title / -description", "File name and details; both truncate."],
+    [".attachment-actions", "Icon buttons, kept clickable above the trigger."],
+    [".attachment-trigger", "Empty link or button covering the attachment."],
+    [".attachment-progress", "Native <progress> along the bottom edge."],
+    ["[data-state]", "idle (dashed), uploading / processing (shimmer), error (red), done (default)."],
+    [".attachment-sm / -xs", "Smaller sizes; -xs hides the description."],
+    [".attachment-vertical", "Media on top at full width; actions over its corner."],
+    [".attachment-group", "Sideways-scrolling row with snapping and faded edges."]
+  ]) }}
+{% endblock %}

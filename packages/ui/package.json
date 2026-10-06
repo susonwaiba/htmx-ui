@@ -51,7 +51,8 @@
     "prepublishOnly": "bun run --cwd ../.. release:check"
   },
   "dependencies": {
-    "@tailwindcss/typography": "^0.5.20"
+    "@tailwindcss/typography": "^0.5.20",
+    "embla-carousel": "^8.6.0"
   },
   "peerDependencies": {
     "htmx.org": "^4.0.0",

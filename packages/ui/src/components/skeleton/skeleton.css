@@ -1,0 +1,101 @@
+/* A placeholder in the shape of content that is still loading.
+
+   <div class="skeleton h-4 w-48"></div>                      any shape: size it with utilities
+   <div class="skeleton skeleton-circle size-10"></div>       round (avatars, icons)
+   <div class="skeleton-text"></div>                          a line of text, 1em high: follows the font size
+   <div class="skeleton-lines">…three .skeleton-text…</div>   a paragraph; the last line is shorter
+
+   Ready-made shapes: .skeleton-avatar, .skeleton-button, .skeleton-input, .skeleton-badge,
+   .skeleton-image (16:9), .skeleton-heading. Animation: a pulse by default; .skeleton-shimmer on
+   a shape or any ancestor sweeps a highlight across instead, .skeleton-static stops it.
+   Mark the loading region aria-busy="true" and give it a text alternative for screen readers
+   (<span class="sr-only">Loading…</span>); the shapes themselves are aria-hidden.
+   Composed placeholders (cards, lists, tables, forms): see skeleton.html. */
+@layer components {
+  .skeleton,
+  .skeleton-text,
+  .skeleton-heading,
+  .skeleton-avatar,
+  .skeleton-button,
+  .skeleton-input,
+  .skeleton-badge,
+  .skeleton-image {
+    @apply block shrink-0 animate-pulse rounded-(--radius) bg-muted;
+  }
+
+  /* Shapes */
+  .skeleton-circle {
+    @apply rounded-full;
+  }
+  .skeleton-text {
+    @apply h-[1em] w-full rounded-[calc(var(--radius)-2px)];
+  }
+  .skeleton-heading {
+    @apply h-[1.5em] w-1/2 rounded-[calc(var(--radius)-2px)];
+  }
+  .skeleton-avatar {
+    @apply size-10 rounded-full;
+  }
+  /* Sized like .btn, .input and .badge, so a placeholder takes the space the control will. */
+  .skeleton-button {
+    @apply h-9 w-24;
+  }
+  .skeleton-input {
+    @apply h-9 w-full;
+  }
+  .skeleton-badge {
+    @apply h-5 w-14 rounded-full;
+  }
+  .skeleton-image {
+    @apply aspect-video h-auto w-full;
+  }
+
+  /* Lines of a paragraph, as tall as the text they stand for (text-sm lines are 1.25rem). */
+  .skeleton-lines {
+    @apply flex w-full flex-col gap-[0.5em];
+  }
+  .skeleton-lines > .skeleton-text:last-child:not(:only-child) {
+    @apply w-3/5;
+  }
+
+  /* Shimmer: a highlight sweeping across, in place of the pulse. */
+  .skeleton-shimmer:is(.skeleton, .skeleton-text, .skeleton-heading, .skeleton-avatar, .skeleton-button, .skeleton-input, .skeleton-badge, .skeleton-image),
+  .skeleton-shimmer :is(.skeleton, .skeleton-text, .skeleton-heading, .skeleton-avatar, .skeleton-button, .skeleton-input, .skeleton-badge, .skeleton-image) {
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        color-mix(in oklab, var(--foreground) 7%, transparent) 50%,
+        transparent 100%
+      )
+      var(--muted);
+    background-size: 200% 100%;
+    background-repeat: no-repeat;
+    animation: skeleton-shimmer 1.6s ease-in-out infinite;
+  }
+
+  .skeleton-static:is(.skeleton, .skeleton-text, .skeleton-heading, .skeleton-avatar, .skeleton-button, .skeleton-input, .skeleton-badge, .skeleton-image),
+  .skeleton-static :is(.skeleton, .skeleton-text, .skeleton-heading, .skeleton-avatar, .skeleton-button, .skeleton-input, .skeleton-badge, .skeleton-image) {
+    animation: none;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .skeleton,
+    .skeleton-text,
+    .skeleton-heading,
+    .skeleton-avatar,
+    .skeleton-button,
+    .skeleton-input,
+    .skeleton-badge,
+    .skeleton-image {
+      animation: none !important;
+    }
+  }
+}
+
+@keyframes skeleton-shimmer {
+  from {
+    background-position: 150% 0;
+  }
+  to {
+    background-position: -50% 0;
+  }
+}

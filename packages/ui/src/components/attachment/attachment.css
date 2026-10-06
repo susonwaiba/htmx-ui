@@ -1,0 +1,181 @@
+/* A file, image, video or audio attachment: media, name, details, upload state and actions.
+
+   <div class="attachment" data-state="uploading">            data-state: idle | uploading | processing | error | done
+     <div class="attachment-media">{{ icon("file-text") }}</div>     or an <img>/<video> inside (or as) the media
+     <div class="attachment-content">
+       <p class="attachment-title">report.pdf</p>
+       <p class="attachment-description">Uploading · 45%</p>
+     </div>
+     <div class="attachment-actions">
+       <button class="btn btn-ghost btn-icon btn-xs" aria-label="Remove report.pdf">{{ icon("x") }}</button>
+     </div>
+     <progress class="attachment-progress" value="45" max="100" aria-label="Upload progress"></progress>   optional
+     <a class="attachment-trigger" href="…" aria-label="Open report.pdf"></a>                              optional
+   </div>
+
+   Sizes .attachment-sm / -xs; .attachment-vertical puts the media on top.
+   <div class="attachment-group" role="group" aria-label="Attachments">…</div> scrolls sideways. */
+@layer components {
+  .attachment {
+    @apply relative flex w-64 max-w-full min-w-0 shrink-0 items-center gap-3 rounded-(--radius) border border-border
+      bg-surface p-2 pr-3 text-sm text-foreground;
+  }
+
+  /* Icon sizes here are !important: icon() gives every icon a size-4 utility, and utilities
+     beat component classes. The media box decides how big its icon is. */
+  .attachment-media {
+    @apply relative grid size-10 shrink-0 place-items-center overflow-hidden rounded-[calc(var(--radius)-2px)]
+      bg-muted text-muted-foreground [&>svg]:size-5!;
+  }
+  /* An image or video fills the media box. The media element can also be the <img>/<video> itself. */
+  .attachment-media > :is(img, video) {
+    @apply size-full object-cover;
+  }
+  :is(img, video).attachment-media {
+    @apply object-cover;
+  }
+  /* An icon over an image or video (a play glyph on a video) is centred on top of it. */
+  .attachment-media:has(> :is(img, video)) > svg {
+    @apply absolute size-4! fill-current text-white drop-shadow-sm;
+  }
+
+  .attachment-content {
+    @apply flex min-w-0 flex-1 flex-col gap-0.5;
+  }
+  .attachment-title {
+    @apply truncate leading-tight font-medium;
+  }
+  .attachment-description {
+    @apply truncate text-xs text-muted-foreground;
+  }
+  .attachment-actions {
+    @apply relative z-10 flex shrink-0 items-center gap-0.5;
+  }
+
+  /* A link or button covering the whole attachment (open, preview, download). The actions
+     stay clickable above it. Give it an aria-label: it has no text of its own. */
+  .attachment-trigger {
+    @apply absolute inset-0 z-0 cursor-pointer rounded-[inherit] outline-none focus-visible:outline-2
+      focus-visible:outline-offset-2 focus-visible:outline-ring;
+  }
+  .attachment:has(> .attachment-trigger) {
+    @apply transition-colors hover:bg-accent;
+  }
+
+  /* Upload progress along the bottom edge: a native <progress>. */
+  .attachment-progress {
+    @apply absolute inset-x-3 bottom-1 h-0.5 appearance-none overflow-hidden rounded-full border-0 bg-muted
+      [&::-moz-progress-bar]:bg-primary [&::-webkit-progress-bar]:bg-muted [&::-webkit-progress-value]:bg-primary
+      [&::-webkit-progress-value]:transition-[width];
+  }
+
+  /* States */
+  .attachment[data-state="idle"] {
+    @apply border-dashed;
+  }
+  /* In progress: the title shimmers. */
+  .attachment:is([data-state="uploading"], [data-state="processing"]) .attachment-title {
+    background: linear-gradient(
+        90deg,
+        var(--muted-foreground) 0%,
+        var(--muted-foreground) 35%,
+        var(--foreground) 50%,
+        var(--muted-foreground) 65%,
+        var(--muted-foreground) 100%
+      )
+      0 0 / 250% 100%;
+    background-clip: text;
+    color: transparent;
+    animation: attachment-shimmer 1.6s linear infinite;
+  }
+  .attachment:is([data-state="uploading"], [data-state="processing"]) .attachment-media {
+    @apply animate-pulse;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .attachment:is([data-state="uploading"], [data-state="processing"]) :is(.attachment-title, .attachment-media) {
+      animation: none;
+    }
+  }
+  /* Error: red border, media and details. Say what went wrong in the description, not only in
+     colour. One color-mix() per rule (see alert.css). */
+  .attachment[data-state="error"] {
+    border-color: color-mix(in oklab, var(--danger) 50%, transparent);
+  }
+  .attachment[data-state="error"] .attachment-media {
+    @apply bg-danger/10 text-danger;
+  }
+  .attachment[data-state="error"] .attachment-description {
+    @apply text-danger;
+  }
+
+  /* Sizes */
+  .attachment-sm {
+    @apply w-56 gap-2 p-1.5 pr-2 text-xs;
+  }
+  .attachment-sm .attachment-media {
+    @apply size-8 [&>svg]:size-4!;
+  }
+  .attachment-xs {
+    @apply w-44 gap-1.5 rounded-[calc(var(--radius)-2px)] p-1 pr-1.5 text-xs;
+  }
+  .attachment-xs .attachment-media {
+    @apply size-6 rounded-[calc(var(--radius)-4px)] [&>svg]:size-3.5!;
+  }
+  .attachment-xs .attachment-description {
+    @apply hidden;
+  }
+  :is(.attachment-sm, .attachment-xs) .attachment-progress {
+    @apply inset-x-2 bottom-0.5;
+  }
+
+  /* Vertical: media on top, full width; the actions float over its corner. */
+  .attachment-vertical {
+    @apply w-40 flex-col items-stretch gap-0 overflow-hidden p-0;
+  }
+  .attachment-vertical .attachment-media {
+    @apply aspect-[4/3] h-auto w-full rounded-none [&>svg]:size-8!;
+  }
+  .attachment-vertical .attachment-media:has(> :is(img, video)) > svg {
+    @apply size-6!;
+  }
+  .attachment-vertical .attachment-content {
+    @apply p-2.5;
+  }
+  .attachment-vertical .attachment-actions {
+    @apply absolute top-1.5 right-1.5 rounded-[calc(var(--radius)-2px)] bg-surface/80 backdrop-blur-sm;
+  }
+  .attachment-vertical.attachment-sm {
+    @apply w-32;
+  }
+  .attachment-vertical.attachment-sm .attachment-content {
+    @apply p-2;
+  }
+  .attachment-vertical.attachment-xs {
+    @apply w-24;
+  }
+  .attachment-vertical.attachment-xs .attachment-content {
+    @apply p-1.5;
+  }
+  .attachment-vertical.attachment-xs .attachment-media > svg {
+    @apply size-6!;
+  }
+
+  /* A row that scrolls sideways, snapping to each attachment, with its edges fading out. The
+     inline padding is the width of the fade, so at rest nothing sits under it. */
+  .attachment-group {
+    @apply flex snap-x snap-mandatory scroll-px-4 items-start gap-2 overflow-x-auto overscroll-x-contain px-4 py-1;
+    mask-image: linear-gradient(to right, transparent, #000 1rem, #000 calc(100% - 1rem), transparent);
+  }
+  .attachment-group > * {
+    @apply shrink-0 snap-start;
+  }
+}
+
+@keyframes attachment-shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: 0 0;
+  }
+}

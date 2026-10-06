@@ -19,6 +19,8 @@ const result = await Bun.build({
   format: "esm",
   splitting: true,
   sourcemap: "linked",
+  // A dependency, loaded on demand by the carousel: resolved from the consumer's node_modules.
+  external: ["embla-carousel"],
 });
 if (!result.success) {
   for (const log of result.logs) console.error(log);

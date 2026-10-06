@@ -1,6 +1,7 @@
 {% extends "layouts/docs.html" %}
 {% from "components/icon/icon.html" import icon %}
-{% from "macros/docs.html" import demo, classes %}
+{% from "components/spinner/spinner.html" import spinner %}
+{% from "docs/macros.html" import demo, classes %}
 {% set title = "Badge" %}
 {% set description = "A small label for status, counts or categories." %}
 
@@ -14,6 +15,8 @@
     <span class="badge badge-primary">Primary</span>
     <span class="badge badge-secondary">Secondary</span>
     <span class="badge badge-outline">Outline</span>
+    <span class="badge badge-ghost">Ghost</span>
+    <span class="badge badge-link">Link</span>
   {% endcall %}
 
   <h2 id="status">Status</h2>
@@ -24,12 +27,60 @@
     <span class="badge badge-warning">Warning</span>
     <span class="badge badge-danger">Danger</span>
   {% endcall %}
+  <p>Add <code>.badge-solid</code> to fill one with its colour, for status that has to stand out, such as a destructive one.</p>
+  {% call demo() %}
+    <span class="badge badge-info badge-solid">Info</span>
+    <span class="badge badge-success badge-solid">Success</span>
+    <span class="badge badge-warning badge-solid">Warning</span>
+    <span class="badge badge-danger badge-solid">Destructive</span>
+  {% endcall %}
 
   <h2 id="dot">With a dot or icon</h2>
+  <p>Icons go before or after the text and are sized to it.</p>
   {% call demo() %}
     <span class="badge badge-success badge-dot">Operational</span>
     <span class="badge badge-warning badge-dot">Degraded</span>
-    <span class="badge badge-outline">{{ icon("check") }} Verified</span>
+    <span class="badge badge-outline">{{ icon("badge-check") }} Verified</span>
+    <span class="badge badge-secondary">{{ icon("star") }} Featured</span>
+    <span class="badge badge-primary">Next {{ icon("arrow-right") }}</span>
+  {% endcall %}
+
+  <h2 id="spinner">With a spinner</h2>
+  <p>
+    A <a href="/docs/components/spinner">spinner</a> inside a badge takes the icon size. With
+    <code>.htmx-indicator</code>, it takes no space until the badge's request starts.
+  </p>
+  {% call demo() %}
+    <span class="badge badge-secondary">{{ spinner(label=none) }} Syncing</span>
+    <span class="badge badge-info">{{ spinner(label=none) }} Deploying</span>
+    <span class="badge badge-outline"><span class="spinner" aria-hidden="true"></span> Queued</span>
+  {% endcall %}
+
+  <h2 id="link">Link</h2>
+  <p>
+    A badge can be an <code>&lt;a&gt;</code> (or a <code>&lt;button&gt;</code>): it gets a hover state in its
+    variant and a focus ring.
+  </p>
+  {% call demo() %}
+    <a class="badge badge-primary" href="#badge">Open {{ icon("arrow-right") }}</a>
+    <a class="badge badge-outline" href="#badge">{{ icon("link") }} Docs</a>
+    <a class="badge badge-ghost" href="#badge">#htmx</a>
+    <a class="badge badge-success" href="#badge">{{ icon("check") }} Passing</a>
+    <a class="badge badge-link" href="#badge">View changelog {{ icon("external-link") }}</a>
+  {% endcall %}
+
+  <h2 id="custom-colors">Custom colours</h2>
+  <p>
+    For a tinted badge in any colour, add <code>.badge-tone</code> and set <code>--badge-tone</code>: it gets the
+    same border, background and hover as the status variants, and works with <code>.badge-solid</code>. For anything
+    else, colour utilities override the badge's own colours.
+  </p>
+  {% call demo() %}
+    <span class="badge badge-tone [--badge-tone:var(--color-violet-600)] dark:[--badge-tone:var(--color-violet-400)]">Design</span>
+    <span class="badge badge-tone [--badge-tone:var(--color-pink-600)] dark:[--badge-tone:var(--color-pink-400)]">Research</span>
+    <span class="badge badge-tone badge-solid [--badge-tone:var(--color-teal-600)] dark:[--badge-tone:var(--color-teal-400)]">Shipped</span>
+    <span class="badge bg-blue-50 text-blue-700 dark:bg-blue-950 dark:text-blue-300">Utilities</span>
+    <span class="badge bg-linear-to-r from-indigo-500 to-pink-500 text-white">Gradient</span>
   {% endcall %}
 
   <h2 id="in-context">In context</h2>
@@ -40,9 +91,11 @@
 
   <h2 id="reference">Reference</h2>
   {{ classes([
-    [".badge", "Base class."],
-    [".badge-primary / -secondary / -outline", "Neutral and brand styles."],
+    [".badge", "Base class. On an <a> or <button>: hover state and focus ring."],
+    [".badge-primary / -secondary / -outline / -ghost / -link", "Neutral and brand styles."],
     [".badge-info / -success / -warning / -danger", "Soft status colours."],
+    [".badge-solid", "With a status or .badge-tone: filled with its colour."],
+    [".badge-tone", "Tinted with any colour in --badge-tone. Set --badge-solid-foreground for the text of a solid one."],
     [".badge-dot", "Adds a leading dot in the badge's text colour."]
   ]) }}
 {% endblock %}

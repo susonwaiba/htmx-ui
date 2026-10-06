@@ -1,0 +1,111 @@
+{% extends "layouts/docs.html" %}
+{% from "docs/macros.html" import demo, classes %}
+{% from "components/code/code.html" import code %}
+{% from "components/skeleton/skeleton.html" import skeleton_text, skeleton_avatar, skeleton_card, skeleton_list, skeleton_table, skeleton_form %}
+{% set title = "Skeleton" %}
+{% set description = "Placeholders in the shape of content that is still loading: any shape from utilities, ready-made avatars, text, cards, lists, tables and forms." %}
+
+{% block content %}
+  {% call demo() %}
+    <div class="flex items-center gap-4" role="status" aria-busy="true">
+      <span class="sr-only">Loading…</span>
+      <div class="skeleton skeleton-circle size-12" aria-hidden="true"></div>
+      <div class="flex flex-col gap-2" aria-hidden="true">
+        <div class="skeleton h-4 w-56"></div>
+        <div class="skeleton h-4 w-40"></div>
+      </div>
+    </div>
+  {% endcall %}
+
+  <h2 id="markup">Markup</h2>
+  <ul>
+    <li><code>.skeleton</code> is a muted, pulsing block. Its shape is yours: size it with utilities (<code>h-4 w-48</code>, <code>size-12</code>, <code>aspect-video</code>), round it with <code>.skeleton-circle</code> or any <code>rounded-*</code>.</li>
+    <li>Mark the loading region <code>aria-busy="true"</code> with a text alternative (<code>&lt;span class="sr-only"&gt;Loading…&lt;/span&gt;</code>, or <code>role="status"</code> and a label), and the shapes <code>aria-hidden="true"</code>: they mean nothing read aloud.</li>
+    <li>No JavaScript: the skeleton is whatever stands in the page until htmx swaps the real content over it.</li>
+  </ul>
+
+  <h2 id="shapes">Shapes</h2>
+  <p>Ready-made shapes take the size of the thing they stand for: <code>.skeleton-avatar</code> (as <code>.avatar-lg</code>), <code>.skeleton-button</code> and <code>.skeleton-input</code> (as <code>.btn</code> and <code>.input</code>), <code>.skeleton-badge</code>, <code>.skeleton-image</code> (16:9). Utilities still resize them.</p>
+  {% call demo("gap-4") %}
+    <div class="skeleton-avatar" aria-hidden="true"></div>
+    <div class="skeleton-avatar size-8" aria-hidden="true"></div>
+    <div class="skeleton-badge" aria-hidden="true"></div>
+    <div class="skeleton-button" aria-hidden="true"></div>
+    <div class="skeleton-input w-48" aria-hidden="true"></div>
+    <div class="skeleton size-16 rounded-xl" aria-hidden="true"></div>
+    <div class="skeleton-image w-40" aria-hidden="true"></div>
+  {% endcall %}
+
+  <h2 id="text">Text</h2>
+  <p>
+    <code>.skeleton-text</code> is one line, <code>1em</code> high, so it follows the font size it sits in; <code>.skeleton-heading</code>
+    is a heading-sized line at half width. Stack lines in <code>.skeleton-lines</code> and the last one comes out shorter, like the end of a paragraph.
+  </p>
+  {% call demo("flex-col items-stretch gap-6 sm:px-16") %}
+    <div class="text-2xl" aria-hidden="true"><div class="skeleton-heading"></div></div>
+    <div class="skeleton-lines text-sm" aria-hidden="true">
+      <div class="skeleton-text"></div>
+      <div class="skeleton-text"></div>
+      <div class="skeleton-text"></div>
+    </div>
+  {% endcall %}
+
+  <h2 id="animation">Animation</h2>
+  <p>Shapes pulse. <code>.skeleton-shimmer</code>, on a shape or on any ancestor, sweeps a highlight across instead; <code>.skeleton-static</code> stops the motion. Both stop for readers who prefer reduced motion.</p>
+  {% call demo("flex-col items-stretch gap-6 sm:px-16") %}
+    <div class="skeleton-shimmer flex items-center gap-4" aria-hidden="true">
+      <div class="skeleton-avatar"></div>
+      <div class="skeleton-lines text-sm"><div class="skeleton-text"></div><div class="skeleton-text"></div></div>
+    </div>
+    <div class="skeleton-static flex items-center gap-4" aria-hidden="true">
+      <div class="skeleton-avatar"></div>
+      <div class="skeleton-lines text-sm"><div class="skeleton-text"></div><div class="skeleton-text"></div></div>
+    </div>
+  {% endcall %}
+
+  <h2 id="layouts">Avatar, card, list, table and form</h2>
+  <p>Macros in <code>components/skeleton/skeleton.html</code> build common placeholders from these shapes, each as a loading region (<code>role="status"</code>, <code>aria-busy</code>, a hidden "Loading…"). They take <code>label</code>, <code>shimmer</code> and <code>class</code>.</p>
+  {% call code("jinja") %}
+    {% raw %}
+    {% from "components/skeleton/skeleton.html" import skeleton_text, skeleton_avatar, skeleton_card, skeleton_list, skeleton_table, skeleton_form %}
+
+    {{ skeleton_avatar(lines=2) }}
+    {{ skeleton_card(media=true, lines=2, footer=true, shimmer=true) }}
+    {{ skeleton_list(items=3, avatar=true) }}
+    {{ skeleton_table(rows=4, columns=4) }}
+    {{ skeleton_form(fields=2) }}
+    {{ skeleton_text(lines=3, label="Loading the article…") }}
+    {% endraw %}
+  {% endcall %}
+  {% call demo(source=false) %}
+    <div class="grid w-full items-start gap-8 sm:grid-cols-2">
+      {{ skeleton_avatar() }}
+      {{ skeleton_text() }}
+      {{ skeleton_card(shimmer=true) }}
+      {{ skeleton_form(fields=2) }}
+      {{ skeleton_list(class="sm:col-span-2") }}
+      {{ skeleton_table(rows=4, class="sm:col-span-2") }}
+    </div>
+  {% endcall %}
+
+  <h2 id="htmx">With htmx</h2>
+  <p>Put the skeleton where the content will go and let htmx replace it: <code>hx-trigger="load"</code> fetches straight away (<code>revealed</code> when it scrolls into view) and <code>hx-swap="outerHTML"</code> swaps the placeholder for the response.</p>
+  {% call demo() %}
+    <div class="w-full max-w-sm" hx-get="/api/skeleton" hx-trigger="load" hx-swap="outerHTML">
+      {{ skeleton_card(media=false, lines=1) }}
+    </div>
+  {% endcall %}
+  <p>For a reload of content already on the page, show a skeleton as the request's indicator: <code>hx-indicator</code> points at it, and the <code>.htmx-indicator</code> class keeps it hidden until a request is in flight.</p>
+
+  <h2 id="reference">Reference</h2>
+  {{ classes([
+    [".skeleton", "A muted block that pulses; shape it with utilities."],
+    [".skeleton-circle", "Fully rounded."],
+    [".skeleton-text / .skeleton-heading", "A line of text (1em high), a heading line (1.5em, half width)."],
+    [".skeleton-lines", "A paragraph of .skeleton-text; the last line is shorter."],
+    [".skeleton-avatar / -button / -input / -badge / -image", "Shapes sized like those components."],
+    [".skeleton-shimmer", "On a shape or an ancestor: a sweeping highlight instead of the pulse."],
+    [".skeleton-static", "No animation."],
+    ["skeleton_text() … skeleton_form()", "Macros: placeholders for text, avatars, cards, lists, tables and forms."]
+  ]) }}
+{% endblock %}

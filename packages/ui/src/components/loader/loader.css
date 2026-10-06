@@ -1,0 +1,255 @@
+/* Loading indicators drawn and animated with CSS only: .loader plus one variant.
+
+   Shapes, with a child <span> per dot or bar (screen-reader text goes last, after them):
+   <span class="loader loader-pulse" role="status" aria-label="Loading"></span>          a pulsing ring
+   <span class="loader loader-pulse-dot" role="status" aria-label="Loading"></span>      a pulsing dot
+   <span class="loader loader-dots" role="status">                                       three bouncing dots
+     <span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span>
+     <span class="sr-only">Loading</span>
+   </span>
+   .loader-typing    the same three spans, fading in turn (a typing indicator)
+   .loader-wave      five spans, bars rising and falling (any number works; five are staggered)
+
+   Text, shown as written (it is its own accessible text):
+   <span class="loader loader-text-blink" role="status">Loading</span>                   blinks
+   <span class="loader loader-text-shimmer" role="status">Thinking</span>                a light band sweeps across
+   <span class="loader loader-loading-dots" role="status">Loading<span aria-hidden="true">.</span><span
+     aria-hidden="true">.</span><span aria-hidden="true">.</span></span>                  "..." appear one by one
+
+   Custom properties (set them on the .loader, inline or with a utility such as
+   [--loader-duration:2s]):
+   --loader-size      the height of the shapes (1rem); dots and bars are sized from it
+   --loader-duration  one animation cycle (1.2s; text variants 2s, loading dots 1.4s)
+   --loader-color     the colour (currentColor; text variants muted-foreground)
+   --loader-highlight the shimmer band's colour (foreground)
+   --loader-spread    the shimmer band's half-width, as a share of the sweep (20%)
+   Sizes: .loader-sm / .loader-lg (shapes 0.75rem / 1.5rem; text xs / base).
+   Reduced motion: nothing moves; every variant fades its opacity slowly instead.
+   Macro: loader() in loader.html. */
+@layer components {
+  .loader {
+    --loader-size: 1rem;
+    --loader-duration: 1.2s;
+    --loader-color: currentColor;
+    --loader-highlight: var(--foreground);
+    --loader-spread: 20%;
+    @apply inline-flex shrink-0 items-center gap-[calc(var(--loader-size)/4)] align-middle text-(--loader-color);
+  }
+
+  /* Pulsing ring and dot: the element itself is the shape. */
+  .loader-pulse,
+  .loader-pulse-dot {
+    @apply size-(--loader-size) rounded-full;
+  }
+  .loader-pulse {
+    @apply border-2 border-current;
+    animation: loader-pulse var(--loader-duration) ease-in-out infinite;
+  }
+  .loader-pulse-dot {
+    @apply bg-current;
+    animation: loader-pulse-dot var(--loader-duration) ease-in-out infinite;
+  }
+
+  /* Dots and typing: three dots, each 3/8 of the size. */
+  .loader-dots,
+  .loader-typing,
+  .loader-wave {
+    @apply h-(--loader-size);
+  }
+  .loader-dots > span:not(.sr-only),
+  .loader-typing > span:not(.sr-only) {
+    @apply size-[calc(var(--loader-size)*0.375)] rounded-full bg-current;
+  }
+  .loader-dots > span:not(.sr-only) {
+    animation: loader-bounce var(--loader-duration) ease-in-out infinite;
+  }
+  .loader-typing > span:not(.sr-only) {
+    animation: loader-typing var(--loader-duration) ease-in-out infinite;
+  }
+
+  /* Wave: bars a fifth of the size wide, scaling from their centre. */
+  .loader-wave {
+    @apply gap-[calc(var(--loader-size)/8)];
+  }
+  .loader-wave > span:not(.sr-only) {
+    @apply h-full w-[calc(var(--loader-size)/5)] rounded-full bg-current;
+    animation: loader-wave var(--loader-duration) ease-in-out infinite;
+  }
+
+  /* Stagger the children over the cycle. */
+  :is(.loader-dots, .loader-typing, .loader-wave) > span:nth-child(2) {
+    animation-delay: calc(var(--loader-duration) * 0.15);
+  }
+  :is(.loader-dots, .loader-typing, .loader-wave) > span:nth-child(3) {
+    animation-delay: calc(var(--loader-duration) * 0.3);
+  }
+  .loader-wave > span:nth-child(4) {
+    animation-delay: calc(var(--loader-duration) * 0.45);
+  }
+  .loader-wave > span:nth-child(5) {
+    animation-delay: calc(var(--loader-duration) * 0.6);
+  }
+
+  /* Text variants: muted text at the surrounding font size. */
+  .loader-text-blink,
+  .loader-text-shimmer,
+  .loader-loading-dots {
+    --loader-color: var(--muted-foreground);
+    --loader-duration: 2s;
+    @apply gap-0 font-medium;
+  }
+  .loader-loading-dots {
+    --loader-duration: 1.4s;
+  }
+  .loader-text-blink {
+    animation: loader-blink var(--loader-duration) ease-in-out infinite;
+  }
+  .loader-text-shimmer {
+    @apply text-transparent;
+    background: linear-gradient(
+      90deg,
+      var(--loader-color) calc(50% - var(--loader-spread)),
+      var(--loader-highlight) 50%,
+      var(--loader-color) calc(50% + var(--loader-spread))
+    );
+    background-size: 200% 100%;
+    background-clip: text;
+    -webkit-background-clip: text;
+    animation: loader-shimmer var(--loader-duration) linear infinite;
+  }
+  /* "..." appear one by one, then start over. */
+  .loader-loading-dots > span {
+    animation: loader-ellipsis var(--loader-duration) steps(1, end) infinite;
+  }
+  .loader-loading-dots > span:nth-child(2) {
+    animation-name: loader-ellipsis-2;
+  }
+  .loader-loading-dots > span:nth-child(3) {
+    animation-name: loader-ellipsis-3;
+  }
+
+  /* Sizes */
+  .loader-sm {
+    --loader-size: 0.75rem;
+  }
+  .loader-lg {
+    --loader-size: 1.5rem;
+  }
+  .loader-sm:is(.loader-text-blink, .loader-text-shimmer, .loader-loading-dots) {
+    @apply text-xs;
+  }
+  .loader-lg:is(.loader-text-blink, .loader-text-shimmer, .loader-loading-dots) {
+    @apply text-base;
+  }
+
+  /* Reduced motion: no movement, only a slow fade, so the loader still reads as busy. */
+  @media (prefers-reduced-motion: reduce) {
+    .loader-pulse,
+    .loader-pulse-dot,
+    .loader-dots > span:not(.sr-only),
+    .loader-wave > span:not(.sr-only),
+    .loader-text-shimmer {
+      animation: loader-blink calc(var(--loader-duration) * 2) ease-in-out infinite;
+    }
+    .loader-wave > span:not(.sr-only) {
+      @apply h-[60%];
+    }
+    .loader-text-shimmer {
+      @apply text-(--loader-color);
+      background: none;
+    }
+  }
+}
+
+@keyframes loader-pulse {
+  0%,
+  100% {
+    transform: scale(0.85);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1);
+    opacity: 0.4;
+  }
+}
+@keyframes loader-pulse-dot {
+  0%,
+  100% {
+    transform: scale(0.6);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+@keyframes loader-bounce {
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+  }
+  30% {
+    transform: translateY(calc(var(--loader-size) * -0.25));
+  }
+}
+@keyframes loader-typing {
+  0%,
+  60%,
+  100% {
+    opacity: 0.25;
+  }
+  30% {
+    opacity: 1;
+  }
+}
+@keyframes loader-wave {
+  0%,
+  100% {
+    transform: scaleY(0.35);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+@keyframes loader-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.4;
+  }
+}
+@keyframes loader-shimmer {
+  from {
+    background-position: 150% 0;
+  }
+  to {
+    background-position: -50% 0;
+  }
+}
+@keyframes loader-ellipsis {
+  0% {
+    opacity: 0;
+  }
+  25% {
+    opacity: 1;
+  }
+}
+@keyframes loader-ellipsis-2 {
+  0% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+@keyframes loader-ellipsis-3 {
+  0% {
+    opacity: 0;
+  }
+  75% {
+    opacity: 1;
+  }
+}

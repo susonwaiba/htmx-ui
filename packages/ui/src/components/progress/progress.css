@@ -1,0 +1,112 @@
+/* How far a task has got: a native <progress>.
+
+   <progress class="progress" value="33" max="100" aria-label="Upload"></progress>
+   <progress class="progress" aria-label="Loading"></progress>       no value: indeterminate
+
+   With a label, the value and help text:
+   <div class="progress-field">
+     <label class="progress-label" for="upload">Uploading files</label>
+     <span class="progress-value" aria-hidden="true">33%</span>                  optional
+     <progress class="progress" id="upload" value="33" max="100" aria-describedby="upload-help"></progress>
+     <p class="progress-description" id="upload-help">3 of 9 files</p>         optional
+   </div>
+
+   Sizes .progress-sm / .progress-lg. Colours .progress-success / -warning / -danger, or any
+   colour with --progress-tone. Macro: progress.html. */
+@layer components {
+  /* The element is the track; the bar is ::-webkit-progress-value (Chrome, Safari) or
+     ::-moz-progress-bar (Firefox). Each pseudo-element gets a rule of its own: a browser drops
+     a whole selector list that holds a pseudo-element it doesn't know. */
+  .progress {
+    --progress-tone: var(--primary);
+    @apply block h-2 w-full appearance-none overflow-hidden rounded-full border-0 align-middle;
+  }
+  /* Track and bar colours in plain CSS, one color-mix() per rule (see components/badge). */
+  .progress {
+    background-color: color-mix(in oklab, var(--progress-tone) 20%, transparent);
+  }
+  .progress::-webkit-progress-bar {
+    @apply rounded-full bg-transparent;
+  }
+  .progress::-webkit-progress-value {
+    @apply rounded-full transition-[width] duration-300 ease-out motion-reduce:transition-none;
+    background-color: var(--progress-tone);
+  }
+  .progress::-moz-progress-bar {
+    @apply rounded-full;
+    background-color: var(--progress-tone);
+  }
+
+  /* Sizes */
+  .progress-sm {
+    @apply h-1;
+  }
+  .progress-lg {
+    @apply h-3;
+  }
+
+  /* Colours */
+  .progress-success {
+    --progress-tone: var(--success);
+  }
+  .progress-warning {
+    --progress-tone: var(--warning);
+  }
+  .progress-danger {
+    --progress-tone: var(--danger);
+  }
+
+  /* Indeterminate (no value): a bar slides across the track. The element's own background
+     draws it, so the pseudo-elements are cleared. */
+  .progress:indeterminate {
+    background-image: linear-gradient(var(--progress-tone), var(--progress-tone));
+    background-size: 40% 100%;
+    background-repeat: no-repeat;
+    animation: progress-indeterminate 1.5s ease-in-out infinite;
+  }
+  .progress:indeterminate::-webkit-progress-bar {
+    @apply bg-transparent;
+  }
+  .progress:indeterminate::-moz-progress-bar {
+    @apply bg-transparent;
+  }
+  /* Reduced motion: still stripes across the whole track instead, which can't be read as a value. */
+  @media (prefers-reduced-motion: reduce) {
+    .progress:indeterminate {
+      background-image: repeating-linear-gradient(
+        -45deg,
+        var(--progress-tone) 0 0.375rem,
+        transparent 0.375rem 0.75rem
+      );
+      background-size: 100% 100%;
+      animation: none;
+    }
+  }
+
+  /* Label and value above the bar, help text below. */
+  .progress-field {
+    @apply grid w-full grid-cols-[1fr_auto] items-center gap-x-3 gap-y-2;
+  }
+  .progress-field > :is(.progress, .progress-description) {
+    @apply col-span-full;
+  }
+  .progress-label {
+    @apply col-start-1 text-sm leading-none font-medium text-foreground;
+  }
+  .progress-value {
+    @apply col-start-2 text-sm leading-none text-muted-foreground tabular-nums;
+  }
+  .progress-description {
+    @apply text-sm text-muted-foreground;
+  }
+}
+
+/* -66.67% to 166.67% moves a 40%-wide bar from just off the left edge to just off the right. */
+@keyframes progress-indeterminate {
+  from {
+    background-position: -66.67% 0;
+  }
+  to {
+    background-position: 166.67% 0;
+  }
+}

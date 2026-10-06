@@ -1,0 +1,98 @@
+/* An image with a fallback for representing a user.
+
+   <span class="avatar" role="img" aria-label="Jane Cooper">
+     <img class="avatar-image" src="…" alt="" />
+     <span class="avatar-fallback" aria-hidden="true">JC</span>
+     <span class="avatar-badge bg-success"></span>                 optional, bottom right
+   </span>
+
+   The image covers the fallback, which shows through until it loads. If it fails to load,
+   avatar.ts hides it, so the fallback shows instead of a broken-image icon.
+
+   Sizes .avatar-sm / -lg / -xl; .avatar-square for rounded squares.
+   <div class="avatar-group">…avatars… <span class="avatar avatar-group-count">+3</span></div> */
+@layer components {
+  .avatar {
+    @apply relative inline-flex size-8 shrink-0 rounded-full align-middle text-sm select-none;
+  }
+  .avatar-image {
+    @apply absolute inset-0 size-full rounded-[inherit] object-cover text-transparent;
+  }
+  .avatar-fallback {
+    @apply flex size-full items-center justify-center rounded-[inherit] bg-muted font-medium text-muted-foreground
+      [&>svg]:size-[55%]!;
+  }
+
+  /* Sizes */
+  .avatar-sm {
+    @apply size-6 text-[0.625rem];
+  }
+  .avatar-lg {
+    @apply size-10 text-base;
+  }
+  .avatar-xl {
+    @apply size-14 text-lg;
+  }
+  .avatar-square {
+    @apply rounded-(--radius);
+  }
+  .avatar-square.avatar-sm {
+    @apply rounded-[calc(var(--radius)-2px)];
+  }
+
+  /* A link or button that is an avatar, e.g. a menu trigger */
+  :is(a, button).avatar {
+    @apply cursor-pointer outline-none focus-visible:outline-2 focus-visible:outline-offset-2
+      focus-visible:outline-ring;
+  }
+
+  /* Status dot or icon at the bottom right. Colour it with a bg-* utility (bg-primary by
+     default). An icon inside makes it bigger. Icon sizes are !important: icon() gives every
+     icon a size-4 utility, and utilities beat component classes. */
+  .avatar-badge {
+    @apply absolute right-0 bottom-0 z-10 inline-flex size-2.5 items-center justify-center rounded-full bg-primary
+      text-primary-foreground ring-2 ring-background [&>svg]:size-2!;
+  }
+  .avatar-badge:has(> svg) {
+    @apply -right-0.5 -bottom-0.5 size-4;
+  }
+  .avatar-sm .avatar-badge {
+    @apply size-2 ring-1;
+  }
+  .avatar-sm .avatar-badge:has(> svg) {
+    @apply size-3 [&>svg]:size-2!;
+  }
+  .avatar-lg .avatar-badge {
+    @apply size-3;
+  }
+  .avatar-lg .avatar-badge:has(> svg) {
+    @apply size-5 [&>svg]:size-3!;
+  }
+  .avatar-xl .avatar-badge {
+    @apply right-0.5 bottom-0.5 size-3.5;
+  }
+  .avatar-xl .avatar-badge:has(> svg) {
+    @apply right-0 bottom-0 size-6 [&>svg]:size-3.5!;
+  }
+
+  /* Overlapping row. Each avatar gets a ring in the page colour to separate it from the next. */
+  .avatar-group {
+    @apply flex items-center -space-x-2;
+  }
+  .avatar-group:has(> .avatar-sm) {
+    @apply -space-x-1.5;
+  }
+  .avatar-group:has(> .avatar-lg, > .avatar-xl) {
+    @apply -space-x-3;
+  }
+  .avatar-group > .avatar {
+    @apply ring-2 ring-background;
+  }
+  /* "+3", or an icon, at the end of a group: <span class="avatar avatar-group-count">+3</span> */
+  .avatar-group-count {
+    @apply items-center justify-center bg-muted font-medium text-muted-foreground [&>svg]:size-[45%]!;
+  }
+  :is(a, button).avatar-group-count {
+    @apply transition-colors hover:bg-accent hover:text-accent-foreground;
+  }
+}

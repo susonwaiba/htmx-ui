@@ -1,0 +1,50 @@
+{# Progress bar: a native <progress>, with its label, value and help text wired up.
+   {% from "components/progress/progress.html" import progress %}
+   {{ progress(33, label="Uploading files", show_value=true, description="3 of 9 files") }}
+   {{ progress(aria_label="Loading") }}                  no value: indeterminate
+   value=none          the value; none (or left out) makes it indeterminate
+   max=100             the value at completion
+   label=none          a visible <label>; without one, pass aria_label
+   aria_label=none     the accessible name when there is no visible label
+   show_value=false    the percentage beside the label ("33%"), aria-hidden as the bar announces it
+   description=none    help text under the bar, linked with aria-describedby
+   id=none             the <progress> id; defaults to one made from the label. Pass it when two bars
+                       on a page share a label.
+   size="sm" | "lg"    variant="success" | "warning" | "danger"
+   attrs=none          more attributes for the outer element, as a dict: {"hx-get": "/jobs/1", …}
+   class=""            more classes on the outer element (the .progress-field, or the <progress>) #}
+
+{% macro progress(value=none, max=100, label=none, aria_label=none, show_value=false, description=none, id=none, size=none, variant=none, attrs=none, class="") %}
+{% set field = label or show_value or description %}
+{% set pid = id or ("progress-" ~ ((label or description or "bar") | lower | replace(r/[^a-z0-9]+/g, "-") | replace(r/^-+|-+$/g, ""))) %}
+{% set pct = none %}
+{% if value != none and max > 0 %}
+  {% set pct = ((value / max) * 100) | round %}
+  {% if pct > 100 %}{% set pct = 100 %}{% elif pct < 0 %}{% set pct = 0 %}{% endif %}
+{% endif %}
+{% set extra %}{% if attrs %}{% for k, v in attrs %} {{ k }}="{{ v }}"{% endfor %}{% endif %}{% endset %}
+{% set bar %}
+<progress class="progress{% if size %} progress-{{ size }}{% endif %}{% if variant %} progress-{{ variant }}{% endif %}{% if class and not field %} {{ class }}{% endif %}"
+  {%- if field or id %} id="{{ pid }}"{% endif %}
+  {%- if value != none %} value="{{ value }}"{% endif %} max="{{ max }}"
+  {%- if aria_label and not label %} aria-label="{{ aria_label }}"{% endif %}
+  {%- if description %} aria-describedby="{{ pid }}-description"{% endif %}
+  {%- if not field %}{{ extra | safe }}{% endif %}>{% if pct != none %}{{ pct }}%{% endif %}</progress>
+{%- endset %}
+{% if field %}
+<div class="progress-field{% if class %} {{ class }}{% endif %}"{{ extra | safe }}>
+  {% if label %}
+  <label class="progress-label" for="{{ pid }}">{{ label }}</label>
+  {% endif %}
+  {% if show_value and pct != none %}
+  <span class="progress-value" aria-hidden="true">{{ pct }}%</span>
+  {% endif %}
+  {{ bar | safe }}
+  {% if description %}
+  <p class="progress-description" id="{{ pid }}-description">{{ description }}</p>
+  {% endif %}
+</div>
+{%- else %}
+{{ bar | safe }}
+{%- endif %}
+{%- endmacro %}

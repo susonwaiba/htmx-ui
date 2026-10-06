@@ -1,0 +1,201 @@
+{% extends "layouts/docs.html" %}
+{% from "docs/macros.html" import demo, classes %}
+{% from "components/code/code.html" import code %}
+{% from "components/alert/alert.html" import alert %}
+{% from "components/icon/icon.html" import icon %}
+{% from "components/loader/loader.html" import loader %}
+{% set title = "Loader" %}
+{% set description = "Pure-CSS loading indicators in eight styles, from bouncing dots and waves to shimmering text, tuned with custom properties." %}
+
+{% block content %}
+  {% call demo() %}
+    <div class="grid w-full grid-cols-2 gap-8 sm:grid-cols-4">
+      {% for v in ["pulse", "pulse-dot", "dots", "typing", "wave", "text-blink", "text-shimmer", "loading-dots"] %}
+      <div class="flex flex-col items-center gap-3">
+        <div class="flex h-8 items-center">{{ loader(v) }}</div>
+        <span class="text-xs text-muted-foreground">{{ v }}</span>
+      </div>
+      {% endfor %}
+    </div>
+  {% endcall %}
+
+  <h2 id="markup">Markup</h2>
+  <ul>
+    <li>A loader is <code>.loader</code> plus one variant class. It needs no JavaScript: every variant is drawn and animated with CSS.</li>
+    <li>Dots and bars are empty child <code>&lt;span&gt;</code>s (three for <code>.loader-dots</code> and <code>.loader-typing</code>, five for <code>.loader-wave</code>), each <code>aria-hidden="true"</code>. The pulse variants have no children: the element itself is the shape.</li>
+    <li>Give the loader <code>role="status"</code> and an accessible name: <code>aria-label</code>, or <code>&lt;span class="sr-only"&gt;</code> text after the dots. The text variants show their own text, which is read out.</li>
+    <li>The <a href="#macro"><code>loader()</code> macro</a> writes all of this for you.</li>
+  </ul>
+  {% call demo() %}
+    <span class="loader loader-dots" role="status">
+      <span aria-hidden="true"></span><span aria-hidden="true"></span><span aria-hidden="true"></span>
+      <span class="sr-only">Loading</span>
+    </span>
+  {% endcall %}
+
+  <h2 id="shapes">Shapes</h2>
+  <p>
+    <code>.loader-pulse</code> is a ring that breathes in and out; <code>.loader-pulse-dot</code> a single dot.
+    <code>.loader-dots</code> bounces three dots, <code>.loader-typing</code> fades them in turn like a chat
+    typing indicator, and <code>.loader-wave</code> raises and lowers a row of bars.
+  </p>
+  {% call demo("gap-8") %}
+    {{ loader("pulse") }}
+    {{ loader("pulse-dot") }}
+    {{ loader("dots") }}
+    {{ loader("typing", label="Assistant is typing") }}
+    {{ loader("wave") }}
+  {% endcall %}
+
+  <h2 id="text">Text</h2>
+  <p>
+    The text variants animate the words themselves, in the muted text colour at the surrounding font size.
+    <code>.loader-text-blink</code> fades the text in and out, <code>.loader-text-shimmer</code> sweeps a light band
+    across it, and <code>.loader-loading-dots</code> writes an ellipsis one dot at a time.
+  </p>
+  {% call demo("flex-col gap-4") %}
+    {{ loader("text-blink", text="Fetching results") }}
+    {{ loader("text-shimmer", text="Thinking about your question") }}
+    {{ loader("loading-dots", text="Generating") }}
+  {% endcall %}
+
+  <h2 id="sizes">Sizes</h2>
+  <p>
+    <code>.loader-sm</code> and <code>.loader-lg</code> make the shapes 12px and 24px tall instead of 16px, and set
+    the text variants in <code>text-xs</code> and <code>text-base</code>. For any other size set
+    <code>--loader-size</code>; dots and bars are sized from it.
+  </p>
+  {% call demo("flex-col gap-6") %}
+    <div class="flex items-center gap-8">
+      {{ loader("dots", size="sm") }}
+      {{ loader("dots") }}
+      {{ loader("dots", size="lg") }}
+      {{ loader("dots", class="[--loader-size:2.5rem]") }}
+    </div>
+    <div class="flex items-center gap-8">
+      {{ loader("wave", size="sm") }}
+      {{ loader("wave") }}
+      {{ loader("wave", size="lg") }}
+      {{ loader("wave", class="[--loader-size:2.5rem]") }}
+    </div>
+    <div class="flex items-center gap-8">
+      {{ loader("text-shimmer", text="Small", size="sm") }}
+      {{ loader("text-shimmer", text="Default") }}
+      {{ loader("text-shimmer", text="Large", size="lg") }}
+    </div>
+  {% endcall %}
+
+  <h2 id="customisation">Customisation</h2>
+  <p>
+    Every variant reads its look from custom properties on the <code>.loader</code>. Set them in a
+    <code>style</code> attribute, or with Tailwind's arbitrary properties such as
+    <code>[--loader-duration:2s]</code>.
+  </p>
+  <ul>
+    <li><code>--loader-size</code>: the height of the shapes (<code>1rem</code>).</li>
+    <li><code>--loader-duration</code>: one cycle of the animation (<code>1.2s</code>; the text variants <code>2s</code>, loading dots <code>1.4s</code>). The dots' and bars' stagger follows it.</li>
+    <li><code>--loader-color</code>: the colour. Shapes use the current text colour, so <code>text-*</code> utilities work too; the text variants default to <code>muted-foreground</code>.</li>
+    <li><code>--loader-highlight</code> and <code>--loader-spread</code>: the colour of the shimmer's light band (<code>foreground</code>) and its half-width, as a share of the sweep (<code>20%</code>).</li>
+  </ul>
+
+  <h3 id="duration">Speed</h3>
+  {% call demo("gap-8") %}
+    {{ loader("wave", attrs={"style": "--loader-duration: 0.6s"}) }}
+    {{ loader("wave") }}
+    {{ loader("wave", attrs={"style": "--loader-duration: 2.4s"}) }}
+  {% endcall %}
+
+  <h3 id="colour">Colour</h3>
+  {% call demo("gap-8") %}
+    {{ loader("pulse", class="text-primary") }}
+    {{ loader("pulse-dot", class="text-success") }}
+    {{ loader("dots", class="text-warning") }}
+    {{ loader("typing", class="text-muted-foreground") }}
+    {{ loader("wave", class="text-danger") }}
+    {{ loader("text-blink", text="Saving", class="[--loader-color:var(--primary)]") }}
+  {% endcall %}
+
+  <h3 id="shimmer">Shimmer band</h3>
+  <p>A wider <code>--loader-spread</code> softens the band; a contrasting <code>--loader-highlight</code> tints it.</p>
+  {% call demo("flex-col gap-4") %}
+    {{ loader("text-shimmer", text="A narrow, sharp band", attrs={"style": "--loader-spread: 8%"}) }}
+    {{ loader("text-shimmer", text="A wide, soft band", attrs={"style": "--loader-spread: 40%"}) }}
+    {{ loader("text-shimmer", text="Tinted with the primary colour", attrs={"style": "--loader-highlight: var(--primary)"}) }}
+  {% endcall %}
+
+  {% call alert(variant="info") %}
+    With <code class="code">prefers-reduced-motion</code> set, nothing moves: every variant fades its opacity slowly
+    instead, so the loader still reads as busy.
+  {% endcall %}
+
+  <h2 id="button">In a button</h2>
+  <p>
+    Shapes sit in a <code>.btn</code> like an icon. When the button text already says what's happening, pass
+    <code>label=none</code> so the loader is hidden from screen readers.
+  </p>
+  {% call demo() %}
+    <button class="btn btn-primary" aria-busy="true">{{ loader("dots", size="sm", label=none) }} Sending</button>
+    <button class="btn btn-outline" disabled>{{ loader("wave", size="sm", label=none) }} Processing</button>
+    <button class="btn btn-secondary" aria-busy="true">{{ loader("pulse-dot", size="sm", label=none) }} Recording</button>
+  {% endcall %}
+
+  <h2 id="htmx">With htmx requests</h2>
+  <p>
+    Add <code>.htmx-indicator</code> to show a loader only while a request runs. Inside a button it takes no space
+    until then, and <code>.htmx-indicator-hide</code> swaps out an icon for it, as with the
+    <a href="/docs/components/spinner#htmx">spinner</a>.
+  </p>
+  {% call demo("flex-col") %}
+    <div class="flex flex-wrap items-center gap-3">
+      <button class="btn btn-primary" hx-post="/api/slow" hx-target="#loader-result" hx-disable="this">
+        {{ loader("dots", size="sm", class="htmx-indicator", label=none) }} Save
+      </button>
+      <button class="btn btn-outline" hx-post="/api/slow" hx-target="#loader-result" hx-disable="this" hx-indicator="#loader-status">
+        {{ icon("refresh-cw") }} Refresh
+      </button>
+      {{ loader("loading-dots", text="Refreshing", class="htmx-indicator", attrs={"id": "loader-status"}) }}
+    </div>
+    <p id="loader-result" class="muted" aria-live="polite"></p>
+  {% endcall %}
+  {% call alert(variant="info") %}
+    The <code class="code">/api/slow</code> endpoint is a mock that only exists under <code class="code">bun run dev</code>.
+  {% endcall %}
+
+  <h2 id="macro">Macro</h2>
+  <p>
+    <code>loader()</code> writes the variant's children, <code>role="status"</code> and the accessible name. Shapes
+    are read out as <code>label</code>; text variants show <code>text</code> (or the label) and are read as it.
+  </p>
+  {% call code("jinja") %}
+    {% raw %}
+    {% from "components/loader/loader.html" import loader %}
+
+    {{ loader() }}                                       {# three bouncing dots, "Loading" #}
+    {{ loader("wave", size="lg", label="Uploading") }}
+    {{ loader("text-shimmer", text="Thinking") }}
+    {{ loader("pulse", label=none) }}                     {# decorative #}
+    {{ loader("typing", class="htmx-indicator", attrs={"id": "typing"}) }}
+    {% endraw %}
+  {% endcall %}
+
+  <h2 id="reference">Reference</h2>
+  {{ classes([
+    [".loader", "The base: an inline flex box that holds the custom properties below."],
+    [".loader-pulse", "A ring breathing in and out."],
+    [".loader-pulse-dot", "A single pulsing dot."],
+    [".loader-dots", "Three bouncing dots (three child spans)."],
+    [".loader-typing", "Three dots fading in turn, a typing indicator (three child spans)."],
+    [".loader-wave", "Bars rising and falling (five child spans)."],
+    [".loader-text-blink", "Text fading in and out."],
+    [".loader-text-shimmer", "Text with a light band sweeping across it."],
+    [".loader-loading-dots", "Text followed by \"...\" written one dot at a time (three child spans)."],
+    [".loader-sm / .loader-lg", "12px or 24px shapes; text-xs or text-base text."],
+    ["--loader-size", "The height of the shapes (1rem)."],
+    ["--loader-duration", "One animation cycle (1.2s; text 2s, loading dots 1.4s)."],
+    ["--loader-color", "The colour (currentColor; text variants muted-foreground)."],
+    ["--loader-highlight / --loader-spread", "The shimmer band's colour (foreground) and half-width (20%)."]
+  ]) }}
+  {{ classes([
+    ["loader(variant=\"dots\", text=none, size=none, label=\"Loading\", class=\"\", attrs=none)", "Writes a loader. label=none hides a shape from assistive technology; text sets a text variant's words."]
+  ], heading="Macro") }}
+{% endblock %}

@@ -1,0 +1,388 @@
+{% extends "layouts/docs.html" %}
+{% from "components/icon/icon.html" import icon %}
+{% from "components/code/code.html" import code %}
+{% from "docs/macros.html" import demo, classes %}
+{% set title = "Item" %}
+{% set description = "Displays a row of content with media, a title, a description and actions, alone or in a list." %}
+
+{% block content %}
+  {# A decorative avatar: the person's name is next to it, in the item title. #}
+  {% macro avatar(n, initials, size="") %}<span class="avatar{% if size %} {{ size }}{% endif %}" aria-hidden="true"><img class="avatar-image" src="{{ asset('images/avatar-' ~ n ~ '.svg') }}" alt="" /><span class="avatar-fallback">{{ initials }}</span></span>{% endmacro %}
+
+  {% call demo() %}
+    <div class="flex w-full max-w-md flex-col gap-4">
+      <div class="item item-outline">
+        <div class="item-content">
+          <p class="item-title">Basic item</p>
+          <p class="item-description">A simple item with a title and a description.</p>
+        </div>
+        <div class="item-actions">
+          <button type="button" class="btn btn-outline btn-sm">Action</button>
+        </div>
+      </div>
+      <a class="item item-outline item-sm" href="#">
+        <div class="item-media">{{ icon("badge-check", "size-5") }}</div>
+        <div class="item-content">
+          <p class="item-title">Your profile has been verified.</p>
+        </div>
+        <div class="item-actions">{{ icon("chevron-right") }}</div>
+      </a>
+    </div>
+  {% endcall %}
+
+  <h2 id="markup">Markup</h2>
+  <p>An item is a flex row. Every part is optional except the content:</p>
+  {% call code("html") %}
+    <div class="item">
+      <div class="item-header">…</div>                  <!-- optional, full width, above -->
+      <div class="item-media">…</div>                   <!-- an icon, image or avatar -->
+      <div class="item-content">
+        <p class="item-title">…</p>
+        <p class="item-description">…</p>
+      </div>
+      <div class="item-actions">…</div>                 <!-- buttons, a menu, a badge -->
+      <div class="item-footer">…</div>                  <!-- optional, full width, below -->
+    </div>
+  {% endcall %}
+  <ul>
+    <li><code>.item-media</code> sits at the start. Next to a title and a description it aligns with the title rather than the middle.</li>
+    <li><code>.item-content</code> takes the free space. A second <code>.item-content</code> (a date, an amount) only takes the room it needs.</li>
+    <li><code>.item-description</code> is clamped to two lines. Links inside it are underlined.</li>
+    <li><code>.item-actions</code> sits at the end.</li>
+    <li><code>.item-header</code> and <code>.item-footer</code> take a full line each, above and below the rest.</li>
+  </ul>
+  <p>
+    Items wrap. When the media, the content and the actions don't fit side by side, the actions move to a line of
+    their own, still at the end, so an item works on a phone with no extra classes.
+  </p>
+
+  <h2 id="variants">Variants</h2>
+  <p>The default item has no border or background, for lists inside a card or a panel. <code>.item-outline</code> adds a border and <code>.item-muted</code> a muted background.</p>
+  {% call demo() %}
+    <div class="flex w-full max-w-md flex-col gap-4">
+      <div class="item">
+        <div class="item-content">
+          <p class="item-title">Default</p>
+          <p class="item-description">Transparent, with no border.</p>
+        </div>
+        <div class="item-actions"><button type="button" class="btn btn-outline btn-sm">Open</button></div>
+      </div>
+      <div class="item item-outline">
+        <div class="item-content">
+          <p class="item-title">Outline</p>
+          <p class="item-description">A border around the item.</p>
+        </div>
+        <div class="item-actions"><button type="button" class="btn btn-outline btn-sm">Open</button></div>
+      </div>
+      <div class="item item-muted">
+        <div class="item-content">
+          <p class="item-title">Muted</p>
+          <p class="item-description">A muted background, for secondary content.</p>
+        </div>
+        <div class="item-actions"><button type="button" class="btn btn-outline btn-sm">Open</button></div>
+      </div>
+    </div>
+  {% endcall %}
+
+  <h2 id="sizes">Sizes</h2>
+  <p>The default size, <code>.item-sm</code> and <code>.item-xs</code> reduce the padding and gaps. The extra small size also shrinks icon and image media and the description.</p>
+  {% call demo() %}
+    <div class="flex w-full max-w-md flex-col gap-4">
+      {% for size in ["", "item-sm", "item-xs"] %}
+      <a class="item item-outline{% if size %} {{ size }}{% endif %}" href="#">
+        <div class="item-media item-media-icon">{{ icon("inbox") }}</div>
+        <div class="item-content">
+          <p class="item-title">Inbox</p>
+          <p class="item-description">12 unread messages</p>
+        </div>
+        <div class="item-actions">{{ icon("chevron-right") }}</div>
+      </a>
+      {% endfor %}
+    </div>
+  {% endcall %}
+
+  <h2 id="icon">Icon</h2>
+  <p><code>.item-media-icon</code> puts an icon in a small bordered, muted square. A bare icon in <code>.item-media</code> works too.</p>
+  {% call demo() %}
+    <div class="item item-outline w-full max-w-md">
+      <div class="item-media item-media-icon">{{ icon("shield-check") }}</div>
+      <div class="item-content">
+        <p class="item-title">Security alert</p>
+        <p class="item-description">New sign-in from an unknown device in Lisbon, Portugal.</p>
+      </div>
+      <div class="item-actions">
+        <button type="button" class="btn btn-outline btn-sm">Review</button>
+      </div>
+    </div>
+  {% endcall %}
+
+  <h2 id="avatar">Avatar</h2>
+  <p>
+    Put an <a href="/docs/components/avatar">avatar</a> or an avatar group in <code>.item-media</code>. The person's
+    name is in the title, so the avatar is decorative: <code>aria-hidden="true"</code>, with no role or label.
+  </p>
+  {% call demo() %}
+    <div class="flex w-full max-w-md flex-col gap-4">
+      <div class="item item-outline">
+        <div class="item-media">{{ avatar(1, "AL", "avatar-lg") }}</div>
+        <div class="item-content">
+          <p class="item-title">Ana Lima</p>
+          <p class="item-description">Last seen 5 months ago</p>
+        </div>
+        <div class="item-actions">
+          <button type="button" class="btn btn-outline btn-icon btn-sm btn-rounded" aria-label="Invite Ana Lima">{{ icon("plus") }}</button>
+        </div>
+      </div>
+      <div class="item item-outline">
+        <div class="item-media">
+          <div class="avatar-group" aria-hidden="true">
+            {{ avatar(2, "KM") }}
+            {{ avatar(3, "RP") }}
+            {{ avatar(4, "MC") }}
+          </div>
+        </div>
+        <div class="item-content">
+          <p class="item-title">No team members</p>
+          <p class="item-description">Invite your team to collaborate on this project.</p>
+        </div>
+        <div class="item-actions">
+          <button type="button" class="btn btn-outline btn-sm">Invite</button>
+        </div>
+      </div>
+    </div>
+  {% endcall %}
+
+  <h2 id="image">Image</h2>
+  <p>
+    <code>.item-media-image</code> crops an image to a rounded square: put an <code>&lt;img&gt;</code> inside it, or
+    use it on the <code>&lt;img&gt;</code> itself. Images next to a title are decorative: <code>alt=""</code>.
+  </p>
+  {% call demo() %}
+    <div class="item-group w-full max-w-md gap-2" role="list">
+      {% for track in [
+        {img: "landscape", title: "Mountain Echoes", artist: "The Ridgeline", album: "High Country", time: "3:42"},
+        {img: "ocean", title: "Low Tide", artist: "Harbour Lights", album: "Saltwater", time: "4:15"},
+        {img: "forest", title: "Under the Canopy", artist: "Moss & Fern", album: "Evergreen", time: "5:03"}
+      ] %}
+      <div role="listitem">
+        <a class="item item-outline" href="#">
+          <div class="item-media item-media-image"><img src="{{ asset('images/' ~ track.img ~ '.svg') }}" alt="" /></div>
+          <div class="item-content">
+            <p class="item-title">{{ track.title }} <span class="text-muted-foreground">· {{ track.artist }}</span></p>
+            <p class="item-description">{{ track.album }}</p>
+          </div>
+          <div class="item-content text-muted-foreground tabular-nums">{{ track.time }}</div>
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+  {% endcall %}
+
+  <h2 id="group">Group</h2>
+  <p>
+    <code>.item-group</code> stacks items in a list. Give it <code>role="list"</code> and each item
+    <code>role="listitem"</code> (or use a <code>&lt;ul&gt;</code> and <code>&lt;li&gt;</code>). Put an
+    <code>.item-separator</code> between items for a line, hidden from screen readers with
+    <code>aria-hidden="true"</code> so the list only holds items; or space them with a <code>gap-*</code> utility.
+  </p>
+  {% call demo() %}
+    <div class="item-group w-full max-w-md rounded-[calc(var(--radius)+4px)] border border-border bg-surface" role="list">
+      {% for person in [
+        {n: 1, initials: "AL", name: "Ana Lima", email: "ana@example.com"},
+        {n: 2, initials: "KM", name: "Kofi Mensah", email: "kofi@example.com"},
+        {n: 3, initials: "RP", name: "Ravi Patel", email: "ravi@example.com"}
+      ] %}
+      <div class="item" role="listitem">
+        <div class="item-media">{{ avatar(person.n, person.initials) }}</div>
+        <div class="item-content">
+          <p class="item-title">{{ person.name }}</p>
+          <p class="item-description">{{ person.email }}</p>
+        </div>
+        <div class="item-actions">
+          <button type="button" class="btn btn-ghost btn-icon btn-sm btn-rounded" aria-label="Invite {{ person.name }}">{{ icon("plus") }}</button>
+        </div>
+      </div>
+      {% if not loop.last %}<div class="item-separator" aria-hidden="true"></div>{% endif %}
+      {% endfor %}
+    </div>
+  {% endcall %}
+
+  <h2 id="header">Header</h2>
+  <p>
+    <code>.item-header</code> is a full-width row above the media and content. An image or video directly inside it
+    fills the width with rounded corners; set its shape with an <code>aspect-*</code> utility. Laid out in a grid, such
+    items make a set of cards. <code>.item-footer</code> is the same below.
+  </p>
+  {% call demo() %}
+    <div class="item-group grid w-full max-w-2xl grid-cols-1 gap-4 sm:grid-cols-3" role="list">
+      {% for model in [
+        {img: "landscape", title: "Summit-1", text: "Everyday tasks, fast and inexpensive."},
+        {img: "ocean", title: "Tide-2", text: "Long documents and careful reasoning."},
+        {img: "forest", title: "Canopy-3", text: "Images and charts alongside text."}
+      ] %}
+      <div class="item item-outline" role="listitem">
+        <div class="item-header"><img class="aspect-square" src="{{ asset('images/' ~ model.img ~ '.svg') }}" alt="" /></div>
+        <div class="item-content">
+          <p class="item-title">{{ model.title }}</p>
+          <p class="item-description">{{ model.text }}</p>
+        </div>
+        <div class="item-footer">
+          <span class="badge badge-secondary">Available</span>
+          <button type="button" class="btn btn-ghost btn-sm">Select</button>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  {% endcall %}
+
+  <h2 id="link">Link</h2>
+  <p>
+    When the whole item goes somewhere and has nothing else to click, make the item the link:
+    <code>&lt;a class="item" href="…"&gt;</code>. It gets a hover background and a focus outline. The same works on a
+    <code>&lt;button&gt;</code> (which takes the full width), though a button may only contain phrasing content, so
+    use <code>&lt;span&gt;</code>s for its parts.
+  </p>
+  {% call demo() %}
+    <div class="flex w-full max-w-md flex-col gap-4">
+      <a class="item" href="#">
+        <div class="item-content">
+          <p class="item-title">Visit our documentation</p>
+          <p class="item-description">Learn how to get started with our components.</p>
+        </div>
+        <div class="item-actions">{{ icon("chevron-right") }}</div>
+      </a>
+      <a class="item item-outline" href="#" target="_blank" rel="noopener noreferrer">
+        <div class="item-content">
+          <p class="item-title">External resource</p>
+          <p class="item-description">Opens in a new tab with security attributes.</p>
+        </div>
+        <div class="item-actions">{{ icon("external-link") }}</div>
+      </a>
+    </div>
+  {% endcall %}
+
+  <h3 id="link-with-actions">A link with actions</h3>
+  <p>
+    A link can't contain buttons or other links, so an item that is a link <em>and</em> has actions keeps the item a
+    <code>&lt;div&gt;</code> and puts a link with <code>.item-link</code> around the title. Its
+    <code>::after</code> stretches over the whole item, so a click anywhere follows the link and the item shows the
+    link's hover and focus. The actions and the footer come after it in the source and stay clickable on top. Put
+    anything interactive there, not in the header.
+  </p>
+  {% call demo() %}
+    <div class="item item-outline w-full max-w-md">
+      <div class="item-media item-media-icon">{{ icon("file-text") }}</div>
+      <div class="item-content">
+        <p class="item-title"><a class="item-link" href="#">Quarterly report</a></p>
+        <p class="item-description">Updated 2 hours ago by Ana Lima</p>
+      </div>
+      <div class="item-actions">
+        <a class="btn btn-ghost btn-icon btn-sm" href="#" aria-label="Download Quarterly report">{{ icon("download") }}</a>
+        <button type="button" class="btn btn-ghost btn-icon btn-sm" aria-label="Share Quarterly report">{{ icon("send") }}</button>
+      </div>
+    </div>
+  {% endcall %}
+
+  <h2 id="dropdown">Dropdown</h2>
+  <p>
+    Items work as entries in a <a href="/docs/components/dropdown">dropdown</a> menu: give each one
+    <code>role="menuitem"</code>. Inside <code>.dropdown-menu</code> they take the menu's padding and highlight, and
+    the description shrinks to one line. Use <code>&lt;button&gt;</code> items with <code>&lt;span&gt;</code> parts.
+  </p>
+  {% call demo("min-h-80 items-start") %}
+    <div class="dropdown" data-dropdown>
+      <button type="button" class="btn btn-outline" data-dropdown-trigger aria-haspopup="menu" aria-expanded="false">
+        {{ icon("users") }} Assign to {{ icon("chevron-down") }}
+      </button>
+      <div class="dropdown-menu w-72" role="menu" hidden>
+        <p class="dropdown-label">Team</p>
+        {% for person in [
+          {n: 1, initials: "AL", name: "Ana Lima", email: "ana@example.com"},
+          {n: 2, initials: "KM", name: "Kofi Mensah", email: "kofi@example.com"},
+          {n: 3, initials: "RP", name: "Ravi Patel", email: "ravi@example.com"},
+          {n: 4, initials: "MC", name: "Mei Chen", email: "mei@example.com"}
+        ] %}
+        <button type="button" class="item item-xs" role="menuitem">
+          <span class="item-media">{{ avatar(person.n, person.initials, "avatar-sm") }}</span>
+          <span class="item-content">
+            <span class="item-title">{{ person.name }}</span>
+            <span class="item-description">{{ person.email }}</span>
+          </span>
+        </button>
+        {% endfor %}
+      </div>
+    </div>
+  {% endcall %}
+
+  <h3 id="dropdown-in-actions">A menu in the actions</h3>
+  <p>Put a dropdown in <code>.item-actions</code> for the actions that don't fit as buttons. Align its menu to the end with <code>.dropdown-menu-end</code>.</p>
+  {% call demo("min-h-72 items-start") %}
+    <div class="item item-outline w-full max-w-md">
+      <div class="item-media item-media-icon">{{ icon("folder") }}</div>
+      <div class="item-content">
+        <p class="item-title">Project Atlas</p>
+        <p class="item-description">8 members · Updated yesterday</p>
+      </div>
+      <div class="item-actions">
+        <div class="dropdown" data-dropdown>
+          <button type="button" class="btn btn-ghost btn-icon btn-sm" data-dropdown-trigger aria-haspopup="menu" aria-expanded="false" aria-label="More actions for Project Atlas">{{ icon("ellipsis-vertical") }}</button>
+          <div class="dropdown-menu dropdown-menu-end" role="menu" hidden>
+            <a class="dropdown-item" role="menuitem" href="#">Open</a>
+            <button type="button" class="dropdown-item" role="menuitem">Rename</button>
+            <button type="button" class="dropdown-item" role="menuitem">Duplicate</button>
+            <div class="dropdown-separator" role="separator"></div>
+            <button type="button" class="dropdown-item dropdown-item-destructive" role="menuitem">{{ icon("trash") }} Delete</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endcall %}
+
+  <h2 id="htmx">Actions with htmx</h2>
+  <p>
+    Actions are ordinary buttons, so they take <code>hx-*</code> attributes. Here the button posts a setting and the
+    server's reply replaces the status in the description. A server can just as well return whole items, to append to
+    an <code>.item-group</code> or to replace one item with <code>hx-swap="outerHTML"</code>.
+  </p>
+  {% call demo() %}
+    <div class="item item-outline w-full max-w-md">
+      <div class="item-media item-media-icon">{{ icon("bell") }}</div>
+      <div class="item-content">
+        <p class="item-title">Email notifications</p>
+        <p class="item-description" id="item-notify-status">Off. Turn them on to hear about new comments.</p>
+      </div>
+      <div class="item-actions">
+        <button type="button" class="btn btn-outline btn-sm" hx-post="/api/echo" hx-vals='{"notifications": "on"}' hx-target="#item-notify-status">Turn on</button>
+      </div>
+    </div>
+  {% endcall %}
+
+  <h2 id="accessibility">Accessibility</h2>
+  <ul>
+    <li>Group items with <code>role="list"</code> and <code>role="listitem"</code>, or <code>&lt;ul&gt;</code> and <code>&lt;li&gt;</code>. Don't put <code>role="listitem"</code> on an <code>&lt;a class="item"&gt;</code>: it replaces the link role. Wrap the link in an element with the role instead.</li>
+    <li>Separators inside a list get <code>aria-hidden="true"</code>, so the list holds only items; outside a list, use <code>role="separator"</code>.</li>
+    <li>Never nest a link or button inside <code>&lt;a class="item"&gt;</code>. For a link item with actions, use <code>.item-link</code> on a link around the title.</li>
+    <li>Icon-only actions need an <code>aria-label</code> that names the item: &ldquo;Invite Ana Lima&rdquo;, not &ldquo;Invite&rdquo;.</li>
+    <li>Media next to a title is decorative: <code>alt=""</code> on images, <code>aria-hidden="true"</code> on avatars.</li>
+    <li>The title is a <code>&lt;p&gt;</code> here. Make it a heading when the items are sections of the page someone would navigate by.</li>
+  </ul>
+
+  <h2 id="reference">Reference</h2>
+  {{ classes([
+    [".item", "A flex row of media, content and actions that wraps on narrow widths. On an <a> or <button>: hover and focus styles."],
+    [".item-outline / .item-muted", "A border / a muted background. The default has neither."],
+    [".item-sm / .item-xs", "Smaller padding and gaps; -xs also shrinks the media and description."],
+    [".item-media", "Media at the start: an icon, an .avatar or an .avatar-group. Aligns with the title when there is a description."],
+    [".item-media-icon", "An icon in a bordered, muted square."],
+    [".item-media-image", "A rounded square image: an <img> inside it, or the <img> itself."],
+    [".item-content", "Title and description; takes the free space. A second one only takes the room it needs."],
+    [".item-title", "The title, in medium weight. Holds text, a badge or an .item-link."],
+    [".item-description", "Muted text clamped to two lines (one in a menu). Links are underlined."],
+    [".item-actions", "Buttons, menus or an icon at the end."],
+    [".item-header / .item-footer", "Full-width rows above / below. An image or video directly inside fills the width."],
+    [".item-link", "A link whose ::after covers the item, for a link item that also has actions."],
+    [".item-group", "A list of items (flex column). Add role=\"list\"."],
+    [".item-separator", "A line between items in a group. Add aria-hidden=\"true\" inside a list."],
+    [".dropdown-menu .item", "Items with role=\"menuitem\" inside a dropdown take the menu's padding and highlight."]
+  ]) }}
+{% endblock %}

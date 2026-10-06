@@ -1,0 +1,32 @@
+{# Loader: a CSS-only loading indicator (loader.css), announced as a status.
+   {% from "components/loader/loader.html" import loader %}
+   {{ loader() }}                                  three bouncing dots, read out as "Loading"
+   {{ loader("wave", size="lg") }}                 another variant, larger
+   {{ loader("typing", label="Assistant is typing") }}
+   {{ loader("text-shimmer", text="Thinking") }}   a text variant shows its text
+   {{ loader("pulse", label=none) }}               decorative, e.g. beside a visible "Saving…"
+   {{ loader(class="htmx-indicator") }}            shown only while an htmx request runs
+   variant="dots"   "pulse" | "pulse-dot" | "dots" | "typing" | "wave" (shapes),
+                    "text-blink" | "text-shimmer" | "loading-dots" (text)
+   text=none        the visible text of a text variant (default: label, or "Loading" without one)
+   size=none        "sm" | "lg"
+   label="Loading"  the accessible name of a shape (screen-reader text); label=none hides the
+                    loader from assistive technology. Text variants are read as their text.
+   class=""         more classes on the .loader (e.g. text-primary, [--loader-duration:2s])
+   attrs=none       more attributes, as a dict ({"id": "save-loader", "style": "--loader-size: 2rem"}) #}
+
+{% macro loader(variant="dots", text=none, size=none, label="Loading", class="", attrs=none) %}
+{% set bars = {"dots": 3, "typing": 3, "wave": 5} %}
+{% set is_text = variant in ["text-blink", "text-shimmer", "loading-dots"] %}
+{% set shown = text or label or "Loading" %}
+{% set count = bars[variant] if variant in bars else 0 %}
+<span class="loader loader-{{ variant }}{% if size %} loader-{{ size }}{% endif %}{% if class %} {{ class }}{% endif %}"
+  {%- if label or is_text %} role="status"{% else %} aria-hidden="true"{% endif %}
+  {%- if label and not is_text and not count %} aria-label="{{ label }}"{% endif %}
+  {%- if attrs %}{% for k, a in attrs %} {{ k }}="{{ a }}"{% endfor %}{% endif %}>
+  {%- if is_text %}{{ shown }}{% endif %}
+  {%- if variant == "loading-dots" %}{% for i in range(3) %}<span aria-hidden="true">.</span>{% endfor %}{% endif %}
+  {%- for i in range(count) %}<span aria-hidden="true"></span>{% endfor %}
+  {%- if count and label %}<span class="sr-only">{{ label }}</span>{% endif -%}
+</span>
+{%- endmacro %}

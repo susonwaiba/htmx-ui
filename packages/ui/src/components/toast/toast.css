@@ -1,0 +1,215 @@
+/* Toasts, built by toast.ts: call toast("Saved") or use data-toast attributes (see toast.ts).
+
+   <section class="toaster" data-toaster>                     created on the first toast if absent
+     <ol class="toaster-list" data-position="bottom-right" [data-expanded]>
+       <li class="toast" data-type="success" data-front data-mounted style="--index: 0; --offset: 0px; --height: 54px">
+         <span class="toast-icon"><svg…/></span>
+         <div class="toast-content"><div class="toast-title">Saved</div><div class="toast-description">…</div></div>
+         <div class="toast-actions"><button class="btn btn-outline btn-xs toast-cancel">…</button><button class="btn btn-primary btn-xs toast-action">Undo</button></div>
+         <button class="toast-close" aria-label="Close notification"><svg…/></button>
+       </li>
+     </ol>
+   </section>
+
+   The stack: the newest toast in front, the next ones peeking out behind it, smaller; hovering or
+   focusing it fans them out (data-expanded). Toasts slide in from their edge, leave the same way,
+   and follow the pointer when swiped (--swipe-x / --swipe-y).
+   On the toaster: data-rich-colors tints each toast by its type. Size and spacing:
+   --toast-width (356px), --toast-gap (14px), --toast-inset (distance from the screen edge). */
+@layer components {
+  .toaster-list {
+    --toast-width: 356px;
+    --toast-gap: 14px;
+    --toast-inset: 1.5rem;
+    @apply fixed z-[100] m-0 list-none p-0 outline-none;
+    width: var(--toast-width);
+    max-width: calc(100vw - 2 * var(--toast-inset));
+    height: var(--front-height, 0px);
+  }
+  .toaster-list[data-position^="bottom"] {
+    --lift: -1;
+    bottom: var(--toast-inset);
+  }
+  .toaster-list[data-position^="top"] {
+    --lift: 1;
+    top: var(--toast-inset);
+  }
+  .toaster-list[data-position$="right"] {
+    right: var(--toast-inset);
+  }
+  .toaster-list[data-position$="left"] {
+    left: var(--toast-inset);
+  }
+  .toaster-list[data-position$="center"] {
+    @apply left-1/2 -translate-x-1/2;
+  }
+  /* Phones: full width, close to the edge */
+  @media (max-width: 600px) {
+    .toaster-list {
+      --toast-inset: 1rem;
+      @apply right-(--toast-inset) left-(--toast-inset) w-auto max-w-none translate-x-0;
+    }
+  }
+
+  .toast {
+    @apply absolute inset-x-0 flex items-center gap-3 rounded-[calc(var(--radius)+2px)] border border-border bg-surface
+      p-4 text-sm text-foreground shadow-lg outline-none select-none focus-visible:ring-3 focus-visible:ring-ring/40;
+    opacity: 0;
+    transform: translateY(calc(var(--lift) * -100%));
+    translate: var(--swipe-x, 0px) var(--swipe-y, 0px);
+    transition:
+      transform 400ms ease,
+      opacity 400ms ease,
+      height 400ms ease,
+      translate 400ms ease,
+      box-shadow 200ms ease;
+    touch-action: none;
+    overflow-wrap: anywhere;
+  }
+  .toaster-list[data-position^="bottom"] > .toast {
+    @apply bottom-0 origin-top;
+  }
+  .toaster-list[data-position^="top"] > .toast {
+    @apply top-0 origin-bottom;
+  }
+  /* Keeps the pointer inside the stack while it crosses the gap between expanded toasts. */
+  .toast::after {
+    @apply absolute inset-x-0 content-[''];
+    height: calc(var(--toast-gap) + 1px);
+  }
+  .toaster-list[data-position^="bottom"] > .toast::after {
+    @apply bottom-full;
+  }
+  .toaster-list[data-position^="top"] > .toast::after {
+    @apply top-full;
+  }
+
+  /* In the stack: lifted and shrunk by its place behind the front one, cut to its height. */
+  .toast[data-mounted] {
+    opacity: 1;
+    transform: translateY(calc(var(--lift) * var(--index) * var(--toast-gap))) scale(calc(1 - var(--index) * 0.05));
+  }
+  .toaster-list:not([data-expanded]) > .toast[data-mounted]:not([data-front]) {
+    @apply overflow-hidden;
+    height: var(--front-height);
+  }
+  .toast > * {
+    @apply transition-opacity duration-300;
+  }
+  .toaster-list:not([data-expanded]) > .toast[data-mounted]:not([data-front]) > * {
+    @apply opacity-0;
+  }
+  /* Expanded: each in its own place, full size. */
+  .toaster-list[data-expanded] > .toast[data-mounted] {
+    height: var(--height);
+    transform: translateY(calc(var(--lift) * var(--offset)));
+  }
+  .toast[data-hidden] {
+    @apply pointer-events-none;
+    opacity: 0 !important;
+  }
+
+  /* Leaving: the front one slides back out of its edge, the others fade where they are. */
+  .toast[data-removing] {
+    @apply pointer-events-none;
+    opacity: 0 !important;
+  }
+  .toast[data-removing][data-front]:not([data-swipe-out]) {
+    transform: translateY(calc(var(--lift) * -100%));
+  }
+  .toast[data-swiping] {
+    transition-property: transform, opacity, height, box-shadow;
+  }
+
+  /* Contents */
+  .toast-icon {
+    @apply flex shrink-0 self-start [&>svg]:size-5;
+  }
+  .toast-content {
+    @apply flex min-w-0 flex-1 flex-col gap-0.5;
+  }
+  .toast-title {
+    @apply leading-snug font-medium;
+  }
+  .toast-description {
+    @apply leading-snug text-muted-foreground;
+  }
+  .toast-actions {
+    @apply flex shrink-0 items-center gap-1.5;
+  }
+  .toast-close {
+    @apply absolute -top-2 -left-2 z-10 flex size-5 cursor-pointer items-center justify-center rounded-full border
+      border-border bg-surface text-muted-foreground opacity-0 shadow-xs transition-[opacity,color] hover:text-foreground
+      focus-visible:opacity-100 focus-visible:outline-2 focus-visible:outline-ring [&>svg]:size-3;
+  }
+  .toaster-list[data-position$="left"] .toast-close {
+    @apply right-auto -left-2;
+  }
+  .toaster-list[data-position$="right"] .toast-close {
+    @apply -right-2 left-auto;
+  }
+  .toast:is(:hover, :focus-within) > .toast-close {
+    @apply opacity-100;
+  }
+  @media (hover: none) {
+    .toast-close {
+      @apply opacity-100;
+    }
+  }
+
+  /* Type colours: the icon by default */
+  .toast[data-type="success"] .toast-icon {
+    @apply text-success;
+  }
+  .toast[data-type="info"] .toast-icon {
+    @apply text-info;
+  }
+  .toast[data-type="warning"] .toast-icon {
+    @apply text-warning;
+  }
+  .toast[data-type="error"] .toast-icon {
+    @apply text-danger;
+  }
+  .toast[data-type="loading"] .toast-icon {
+    @apply text-muted-foreground [&>svg]:animate-spin;
+  }
+
+  /* Rich colours: the whole toast tinted. One color-mix() per rule (see components/alert). */
+  .toaster[data-rich-colors] .toast[data-type="success"] {
+    background-color: color-mix(in oklab, var(--success) 10%, var(--surface));
+  }
+  .toaster[data-rich-colors] > .toaster-list > .toast[data-type="success"] {
+    border-color: color-mix(in oklab, var(--success) 30%, var(--surface));
+  }
+  .toaster[data-rich-colors] .toast[data-type="info"] {
+    background-color: color-mix(in oklab, var(--info) 10%, var(--surface));
+  }
+  .toaster[data-rich-colors] > .toaster-list > .toast[data-type="info"] {
+    border-color: color-mix(in oklab, var(--info) 30%, var(--surface));
+  }
+  .toaster[data-rich-colors] .toast[data-type="warning"] {
+    background-color: color-mix(in oklab, var(--warning) 10%, var(--surface));
+  }
+  .toaster[data-rich-colors] > .toaster-list > .toast[data-type="warning"] {
+    border-color: color-mix(in oklab, var(--warning) 30%, var(--surface));
+  }
+  .toaster[data-rich-colors] .toast[data-type="error"] {
+    background-color: color-mix(in oklab, var(--danger) 10%, var(--surface));
+  }
+  .toaster[data-rich-colors] > .toaster-list > .toast[data-type="error"] {
+    border-color: color-mix(in oklab, var(--danger) 30%, var(--surface));
+  }
+  .toaster[data-rich-colors] .toast:is([data-type="success"], [data-type="info"], [data-type="warning"], [data-type="error"]) .toast-description {
+    @apply text-foreground/80;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .toast,
+    .toast > * {
+      transition-duration: 0s !important;
+    }
+    .toast[data-type="loading"] .toast-icon > svg {
+      @apply animate-none;
+    }
+  }
+}
