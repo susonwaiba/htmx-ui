@@ -1,7 +1,17 @@
-import { describe, expect, test } from "bun:test";
+import { afterEach, describe, expect, test } from "bun:test";
 
 import { initVersions } from "./client";
 import { bannerMarkup } from "./versions";
+
+// The tests below stub window.location and fetch; put the real ones back so they don't
+// leak into other files' tests (all tests share one document).
+const realLocation = Object.getOwnPropertyDescriptor(window, "location");
+const realFetch = globalThis.fetch;
+
+afterEach(() => {
+  if (realLocation) Object.defineProperty(window, "location", realLocation);
+  globalThis.fetch = realFetch;
+});
 
 const MANIFEST = {
   latest: "0.2",
