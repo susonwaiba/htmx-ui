@@ -1,0 +1,18 @@
+{
+  // Type declarations for the Node build (bun run build -> lib/**/*.d.ts), against the
+  // engine's and htmx-ui's own lib/ declarations (built first by build:lib).
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "allowImportingTsExtensions": false,
+    "customConditions": [],
+    "paths": {},
+    "rootDir": "./src",
+    "outDir": "./lib",
+    "types": ["node"]
+  },
+  "include": ["src/index.ts", "src/client.ts"],
+  "exclude": ["src/**/*.test.ts"]
+}

@@ -6,4 +6,8 @@
 @source "../";
 
 @import "htmx-ui/styles.css";
+/* The docs plugins' styles (htmx-ui.config.ts plugins) */
+@import "htmx-ui-plugin-docs/styles.css";
+@import "htmx-ui-plugin-versions/styles.css";
+@import "htmx-ui-plugin-search/styles.css";
 @import "./docs.css";

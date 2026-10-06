@@ -1,22 +1,11 @@
-// The site's engine settings that rendering depends on, shared by htmx-ui.config.ts
-// (dev server and build) and by site/lib/site.ts, which renders pages itself for
-// Markdown, sitemaps and llms.txt. Kept apart from the config so neither imports
-// the other.
-import { resolveConfig, type UserConfig } from "htmx-ui-engine";
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
-import { addHeadingAnchors } from "./anchors";
-import { DIST, SITE } from "./paths";
+// The site's resolved engine config, plugins included, for rendering pages outside
+// the engine (the site's tests). Always render with renderPage(engine, file), so a
+// test sees exactly what the dev server and the build serve: heading ids included.
+import { resolveConfig } from "htmx-ui-engine";
+import config from "../htmx-ui.config";
+import { SITE } from "./paths";
 
-const site = JSON.parse(readFileSync(resolve(SITE, "data/site.json"), "utf8")) as { url: string };
+export const engine = resolveConfig(config, SITE);
 
-export const base = {
-  url: site.url,
-  outDir: DIST,
-  publicDir: false,
-  // Linkable docs headings: same ids in the HTML build, the Markdown and the sitemap.
-  transform: (html) => addHeadingAnchors(html),
-} satisfies UserConfig;
-
-/** The resolved config, for rendering outside the engine (site/lib/site.ts, tests). */
-export const engine = resolveConfig(base, SITE);
+/** A plugin's api by name, e.g. the docs plugin's pages(). */
+export const pluginApi = <T>(name: string) => engine.plugins.find((p) => p.name === name)!.api as T;

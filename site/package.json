@@ -9,13 +9,16 @@
     "preview": "htmx-ui preview"
   },
   "dependencies": {
+    "embla-carousel-autoplay": "^8.6.0",
     "htmx-ui": "workspace:*",
     "htmx-ui-engine": "workspace:*",
+    "htmx-ui-plugin-docs": "workspace:*",
+    "htmx-ui-plugin-search": "workspace:*",
+    "htmx-ui-plugin-versions": "workspace:*",
     "htmx.org": "^4.0.0"
   },
   "devDependencies": {
     "bun-plugin-tailwind": "^0.1.2",
-    "happy-dom": "^20.14.5",
     "tailwindcss": "^4.3.3"
   }
 }

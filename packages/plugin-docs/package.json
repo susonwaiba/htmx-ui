@@ -1,0 +1,68 @@
+{
+  "name": "htmx-ui-plugin-docs",
+  "version": "0.1.0",
+  "description": "Docs for htmx-ui-engine sites that people and AI agents can both read: heading anchors, Markdown for every page, llms.txt, JSON and XML sitemaps, docs navigation and page macros.",
+  "keywords": [
+    "htmx",
+    "htmx-ui",
+    "htmx-ui-plugin",
+    "docs",
+    "documentation",
+    "markdown",
+    "llms.txt",
+    "sitemap",
+    "ai-agents"
+  ],
+  "license": "MIT",
+  "author": "Suson Waiba",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/susonwaiba/htmx-ui.git",
+    "directory": "packages/plugin-docs"
+  },
+  "bugs": "https://github.com/susonwaiba/htmx-ui/issues",
+  "homepage": "https://github.com/susonwaiba/htmx-ui#readme",
+  "type": "module",
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "exports": {
+    ".": {
+      "bun": "./src/index.ts",
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./client": {
+      "bun": "./src/client.ts",
+      "types": "./lib/client.d.ts",
+      "default": "./lib/client.js"
+    },
+    "./styles.css": "./src/styles.css",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "src",
+    "!src/**/*.test.ts"
+  ],
+  "engines": {
+    "node": ">=22.12.0",
+    "bun": ">=1.2.3"
+  },
+  "scripts": {
+    "build": "bun run ../../scripts/build-plugin.ts",
+    "prepublishOnly": "bun run --cwd ../.. release:check"
+  },
+  "dependencies": {
+    "happy-dom": "^20.14.5"
+  },
+  "peerDependencies": {
+    "htmx-ui": "workspace:^",
+    "htmx-ui-engine": "workspace:^"
+  },
+  "devDependencies": {
+    "@types/node": "^24",
+    "htmx-ui": "workspace:*",
+    "htmx-ui-engine": "workspace:*"
+  }
+}

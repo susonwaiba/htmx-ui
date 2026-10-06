@@ -1,9 +1,14 @@
-// Site search: a command palette over the sitemap (site/partials/search.html).
+// htmx-ui-plugin-search/client: a command palette over the site's sitemap.
 //
+//   import { initSearch } from "htmx-ui-plugin-search/client";
+//   document.addEventListener("DOMContentLoaded", () => initSearch());
+//
+// Markup: search() in search/macros.html.
 // - Opens with Ctrl/⌘K, "/" (when not typing), or any [data-search-open] button.
-// - Searches the sitemap of the docs version being read: /sitemap.json for the
-//   latest docs and marketing pages, or an archived version's own sitemap
-//   (listed in /sitemap.json "versions") when reading old docs.
+// - Searches the sitemap of the docs version being read: the dialog's
+//   data-search-src (default /sitemap.json, published by htmx-ui-plugin-docs) for the
+//   latest docs and other pages, or an archived version's own sitemap (listed in its
+//   "versions") when reading old docs (htmx-ui-plugin-versions' switcher says which).
 // - Results are pages and sections; choosing one opens the page or `page#section`.
 // - Keyboard: ↑/↓ move, Enter opens, Esc closes (native <dialog>). Ctrl/⌘+Enter or
 //   middle-click opens in a new tab (results are real links).
@@ -21,9 +26,9 @@ async function fetchJson<T>(url: string): Promise<T> {
   return res.json();
 }
 
-function loadIndex(): Promise<Index> {
+function loadIndex(src: string): Promise<Index> {
   index ??= (async () => {
-    const root = await fetchJson<Sitemap>("/sitemap.json");
+    const root = await fetchJson<Sitemap>(src);
     // Docs pages carry their version on the version switcher; other pages use the latest.
     const current = document.querySelector<HTMLElement>("[data-version-switcher]")?.dataset.version;
     const version = root.versions?.find((v) => v.id === current);
@@ -63,6 +68,8 @@ export function initSearch() {
   const message = dialog?.querySelector<HTMLElement>("[data-search-message]");
   if (!dialog || !input || !list || !message || dialog.dataset.init !== undefined) return;
   dialog.dataset.init = "";
+  const src = dialog.dataset.searchSrc || "/sitemap.json";
+  const load = () => loadIndex(src);
 
   const isMac = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
   document.querySelectorAll("[data-search-shortcut]").forEach((k) => (k.textContent = isMac ? "⌘ K" : "Ctrl K"));
@@ -100,7 +107,7 @@ export function initSearch() {
     let data: Index;
     try {
       showMessage("Loading…");
-      data = await loadIndex();
+      data = await load();
     } catch {
       return showMessage("Search is unavailable right now.");
     }
@@ -153,7 +160,7 @@ export function initSearch() {
     if (dialog!.open) return;
     dialog!.showModal();
     input!.select();
-    void loadIndex()
+    void load()
       .then((data) => {
         const label = dialog!.querySelector("[data-search-version]");
         if (label && data.label) label.textContent = `Searching ${data.label}`;
@@ -186,8 +193,8 @@ export function initSearch() {
   document.querySelectorAll<HTMLElement>("[data-search-open]").forEach((button) => {
     button.addEventListener("click", open);
     // Warm the index before the click lands
-    button.addEventListener("pointerenter", () => void loadIndex().catch(() => {}), { once: true });
-    button.addEventListener("focus", () => void loadIndex().catch(() => {}), { once: true });
+    button.addEventListener("pointerenter", () => void load().catch(() => {}), { once: true });
+    button.addEventListener("focus", () => void load().catch(() => {}), { once: true });
   });
 
   document.addEventListener("keydown", (e) => {
@@ -200,5 +207,4 @@ export function initSearch() {
       open();
     }
   });
-
 }

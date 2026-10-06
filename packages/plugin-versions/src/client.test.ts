@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
-import { bannerMarkup } from "../lib/versions";
-import { initVersions } from "./versions";
+import { initVersions } from "./client";
+import { bannerMarkup } from "./versions";
 
 const MANIFEST = {
   latest: "0.2",
@@ -95,7 +95,7 @@ describe("versions", () => {
   });
 
   test("refreshes the banner a snapshot already ships with", async () => {
-    // An archived page arrives with the banner already built (site/lib/versions.ts)
+    // An archived page arrives with the banner already built (./versions.ts)
     document.body.innerHTML = `
       <span data-version-switcher data-version="0.1" data-versions-src="/docs/versions.json">
         <ul data-version-items></ul>

@@ -54,6 +54,13 @@
     <li>Every release's changes and migration notes are in the <a href="/docs/changelog">changelog</a>.</li>
   </ul>
 
+  <h2 id="how">How it works</h2>
+  <p>
+    The <a href="/docs/plugins/versions">versions plugin</a> (<code>htmx-ui-plugin-versions</code>) does all of this: it serves
+    the frozen versions, publishes the manifest the switcher reads, and freezes a version with
+    <code>htmx-ui versions:archive</code> when the next one starts. Add it to your own site to version its docs the same way.
+  </p>
+
   <h2 id="agents">For tools and agents</h2>
   <p><a href="/docs/versions.json" data-version-link>/docs/versions.json</a> lists every version with its URL prefix, its own sitemap (with section text, for search) and the pages it contains:</p>
   {% call code("json", title="/docs/versions.json") %}

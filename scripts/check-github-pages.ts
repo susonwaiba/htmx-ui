@@ -291,7 +291,7 @@ function checkJson(file: string, json: string) {
 
   // Walk the tree so each finding names the key it came from. A version's
   // `pages` list is relative to that version's `path`, not to the site root, so
-  // `/installation` there means "<path>/installation" (site/features/versions.ts).
+  // `/installation` there means "<path>/installation" (htmx-ui-plugin-versions/client).
   const walk = (node: unknown, path: string) => {
     if (typeof node === "string") {
       if (VERSION_PAGES.test(path)) return;

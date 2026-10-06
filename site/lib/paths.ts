@@ -7,8 +7,6 @@ export const SITE = resolve(import.meta.dir, "..");
 export const ROOT = resolve(SITE, "..");
 /** Routes: site/pages/**\/*.html */
 export const PAGES = resolve(SITE, "pages");
-/** Frozen builds of older docs versions, served under /docs/v<version>/ */
-export const ARCHIVE = resolve(SITE, "archive");
 /** Build output (the repository's dist/, as before the move to workspaces). */
 export const DIST = resolve(ROOT, "dist");
 /** The htmx-ui package's source as the site resolves it (workspace link to packages/ui). */

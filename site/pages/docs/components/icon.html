@@ -1,7 +1,7 @@
 {% extends "layouts/docs.html" %}
 {% from "components/icon/icon.html" import icon %}
 {% from "components/code/code.html" import code %}
-{% from "macros/docs.html" import demo, classes %}
+{% from "docs/macros.html" import demo, classes %}
 {% set title = "Icon" %}
 {% set description = "SVG icons stored as files in htmx-ui/icons and inlined into the HTML at build time, so they inherit colour and need no requests. They can also be linked as images." %}
 {% set icons = glob("icons/*.svg") %}

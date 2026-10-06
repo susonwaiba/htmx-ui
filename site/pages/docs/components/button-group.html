@@ -1,7 +1,7 @@
 {% extends "layouts/docs.html" %}
 {% from "components/icon/icon.html" import icon %}
 {% from "components/spinner/spinner.html" import spinner %}
-{% from "macros/docs.html" import demo, classes %}
+{% from "docs/macros.html" import demo, classes %}
 {% set title = "Button group" %}
 {% set description = "A container that joins related buttons, inputs and menus into one unit with shared borders." %}
 
@@ -157,7 +157,7 @@
           <button class="dropdown-item" role="menuitem">Mute conversation</button>
           <button class="dropdown-item" role="menuitem">Copy link</button>
           <div class="dropdown-separator" role="separator"></div>
-          <button class="dropdown-item text-danger" role="menuitem">Report</button>
+          <button class="dropdown-item dropdown-item-destructive" role="menuitem">Report</button>
         </div>
       </div>
     </div>

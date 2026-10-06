@@ -1,0 +1,326 @@
+{% extends "layouts/docs.html" %}
+{% from "components/code/code.html" import code %}
+{% from "components/alert/alert.html" import alert %}
+{% from "docs/macros.html" import classes %}
+{% set title = "Writing a plugin" %}
+{% set description = "Build an htmx-ui plugin: the hooks, templates, page edits with editHtml(), routes and build output, CLI commands, browser code, testing and publishing." %}
+
+{% block content %}
+  <p>
+    A plugin is an object with a <code>name</code> and the hooks it needs. Most hooks are config options you already
+    know (<code>globals</code>, <code>transform</code>, <code>routes</code>, <code>fetch</code>,
+    <code>build.done</code>), so anything a config can do, a plugin can package up. The engine merges every plugin into
+    the config once, when it loads, and every runtime and adapter reads that merged config: a plugin never needs to know
+    whether it is running under <code>htmx-ui dev</code>, a build, Vite or a server.
+  </p>
+  <p>
+    Start in your own project. A plugin can live in a file next to <code>htmx-ui.config.ts</code> and be imported like
+    any module; publish it once another site wants it.
+  </p>
+
+  <h2 id="example">A complete example</h2>
+  <p>
+    This plugin publishes an Atom feed of the pages under <code>/blog</code>. It uses most hooks: a template with a
+    <code>&lt;link&gt;</code> macro, a global, a transform, a route for development, a file for the build, and a
+    command.
+  </p>
+  {% call code("ts", title="plugins/feed/index.ts") %}
+    import { definePlugin, editHtml, pagesOf, renderPage, type ResolvedConfig } from "htmx-ui-engine";
+    import { writeFile } from "node:fs/promises";
+    import { join } from "node:path";
+    import { fileURLToPath } from "node:url";
+
+    export interface FeedOptions {
+      /** Pages under this prefix are posts. */
+      prefix?: string;
+      title: string;
+    }
+
+    export function feed({ prefix = "/blog", title }: FeedOptions) {
+      let config: ResolvedConfig;
+
+      /** Every post, newest first, from its <meta name="date"> and <h1>. */
+      function posts() {
+        return pagesOf(config)
+          .filter((p) => p.url.startsWith(prefix + "/"))
+          .map((p) => {
+            let date = "";
+            let heading = "";
+            let inH1 = false;
+            editHtml(renderPage(config, p.file), {
+              element(el) {
+                if (el.matches('meta[name="date"]')) date = el.getAttribute("content") ?? "";
+                if (el.tagName === "h1") {
+                  inH1 = true;
+                  el.onEndTag(() => void (inH1 = false));
+                }
+              },
+              text(chunk) {
+                if (inH1) heading += chunk;
+              },
+            });
+            return { url: config.origin + p.url, title: heading.trim(), date };
+          })
+          .sort((a, b) => b.date.localeCompare(a.date));
+      }
+
+      function xml() {
+        const items = posts().map((p) => `<entry><title>${p.title}</title><link href="${p.url}"/><updated>${p.date}</updated></entry>`);
+        return `<?xml version="1.0" encoding="utf-8"?>\n<feed xmlns="http://www.w3.org/2005/Atom"><title>${title}</title>${items.join("")}</feed>\n`;
+      }
+
+      return definePlugin({
+        name: "feed",
+        // templates/feed/link.html, reached as "feed/link.html"
+        roots: [fileURLToPath(new URL("./templates", import.meta.url))],
+        configResolved(c) {
+          config = c;
+        },
+        globals: { feedUrl: "/feed.xml" },
+        // Posts get an id on their <article>, so other pages can link to them
+        transform(html, page) {
+          if (!page.url.startsWith(prefix + "/")) return html;
+          return editHtml(html, {
+            element(el) {
+              if (el.tagName === "article" && !el.hasAttribute("id")) el.setAttribute("id", "post");
+            },
+          });
+        },
+        // dev and server adapters: generated on request
+        routes: {
+          "/feed.xml": () => new Response(xml(), { headers: { "Content-Type": "application/atom+xml; charset=utf-8" } }),
+        },
+        // htmx-ui build: written next to the pages
+        build: {
+          async done({ outDir }) {
+            await writeFile(join(outDir, "feed.xml"), xml());
+          },
+        },
+        commands: {
+          "feed:list": {
+            description: "list the posts in the feed",
+            run() {
+              for (const p of posts()) console.log(p.date, p.title);
+            },
+          },
+        },
+      });
+    }
+
+    export default feed;
+  {% endcall %}
+  {% call code("jinja", title="plugins/feed/templates/feed/link.html") %}
+{% raw %}
+{% macro feed_link() %}<link rel="alternate" type="application/atom+xml" href="{{ feedUrl }}" />{% endmacro %}
+{% endraw %}
+  {% endcall %}
+  <p>Use it like any other plugin:</p>
+  {% call code("ts", title="htmx-ui.config.ts") %}
+    import { defineConfig } from "htmx-ui-engine";
+    import feed from "./plugins/feed";
+
+    export default defineConfig({
+      url: "https://example.com",
+      plugins: [feed({ title: "My blog" })],
+    });
+  {% endcall %}
+  {% call code("jinja", title="layouts/post.html") %}
+{% raw %}
+{% from "feed/link.html" import feed_link %}
+<head>
+  {{ feed_link() }}
+  <meta name="date" content="{{ date }}" />
+</head>
+{% endraw %}
+  {% endcall %}
+
+  <h2 id="hooks">Hooks</h2>
+  <p>Every hook is optional except <code>name</code>.</p>
+  {{ classes([
+    ["name", "Unique. Other plugins find this one by it, and a config listing two plugins with one name refuses to load."],
+    ["roots", "Template roots, searched after the project's own and before htmx-ui's. Absolute, or relative to the project root."],
+    ["globals, filters", "Nunjucks globals and filters. The project's own of the same name win."],
+    ["transform(html, page)", "Post-process every rendered page, in dev, builds and servers. page is { file, url }. Runs before the project's own transform."],
+    ["routes", "Request handlers in Bun.serve route syntax (\"/feed.xml\", \"/api/:id\", \"/files/*\"), served by htmx-ui dev and by server adapters. Not part of a static build."],
+    ["fetch(req)", "Fallback for requests nothing else answered; return null to pass. Runs after the project's own fetch."],
+    ["build.done(ctx)", "After a production build, with { config, outDir, pages }: write files the static site needs. Runs before the project's own."],
+    ["commands", "CLI commands by name: { \"feed:list\": { description, usage, run(ctx) } }."],
+    ["configResolved(config)", "Called once the config is resolved, before anything renders, serves or builds. Keep the config for the other hooks."],
+    ["api", "Anything the plugin offers other plugins."]
+  ], heading="Hook") }}
+  {% call alert("A route serves, a build writes", variant="info") %}
+    <code>routes</code> answer only where a server runs. For a file the static site needs too, like the feed above,
+    generate it in a route for development and write the same thing in <code>build.done</code>. Both are cheap to keep
+    in sync when one function makes the content.
+  {% endcall %}
+
+  <h2 id="runtime">Runs on Bun and Node</h2>
+  <p>
+    Plugin code runs inside the config, and on Node the config is loaded by Vite. So a plugin uses
+    <code>node:</code> APIs (<code>node:fs</code>, <code>node:path</code>) rather than <code>Bun.file</code> or
+    <code>Bun.write</code>, and never <code>HTMLRewriter</code>, which Node does not have.
+  </p>
+  <ul>
+    <li>Read the config in <code>configResolved</code>, not at module scope: the same module may be loaded for several configs.</li>
+    <li>Globals and filters are synchronous, like Nunjucks itself: read files with <code>readFileSync</code> there.</li>
+    <li>Routes, fetch, build.done and commands may be <code>async</code>.</li>
+    <li>Find your own files from <code>import.meta.url</code> (<code>new URL("./templates", import.meta.url)</code>), never from the working directory.</li>
+  </ul>
+
+  <h2 id="edit-html">Editing pages: editHtml()</h2>
+  <p>
+    <code>editHtml(html, handlers)</code> from <code>htmx-ui-engine</code> is a small streaming HTML editor for
+    transforms. It behaves like Bun's <code>HTMLRewriter</code> where they overlap (text and attribute values arrive as
+    written, entities not decoded; <code>setAttribute</code> escapes only <code>"</code>), and it leaves every tag you
+    don't touch byte for byte, so an edit never reformats a page.
+  </p>
+  {% call code("ts") %}
+    import { editHtml } from "htmx-ui-engine";
+
+    const html = editHtml(page, {
+      element(el) {
+        if (el.matches("a[href^='http']") && !el.closest("nav")) el.setAttribute("rel", "noopener");
+        if (el.matches("h2") && el.closest("[data-docs-content]")) el.append(' <a href="#top">↑</a>');
+      },
+      text(chunk, parents) {
+        // each run of text, with the elements open around it
+      },
+    });
+  {% endcall %}
+  {{ classes([
+    ["tagName, parents", "The lowercased tag name; the open ancestors, outermost first."],
+    ["getAttribute, hasAttribute, setAttribute, removeAttribute", "Attributes, as written."],
+    ["matches(selector), closest(selector)", "Tag, #id, .class and [attr] tests (=, ~=, ^=, $=, *=), comma-separated. No combinators: closest() walks the ancestors."],
+    ["before, prepend, append, after (html)", "Insert markup around or inside the element."],
+    ["replace(html), remove()", "Replace or drop the whole element."],
+    ["onEndTag(fn)", "Run when the element closes: its text has been seen by then."]
+  ], heading="Element") }}
+
+  <h2 id="templates">Templates</h2>
+  <p>
+    Keep a plugin's templates in a directory named after it (<code>templates/feed/link.html</code>, reached as
+    <code>feed/link.html</code>), so they can't collide with a project's own or another plugin's. Prefer macros to
+    partials: a macro takes arguments, and a project calls it where it wants. Plugin templates can use htmx-ui's
+    components (<code>&#123;% from "components/icon/icon.html" import icon %&#125;</code>), since htmx-ui's
+    <code>src/</code> is searched after them.
+  </p>
+  <p>
+    A project overrides a template by having a file with the same name, so treat the names as your public API, and
+    document the <code>data-*</code> attributes your browser code relies on.
+  </p>
+
+  <h2 id="commands">Commands</h2>
+  <p><code>run</code> gets a context and returns an exit code (nothing means 0). Throw to fail with a message.</p>
+  {{ classes([
+    ["config", "The resolved config, plugins included."],
+    ["args", "Positional arguments after the command: htmx-ui versions:name 0.2.0 gives [\"0.2.0\"]."],
+    ["options", "Options as parsed: --force gives { force: true }, --to=x gives { to: \"x\" }."],
+    ["build()", "Build the site the way htmx-ui build does, on the runtime the CLI is running on. Resolves to whether it succeeded."]
+  ], heading="Context") }}
+  <p>Name commands <code>&lt;plugin&gt;:&lt;verb&gt;</code>. A plugin can't replace <code>dev</code>, <code>build</code> or <code>preview</code>, and two plugins can't share a command.</p>
+
+  <h2 id="other-plugins">Working with other plugins</h2>
+  <p>
+    A plugin finds another by name in <code>config.plugins</code> and uses its <code>api</code>. Look it up when you
+    need it, not in <code>configResolved</code>: the other plugin may come later in the list. Treat it as optional and
+    do something sensible without it, as the official plugins do with each other:
+  </p>
+  {% call code("ts") %}
+    const docs = config.plugins.find((p) => p.name === "docs")?.api as { pages(): { url: string; title: string }[] } | undefined;
+    const titles = docs ? docs.pages().map((p) => p.title) : [];
+  {% endcall %}
+
+  <h2 id="browser">Browser code and styles</h2>
+  <p>
+    The config side of a plugin never reaches the browser. Ship browser code as a separate entry
+    (<code>your-plugin/client</code>) that the project imports in its <code>app.ts</code>, and styles as a stylesheet
+    it imports after htmx-ui's:
+  </p>
+  {% call code("ts", title="src/client.ts") %}
+    import { queryAll } from "htmx-ui";
+
+    export function initFeedLinks(root: ParentNode = document) {
+      queryAll(root, "[data-feed-link]:not([data-init])").forEach((el) => {
+        el.dataset.init = "";
+        // ...
+      });
+    }
+  {% endcall %}
+  {% call code("css", title="src/styles.css") %}
+    /* Tailwind must see the utilities in the templates: Vite skips node_modules */
+    @source "./";
+
+    @layer components {
+      .feed-link {
+        @apply inline-flex items-center gap-1 text-muted-foreground;
+      }
+    }
+  {% endcall %}
+  <p>
+    Follow htmx-ui's component contract: take a <code>root</code>, find elements with <code>queryAll</code> (it
+    includes <code>root</code>), and mark each with <code>data-init</code>, so the function can also run on content
+    htmx swaps in. Build styles from htmx-ui's tokens (<code>bg-primary</code>, <code>text-muted-foreground</code>) so
+    they follow the theme and dark mode.
+  </p>
+
+  <h2 id="testing">Testing</h2>
+  <p>
+    Resolve a config with your plugin over a temporary project, then render pages with <code>renderPage</code> and send
+    requests through <code>createSite</code>, which answers like every adapter does:
+  </p>
+  {% call code("ts", title="index.test.ts") %}
+    import { expect, test } from "bun:test";
+    import { createSite, renderPage, resolveConfig } from "htmx-ui-engine";
+    import { mkdtemp, mkdir, writeFile } from "node:fs/promises";
+    import { tmpdir } from "node:os";
+    import { join } from "node:path";
+    import feed from "./index";
+
+    test("publishes the feed", async () => {
+      const root = await mkdtemp(join(tmpdir(), "feed-"));
+      await mkdir(join(root, "pages/blog"), { recursive: true });
+      await writeFile(join(root, "pages/blog/hello.html"), '<head><meta name="date" content="2026-01-02"></head><article><h1>Hello</h1></article>');
+
+      const config = resolveConfig({ url: "https://x.test", plugins: [feed({ title: "Blog" })] }, root);
+      expect(renderPage(config, join(root, "pages/blog/hello.html"))).toContain('<article id="post">');
+
+      const site = await createSite({ config });
+      const res = await site.handle(new Request("http://localhost/feed.xml"));
+      expect(await res.text()).toContain("<title>Hello</title>");
+    });
+  {% endcall %}
+  <p>
+    <code>config.user.build.done(&#123; config, outDir, pages &#125;)</code> runs the build hooks without a build, and
+    <code>config.plugins.find(...).commands</code> holds the commands to call directly.
+  </p>
+
+  <h2 id="publishing">Publishing</h2>
+  <ul>
+    <li>Name it <code>htmx-ui-plugin-&lt;name&gt;</code> and add the keyword <code>htmx-ui-plugin</code>, so it can be found.</li>
+    <li>Default-export a function that returns the plugin, taking an options object.</li>
+    <li>Make <code>htmx-ui-engine</code> (and <code>htmx-ui</code>, when you use its components) peer dependencies.</li>
+    <li>Ship compiled JavaScript for Node and for browser bundlers, which don't use the <code>bun</code> condition, and the TypeScript source for Bun. Templates and CSS ship as they are.</li>
+  </ul>
+  {% call code("json", title="package.json") %}
+    {
+      "name": "htmx-ui-plugin-feed",
+      "type": "module",
+      "keywords": ["htmx-ui", "htmx-ui-plugin"],
+      "sideEffects": ["**/*.css"],
+      "exports": {
+        ".": { "bun": "./src/index.ts", "types": "./lib/index.d.ts", "default": "./lib/index.js" },
+        "./client": { "bun": "./src/client.ts", "types": "./lib/client.d.ts", "default": "./lib/client.js" },
+        "./styles.css": "./src/styles.css"
+      },
+      "files": ["lib", "src"],
+      "peerDependencies": { "htmx-ui": "^0.2.0", "htmx-ui-engine": "^0.2.0" }
+    }
+  {% endcall %}
+  <p>
+    A compiled <code>lib/index.js</code> sits beside <code>src/</code>, so point at templates through the package
+    root and both find them: <code>new URL("../src/templates", import.meta.url)</code>. The official plugins in
+    <a href="https://github.com/susonwaiba/htmx-ui/tree/main/packages">the repository</a> are complete examples:
+    <code>plugin-search</code> is the smallest, templates and a browser module; <code>plugin-versions</code> has
+    commands.
+  </p>
+{% endblock %}

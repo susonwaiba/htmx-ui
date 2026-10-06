@@ -1,11 +1,16 @@
-// Docs version switcher and "old version" banner.
+// htmx-ui-plugin-versions/client: the docs version switcher and "old version" banner.
+//
+//   import { initVersions } from "htmx-ui-plugin-versions/client";
+//   document.addEventListener("DOMContentLoaded", () => initVersions());
 //
 // Archived pages are frozen HTML, so their banner is baked in when they are
-// archived (site/lib/versions.ts) and is there on first paint. This module reads
-// /docs/versions.json (bun/versions.ts) to rebuild the switcher's links so each points
-// at the same page in that version, when it exists there, and to refresh the banner when
-// a newer version has been released since. Because it runs at view time, frozen
-// snapshots also list versions that were released after them.
+// archived (./versions.ts) and is there on first paint. This module reads the
+// manifest (<prefix>/versions.json, the switcher's data-versions-src) to rebuild the
+// switcher's links so each points at the same page in that version, when it exists
+// there, and to refresh the banner when a newer version has been released since.
+// Because it runs at view time, frozen snapshots also list versions that were
+// released after them. Markup: version_switcher() and version_banner() in
+// versions/macros.html.
 
 type Manifest = {
   latest: string;
@@ -36,7 +41,7 @@ function link(href: string, label: string, current: boolean, latest: boolean, re
 }
 
 /**
- * Fill the banner. Archived pages ship it already built (site/lib/versions.ts), so its
+ * Fill the banner. Archived pages ship it already built (./versions.ts), so its
  * parts are reused and only the text is refreshed: no flash when nothing has changed.
  */
 function banner(el: HTMLElement, current: string, latestLabel: string, href: string) {

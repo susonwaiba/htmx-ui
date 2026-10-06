@@ -1,0 +1,63 @@
+{
+  "name": "htmx-ui-plugin-search",
+  "version": "0.1.0",
+  "description": "Site search for htmx-ui-engine sites: a Ctrl/⌘K command palette with fuzzy matching over pages and sections, reading the sitemap htmx-ui-plugin-docs publishes.",
+  "keywords": [
+    "htmx",
+    "htmx-ui",
+    "htmx-ui-plugin",
+    "search",
+    "command-palette",
+    "fuzzy-search",
+    "docs"
+  ],
+  "license": "MIT",
+  "author": "Suson Waiba",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/susonwaiba/htmx-ui.git",
+    "directory": "packages/plugin-search"
+  },
+  "bugs": "https://github.com/susonwaiba/htmx-ui/issues",
+  "homepage": "https://github.com/susonwaiba/htmx-ui#readme",
+  "type": "module",
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "exports": {
+    ".": {
+      "bun": "./src/index.ts",
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./client": {
+      "bun": "./src/client.ts",
+      "types": "./lib/client.d.ts",
+      "default": "./lib/client.js"
+    },
+    "./styles.css": "./src/styles.css",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "src",
+    "!src/**/*.test.ts"
+  ],
+  "engines": {
+    "node": ">=22.12.0",
+    "bun": ">=1.2.3"
+  },
+  "scripts": {
+    "build": "bun run ../../scripts/build-plugin.ts",
+    "prepublishOnly": "bun run --cwd ../.. release:check"
+  },
+  "peerDependencies": {
+    "htmx-ui": "workspace:^",
+    "htmx-ui-engine": "workspace:^"
+  },
+  "devDependencies": {
+    "@types/node": "^24",
+    "htmx-ui": "workspace:*",
+    "htmx-ui-engine": "workspace:*"
+  }
+}

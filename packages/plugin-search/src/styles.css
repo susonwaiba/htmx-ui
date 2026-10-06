@@ -1,0 +1,54 @@
+/* htmx-ui-plugin-search: import after Tailwind and htmx-ui's styles.
+     @import "tailwindcss";
+     @import "htmx-ui/styles.css";
+     @import "htmx-ui-plugin-search/styles.css";
+   The palette's own classes, built from htmx-ui's tokens so they follow the theme and
+   dark mode. @source makes Tailwind see the utilities in its template and client
+   whichever bundler compiles the stylesheet, including Vite, which skips node_modules. */
+@source "./";
+
+@layer components {
+  .search-dialog {
+    @apply m-auto mt-[12vh] max-h-[min(36rem,76vh)] w-[min(40rem,calc(100vw-2rem))] flex-col overflow-hidden
+      rounded-[calc(var(--radius)+6px)] border border-border bg-surface p-0 text-foreground shadow-2xl;
+  }
+  .search-dialog[open] {
+    @apply flex;
+  }
+  .search-dialog::backdrop {
+    @apply bg-black/50 backdrop-blur-[2px];
+  }
+  .search-field {
+    @apply flex items-center gap-3 border-b border-border px-4;
+  }
+  .search-input {
+    @apply h-13 min-w-0 flex-1 bg-transparent text-base outline-none placeholder:text-muted-foreground
+      [&::-webkit-search-cancel-button]:hidden;
+  }
+  .search-body {
+    @apply min-h-0 flex-1 overflow-y-auto overscroll-contain p-2;
+  }
+  .search-results:empty {
+    @apply hidden;
+  }
+  .search-group {
+    @apply px-2 pt-3 pb-1.5 text-xs font-medium text-muted-foreground first:pt-1;
+  }
+  .search-option {
+    @apply flex cursor-pointer flex-col gap-0.5 rounded-(--radius) px-3 py-2 text-sm outline-none
+      aria-selected:bg-accent aria-selected:text-accent-foreground;
+  }
+  .search-option-title {
+    @apply flex items-center gap-1.5 font-medium [&_svg]:size-3.5 [&_svg]:text-muted-foreground;
+  }
+  .search-option-snippet {
+    @apply line-clamp-2 text-xs text-muted-foreground [&_mark]:rounded-sm [&_mark]:bg-primary/15 [&_mark]:px-0.5
+      [&_mark]:text-foreground;
+  }
+  .search-message {
+    @apply px-4 py-10 text-center text-sm text-muted-foreground;
+  }
+  .search-footer {
+    @apply flex items-center gap-4 border-t border-border px-4 py-2.5 text-xs text-muted-foreground;
+  }
+}

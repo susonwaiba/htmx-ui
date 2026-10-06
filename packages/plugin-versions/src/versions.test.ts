@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { mkdtemp, mkdir, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { archiveDocs, archiveFile, bannerMarkup, rewriteMarkdown, rewriteUrl, versionLabel, versionsManifest, loadVersions } from "./versions";
+import { archiveDocs, archiveFile, bannerMarkup, loadVersions, nameVersion, rewriteMarkdown, rewriteUrl, startNext, versionId, versionLabel, versionsManifest } from "./versions";
 
 async function fixture(files: Record<string, string>): Promise<string> {
   const dir = await mkdtemp(join(tmpdir(), "versions-"));
@@ -131,15 +131,15 @@ describe("archiveDocs", () => {
 describe("archiveFile", () => {
   test("maps /docs/v<id>/ URLs to snapshot files", async () => {
     const archive = await fixture({ "v0.1/index.html": "", "v0.1/x.html": "", "v0.1/x.md": "", "v0.1.md": "", "v0.1/_assets/a.js": "" });
-    expect(await archiveFile("/docs/v0.1", archive)).toBe(join(archive, "v0.1/index.html"));
-    expect(await archiveFile("/docs/v0.1/", archive)).toBe(join(archive, "v0.1/index.html"));
-    expect(await archiveFile("/docs/v0.1/x", archive)).toBe(join(archive, "v0.1/x.html"));
-    expect(await archiveFile("/docs/v0.1/x.md", archive)).toBe(join(archive, "v0.1/x.md"));
-    expect(await archiveFile("/docs/v0.1.md", archive)).toBe(join(archive, "v0.1.md"));
-    expect(await archiveFile("/docs/v0.1/_assets/a.js", archive)).toBe(join(archive, "v0.1/_assets/a.js"));
-    expect(await archiveFile("/docs/v0.1/missing", archive)).toBeNull();
-    expect(await archiveFile("/docs/v0.1/../../etc/passwd", archive)).toBeNull();
-    expect(await archiveFile("/docs/components", archive)).toBeNull();
+    expect(archiveFile("/docs/v0.1", archive)).toBe(join(archive, "v0.1/index.html"));
+    expect(archiveFile("/docs/v0.1/", archive)).toBe(join(archive, "v0.1/index.html"));
+    expect(archiveFile("/docs/v0.1/x", archive)).toBe(join(archive, "v0.1/x.html"));
+    expect(archiveFile("/docs/v0.1/x.md", archive)).toBe(join(archive, "v0.1/x.md"));
+    expect(archiveFile("/docs/v0.1.md", archive)).toBe(join(archive, "v0.1.md"));
+    expect(archiveFile("/docs/v0.1/_assets/a.js", archive)).toBe(join(archive, "v0.1/_assets/a.js"));
+    expect(archiveFile("/docs/v0.1/missing", archive)).toBeNull();
+    expect(archiveFile("/docs/v0.1/../../etc/passwd", archive)).toBeNull();
+    expect(archiveFile("/docs/components", archive)).toBeNull();
   });
 });
 
@@ -183,5 +183,50 @@ describe("the version in development", () => {
     const archive = await fixture({});
     await expect(archiveDocs({ dist, id: "next", archive })).rejects.toThrow();
     expect(await Bun.file(join(archive, "vnext/index.html")).exists()).toBe(false);
+  });
+});
+
+describe("naming and starting versions", () => {
+  const working = { latest: "next", versions: [{ id: "next", label: "next" }, { id: "0.1", label: "v0.1", released: "2026-01-01", archived: true }] };
+
+  test("a release's docs version is its minor before 1.0 and its major after", () => {
+    expect(versionId("0.2.0")).toBe("0.2");
+    expect(versionId("0.2.3")).toBe("0.2");
+    expect(versionId("1.4.2")).toBe("1");
+    expect(versionId("2.0.0-beta.1")).toBe("2");
+    expect(versionId("0.3")).toBe("0.3"); // already a docs version
+    expect(() => versionId("next")).toThrow(/not a version/);
+  });
+
+  test("nameVersion numbers and dates 'next', and only 'next'", () => {
+    const named = nameVersion(working, "0.2", "2026-10-05");
+    expect(named).toEqual({
+      latest: "0.2",
+      versions: [{ id: "0.2", label: "v0.2", released: "2026-10-05" }, working.versions[1]!],
+    });
+    expect(() => nameVersion(named, "0.3")).toThrow(/not "next"/);
+    expect(() => nameVersion(working, "0.1")).toThrow(/already exists/);
+  });
+
+  test("startNext archives the latest version and opens a new 'next'", () => {
+    const named = nameVersion(working, "0.2", "2026-10-05");
+    expect(startNext(named)).toEqual({
+      latest: "next",
+      versions: [{ id: "next", label: "next" }, { id: "0.2", label: "v0.2", released: "2026-10-05", archived: true }, working.versions[1]!],
+    });
+    expect(() => startNext(working)).toThrow(/no release number/);
+  });
+});
+
+describe("another docs prefix", () => {
+  test("rewrites, serves and lists versions under it", async () => {
+    expect(rewriteUrl("/guide/setup", "1", "", new Set(), "/guide")).toBe("/guide/v1/setup");
+    expect(rewriteUrl("/docs/setup", "1", "", new Set(), "/guide")).toBe("/docs/setup");
+    const archive = await fixture({ "v1/index.html": "" });
+    expect(archiveFile("/guide/v1", archive, "/guide")).toBe(join(archive, "v1/index.html"));
+    expect(archiveFile("/docs/v1", archive, "/guide")).toBeNull();
+    const file = join(await fixture({}), "versions.json");
+    await writeFile(file, JSON.stringify({ latest: "2", versions: [{ id: "2", label: "v2" }, { id: "1", label: "v1" }] }));
+    expect((await loadVersions(file, "/guide")).versions.map((v) => v.path)).toEqual(["/guide", "/guide/v1"]);
   });
 });

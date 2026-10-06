@@ -16,7 +16,11 @@
     "customConditions": ["bun"],
     "paths": {
       "htmx-ui": ["./packages/ui/src/index.ts"],
-      "htmx-ui/theme": ["./packages/ui/src/theme.ts"]
+      "htmx-ui/theme": ["./packages/ui/src/theme.ts"],
+      // Plugins' browser modules: a browser build doesn't use the "bun" condition.
+      "htmx-ui-plugin-docs/client": ["./packages/plugin-docs/src/client.ts"],
+      "htmx-ui-plugin-search/client": ["./packages/plugin-search/src/client.ts"],
+      "htmx-ui-plugin-versions/client": ["./packages/plugin-versions/src/client.ts"]
     },
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,

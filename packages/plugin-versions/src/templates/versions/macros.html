@@ -1,0 +1,48 @@
+{# Docs version switcher and old-version banner (htmx-ui-plugin-versions).
+     {% from "versions/macros.html" import version_switcher, version_banner %}
+     {{ version_switcher(class="mb-6 w-full", links=[{ title: "Changelog", href: "/docs/changelog" }]) }}
+     {{ version_banner() }}   above the article title
+   Both read docsVersions(), the plugin's view of data/versions.json. Pages rendered
+   from source are always the latest version; older ones are frozen snapshots.
+
+   The version in development has no release number yet; it is listed as "next"
+   until `htmx-ui versions:name <x.y.z>` names it.
+
+   The links rendered here go to each version's root. At runtime
+   htmx-ui-plugin-versions/client rebuilds them from the manifest so they point at the
+   same page in each version and include versions released after this page was built.
+   Links carry data-version-link so archiving leaves them alone. Uses htmx-ui's
+   Dropdown component. Override by putting your own versions/macros.html in the project. #}
+{% from "components/icon/icon.html" import icon %}
+
+{# The dropdown. `links` are extra entries under a separator: [{ title, href }]. #}
+{% macro version_switcher(class="", links=[]) %}
+{% set all = docsVersions() %}
+<div class="dropdown {{ class }}" data-dropdown data-version-switcher data-version="{{ all.current }}" data-versions-src="{{ all.manifest }}">
+  <button type="button" class="btn btn-outline w-full justify-between" data-dropdown-trigger aria-haspopup="menu" aria-expanded="false">
+    <span class="flex items-center gap-2 text-muted-foreground">{{ icon("history") }} Version</span>
+    <span class="flex items-center gap-1.5"><span class="font-mono">{{ all.label }}</span>{{ icon("chevron-down") }}</span>
+  </button>
+  <div class="dropdown-menu w-full" role="menu" aria-label="Documentation version" hidden>
+    <p class="dropdown-label">Documentation versions</p>
+    <div data-version-items>
+      {% for v in all.versions %}
+        <a role="menuitem" class="dropdown-item" data-version-link href="{{ v.path }}"{% if v.id == all.current %} aria-current="true"{% endif %}>
+          <span class="font-mono">{{ v.label }}</span>
+          {% if v.latest %}<span class="badge badge-primary">{{ "In development" if (v.label == "next" or not v.released) else "Latest" }}</span>{% endif %}
+        </a>
+      {% endfor %}
+    </div>
+    {% if links.length %}
+      <div class="dropdown-separator" role="separator"></div>
+      {% for link in links %}
+        <a role="menuitem" class="dropdown-item" data-version-link href="{{ link.href }}">{{ link.title }} {{ icon("arrow-right") }}</a>
+      {% endfor %}
+    {% endif %}
+  </div>
+</div>
+{%- endmacro %}
+
+{# Where an archived page's "old version" banner goes. Empty on the latest docs: the
+   archiver bakes the banner in, and the client refreshes it at view time. #}
+{% macro version_banner() %}<div data-version-banner data-md-skip hidden></div>{% endmacro %}

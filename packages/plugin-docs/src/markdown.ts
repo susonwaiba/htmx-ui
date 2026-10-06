@@ -1,13 +1,14 @@
 // Converts a rendered docs page to Markdown for AI agents.
 //
 // Only the article body ([data-docs-content]) is converted, plus a frontmatter header built
-// from the page's title, description and section. The converter knows this
-// site's components:
+// from the page's title (its first h1 in <article>), description (<meta name="description">)
+// and section (the article's .eyebrow). The converter knows htmx-ui's components:
 //   .demo            -> just its source code block (the live preview is skipped)
 //   .code-block      -> fenced code; tabbed blocks become one fence per tab ("```bash npm")
 //   .alert           -> blockquote with a bold title
 //   a.card           -> "[Title](href): description"
 //   [data-md-skip]   -> omitted (use for purely visual blocks)
+// happy-dom parses the page, so this runs on Bun and Node alike.
 
 import { Window } from "happy-dom";
 import { slug } from "./anchors";

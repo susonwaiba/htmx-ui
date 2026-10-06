@@ -1,0 +1,105 @@
+{% extends "layouts/docs.html" %}
+{% from "components/code/code.html" import code, cli %}
+{% from "components/alert/alert.html" import alert %}
+{% from "docs/macros.html" import classes %}
+{% set title = "Search plugin" %}
+{% set description = "htmx-ui-plugin-search: a Ctrl/⌘K command palette that fuzzy-searches every page and section, with no server or search service." %}
+
+{% block content %}
+  <p>
+    <code>htmx-ui-plugin-search</code> adds a search button and a command palette. It opens with
+    <kbd class="kbd">Ctrl</kbd>/<kbd class="kbd">⌘</kbd> <kbd class="kbd">K</kbd> or <kbd class="kbd">/</kbd>,
+    matches pages and the sections inside them as you type, and opens the page or jumps straight to the section. There
+    is no server and no search service: it reads one JSON index, once, the first time it opens (or as soon as the
+    pointer reaches the button). Try it in this site's header.
+  </p>
+
+  <h2 id="install">Install</h2>
+  <p>The index is the <code>sitemap.json</code> the <a href="/docs/plugins/docs">docs plugin</a> publishes, so install both:</p>
+  {{ cli("add htmx-ui-plugin-search htmx-ui-plugin-docs") }}
+  {% call code("ts", title="htmx-ui.config.ts") %}
+    import { defineConfig } from "htmx-ui-engine";
+    import docs from "htmx-ui-plugin-docs";
+    import search from "htmx-ui-plugin-search";
+
+    export default defineConfig({
+      plugins: [docs(), search()],
+    });
+  {% endcall %}
+  {% call code("css", title="styles.css") %}
+    @import "tailwindcss";
+    @import "htmx-ui/styles.css";
+    @import "htmx-ui-plugin-search/styles.css";
+  {% endcall %}
+  {% call code("ts", title="app.ts") %}
+    import { initSearch } from "htmx-ui-plugin-search/client";
+
+    document.addEventListener("DOMContentLoaded", () => initSearch());
+  {% endcall %}
+  <p>Put the button and the palette in your header:</p>
+  {% call code("jinja", title="partials/header.html") %}
+{% raw %}
+{% from "search/macros.html" import search %}
+<header>
+  ...
+  {{ search() }}
+</header>
+{% endraw %}
+  {% endcall %}
+
+  <h2 id="macro">search()</h2>
+  {{ classes([
+    ["src", "The index to search. Default \"/sitemap.json\"."],
+    ["label", "The button's text. Default \"Search docs…\"."],
+    ["placeholder", "The input's placeholder."]
+  ], heading="Argument") }}
+  <p>
+    It renders a wide button with the shortcut on larger screens, an icon button on small ones, and one
+    <code>&lt;dialog&gt;</code>. Every element the client needs carries a <code>data-search-*</code> attribute;
+    <a href="/docs/plugins#overriding">override the template</a> to change the markup and keep those.
+  </p>
+
+  <h2 id="matching">How it matches</h2>
+  <p>
+    Every page is one record and every section of a page (the text under an <code>h2</code> or <code>h3</code>) is
+    another, so a hit can open <code>page#section</code>. Each word of the query must match somewhere in a record. A
+    word scores by how it matches, best first: the exact word, the start of a word, anywhere in a word, its letters in
+    order, then one typo; and by where, the title above a heading above the text. Results are grouped by page, best
+    page first.
+  </p>
+  {{ classes([
+    ["↑ ↓", "Move through the results."],
+    ["Enter", "Open the result. Ctrl/⌘ + Enter opens it in a new tab."],
+    ["Esc", "Close. So does clicking outside the palette."]
+  ], heading="Key") }}
+
+  <h2 id="versions">With versioned docs</h2>
+  <p>
+    With the <a href="/docs/plugins/versions">versions plugin</a>, a reader of an archived version searches that
+    version's own sitemap, so results stay in the docs they are reading. The palette's footer says which version it is
+    searching.
+  </p>
+
+  <h2 id="index">Your own index</h2>
+  <p>
+    Any JSON in the sitemap format works, so a blog or a site without the docs plugin can generate one from its
+    <code>build.done</code> hook and pass it as <code>src</code>:
+  </p>
+  {% call code("json", title="/search.json") %}
+    {
+      "pages": [
+        {
+          "url": "/blog/hello",
+          "title": "Hello",
+          "description": "The first post.",
+          "section": "Blog",
+          "sections": [{ "id": "why", "title": "Why", "text": "Plain text under the heading…" }]
+        }
+      ]
+    }
+  {% endcall %}
+  <p>
+    The matcher is exported for a search UI of your own: <code>buildIndex(sitemap)</code> turns a sitemap into
+    records, and <code>searchIndex(records, query, limit)</code> returns ranked results with a highlighted snippet.
+  </p>
+{% endblock %}

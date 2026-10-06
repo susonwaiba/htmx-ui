@@ -1,7 +1,7 @@
 {% extends "layouts/docs.html" %}
 {% from "components/code/code.html" import code %}
 {% from "components/alert/alert.html" import alert %}
-{% from "macros/docs.html" import demo, classes %}
+{% from "docs/macros.html" import demo, classes %}
 {% set title = "Text" %}
 {% set description = "Style long-form content without a class on every element: wrap it in .prose from @tailwindcss/typography, tuned to htmx-ui's tokens. Small helper classes cover single elements in UI chrome." %}
 {# This page demos .prose itself, which can't render inside another prose block's
@@ -126,7 +126,7 @@
       [".eyebrow", "Small primary-coloured label above a heading."],
       [".link", "Underlined link in the primary colour."],
       [".code", "Inline code outside prose."],
-      [".kbd", "Keyboard key outside prose."]
+      [".kbd", "Keyboard key outside prose; see Kbd for groups and keys in buttons and tooltips."]
     ]) }}
   </div>
 {% endblock %}

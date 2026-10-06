@@ -1,0 +1,130 @@
+{% extends "layouts/docs.html" %}
+{% from "components/code/code.html" import code, cli %}
+{% from "components/alert/alert.html" import alert %}
+{% from "docs/macros.html" import classes %}
+{% set title = "Versions plugin" %}
+{% set description = "htmx-ui-plugin-versions: keep every release's docs online as a frozen build, with a version switcher, an old-version banner and commands to name and archive versions." %}
+
+{% block content %}
+  <p>
+    <code>htmx-ui-plugin-versions</code> keeps the docs of every release online. The version being written renders
+    live at <code>/docs</code>, as usual. Each older one is a <strong>frozen build</strong> in
+    <code>archive/v&lt;id&gt;/</code>, served at <code>/docs/v&lt;id&gt;/</code>: its pages, scripts and styles exactly
+    as they were released, so later changes to components or layouts can never break them. This website's
+    <a href="/docs/versions">versions</a> work this way.
+  </p>
+
+  <h2 id="install">Install</h2>
+  {{ cli("add htmx-ui-plugin-versions") }}
+  {% call code("ts", title="htmx-ui.config.ts") %}
+    import { defineConfig } from "htmx-ui-engine";
+    import docs from "htmx-ui-plugin-docs";
+    import versions from "htmx-ui-plugin-versions";
+
+    export default defineConfig({
+      plugins: [docs(), versions()],
+    });
+  {% endcall %}
+  <p>List the versions. The one being written has no number yet; it is <code>next</code> until it is released:</p>
+  {% call code("json", title="data/versions.json") %}
+    {
+      "latest": "next",
+      "versions": [{ "id": "next", "label": "next" }]
+    }
+  {% endcall %}
+  {% call code("css", title="styles.css") %}
+    @import "tailwindcss";
+    @import "htmx-ui/styles.css";
+    @import "htmx-ui-plugin-versions/styles.css";
+  {% endcall %}
+  {% call code("ts", title="app.ts") %}
+    import { initVersions } from "htmx-ui-plugin-versions/client";
+
+    document.addEventListener("DOMContentLoaded", () => initVersions());
+  {% endcall %}
+  <p>
+    It works without the docs plugin, but with it each archived version also keeps its Markdown and its own sitemap,
+    the sitemaps list every version, and <a href="/docs/plugins/search">search</a> follows the version being read.
+  </p>
+
+  <h2 id="templates">The switcher and the banner</h2>
+  {% call code("jinja", title="layouts/docs.html") %}
+{% raw %}
+{% from "versions/macros.html" import version_switcher, version_banner %}
+
+<aside>
+  {{ version_switcher(class="mb-6 w-full", links=[{ title: "Changelog", href: "/docs/changelog" }]) }}
+</aside>
+<article>
+  {{ version_banner() }}
+  <h1>{{ title }}</h1>
+</article>
+{% endraw %}
+  {% endcall %}
+  {{ classes([
+    ["version_switcher(class, links)", "A Dropdown listing every version. links are extra entries under a separator: [{ title, href }]. At runtime the client points each version at the same page when it exists there, and adds versions released after the page was built."],
+    ["version_banner()", "Where an archived page's \"you're viewing an old version\" notice goes, linking to the same page in the latest version. Empty on the latest docs."],
+    ["docsVersions()", "The versions file as templates see it: latest, current, label, manifest and versions (id, label, released, path, latest)."]
+  ], heading="Template") }}
+  <p>
+    Archiving bakes the banner into every frozen page, so it shows without JavaScript. The client only refreshes it,
+    so an old version learns about releases that came after it.
+  </p>
+
+  <h2 id="releasing">Releasing a version</h2>
+  <p>The plugin adds two CLI commands. Give them scripts, so they run on the runtime you build with:</p>
+  {% call code("json", title="package.json") %}
+    {
+      "scripts": {
+        "docs:name": "htmx-ui versions:name",
+        "docs:archive": "htmx-ui versions:archive"
+      }
+    }
+  {% endcall %}
+  {{ cli(["run docs:name 1.2.0", "run docs:archive"]) }}
+  <ol>
+    <li>
+      <strong><code>versions:name &lt;x.y.z&gt;</code></strong> numbers <code>next</code> and dates it today. Docs are
+      versioned per minor before 1.0 (<code>0.2.0</code> becomes <code>0.2</code>) and per major after
+      (<code>1.2.0</code> becomes <code>1</code>); pass <code>0.2</code> or <code>1</code> to choose yourself. It
+      refuses when the latest version already has a number.
+    </li>
+    <li>
+      <strong><code>versions:archive</code></strong> builds the site, freezes the latest version's built docs into
+      <code>archive/v&lt;id&gt;/</code> and opens a new <code>next</code>. Links between docs pages are rewritten into
+      the snapshot, assets move to <code>_assets/</code>, and pages get <code>noindex</code> so old versions don't
+      compete with the latest in search results. <code>--skip-build</code> archives the <code>dist/</code> you already
+      have.
+    </li>
+  </ol>
+  <p>Commit <code>archive/</code> and <code>data/versions.json</code>.</p>
+  {% call alert("Never edit the archive by hand", variant="warning") %}
+    Snapshots are built output. Fix an old version by rebuilding it from its release and archiving it again. Patch
+    releases update the current docs in place rather than getting a version of their own.
+  {% endcall %}
+
+  <h2 id="urls">URLs</h2>
+  {{ classes([
+    ["/docs/...", "The latest version, rendered from pages/docs."],
+    ["/docs/v<id>/...", "An archived version, from archive/v<id>/. Also /docs/v<id>.md and each page's .md with the docs plugin."],
+    ["/docs/versions.json", "The manifest: every version with its path, release date, sitemap and the pages it has."]
+  ], heading="URL") }}
+  <p>
+    The version in development never reaches a URL: it is always served at <code>/docs</code>, and only archived
+    versions get a <code>/v&lt;id&gt;</code> prefix. Links that must point across versions carry
+    <code>data-version-link</code>, which archiving leaves alone.
+  </p>
+
+  <h2 id="options">Options</h2>
+  {{ classes([
+    ["prefix", "Route prefix of the docs, the same as the docs plugin's. Default \"/docs\"."],
+    ["file", "The versions file, relative to the project root. Default \"data/versions.json\"."],
+    ["archive", "Where frozen versions are kept, relative to the project root. Default \"archive\"."]
+  ], heading="Option") }}
+  <p>
+    The functions behind the commands are exported for release scripts of your own: <code>nameVersion</code>,
+    <code>startNext</code>, <code>archiveDocs</code>, <code>versionId</code>, <code>readVersionsFile</code> and
+    <code>writeVersionsFile</code>. This repository's <code>bun run version:set</code> uses them to name the docs
+    version and set its package versions in one step.
+  </p>
+{% endblock %}

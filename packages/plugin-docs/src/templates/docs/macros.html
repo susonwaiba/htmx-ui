@@ -1,6 +1,8 @@
-{# Docs-only helpers. Not part of the library.
-   {% from "macros/docs.html" import demo, classes %} #}
+{# Helpers for writing docs pages (htmx-ui-plugin-docs).
+   {% from "docs/macros.html" import demo, classes, markdown_actions %}
+   Override one by putting your own docs/macros.html in the project. #}
 {% from "components/code/code.html" import code_block %}
+{% from "components/icon/icon.html" import icon %}
 
 {# Live preview of the call body, with its source underneath.
    {% call demo() %}<button class="btn btn-primary">Hi</button>{% endcall %}
@@ -26,5 +28,16 @@
       {% endfor %}
     </tbody>
   </table>
+</div>
+{%- endmacro %}
+
+{# "Copy Markdown" and "View .md" for the page at `page_url` (usually `url`). The copy
+   button needs htmx-ui-plugin-docs/client (initMarkdownCopy) on the page. #}
+{% macro markdown_actions(page_url) %}
+<div class="flex flex-wrap gap-2">
+  <button type="button" class="btn btn-outline btn-sm" data-markdown-copy="{{ page_url }}.md">
+    {{ icon("copy") }} <span data-markdown-copy-label>Copy Markdown</span>
+  </button>
+  <a hx-boost="false" href="{{ page_url }}.md" target="_blank" class="btn btn-ghost btn-sm" title="This page as Markdown, for AI agents">{{ icon("file-text") }} View .md</a>
 </div>
 {%- endmacro %}

@@ -11,14 +11,16 @@
 //    - the engine's lib/ on Node: createSite() and the server adapters, with no
 //      framework installed, so they must not import one;
 //    - a site scaffolded by create-htmx-ui for each package manager on PATH, built
-//      and typechecked: bun (Bun runtime), and npm, pnpm, yarn (Node runtime, Vite).
+//      and typechecked: bun (Bun runtime), and npm, pnpm, yarn (Node runtime, Vite);
+//      then the same site with the docs, versions and search plugins: built, a docs
+//      version named and archived with their CLI commands, on that runtime.
 
 import { $ } from "bun";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { NEXT_VERSION } from "../site/lib/versions";
-import { CREATE, DIST, ENGINE, PACKAGES, ROOT, SRC, UI } from "./paths";
+import { NEXT_VERSION } from "../packages/plugin-versions/src/versions";
+import { CREATE, DIST, ENGINE, PACKAGES, PLUGINS, ROOT, SRC, UI } from "./paths";
 
 let failed = false;
 
@@ -42,7 +44,7 @@ const version: string = ui.version;
 await step("typecheck", () => quiet($`bun run typecheck`.cwd(ROOT)).then(() => {}));
 await step("tests", () => quiet($`bun test`.cwd(ROOT)).then(() => {}));
 await step("docs site build", () => quiet($`bun run build`.cwd(ROOT)).then(() => {}));
-await step("package builds (packages/ui/lib, packages/engine/lib)", () => quiet($`bun run build:lib`.cwd(ROOT)).then(() => {}));
+await step("package builds (packages/ui/lib, packages/engine/lib, packages/plugin-*/lib)", () => quiet($`bun run build:lib`.cwd(ROOT)).then(() => {}));
 
 await step("no template syntax in built pages", async () => {
   const leaks: string[] = [];
@@ -99,8 +101,14 @@ await step("pack htmx-ui", () =>
   pack(UI, ["package.json", "README.md", "LICENSE", "lib/index.js", "lib/index.d.ts", "lib/theme.js", "lib/theme.d.ts", "src/styles.css", "src/components/button/button.css", "src/components/icon/icon.html", "src/icons/sun.svg"]),
 );
 await step("pack htmx-ui-engine", () =>
-  pack(ENGINE, ["package.json", "README.md", "LICENSE", "bin/htmx-ui.js", "lib/index.js", "lib/index.d.ts", "lib/node/index.js", "lib/node/vite-plugin.js", "lib/node/vite-plugin.d.ts", "lib/express.js", "lib/elysia.js", "lib/hono.js", "src/bun/cli.ts", "src/bun/plugin.ts", "src/core/render.ts", "src/core/site.ts"]),
+  pack(ENGINE, ["package.json", "README.md", "LICENSE", "bin/htmx-ui.js", "lib/index.js", "lib/index.d.ts", "lib/node/index.js", "lib/node/vite-plugin.js", "lib/node/vite-plugin.d.ts", "lib/express.js", "lib/elysia.js", "lib/hono.js", "lib/fastify.js", "lib/koa.js", "src/bun/cli.ts", "src/bun/plugin.ts", "src/core/render.ts", "src/core/site.ts"]),
 );
+for (const dir of PLUGINS) {
+  const name = dir.split("/").pop()!.replace("plugin-", "");
+  await step(`pack htmx-ui-plugin-${name}`, () =>
+    pack(dir, ["package.json", "README.md", "LICENSE", "lib/index.js", "lib/index.d.ts", "lib/client.js", "lib/client.d.ts", "src/index.ts", "src/client.ts", "src/styles.css", `src/templates/${name}/macros.html`]),
+  );
+}
 await step("pack create-htmx-ui", () =>
   pack(CREATE, ["package.json", "README.md", "LICENSE", "index.js", "template/_gitignore", "template/htmx-ui.config.ts", "template/pages/index.html"]),
 );
@@ -155,19 +163,21 @@ await step("smoke test: htmx-ui-engine's lib/ on Node (createSite + server adapt
   await quiet($`bun add -d @types/node`.cwd(app));
   await quiet($`bun add ${tarballs["htmx-ui-engine"]!}`.cwd(app));
   // A consumer that imports every server entry point; it must typecheck without
-  // express, elysia or hono in the project, because the adapters never import them.
+  // express, elysia, hono, fastify or koa in the project, because the adapters never import them.
   await Bun.write(
     join(app, "server.ts"),
     `import { createSite } from "htmx-ui-engine";\n` +
       `import { htmxUi as expressUi } from "htmx-ui-engine/express";\n` +
       `import { htmxUi as elysiaUi } from "htmx-ui-engine/elysia";\n` +
       `import { htmxUi as honoUi } from "htmx-ui-engine/hono";\n` +
+      `import { htmxUi as fastifyUi } from "htmx-ui-engine/fastify";\n` +
+      `import { htmxUi as koaUi } from "htmx-ui-engine/koa";\n` +
       `const site = await createSite();\n` +
-      `const handlers = [expressUi({ site }), elysiaUi({ site }), honoUi({ site })];\n` +
+      `const handlers = [expressUi({ site }), elysiaUi({ site }), honoUi({ site }), fastifyUi({ site }), koaUi({ site })];\n` +
       `const html: string = await site.render(site.pages[0]!.path);\n` +
       `const fragment: string = site.fragment("partials/x.html");\n` +
-      `const served: Response | null = await site.handle(new Request("https://example.com/"));\n` +
-      `console.log(handlers.length, html.length, fragment.length, served?.status);\n`,
+      `const served: Response = await site.handle(new Request("https://example.com/"));\n` +
+      `console.log(handlers.length, html.length, fragment.length, served.status);\n`,
   );
   failIfNot(
     await $`bunx tsc --noEmit --strict --module preserve --moduleResolution bundler --target esnext --lib esnext,dom server.ts`.cwd(app).quiet().nothrow(),
@@ -176,7 +186,7 @@ await step("smoke test: htmx-ui-engine's lib/ on Node (createSite + server adapt
   // Node resolves the "default" condition: lib/, which must export what the types promise
   const probe =
     `const core = await import("htmx-ui-engine");` +
-    `const adapters = await Promise.all(["express", "elysia", "hono"].map((n) => import("htmx-ui-engine/" + n)));` +
+    `const adapters = await Promise.all(["express", "elysia", "hono", "fastify", "koa"].map((n) => import("htmx-ui-engine/" + n)));` +
     `if (typeof core.createSite !== "function") { console.error(Object.keys(core)); process.exit(1); }` +
     `for (const [i, a] of adapters.entries()) if (typeof a.htmxUi !== "function") { console.error(i, Object.keys(a)); process.exit(1); }`;
   failIfNot(await $`node --input-type=module -e ${probe}`.cwd(app).quiet().nothrow(), "importing htmx-ui-engine's lib/ on Node");
@@ -184,6 +194,17 @@ await step("smoke test: htmx-ui-engine's lib/ on Node (createSite + server adapt
 
 /** This script's environment minus the npm_config_* / npm_* variables Bun sets, so each package manager sets its own. */
 const cleanEnv = Object.fromEntries(Object.entries(process.env).filter(([k]) => !/^npm_/i.test(k))) as Record<string, string>;
+
+/**
+ * `pm install` in `dir`. Yarn 1 caches `file:` tarballs under a key that doesn't change with
+ * their content, and every run packs to the same relative path (`../htmx-ui-engine-0.1.0.tgz`),
+ * so a shared cache hands back a tarball packed by an earlier run. Yarn gets a cache of its
+ * own in this run's work directory.
+ */
+async function install(pm: "bun" | "npm" | "pnpm" | "yarn", dir: string, what: string) {
+  const env = pm === "yarn" ? { ...cleanEnv, YARN_CACHE_FOLDER: join(work, "yarn-cache") } : cleanEnv;
+  failIfNot(await $`${pm} install`.cwd(dir).env(env).quiet().nothrow(), what);
+}
 
 /** Scaffold a site with the packed create-htmx-ui for `pm`, install the packed packages, build, typecheck. */
 async function scaffolded(pm: "bun" | "npm" | "pnpm" | "yarn") {
@@ -198,7 +219,7 @@ async function scaffolded(pm: "bun" | "npm" | "pnpm" | "yarn") {
   pkg.devDependencies["htmx-ui-engine"] = `file:${tarballs["htmx-ui-engine"]}`;
   await Bun.write(join(dir, "package.json"), JSON.stringify(pkg, null, 2));
 
-  failIfNot(await $`${pm} install`.cwd(dir).env(cleanEnv).quiet().nothrow(), `${pm} install`);
+  await install(pm, dir, `${pm} install`);
   failIfNot(await $`${pm} run build`.cwd(dir).env(cleanEnv).quiet().nothrow(), `${pm} run build`);
   for (const page of ["index.html", "about.html", "favicon.svg"]) {
     if (!(await Bun.file(join(dir, "dist", page)).exists())) throw new Error(`${pm}: dist/${page} missing`);
@@ -210,13 +231,73 @@ async function scaffolded(pm: "bun" | "npm" | "pnpm" | "yarn") {
   failIfNot(await $`bunx tsc --noEmit -p .`.cwd(dir).quiet().nothrow(), `${pm}: project typecheck`);
 }
 
+/** The scaffolded site plus the three plugins, set up as their docs say: build, name a version, archive it. */
+async function withPlugins(pm: "bun" | "npm" | "pnpm" | "yarn") {
+  const dir = join(work, `site-${pm}`);
+  const pkg = await Bun.file(join(dir, "package.json")).json();
+  for (const name of ["docs", "versions", "search"]) pkg.dependencies[`htmx-ui-plugin-${name}`] = `file:${tarballs[`htmx-ui-plugin-${name}`]}`;
+  // No arguments after the script name: package managers pass them on differently.
+  Object.assign(pkg.scripts, { "docs:name": "htmx-ui versions:name 0.1.0", "docs:archive": "htmx-ui versions:archive" });
+  await Bun.write(join(dir, "package.json"), JSON.stringify(pkg, null, 2));
+
+  await Bun.write(
+    join(dir, "htmx-ui.config.ts"),
+    `import { defineConfig } from "htmx-ui-engine";\nimport docs from "htmx-ui-plugin-docs";\nimport search from "htmx-ui-plugin-search";\nimport versions from "htmx-ui-plugin-versions";\n\n` +
+      `export default defineConfig({ url: "https://smoke.test", plugins: [docs({ name: "Smoke", description: "Smoke docs." }), versions(), search()] });\n`,
+  );
+  await Bun.write(join(dir, "data/docs-nav.json"), JSON.stringify({ sections: [{ title: "Start", items: [{ title: "Intro", href: "/docs" }, { title: "Guide", href: "/docs/guide" }] }] }));
+  await Bun.write(join(dir, "data/versions.json"), JSON.stringify({ latest: "next", versions: [{ id: "next", label: "next" }] }));
+  await Bun.write(
+    join(dir, "layouts/docs.html"),
+    `{% extends "layouts/base.html" %}{% from "docs/macros.html" import markdown_actions %}{% from "search/macros.html" import search %}` +
+      `{% from "versions/macros.html" import version_switcher, version_banner %}{% set nav = docsNav(url) %}` +
+      `{% block content %}{{ search() }}{{ version_switcher() }}<article>{{ version_banner() }}<p class="eyebrow">{{ nav.section }}</p><h1>{{ title }}</h1>` +
+      `{{ markdown_actions(url) }}<div data-docs-content>{% block docs %}{% endblock %}</div></article>{% endblock %}`,
+  );
+  const page = (title: string, body: string) => `{% extends "layouts/docs.html" %}{% set title = "${title}" %}{% block docs %}${body}{% endblock %}`;
+  await Bun.write(join(dir, "pages/docs/index.html"), page("Intro", "<p>Welcome.</p>"));
+  await Bun.write(join(dir, "pages/docs/guide.html"), page("Guide", '<h2>Set up</h2><p>See <a href="/docs">the intro</a>.</p>'));
+  const app = await Bun.file(join(dir, "app.ts")).text();
+  await Bun.write(
+    join(dir, "app.ts"),
+    `import { initMarkdownCopy } from "htmx-ui-plugin-docs/client";\nimport { initSearch } from "htmx-ui-plugin-search/client";\nimport { initVersions } from "htmx-ui-plugin-versions/client";\n` +
+      app +
+      `document.addEventListener("DOMContentLoaded", () => {\n  initMarkdownCopy();\n  initVersions();\n  initSearch();\n});\n`,
+  );
+  const css = await Bun.file(join(dir, "styles.css")).text();
+  const imports = ["docs", "versions", "search"].map((n) => `@import "htmx-ui-plugin-${n}/styles.css";`).join("\n");
+  await Bun.write(join(dir, "styles.css"), css.replace('@import "htmx-ui/styles.css";', `@import "htmx-ui/styles.css";\n${imports}`));
+
+  await install(pm, dir, `${pm} install (plugins)`);
+  failIfNot(await $`${pm} run build`.cwd(dir).env(cleanEnv).quiet().nothrow(), `${pm} run build (plugins)`);
+  const read = (f: string) => Bun.file(join(dir, f)).text();
+  if (!(await read("dist/llms.txt")).includes("- [Guide](https://smoke.test/docs/guide.md)")) throw new Error(`${pm}: dist/llms.txt is missing the guide`);
+  if (!(await read("dist/docs/guide.md")).includes("## Set up")) throw new Error(`${pm}: dist/docs/guide.md is wrong`);
+  const sitemap = JSON.parse(await read("dist/sitemap.json"));
+  if (sitemap.version !== "next" || sitemap.versions?.length !== 1) throw new Error(`${pm}: dist/sitemap.json has no versions`);
+  const guide = await read("dist/docs/guide.html");
+  for (const needle of ['id="set-up"', "heading-anchor", "data-version-switcher", "data-search-dialog", 'data-markdown-copy="/docs/guide.md"']) {
+    if (!guide.includes(needle)) throw new Error(`${pm}: dist/docs/guide.html is missing ${needle}`);
+  }
+  await checkCss(join(dir, "dist"), [".search-dialog", ".search-option", ".btn-primary", ".font-mono"]);
+  failIfNot(await $`bunx tsc --noEmit -p .`.cwd(dir).quiet().nothrow(), `${pm}: project typecheck (plugins)`);
+
+  failIfNot(await $`${pm} run docs:name`.cwd(dir).env(cleanEnv).quiet().nothrow(), `${pm} run docs:name (htmx-ui versions:name)`);
+  failIfNot(await $`${pm} run docs:archive`.cwd(dir).env(cleanEnv).quiet().nothrow(), `${pm} run docs:archive (htmx-ui versions:archive)`);
+  const frozen = await read("archive/v0.1/guide.html");
+  if (!frozen.includes('href="/docs/v0.1"') || !frozen.includes("You're viewing the docs for v0.1.")) throw new Error(`${pm}: archive/v0.1/guide.html was not frozen`);
+  if (JSON.parse(await read("data/versions.json")).latest !== "next") throw new Error(`${pm}: versions:archive did not start a new next`);
+}
+
 for (const pm of ["bun", "npm", "pnpm", "yarn"] as const) {
   if (!Bun.which(pm)) {
     console.log(`• smoke test: create-htmx-ui with ${pm} … skipped (${pm} not on PATH)`);
     if (pm === "npm") failed = true; // the Node runtime must be covered
     continue;
   }
-  await step(`smoke test: create-htmx-ui with ${pm} (${pm === "bun" ? "Bun" : "Node + Vite"}), install, build, typecheck`, () => scaffolded(pm));
+  const runtime = pm === "bun" ? "Bun" : "Node + Vite";
+  await step(`smoke test: create-htmx-ui with ${pm} (${runtime}), install, build, typecheck`, () => scaffolded(pm));
+  await step(`smoke test: the docs, versions and search plugins with ${pm} (${runtime}): build, versions:name, versions:archive`, () => withPlugins(pm));
 }
 
 await rm(work, { recursive: true, force: true });
@@ -225,4 +306,5 @@ if (failed) {
   console.error("\nRelease check failed.");
   process.exit(1);
 }
-console.log(`\nReady to publish ${PACKAGES.length} packages at ${version}: htmx-ui, htmx-ui-engine, create-htmx-ui.`);
+const names = await Promise.all(PACKAGES.map(async (dir) => (await read(dir)).name));
+console.log(`\nReady to publish ${PACKAGES.length} packages at ${version}: ${names.join(", ")}.`);

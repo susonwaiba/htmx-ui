@@ -1,0 +1,133 @@
+{% extends "layouts/docs.html" %}
+{% from "components/code/code.html" import code, cli %}
+{% from "components/alert/alert.html" import alert %}
+{% from "docs/macros.html" import classes %}
+{% set title = "Plugins" %}
+{% set description = "Optional features on top of htmx-ui-engine: install a plugin, list it in your config, and its templates, routes, build output and commands join your site." %}
+
+{% block content %}
+  <p>
+    Most sites are a handful of pages, and the engine keeps them small. Features only some sites need, such as a docs
+    section, versioned docs or site search, are <strong>plugins</strong>: separate packages you install and list in
+    <code>htmx-ui.config.ts</code>. A site that doesn't use one doesn't install it or load it, and nothing in its build
+    changes.
+  </p>
+  <p>
+    A plugin can add everything a config can: templates and macros, template globals and filters, a transform over
+    every page, request handlers, files written by the build, and CLI commands. They work the same in
+    <code>htmx-ui dev</code>, <code>htmx-ui build</code>, on Bun and on Node, and behind every
+    <a href="/docs/servers">server adapter</a>.
+  </p>
+
+  <h2 id="official">Official plugins</h2>
+  <div class="table-wrap not-prose">
+    <table class="table">
+      <thead><tr><th>Plugin</th><th>Package</th><th>Adds</th></tr></thead>
+      <tbody>
+        <tr><td><a class="link" href="/docs/plugins/docs">Docs</a></td><td><code class="code">htmx-ui-plugin-docs</code></td><td class="text-muted-foreground">Heading anchors, Markdown for every docs page, llms.txt, JSON and XML sitemaps, navigation and page macros.</td></tr>
+        <tr><td><a class="link" href="/docs/plugins/versions">Versions</a></td><td><code class="code">htmx-ui-plugin-versions</code></td><td class="text-muted-foreground">Older releases' docs kept online as frozen builds, a version switcher, an old-version banner, and commands to name and archive versions.</td></tr>
+        <tr><td><a class="link" href="/docs/plugins/search">Search</a></td><td><code class="code">htmx-ui-plugin-search</code></td><td class="text-muted-foreground">A Ctrl/⌘K command palette that fuzzy-searches pages and sections.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>
+    They work alone and better together: search reads the sitemap the docs plugin publishes, and with the versions
+    plugin, readers of old docs search that version and the sitemaps describe every version. This website uses all
+    three.
+  </p>
+
+  <h2 id="using">Using a plugin</h2>
+  <p>Install it, then list it under <code>plugins</code>:</p>
+  {{ cli("add htmx-ui-plugin-docs") }}
+  {% call code("ts", title="htmx-ui.config.ts") %}
+    import { defineConfig } from "htmx-ui-engine";
+    import docs from "htmx-ui-plugin-docs";
+
+    export default defineConfig({
+      url: "https://example.com",
+      plugins: [docs({ name: "Acme", description: "Acme's docs." })],
+    });
+  {% endcall %}
+  <p>
+    Each plugin is a function: call it, with options if it takes any, and the result goes in the list. Restart
+    <code>htmx-ui dev</code> after changing the list. A plugin that has a browser side or styles says so in its docs;
+    those are two lines you add yourself, so you decide where they go:
+  </p>
+  {% call code("ts", title="app.ts") %}
+    import { initMarkdownCopy } from "htmx-ui-plugin-docs/client";
+
+    document.addEventListener("DOMContentLoaded", () => {
+      initMarkdownCopy();
+    });
+  {% endcall %}
+  {% call code("css", title="styles.css") %}
+    @import "tailwindcss";
+    @import "htmx-ui/styles.css";
+    @import "htmx-ui-plugin-docs/styles.css";
+  {% endcall %}
+  <p>
+    A plugin's stylesheet also tells Tailwind to scan the plugin's templates, so the utilities they use are generated
+    on Node too, where Vite doesn't look inside <code>node_modules</code>.
+  </p>
+
+  <h3 id="conditional">Only in some environments</h3>
+  <p><code>plugins</code> skips <code>false</code>, <code>null</code> and <code>undefined</code>, and flattens nested lists, so a plugin can be switched on by a condition:</p>
+  {% call code("ts", title="htmx-ui.config.ts") %}
+    const preview = process.env.PREVIEW === "1";
+
+    export default defineConfig({
+      plugins: [docs(), preview && search()],
+    });
+  {% endcall %}
+
+  <h2 id="order">Who wins</h2>
+  <p>Your own config always has the last word. Between plugins, the order of the list decides.</p>
+  {{ classes([
+    ["routes", "Merged. Your route on the same pattern replaces a plugin's; a later plugin's replaces an earlier one's."],
+    ["globals, filters", "Merged the same way: yours win, then later plugins."],
+    ["fetch", "Yours runs first; then each plugin's in order, until one answers."],
+    ["transform", "Each plugin's in order, then yours, so yours sees their output."],
+    ["build.done", "Each plugin's in order, then yours."],
+    ["Templates", "Your project's roots first, then each plugin's, then htmx-ui's. A file of yours with the same name as a plugin's template replaces it."],
+    ["Commands", "A plugin can't replace dev, build or preview, and two plugins can't add the same command: the config refuses to load."]
+  ], heading="Hook") }}
+
+  <h2 id="overriding">Overriding a plugin's templates</h2>
+  <p>
+    Plugins keep their templates in a directory named after themselves, such as <code>search/macros.html</code>, and
+    their template root is searched after yours. To change one, copy it into your project under the same name and
+    edit it: your copy wins, everywhere it is used.
+  </p>
+  {% call code("text", title="my-site/") %}
+    search/macros.html      your own search() replaces the plugin's
+    pages/  layouts/        ...
+  {% endcall %}
+  {% call alert("Keep the data attributes", variant="info") %}
+    A plugin's browser code finds its markup by <code>data-*</code> attributes (<code>data-search-dialog</code>,
+    <code>data-version-switcher</code>, ...). Change the classes and the layout as you like; keep the attributes its
+    docs list.
+  {% endcall %}
+
+  <h2 id="commands">Plugin commands</h2>
+  <p>A plugin can add commands to the CLI. <code>htmx-ui --help</code> lists the ones your plugins add:</p>
+  {% call code("txt", title="htmx-ui --help") %}
+    ...
+    Plugin commands:
+      versions:name <x.y.z>            name the docs version in development (versions)
+      versions:archive [--skip-build]  build, freeze the latest docs version, start a new next (versions)
+  {% endcall %}
+  <p>They run on the same runtime as the rest of the CLI, so add them to <code>package.json</code> scripts like any other:</p>
+  {% call code("json", title="package.json") %}
+    {
+      "scripts": {
+        "docs:archive": "htmx-ui versions:archive"
+      }
+    }
+  {% endcall %}
+
+  <h2 id="writing">Writing your own</h2>
+  <p>
+    A plugin is an object with a name and the hooks it needs, so a project can keep one in its own repository before
+    it is worth publishing. See <a href="/docs/plugins/writing">Writing a plugin</a>.
+  </p>
+{% endblock %}

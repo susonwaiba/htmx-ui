@@ -1,17 +1,24 @@
-{# Site search (site/features/search.ts): a header button and a <dialog> command
-   palette. Opens with Ctrl/⌘K or "/", searches the sitemap of the docs version
-   being read, and navigates to the page or exact section. #}
+{# Site search (htmx-ui-plugin-search): a header button and a <dialog> command palette.
+     {% from "search/macros.html" import search %}
+     {{ search() }}
+   Opens with Ctrl/⌘K or "/", searches `src` (a sitemap.json: htmx-ui-plugin-docs
+   publishes /sitemap.json) or, on archived docs, that version's own, and navigates to
+   the page or exact section. Needs htmx-ui-plugin-search/client (initSearch) on the
+   page and htmx-ui-plugin-search/styles.css. Override by putting your own
+   search/macros.html in the project. #}
 {% from "components/icon/icon.html" import icon %}
+
+{% macro search(src="/sitemap.json", label="Search docs…", placeholder="Search docs, components, sections…") %}
 <button type="button" class="btn btn-outline btn-sm hidden w-56 justify-between font-normal text-muted-foreground md:inline-flex" data-search-open aria-haspopup="dialog" aria-label="Search the docs">
-  <span class="inline-flex items-center gap-2">{{ icon("search") }} Search docs…</span>
+  <span class="inline-flex items-center gap-2">{{ icon("search") }} {{ label }}</span>
   <kbd class="kbd" data-search-shortcut>Ctrl K</kbd>
 </button>
 <button type="button" class="btn btn-ghost btn-icon md:hidden" data-search-open aria-haspopup="dialog" aria-label="Search the docs">{{ icon("search") }}</button>
 
-<dialog class="search-dialog" data-search-dialog aria-label="Search the docs">
+<dialog class="search-dialog" data-search-dialog data-search-src="{{ src }}" aria-label="Search the docs">
   <div class="search-field">
     {{ icon("search", "size-4 shrink-0 text-muted-foreground") }}
-    <input type="search" class="search-input" placeholder="Search docs, components, sections…" autocomplete="off" spellcheck="false"
+    <input type="search" class="search-input" placeholder="{{ placeholder }}" autocomplete="off" spellcheck="false"
       role="combobox" aria-expanded="false" aria-controls="search-results" aria-autocomplete="list" aria-label="Search" data-search-input />
     <kbd class="kbd">Esc</kbd>
   </div>
@@ -25,3 +32,4 @@
     <span class="ml-auto" data-search-version></span>
   </div>
 </dialog>
+{%- endmacro %}

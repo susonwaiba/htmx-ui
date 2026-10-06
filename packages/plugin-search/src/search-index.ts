@@ -1,5 +1,5 @@
-// Fuzzy search over a sitemap.json (bun/site.ts). Pure functions, no DOM, so it
-// is easy to test; site/features/search.ts renders the results.
+// Fuzzy search over a sitemap.json (the format htmx-ui-plugin-docs publishes). Pure
+// functions, no DOM, so it is easy to test; ./client.ts renders the results.
 //
 // Every page becomes one record, and every section of a page (text under an h2/h3,
 // linked by its heading anchor) becomes another, so a hit can open `url#section`.

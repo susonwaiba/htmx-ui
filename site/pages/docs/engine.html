@@ -1,7 +1,7 @@
 {% extends "layouts/docs.html" %}
 {% from "components/code/code.html" import code, code_tabs, cli %}
 {% from "components/alert/alert.html" import alert %}
-{% from "macros/docs.html" import classes %}
+{% from "docs/macros.html" import classes %}
 {% set title = "Engine" %}
 {% set description = "htmx-ui-engine builds a site from Nunjucks pages: file-based routing, Tailwind, a dev server with hot reload and mock htmx endpoints, and static builds, on Bun or Node." %}
 
@@ -101,7 +101,8 @@
     ["fetch(req)", "Fallback for anything else; return null for a 404."],
     ["build.minify, build.sourcemap, build.define", "Production bundling options."],
     ["build.done(ctx)", "Runs after a build with { outDir, pages }, e.g. to write a sitemap."],
-    ["vite", "Node only: extra Vite config, merged over the engine's."]
+    ["vite", "Node only: extra Vite config, merged over the engine's."],
+    ["plugins", "Optional features, such as docs, versions and search: [docs(), search()]. See Plugins below."]
   ], heading="Option") }}
   <p>
     <code>globals</code> and <code>filters</code> are where a project adds its own template helpers; see
@@ -165,7 +166,7 @@
     });
   {% endcall %}
   <p>
-    See <a href="/docs/servers#static-and-dynamic">static pages, dynamic fragments</a> for the copy step, and
+    See <a href="/docs/servers/deploying#static-and-dynamic">static pages, dynamic fragments</a> for the copy step, and
     <code>render</code> for the startup check that says what is missing.
   </p>
 
@@ -204,7 +205,8 @@
   {% endcall %}
   {% call alert("Dev server and your own server", variant="info") %}
     <code>htmx-ui build</code> is static, so a static host never sees these routes. Mount the site on a backend with
-    <a href="/docs/servers">a server adapter</a> and they are served there too, by your own process.
+    <a href="/docs/servers">a server adapter</a> and they are served there too, by your own process, so
+    <a href="/docs/servers/deploying#mock-routes">leave mocks out of production</a>.
   {% endcall %}
 
   <h2 id="debug">Debugging</h2>
@@ -233,8 +235,9 @@
   {% endcall %}
   <p>
     Where the answer came from is one of: a pattern from <code>routes</code>, <code>dist</code> for a built file,
-    <code>fetch</code> for the config's fallback, <code>404.html</code>, or <code>nothing</code> when the site
-    leaves the path to your host.
+    <code>page</code> for a page rendered from its template in development, <code>fetch</code> for the config's
+    fallback, then a 404: <code>404.html</code> from the build, <code>pages/404.html</code> in development, or
+    <code>default 404</code> for htmx-ui's own page.
   </p>
   <p>
     Narrow the output to what you are looking at by listing topics instead: <code>requests</code>,
@@ -258,50 +261,41 @@
     [htmx-ui] fragment partials/row.html done 0.2KB 0.4ms
   {% endcall %}
 
+  <h2 id="extending">Plugins</h2>
+  <p>
+    Features only some sites need are plugins: separate packages listed in <code>plugins</code>, which add templates,
+    routes, build output and commands. The official ones give a site <a href="/docs/plugins/docs">docs</a> with
+    Markdown and llms.txt, <a href="/docs/plugins/versions">versioned docs</a> and <a href="/docs/plugins/search">search</a>:
+  </p>
+  {% call code("ts", title="htmx-ui.config.ts") %}
+    import { defineConfig } from "htmx-ui-engine";
+    import docs from "htmx-ui-plugin-docs";
+    import search from "htmx-ui-plugin-search";
+
+    export default defineConfig({
+      plugins: [docs(), search()],
+    });
+  {% endcall %}
+  <p>See <a href="/docs/plugins">Plugins</a>, and <a href="/docs/plugins/writing">Writing a plugin</a> to make your own.</p>
+
   <h2 id="servers">Serving it from a backend</h2>
   <p>
-    A built site is just files, so any server can host it. <code>createSite()</code> from the package root does the
-    serving — pages, assets, the config's routes and <code>fetch</code>, then your built <code>404.html</code> — and
-    <code>createSite().handle(request)</code> is all it takes to plug it into your own:
+    A built site is just files, so any server can host it. To put the site and your own API in one process, the engine
+    has adapters for <a href="/docs/servers/elysia">Elysia</a>, <a href="/docs/servers/fastify">Fastify</a>,
+    <a href="/docs/servers/koa">Koa</a>, <a href="/docs/servers/express">Express</a> and
+    <a href="/docs/servers/hono">Hono</a>, and <code>createSite()</code> for anything else. The same templates also
+    render the fragments your API returns to htmx:
   </p>
   {% call code("ts", title="server.ts") %}
     import { createSite } from "htmx-ui-engine";
 
     const site = await createSite();
-    const server = Bun.serve({
-      fetch: (request) => site.handle(request) ?? new Response("Not found", { status: 404 }),
-    });
+    Bun.serve({ fetch: (request) => site.handle(request) }); // pages, assets, routes, a 404 page
   {% endcall %}
-  <p>
-    There are ready-made adapters for <a href="/docs/servers/elysia">Elysia</a> (recommended),
-    <a href="/docs/servers/express">Express</a> and <a href="/docs/servers/hono">Hono</a>, plus
-    <code>site.render()</code> and <code>site.fragment()</code> for server-rendered pages and htmx fragments:
-  </p>
-  {{ code_tabs([
-    { id: "elysia", label: "Elysia", lang: "ts", source: 'import { Elysia } from "elysia";
-import { htmxUi } from "htmx-ui-engine/elysia";
+  <p>See <a href="/docs/servers">Server frameworks</a>.</p>
 
-new Elysia()
-  .get("/api/ping", () => ({ ok: true }))
-  .use(htmxUi())    // everything else is the built site
-  .listen(3000);' },
-    { id: "express", label: "Express", lang: "ts", source: 'import express from "express";
-import { htmxUi } from "htmx-ui-engine/express";
-
-const app = express();
-app.get("/api/ping", (req, res) => res.json({ ok: true }));
-app.use(htmxUi());   // last: everything else is the built site
-app.listen(3000);' },
-    { id: "hono", label: "Hono", lang: "ts", source: 'import { Hono } from "hono";
-import { htmxUi } from "htmx-ui-engine/hono";
-
-const app = new Hono();
-app.get("/api/ping", (c) => c.json({ ok: true }));
-app.use(htmxUi());   // last: everything else is the built site' }
-  ]) }}
-
-  <h2 id="plugins">Use the plugins directly</h2>
-  <p>Already have a build script or a Vite config? Use the engine's plugin and skip the CLI:</p>
+  <h2 id="bundler-plugins">Use the bundler plugins directly</h2>
+  <p>Already have a build script or a Vite config? Use the engine's Bun or Vite plugin and skip the CLI:</p>
   {{ code_tabs([
     { id: "bun", label: "build.ts (Bun)", lang: "ts", source: 'import { htmxUi } from "htmx-ui-engine/bun";
 import tailwind from "bun-plugin-tailwind";
@@ -322,6 +316,7 @@ export default {
   <p>
     The package root, <code>htmx-ui-engine</code>, exports the runtime-independent core for your own tooling:
     <code>defineConfig</code>, <code>loadConfig</code>, <code>render</code>, <code>renderPage</code>,
-    <code>findPages</code>, <code>routeFor</code> and <code>highlight</code>.
+    <code>findPages</code>, <code>routeFor</code> and <code>highlight</code>, plus <code>definePlugin</code>,
+    <code>editHtml</code> and <code>contentType</code> for writing plugins.
   </p>
 {% endblock %}

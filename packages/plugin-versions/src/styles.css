@@ -1,0 +1,9 @@
+/* htmx-ui-plugin-versions: import after Tailwind and htmx-ui's styles.
+     @import "tailwindcss";
+     @import "htmx-ui/styles.css";
+     @import "htmx-ui-plugin-versions/styles.css";
+   The switcher is htmx-ui's Dropdown and the banner its Alert, so there are no styles
+   of its own: this makes Tailwind see the utilities in the plugin's templates and in
+   the banner it builds (./versions.ts, ./client.ts) whichever bundler compiles the
+   stylesheet, including Vite, which skips node_modules. */
+@source "./";

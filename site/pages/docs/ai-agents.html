@@ -147,8 +147,10 @@
 
   <h2 id="how">How it's generated</h2>
   <p>
-    Nothing is written by hand. At build time the site's engine config (<code>site/htmx-ui.config.ts</code>) renders every page, converts the article
-    body to Markdown (<code>site/lib/markdown.ts</code>), and writes the indexes (<code>site/lib/site.ts</code>). The dev server generates the same files on request.
+    Nothing is written by hand. The <a href="/docs/plugins/docs">docs plugin</a> (<code>htmx-ui-plugin-docs</code>, in the
+    site's <code>site/htmx-ui.config.ts</code>) renders every page at build time, converts the article body to Markdown, and
+    writes the indexes. The dev server generates the same files on request. Add it to your own site to publish the same
+    files for your docs.
   </p>
   <ul>
     <li>Page order follows the docs navigation in <code>site/data/docs-nav.json</code>.</li>

@@ -1,0 +1,9 @@
+/* htmx-ui-plugin-docs: import after Tailwind and htmx-ui's styles.
+     @import "tailwindcss";
+     @import "htmx-ui/styles.css";
+     @import "htmx-ui-plugin-docs/styles.css";
+   The plugin's styles are Tailwind utilities in its macros (demo(), classes(),
+   markdown_actions()); the "#" heading links are styled by htmx-ui itself
+   (.heading-anchor in text.css). This makes Tailwind see those templates whichever
+   bundler compiles the stylesheet, including Vite, which skips node_modules. */
+@source "./templates";

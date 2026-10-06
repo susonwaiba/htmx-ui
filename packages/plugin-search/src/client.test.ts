@@ -35,7 +35,7 @@ afterAll(() => {
 async function setup(extra = "") {
   document.body.innerHTML = markup + extra;
   requested.length = 0;
-  const { initSearch } = await import(`./search?${Math.random()}`);
+  const { initSearch } = await import(`./client?${Math.random()}`);
   initSearch();
   return {
     dialog: document.querySelector<HTMLDialogElement>("[data-search-dialog]")!,
@@ -80,6 +80,16 @@ describe("site search", () => {
     document.querySelector<HTMLElement>("[data-search-open]")!.click();
     await type(input, "zzzz");
     expect(document.querySelector("[data-search-message]")!.textContent).toBe("No results for “zzzz”.");
+  });
+
+  test("reads the index the dialog names", async () => {
+    document.body.innerHTML = markup.replace("<dialog data-search-dialog>", '<dialog data-search-dialog data-search-src="/search.json">');
+    requested.length = 0;
+    const { initSearch } = await import(`./client?${Math.random()}`);
+    initSearch();
+    document.querySelector<HTMLElement>("[data-search-open]")!.click();
+    await type(document.querySelector<HTMLInputElement>("[data-search-input]")!, "tabs");
+    expect(requested).toEqual(["/search.json"]);
   });
 
   test("on archived docs it searches that version's sitemap", async () => {
