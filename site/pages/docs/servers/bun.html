@@ -1,0 +1,89 @@
+{% extends "layouts/docs.html" %}
+{% from "components/code/code.html" import code %}
+{% from "components/alert/alert.html" import alert %}
+{% set title = "Bun.serve" %}
+{% set description = "Serve a built htmx-ui site from Bun.serve with no framework: your routes in routes, the site in fetch." %}
+
+{% block content %}
+  <p>
+    Bun's own server needs no adapter. <code>Bun.serve</code> checks its <code>routes</code> first and calls
+    <code>fetch</code> for everything else, and <code>site.handle()</code> takes a <code>Request</code> and returns a
+    <code>Response</code>. So your routes go in <code>routes</code> and the site goes in <code>fetch</code>. There is
+    nothing to install beyond <code>htmx-ui-engine</code>.
+  </p>
+
+  <h2 id="mount">Serve it</h2>
+  {% call code("ts", title="server.ts") %}
+    import { createSite } from "htmx-ui-engine";
+
+    const site = await createSite();
+
+    const server = Bun.serve({
+      port: 3000,
+      routes: {
+        "/api/invoices": {
+          GET: async () => Response.json(await db.invoices.list()),
+          POST: async (req) => Response.json(await db.invoices.create(await req.json()), { status: 201 }),
+        },
+      },
+      // Pages, assets, public files, the config's routes, a 404 page.
+      fetch: (req) => site.handle(req),
+    });
+
+    console.log(`Listening on ${server.url}`);
+  {% endcall %}
+  <p>
+    <code>routes</code> always beat <code>fetch</code>, so the order of the two keys doesn't matter. Paths nothing
+    claims get the <a href="/docs/servers#not-found">404 page</a>: your <code>pages/404.html</code>, or htmx-ui's
+    default.
+  </p>
+
+  <h2 id="fragments">Fragments and pages</h2>
+  {% call code("ts", title="server.ts") %}
+    import { createSite } from "htmx-ui-engine";
+
+    const site = await createSite();
+    const html = (body: string, status = 200) =>
+      new Response(body, { status, headers: { "Content-Type": "text/html; charset=utf-8" } });
+
+    Bun.serve({
+      port: 3000,
+      routes: {
+        "/api/invoices/:id/refund": {
+          POST: (req) => html(site.fragment("partials/invoice-row.html", { invoice: refund(req.params.id) })),
+        },
+        "/dashboard": (req) => html(site.render("/dashboard", { user: currentUser(req) })),
+      },
+      fetch: (req) => site.handle(req),
+    });
+  {% endcall %}
+  <p>
+    See <a href="/docs/servers/rendering">Pages &amp; fragments</a> for forms (<code>await req.formData()</code>),
+    htmx headers and error fragments. Bun.serve's <code>error(error)</code> option is the place for an error fragment.
+  </p>
+
+  <h2 id="testing">Testing</h2>
+  <p>
+    <code>site.handle()</code> is a function from <code>Request</code> to <code>Response</code>, so a test can call it
+    directly. Start the server on port 0 to test your routes too:
+  </p>
+  {% call code("ts", title="server.test.ts") %}
+    import { expect, test } from "bun:test";
+    import { createSite } from "htmx-ui-engine";
+
+    test("serves the home page", async () => {
+      const site = await createSite();
+      const res = await site.handle(new Request("http://localhost/"));
+      expect(res.status).toBe(200);
+    });
+  {% endcall %}
+
+  <h2 id="run">Build and run</h2>
+  {% call code("bash", title="Terminal") %}
+    htmx-ui build && NODE_ENV=production bun server.ts
+  {% endcall %}
+  <p>
+    See <a href="/docs/servers/deploying">Deploying</a> for what to ship, cache headers and Docker. For a framework on
+    top of Bun, <a href="/docs/servers/elysia">Elysia</a> is the closest fit.
+  </p>
+{% endblock %}

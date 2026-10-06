@@ -1,0 +1,112 @@
+{% extends "layouts/docs.html" %}
+{% from "components/code/code.html" import code, cli %}
+{% from "components/alert/alert.html" import alert %}
+{% set title = "Koa" %}
+{% set description = "Serve a built htmx-ui site as Koa middleware that answers only what nothing else did, and render pages and fragments from your routes." %}
+
+{% block content %}
+  <p>
+    <code>htmx-ui-engine/koa</code> exports <code>htmxUi()</code>, middleware that lets the rest of your stack run first
+    and answers only when nothing else did. Its place in the stack doesn't matter. It is tested with Koa 3, on Node
+    and Bun.
+  </p>
+  {{ cli("add htmx-ui-engine koa") }}
+
+  <h2 id="mount">Mount it</h2>
+  {% call code("ts", title="server.ts") %}
+    import Koa from "koa";
+    import Router from "@koa/router";
+    import { htmxUi } from "htmx-ui-engine/koa";
+
+    const app = new Koa();
+    const router = new Router();
+
+    router.get("/api/invoices", async (ctx) => {
+      ctx.body = await db.invoices.list();
+    });
+
+    app.use(htmxUi()); // pages, assets, public files, the config's routes, a 404 page
+    app.use(router.routes());
+
+    app.listen(3000);
+  {% endcall %}
+  <p>
+    The middleware calls <code>await next()</code> first. Afterwards, it answers only if the response still has
+    Koa's default <code>404</code> status and no body. A route that sets a body, or a status of its own, keeps its
+    response. Paths nothing claims get the <a href="/docs/servers#not-found">404 page</a>: your
+    <code>pages/404.html</code>, or htmx-ui's default.
+  </p>
+
+  <h2 id="fragments">Fragments and pages</h2>
+  <p>Set <code>ctx.type = "html"</code> and put the rendered HTML in <code>ctx.body</code>:</p>
+  {% call code("ts", title="server.ts") %}
+    import Koa from "koa";
+    import Router from "@koa/router";
+    import { createSite } from "htmx-ui-engine";
+    import { htmxUi } from "htmx-ui-engine/koa";
+
+    const site = await createSite();
+    const app = new Koa();
+    const router = new Router();
+
+    router.post("/api/invoices/:id/refund", (ctx) => {
+      ctx.type = "html";
+      ctx.body = site.fragment("partials/invoice-row.html", { invoice: refund(ctx.params.id) });
+    });
+    router.get("/dashboard", (ctx) => {
+      ctx.type = "html";
+      ctx.body = site.render("/dashboard", { user: currentUser(ctx) });
+    });
+
+    app.use(htmxUi({ site })); // the same site: templates compiled once
+    app.use(router.routes());
+    app.listen(3000);
+  {% endcall %}
+  <p>
+    A body parser such as <code>@koa/bodyparser</code> works alongside it: the adapter rebuilds the body it read for the
+    config's <code>routes</code>. Errors thrown in the adapter propagate like any other, so a <code>try</code> /
+    <code>catch</code> middleware at the top of the stack sees them. See
+    <a href="/docs/servers/rendering">Pages &amp; fragments</a> for forms, htmx headers and error fragments.
+  </p>
+
+  <h2 id="options">Options</h2>
+  <p>
+    <code>htmxUi(options)</code> takes the options of <a href="/docs/servers/api#options"><code>createSite()</code></a>:
+    <code>root</code>, <code>config</code>, <code>context</code>, <code>asset</code>, <code>cache</code> and
+    <code>site</code>. For example, to serve a site from another directory:
+  </p>
+  {% call code("ts", title="server.ts") %}
+    app.use(htmxUi({ root: "../marketing" }));
+  {% endcall %}
+
+  <h2 id="testing">Testing</h2>
+  <p>Listen on port 0 to get a free port, and close the server when the test ends:</p>
+  {% call code("ts", title="server.test.ts") %}
+    import { expect, test } from "bun:test";
+    import { app } from "./server";
+
+    test("serves the home page", async () => {
+      const server = app.listen(0);
+      await new Promise((resolve) => server.once("listening", resolve));
+      try {
+        const { port } = server.address() as { port: number };
+        const res = await fetch(`http://localhost:${port}/`);
+        expect(res.status).toBe(200);
+      } finally {
+        server.close();
+      }
+    });
+  {% endcall %}
+
+  <h2 id="run">Build and run</h2>
+  <p>
+    In production the middleware serves <code>dist/</code>, so build first and set <code>NODE_ENV</code>:
+  </p>
+  {% call code("bash", title="Terminal") %}
+    htmx-ui build && NODE_ENV=production node server.ts
+  {% endcall %}
+  <p>
+    Node runs <code>server.ts</code> directly from 22.18. See <a href="/docs/servers/deploying">Deploying</a> for what
+    to ship, cache headers and Docker.
+  </p>
+{% endblock %}

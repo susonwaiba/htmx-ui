@@ -1,0 +1,322 @@
+{% extends "layouts/docs.html" %}
+{% from "components/code/code.html" import code, code_tabs %}
+{% from "components/alert/alert.html" import alert %}
+{% set title = "Pages & fragments" %}
+{% set description = "Render the per-user part of a page as an htmx fragment from your server, render whole pages per request, and handle forms, htmx headers and errors." %}
+
+{% block content %}
+  <p>
+    A page in <code>pages/</code> is rendered once, by <code>htmx-ui build</code>, and served as a file. Every visitor
+    gets the same bytes, which any cache can keep. Anything that depends on <em>who is asking</em> can't be in that
+    file. It belongs in a <strong>fragment</strong>: a small piece of HTML your server renders per request, and htmx
+    swaps into the page.
+  </p>
+  <p>
+    Fragments are templates, like pages, so they use the same macros, components and data. Create one site and use
+    it both to render fragments and to serve the build:
+  </p>
+  {% set elysia %}
+import { Elysia } from "elysia";
+import { createSite } from "htmx-ui-engine";
+import { htmxUi } from "htmx-ui-engine/elysia";
+
+const site = await createSite();
+const html = (body: string, status = 200) =>
+  new Response(body, { status, headers: { "Content-Type": "text/html; charset=utf-8" } });
+
+const app = new Elysia()
+  // your routes, returning html(site.fragment(...))
+  .use(htmxUi({ site }))
+  .listen(3000);
+  {% endset %}
+  {% set fastify %}
+import Fastify from "fastify";
+import { createSite } from "htmx-ui-engine";
+import { htmxUi } from "htmx-ui-engine/fastify";
+
+const site = await createSite();
+const app = Fastify();
+// your routes, replying with reply.type("text/html").send(site.fragment(...))
+app.register(htmxUi({ site }));
+await app.listen({ port: 3000 });
+  {% endset %}
+  {% set koa %}
+import Koa from "koa";
+import Router from "@koa/router";
+import { createSite } from "htmx-ui-engine";
+import { htmxUi } from "htmx-ui-engine/koa";
+
+const site = await createSite();
+const app = new Koa();
+const router = new Router();
+// your routes, setting ctx.type = "html" and ctx.body = site.fragment(...)
+app.use(htmxUi({ site }));
+app.use(router.routes());
+app.listen(3000);
+  {% endset %}
+  {% set express %}
+import express from "express";
+import { createSite } from "htmx-ui-engine";
+import { htmxUi } from "htmx-ui-engine/express";
+
+const site = await createSite();
+const app = express();
+// your routes, sending res.type("html").send(site.fragment(...))
+app.use(htmxUi({ site })); // last
+app.listen(3000);
+  {% endset %}
+  {% set hono %}
+import { Hono } from "hono";
+import { createSite } from "htmx-ui-engine";
+import { htmxUi } from "htmx-ui-engine/hono";
+
+const site = await createSite();
+const app = new Hono();
+// your routes, returning c.html(site.fragment(...))
+app.use(htmxUi({ site })); // last
+
+export default app;
+  {% endset %}
+  {{ code_tabs([
+    { id: "elysia", label: "Elysia", lang: "ts", source: elysia },
+    { id: "fastify", label: "Fastify", lang: "ts", source: fastify },
+    { id: "koa", label: "Koa", lang: "ts", source: koa },
+    { id: "express", label: "Express", lang: "ts", source: express },
+    { id: "hono", label: "Hono", lang: "ts", source: hono }
+  ], sync="server") }}
+  <p>
+    <code>htmxUi({ site })</code> serves that same instance, so its templates are read and compiled once. Without
+    <code>site</code>, the adapter creates a second site.
+  </p>
+
+  <h2 id="per-user">When the HTML depends on who is asking</h2>
+  <p>
+    At build time there is no request, so there is no user. Here is the piece that usually needs one: a sign-in link
+    for a visitor, a name and a sign-out button for a member.
+  </p>
+  {% call code("jinja", title="partials/user-menu.html") %}
+{% raw %}{% if user %}
+  <span class="text-sm">{{ user.name }}</span>
+  <form method="post" action="/logout"><button class="btn btn-sm">Sign out</button></form>
+{% else %}
+  <a class="btn btn-sm" href="/login">Sign in</a>
+{% endif %}{% endraw %}
+  {% endcall %}
+  <p>
+    The built page keeps a placeholder where the menu goes and asks for it as soon as it loads. Without
+    <code>hx-trigger="load"</code>, a <code>&lt;div&gt;</code> only sends its request when clicked:
+  </p>
+  {% call code("html", title="layouts/base.html") %}
+    <div hx-get="/api/user-menu" hx-trigger="load" hx-swap="outerHTML">
+      <a class="btn btn-sm" href="/login">Sign in</a>
+    </div>
+  {% endcall %}
+  <p>Your server renders the partial for the current request:</p>
+  {% set elysia %}
+app.get("/api/user-menu", ({ request }) =>
+  html(site.fragment("partials/user-menu.html", { user: currentUser(request) })),
+);
+  {% endset %}
+  {% set fastify %}
+app.get("/api/user-menu", async (request, reply) =>
+  reply.type("text/html").send(site.fragment("partials/user-menu.html", { user: currentUser(request) })),
+);
+  {% endset %}
+  {% set koa %}
+router.get("/api/user-menu", (ctx) => {
+  ctx.type = "html";
+  ctx.body = site.fragment("partials/user-menu.html", { user: currentUser(ctx) });
+});
+  {% endset %}
+  {% set express %}
+app.get("/api/user-menu", (req, res) => {
+  res.type("html").send(site.fragment("partials/user-menu.html", { user: currentUser(req) }));
+});
+  {% endset %}
+  {% set hono %}
+app.get("/api/user-menu", (c) => c.html(site.fragment("partials/user-menu.html", { user: currentUser(c) })));
+  {% endset %}
+  {{ code_tabs([
+    { id: "elysia", label: "Elysia", lang: "ts", source: elysia },
+    { id: "fastify", label: "Fastify", lang: "ts", source: fastify },
+    { id: "koa", label: "Koa", lang: "ts", source: koa },
+    { id: "express", label: "Express", lang: "ts", source: express },
+    { id: "hono", label: "Hono", lang: "ts", source: hono }
+  ], sync="server") }}
+  <p>
+    The page stays a static file anyone can cache, the fragment is small, and the markup lives in one template. Use
+    this pattern for a header, a nav, a sidebar, or any list of the visitor's own rows.
+  </p>
+  {% call alert("Only the render needs the user", variant="info") %}
+    Your framework's middleware sees the request first, so <code>currentUser()</code> can use a cookie, a session or a
+    token, whatever you already have. Templates get the user as a context value. They never read the request
+    themselves.
+  {% endcall %}
+
+  <h2 id="fragments">Fragments</h2>
+  <p>
+    <code>site.fragment(path, context)</code> renders any template (a partial, a macro wrapper, a whole page you want
+    in a modal) with the config's globals plus <code>context</code>. It adds no document shell and doesn't run the
+    config's <code>transform()</code>. It returns a string, so send it with an HTML content type. Elysia, for one,
+    sends a bare string as <code>text/plain</code>.
+  </p>
+  {% call code("jinja", title="partials/invoice-row.html") %}
+{% raw %}<tr id="invoice-{{ invoice.id }}">
+  <td>{{ invoice.number }}</td>
+  <td>{{ invoice.total }}</td>
+  <td>
+    <button class="btn btn-sm" hx-post="/api/invoices/{{ invoice.id }}/refund" hx-target="#invoice-{{ invoice.id }}" hx-swap="outerHTML">
+      Refund
+    </button>
+  </td>
+</tr>{% endraw %}
+  {% endcall %}
+  {% set elysia %}
+app.post("/api/invoices/:id/refund", ({ params }) => {
+  const invoice = refund(params.id);
+  return html(site.fragment("partials/invoice-row.html", { invoice }));
+});
+  {% endset %}
+  {% set fastify %}
+app.post<{ Params: { id: string } }>("/api/invoices/:id/refund", async (request, reply) => {
+  const invoice = refund(request.params.id);
+  return reply.type("text/html").send(site.fragment("partials/invoice-row.html", { invoice }));
+});
+  {% endset %}
+  {% set koa %}
+router.post("/api/invoices/:id/refund", (ctx) => {
+  const invoice = refund(ctx.params.id);
+  ctx.type = "html";
+  ctx.body = site.fragment("partials/invoice-row.html", { invoice });
+});
+  {% endset %}
+  {% set express %}
+app.post("/api/invoices/:id/refund", (req, res) => {
+  const invoice = refund(req.params.id);
+  res.type("html").send(site.fragment("partials/invoice-row.html", { invoice }));
+});
+  {% endset %}
+  {% set hono %}
+app.post("/api/invoices/:id/refund", (c) => {
+  const invoice = refund(c.req.param("id"));
+  return c.html(site.fragment("partials/invoice-row.html", { invoice }));
+});
+  {% endset %}
+  {{ code_tabs([
+    { id: "elysia", label: "Elysia", lang: "ts", source: elysia },
+    { id: "fastify", label: "Fastify", lang: "ts", source: fastify },
+    { id: "koa", label: "Koa", lang: "ts", source: koa },
+    { id: "express", label: "Express", lang: "ts", source: express },
+    { id: "hono", label: "Hono", lang: "ts", source: hono }
+  ], sync="server") }}
+
+  <h2 id="render-per-request">Render a page per request</h2>
+  <p>
+    <code>site.render(url, context)</code> renders the page at a route, with its layout and the config's
+    <code>transform()</code>, just as the build does but with your context added. Use it when most of the page
+    depends on the request. When only a corner does, a static page plus a <a href="#per-user">fragment</a> is
+    cheaper and caches better.
+  </p>
+  {% call code("ts", title="server.ts (Elysia)") %}
+    app.get("/dashboard", ({ request }) => html(site.render("/dashboard", { user: currentUser(request) })));
+  {% endcall %}
+  <p>
+    Register the route yourself: a page in <code>dist/</code> is only served when no route of yours claims the path.
+    <code>render()</code> throws for a route with no page. Pass values in the context, not in config globals, so one
+    visitor's data never reaches another's render.
+  </p>
+
+  <h2 id="htmx-requests">One route, fragment or page</h2>
+  <p>
+    htmx marks its requests with <code>HX-Request: true</code>. A route can use that to answer htmx with a fragment and
+    a direct visit (a bookmark, a reload, a link opened in a new tab) with the whole page:
+  </p>
+  {% call code("ts", title="server.ts (Elysia)") %}
+    app.get("/invoices", ({ request }) => {
+      const invoices = listInvoices(new URL(request.url).searchParams);
+      return request.headers.get("HX-Request")
+        ? html(site.fragment("partials/invoice-table.html", { invoices }))
+        : html(site.render("/invoices", { invoices }));
+    });
+  {% endcall %}
+  <p>
+    If you also cache that route, send <code>Vary: HX-Request</code>, so the fragment and the page are cached
+    separately. Response headers steer htmx from the server:
+  </p>
+  <div class="table-wrap not-prose">
+    <table class="table">
+      <thead><tr><th>Header</th><th>Effect</th></tr></thead>
+      <tbody>
+        <tr><td><code class="code">HX-Redirect</code></td><td class="text-muted-foreground">Full navigation to a URL, e.g. after sign-in.</td></tr>
+        <tr><td><code class="code">HX-Refresh</code></td><td class="text-muted-foreground"><code class="code">true</code> reloads the page.</td></tr>
+        <tr><td><code class="code">HX-Trigger</code></td><td class="text-muted-foreground">Fires events on the client, e.g. to refresh a list elsewhere on the page.</td></tr>
+        <tr><td><code class="code">HX-Retarget</code>, <code class="code">HX-Reswap</code></td><td class="text-muted-foreground">Swap somewhere else, or another way, than the element asked for.</td></tr>
+        <tr><td><code class="code">HX-Push-Url</code>, <code class="code">HX-Replace-Url</code></td><td class="text-muted-foreground">Update the address bar.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2 id="forms">Forms</h2>
+  <p>
+    A form with <code>hx-post</code> sends its fields as <code>application/x-www-form-urlencoded</code>, the same as
+    without htmx. Read them however your framework does: a body parser, <code>request.formData()</code>,
+    <code>c.req.parseBody()</code>. Answer with the fragment to swap in. When validation fails, re-render the form with
+    its errors and a <code>422</code>. htmx 4 swaps error responses too, so the errors appear where the form was:
+  </p>
+  {% call code("jinja", title="partials/invite-form.html") %}
+{% raw %}<form hx-post="/api/invites" hx-swap="outerHTML" class="space-y-4">
+  <div class="field">
+    <label class="field-label" for="email">Email</label>
+    <input class="input" id="email" name="email" type="email" value="{{ values.email }}" required
+      {% if errors.email %}aria-invalid="true" aria-describedby="email-error"{% endif %}>
+    {% if errors.email %}<div class="field-error" id="email-error">{{ errors.email }}</div>{% endif %}
+  </div>
+  <button class="btn btn-primary">Send invite</button>
+</form>{% endraw %}
+  {% endcall %}
+  {% call code("ts", title="server.ts (Elysia)") %}
+    app.post("/api/invites", async ({ request }) => {
+      const values = Object.fromEntries(await request.formData());
+      const errors = validateInvite(values);
+      if (errors) return html(site.fragment("partials/invite-form.html", { values, errors }), 422);
+      await sendInvite(values.email);
+      return html(site.fragment("partials/invite-sent.html", { email: values.email }));
+    });
+  {% endcall %}
+  <p>
+    The config's <code>routes</code> take a web <code>Request</code>, so they call <code>request.formData()</code> on
+    every adapter. When a body parser (<code>express.urlencoded()</code>, Fastify's JSON parser,
+    <code>@koa/bodyparser</code>) has already read the body, the adapter rebuilds it from what was parsed.
+  </p>
+
+  <h2 id="errors">Errors</h2>
+  <p>
+    <code>render()</code> and <code>fragment()</code> throw when a template is missing or fails to render. The error
+    reaches your framework's error handling like any other: Express's error middleware (the adapter calls
+    <code>next(error)</code>), a <code>try</code>/<code>catch</code> middleware in Koa, Fastify's
+    <code>setErrorHandler()</code>, Elysia's <code>onError</code> and Hono's <code>app.onError</code>. To answer htmx
+    with something it can swap, render an error fragment there:
+  </p>
+  {% call code("ts", title="server.ts (Elysia)") %}
+    app.onError(({ error, request }) => {
+      console.error(error);
+      if (request.headers.get("HX-Request")) {
+        return html(site.fragment("partials/error.html", { message: "Something went wrong. Try again." }), 500);
+      }
+    });
+  {% endcall %}
+  <p>
+    Set <code>debug: ["render"]</code> in <code>htmx-ui.config.ts</code> to log every render with its duration; see
+    <a href="/docs/engine#debug">Debugging</a>.
+  </p>
+
+  <h2 id="assets">Asset URLs in fragments</h2>
+  <p>
+    A fragment rarely needs a URL. <code>svg()</code> and the <code>icon()</code> macro inline their markup, so there
+    is no file to fetch. When one does link a project file, <code>asset()</code> returns a path from the project root
+    (<code>/images/logo.png</code>), which your server only serves if that file is in <code>dist/</code>. Put it in
+    <code>public/</code>, which the build copies as-is, or map URLs yourself with
+    <a href="/docs/servers/api#options"><code>options.asset</code></a>. Built pages already carry hashed URLs, so this
+    only affects <code>render()</code> and <code>fragment()</code>.
+  </p>
+{% endblock %}

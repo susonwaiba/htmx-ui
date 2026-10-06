@@ -1,0 +1,99 @@
+{% extends "layouts/docs.html" %}
+{% from "components/code/code.html" import code, cli %}
+{% from "components/alert/alert.html" import alert %}
+{% set title = "Fastify" %}
+{% set description = "Serve a built htmx-ui site as Fastify's not-found handler, and render pages and fragments from your routes." %}
+
+{% block content %}
+  <p>
+    <code>htmx-ui-engine/fastify</code> exports <code>htmxUi()</code>, a plugin that makes htmx-ui Fastify's
+    not-found handler. It only sees requests no route of yours matched, so it can be registered anywhere. It is tested
+    with Fastify 5, on Node and Bun.
+  </p>
+  {{ cli("add htmx-ui-engine fastify") }}
+
+  <h2 id="mount">Mount it</h2>
+  {% call code("ts", title="server.ts") %}
+    import Fastify from "fastify";
+    import { htmxUi } from "htmx-ui-engine/fastify";
+
+    const app = Fastify();
+
+    app.register(htmxUi()); // pages, assets, public files, the config's routes, a 404 page
+
+    app.get("/api/invoices", async () => db.invoices.list());
+    app.post("/api/invoices", async (request) => db.invoices.create(request.body));
+
+    await app.listen({ port: 3000 });
+  {% endcall %}
+  <p>
+    Paths nothing claims get the <a href="/docs/servers#not-found">404 page</a>: your <code>pages/404.html</code>, or
+    htmx-ui's default. Every method reaches the not-found handler, so the config's <code>routes</code> answer
+    <code>hx-post</code> as well as <code>hx-get</code>.
+  </p>
+  {% call alert("One not-found handler", variant="warning") %}
+    Fastify allows one not-found handler per instance, so the plugin conflicts with your own
+    <code>setNotFoundHandler()</code> on the same instance, and registering it twice fails. Register it on the root
+    instance, not inside a prefixed plugin.
+  {% endcall %}
+
+  <h2 id="fragments">Fragments and pages</h2>
+  <p><code>reply.type("text/html")</code> sends rendered HTML with the right content type:</p>
+  {% call code("ts", title="server.ts") %}
+    import Fastify from "fastify";
+    import { createSite } from "htmx-ui-engine";
+    import { htmxUi } from "htmx-ui-engine/fastify";
+
+    const site = await createSite();
+    const app = Fastify();
+
+    app.post<{ Params: { id: string } }>("/api/invoices/:id/refund", async (request, reply) =>
+      reply.type("text/html").send(site.fragment("partials/invoice-row.html", { invoice: refund(request.params.id) })),
+    );
+    app.get("/dashboard", async (request, reply) =>
+      reply.type("text/html").send(site.render("/dashboard", { user: currentUser(request) })),
+    );
+
+    app.register(htmxUi({ site })); // the same site: templates compiled once
+    await app.listen({ port: 3000 });
+  {% endcall %}
+  <p>
+    Fastify parses JSON bodies itself, but not HTML forms. Add <code>@fastify/formbody</code> to read
+    <code>hx-post</code> forms in your own routes. The config's <code>routes</code> get the request body either way.
+    See <a href="/docs/servers/rendering">Pages &amp; fragments</a> for forms, htmx headers and error fragments.
+  </p>
+
+  <h2 id="options">Options</h2>
+  <p>
+    <code>htmxUi(options)</code> takes the options of <a href="/docs/servers/api#options"><code>createSite()</code></a>:
+    <code>root</code>, <code>config</code>, <code>context</code>, <code>asset</code>, <code>cache</code> and
+    <code>site</code>. For example, to serve a site from another directory:
+  </p>
+  {% call code("ts", title="server.ts") %}
+    app.register(htmxUi({ root: "../marketing" }));
+  {% endcall %}
+
+  <h2 id="testing">Testing</h2>
+  <p><code>app.inject()</code> answers in-process, with no port:</p>
+  {% call code("ts", title="server.test.ts") %}
+    import { expect, test } from "bun:test";
+    import { app } from "./server";
+
+    test("serves the home page", async () => {
+      const res = await app.inject({ method: "GET", url: "/" });
+      expect(res.statusCode).toBe(200);
+    });
+  {% endcall %}
+
+  <h2 id="run">Build and run</h2>
+  <p>
+    In production the plugin serves <code>dist/</code>, so build first and set <code>NODE_ENV</code>:
+  </p>
+  {% call code("bash", title="Terminal") %}
+    htmx-ui build && NODE_ENV=production node server.ts
+  {% endcall %}
+  <p>
+    Node runs <code>server.ts</code> directly from 22.18. See <a href="/docs/servers/deploying">Deploying</a> for what
+    to ship, cache headers and Docker.
+  </p>
+{% endblock %}

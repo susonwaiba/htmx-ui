@@ -1,0 +1,138 @@
+{% extends "layouts/docs.html" %}
+{% from "components/code/code.html" import code, cli %}
+{% from "components/alert/alert.html" import alert %}
+{% set title = "Other JavaScript servers" %}
+{% set description = "Serve a built htmx-ui site from Deno.serve, node:http, h3 and Nitro, or NestJS, with createSite() or an existing adapter." %}
+
+{% block content %}
+  <p>
+    Anything that can hand over a web <code>Request</code> can call <code>site.handle(request)</code> and send back the
+    <code>Response</code>. Anything built on <code>node:http</code> can use the
+    <a href="/docs/servers/express">Express adapter</a>, which is plain <code>(req, res, next)</code> middleware.
+    Between the two, most JavaScript servers are covered. Below are the common ones.
+  </p>
+
+  <h2 id="deno">Deno</h2>
+  <p>
+    <code>Deno.serve</code> takes a function from <code>Request</code> to <code>Response</code>, which is exactly what
+    <code>site.handle</code> is. Deno reads <code>htmx-ui.config.ts</code> and <code>node_modules</code> as they are:
+  </p>
+  {% call code("ts", title="server.ts") %}
+    import { createSite } from "htmx-ui-engine";
+
+    const site = await createSite();
+
+    Deno.serve({ port: 3000 }, (req) => {
+      const { pathname } = new URL(req.url);
+      if (pathname === "/api/ping") return Response.json({ ok: true });
+      return site.handle(req);
+    });
+  {% endcall %}
+  {% call code("bash", title="Terminal") %}
+    htmx-ui build && NODE_ENV=production deno run -A server.ts
+  {% endcall %}
+  <p>
+    <a href="/docs/servers/hono">Hono</a> runs on Deno too, if you want a router.
+  </p>
+
+  <h2 id="node-http">node:http</h2>
+  <p>
+    The Express adapter's middleware works on a bare Node server. Call it for the requests your code doesn't answer:
+  </p>
+  {% call code("ts", title="server.ts") %}
+    import { createServer } from "node:http";
+    import { htmxUi } from "htmx-ui-engine/express";
+
+    const site = htmxUi();
+
+    createServer((req, res) => {
+      if (req.url === "/api/ping") {
+        res.setHeader("Content-Type", "application/json");
+        return res.end(JSON.stringify({ ok: true }));
+      }
+      site(req, res, (error) => {
+        res.statusCode = 500;
+        res.end(String(error));
+      });
+    }).listen(3000);
+  {% endcall %}
+  <p>The same goes for Connect and other <code>(req, res, next)</code> stacks: mount it last.</p>
+
+  <h2 id="h3">h3 and Nitro</h2>
+  <p>
+    h3 2 handlers get a web <code>Request</code> as <code>event.req</code> and can return a <code>Response</code>. A
+    catch-all route hands the rest to the site. h3's router prefers specific routes, so the order doesn't matter:
+  </p>
+  {% call code("ts", title="server.ts") %}
+    import { H3, serve } from "h3";
+    import { createSite } from "htmx-ui-engine";
+
+    const site = await createSite();
+    const app = new H3();
+
+    app.get("/api/ping", () => ({ ok: true }));
+    app.all("/**", (event) => site.handle(event.req)); // everything else is the built site
+
+    serve(app, { port: 3000 });
+  {% endcall %}
+  <p>
+    In Nitro, the same handler goes in a catch-all route, <code>routes/[...].ts</code>. Nitro 2 is built on h3 1,
+    where <code>event.req</code> is Node's request, so convert it first:
+    <code>site.handle(toWebRequest(event))</code>.
+  </p>
+
+  <h2 id="nestjs">NestJS</h2>
+  <p>
+    On Nest's default Express platform, the <a href="/docs/servers/express">Express adapter</a> does the serving. Don't
+    use <code>app.use()</code> for it: Nest runs global middleware before its controllers, so the site would answer
+    every request. When no route matches, Nest throws a <code>NotFoundException</code> with the message
+    <code>Cannot &lt;METHOD&gt; &lt;path&gt;</code>. An exception filter can catch exactly those and hand them to the
+    site, and leave the <code>NotFoundException</code>s your controllers throw alone:
+  </p>
+  {% call code("ts", title="src/htmx-ui.filter.ts") %}
+    import { Catch, NotFoundException, type ArgumentsHost, type ExceptionFilter } from "@nestjs/common";
+    import type { Request, Response } from "express";
+    import { htmxUi } from "htmx-ui-engine/express";
+
+    const site = htmxUi();
+
+    @Catch(NotFoundException)
+    export class HtmxUiFilter implements ExceptionFilter {
+      catch(error: NotFoundException, host: ArgumentsHost) {
+        const req = host.switchToHttp().getRequest<Request>();
+        const res = host.switchToHttp().getResponse<Response>();
+        // Not "no route matched": a controller's own 404, so answer it as Nest would.
+        if (error.message !== `Cannot ${req.method} ${req.originalUrl}`) {
+          return res.status(404).json(error.getResponse());
+        }
+        site(req, res, (e) => res.status(500).end(String(e)));
+      }
+    }
+  {% endcall %}
+  {% call code("ts", title="src/main.ts") %}
+    const app = await NestFactory.create(AppModule);
+    app.useGlobalFilters(new HtmxUiFilter());
+    await app.listen(3000);
+  {% endcall %}
+  <p>
+    To render fragments from controllers, create a site with <code>createSite()</code>, pass it to the filter's
+    adapter as <code>htmxUi({ site })</code>, and return <code>site.fragment(...)</code> from handlers decorated with
+    <code>@Header("Content-Type", "text/html; charset=utf-8")</code>.
+  </p>
+
+  <h2 id="anything-else">Anything else</h2>
+  <p>What any integration needs:</p>
+  <ul>
+    <li>Create the site once, at startup: <code>const site = await createSite()</code>.</li>
+    <li>
+      Pass the requests your own code doesn't answer to <code>site.handle()</code> as a web <code>Request</code>, and
+      send back the <code>Response</code> it resolves to: status, headers (including several
+      <code>Set-Cookie</code>), body.
+    </li>
+    <li>Use <code>site.fragment()</code> and <code>site.render()</code> for HTML, with an HTML content type.</li>
+  </ul>
+  <p>
+    The adapters' source in <code>htmx-ui-engine/src/</code> is the reference: each is a few dozen lines. See
+    <a href="/docs/servers/api"><code>createSite()</code> API</a> for every option.
+  </p>
+{% endblock %}
