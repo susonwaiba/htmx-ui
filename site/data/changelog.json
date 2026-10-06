@@ -1,8 +1,9 @@
 {
-  "latestReleased": "0.1.0",
+  "latestReleased": "0.2.0",
   "releases": [
     {
       "version": "0.2.0",
+      "date": "2026-10-06",
       "summary": "Plugins, with docs, versions and search as the first three; named template roots; serving a site from your own backend with five adapters (Elysia, Fastify, Koa, Express, Hono) and a default 404 page; and 37 new components, from dialogs, menus and toasts to an AI chat stack."
     },
     {

@@ -38,6 +38,12 @@ for (const dir of PACKAGES) {
   console.log(`${pkg.name} ${pkg.version} -> ${version}`);
 }
 
+// bun.lock records every workspace package's version, and `bun pm pack` rewrites
+// `workspace:` ranges from it: with a stale lock the packed plugins would still
+// peer-depend on the previous version, and npm refuses the tree (ERESOLVE).
+await Bun.$`bun install`.quiet();
+console.log("bun.lock refreshed with the new workspace versions");
+
 console.log(`
 Now add "## ${version}" to CHANGELOG.md and a release to site/data/changelog.json,
 then run "bun run release:check" and "bun run docs:archive".`);

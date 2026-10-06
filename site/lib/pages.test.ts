@@ -151,13 +151,29 @@ describe("pages", () => {
     }
   });
 
-  test("a release with no date is shown as in development", () => {
-    const page = render("docs/changelog/0.2.0.html");
-    expect(page).toContain("In development");
-    expect(page).not.toMatch(/<time datetime="\d{4}-\d{2}-\d{2}"[^>]*>Unreleased/);
+  test("an undated release reads as in development, a dated one as latest", () => {
+    // Every release carries a date except the one being worked on; between two
+    // releases there is none, and then the newest reads as Latest instead.
+    const releases = JSON.parse(readFileSync(resolve(SITE, "data/changelog.json"), "utf8")).releases as {
+      version: string;
+      date?: string;
+    }[];
     const index = render("docs/changelog/index.html");
-    expect(index).toContain("In development");
-    expect(index).toContain("Unreleased");
+    const pending = releases.find((r) => !r.date);
+    if (pending) {
+      const page = render(`docs/changelog/${pending.version}.html`);
+      expect(page).toContain("In development");
+      expect(page).not.toMatch(/<time datetime="\d{4}-\d{2}-\d{2}"[^>]*>Unreleased/);
+      expect(index).toContain("In development");
+      expect(index).toContain("Unreleased");
+      return;
+    }
+    const latest = releases[0]!;
+    const page = render(`docs/changelog/${latest.version}.html`);
+    expect(page).toContain("Latest");
+    expect(page).toContain(`<time datetime="${latest.date}"`);
+    expect(index).toContain("Latest");
+    expect(index).not.toContain("Unreleased");
   });
 
   test("only the closest nav entry is active, so a section can have pages of its own", () => {

@@ -5,7 +5,7 @@ create-htmx-ui are listed here. The packages are released together with one vers
 versions may contain breaking changes, each listed with migration notes.
 The docs site has a fuller page per release (`/docs/changelog`).
 
-## 0.2.0 — Unreleased
+## 0.2.0 — 2026-10-06
 
 ### Breaking
 

@@ -81,7 +81,7 @@ const work = await mkdtemp(join(tmpdir(), "htmx-ui-release-"));
 const tarballs: Record<string, string> = {};
 
 /** Pack a package and check its tarball has `must` and nothing matching `forbidden`. */
-async function pack(dir: string, must: string[]) {
+async function pack(dir: string, must: string[], peers: string[] = []) {
   const pkg = await read(dir);
   await quiet($`bun pm pack --destination ${work} --ignore-scripts`.cwd(dir));
   const tarball = join(work, `${pkg.name}-${pkg.version}.tgz`);
@@ -93,6 +93,13 @@ async function pack(dir: string, must: string[]) {
   const manifest = JSON.parse(await $`tar -xOzf ${tarball} package/package.json`.text());
   const workspace = Object.entries({ ...manifest.dependencies, ...manifest.devDependencies }).filter(([, v]) => String(v).startsWith("workspace:"));
   if (workspace.length) throw new Error(`${pkg.name} still has workspace: dependencies: ${workspace.map(([k]) => k).join(", ")}`);
+  // `bun pm pack` rewrites `workspace:` from bun.lock, so a lockfile that still
+  // records the previous version packs peer ranges for it: npm then refuses the
+  // tree (ERESOLVE) deep in the plugin smoke tests instead of saying so here.
+  for (const dep of peers) {
+    const range = manifest.peerDependencies?.[dep];
+    if (range !== `^${version}`) throw new Error(`${pkg.name} peers ${dep}@${range ?? "none"}, expected ^${version} (stale bun.lock? run bun install)`);
+  }
   tarballs[pkg.name] = tarball;
   console.log(`(${files.length} files)`);
 }
@@ -106,7 +113,7 @@ await step("pack htmx-ui-engine", () =>
 for (const dir of PLUGINS) {
   const name = dir.split("/").pop()!.replace("plugin-", "");
   await step(`pack htmx-ui-plugin-${name}`, () =>
-    pack(dir, ["package.json", "README.md", "LICENSE", "lib/index.js", "lib/index.d.ts", "lib/client.js", "lib/client.d.ts", "src/index.ts", "src/client.ts", "src/styles.css", `src/templates/${name}/macros.html`]),
+    pack(dir, ["package.json", "README.md", "LICENSE", "lib/index.js", "lib/index.d.ts", "lib/client.js", "lib/client.d.ts", "src/index.ts", "src/client.ts", "src/styles.css", `src/templates/${name}/macros.html`], ["htmx-ui", "htmx-ui-engine"]),
   );
 }
 await step("pack create-htmx-ui", () =>

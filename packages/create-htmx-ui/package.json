@@ -1,6 +1,6 @@
 {
   "name": "create-htmx-ui",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Start a new htmx-ui site: npm create htmx-ui, pnpm create htmx-ui, yarn create htmx-ui, bun create htmx-ui.",
   "keywords": [
     "htmx",
