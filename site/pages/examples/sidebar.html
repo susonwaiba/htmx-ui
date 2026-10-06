@@ -1,0 +1,261 @@
+{# A full-page app shell built with the Sidebar component, embedded in an <iframe> by
+   /docs/components/sidebar. The app is "Switchboard", a made-up console for watching an htmx
+   app's requests and fragments. The query string picks the options for each frame:
+   ?variant=floating|inset  ?collapsible=offcanvas|icon|none  ?side=right  ?state=collapsed  ?breakpoint=sm
+   Without one, the page remembers its state in the sidebar_state cookie. #}
+{% extends "layouts/base.html" %}
+{% from "components/icon/icon.html" import icon %}
+
+{% set environments = [
+  { name: "Production", host: "switchboard.app", status: "bg-success" },
+  { name: "Staging", host: "staging.switchboard.app", status: "bg-warning" },
+  { name: "Preview #482", host: "pr-482.switchboard.dev", status: "bg-info" }
+] %}
+{% set monitor = [
+  { title: "Overview", icon: "bar-chart", href: "#overview" },
+  { title: "Requests", icon: "zap", href: "#requests", current: true, badge: "1.2k" },
+  { title: "Fragments", icon: "layers", href: "#fragments" },
+  { title: "Alerts", icon: "bell", href: "#alerts", badge: "3" }
+] %}
+{% set ship = [
+  { title: "Routes", icon: "link", open: true, items: ["/orders", "/orders/:id", "/search", "/cart/items"], current: "/search" },
+  { title: "Servers", icon: "server", items: ["eu-west", "us-east", "ap-south"] },
+  { title: "Releases", icon: "history", items: ["v2.14 (live)", "v2.13", "v2.12"] }
+] %}
+{% set views = [
+  { title: "Slower than 1s", icon: "star" },
+  { title: "Errors this week", icon: "alert-triangle" },
+  { title: "Checkout swaps", icon: "bookmark" }
+] %}
+{% set requests = [
+  { method: "GET", path: "/search?q=lamp", status: 200, ms: 84, swap: "innerHTML #results" },
+  { method: "POST", path: "/cart/items", status: 201, ms: 132, swap: "outerHTML #cart" },
+  { method: "GET", path: "/orders/1043", status: 200, ms: 61, swap: "innerHTML #order" },
+  { method: "DELETE", path: "/cart/items/7", status: 204, ms: 47, swap: "delete" },
+  { method: "GET", path: "/search?q=desk", status: 500, ms: 1204, swap: "none" },
+  { method: "PATCH", path: "/orders/1043", status: 422, ms: 95, swap: "outerHTML #order-form" }
+] %}
+
+{% block title %}Sidebar example · HTMX UI{% endblock %}
+
+{% block head %}
+  <meta name="robots" content="noindex" />
+  <script>
+    // In the docs' frames: follow the theme when it is switched on the page around them.
+    addEventListener("storage", (e) => {
+      if (e.key === "theme") document.documentElement.classList.toggle("dark", e.newValue === "dark");
+    });
+  </script>
+{% endblock %}
+
+{% block body %}
+<div class="sidebar-layout">
+  <aside id="app-sidebar" class="sidebar" data-sidebar data-collapsible="icon" data-cookie="sidebar_state" aria-label="Switchboard">
+    <script>
+      // Before first paint: the options in the URL (for the docs' frames), else the saved state,
+      // so a static page doesn't flash open and then collapse.
+      (() => {
+        const sidebar = document.currentScript.parentElement;
+        const query = new URLSearchParams(location.search);
+        for (const key of ["variant", "collapsible", "side", "state", "breakpoint"]) {
+          if (query.has(key)) sidebar.dataset[key] = query.get(key);
+        }
+        if (query.toString()) delete sidebar.dataset.cookie;
+        else if (/(?:^|;\s*)sidebar_state=false/.test(document.cookie)) sidebar.dataset.state = "collapsed";
+      })();
+    </script>
+
+    <div class="sidebar-header">
+      <ul class="sidebar-menu">
+        <li class="sidebar-menu-item">
+          <div class="dropdown w-full" data-dropdown>
+            <button type="button" class="sidebar-menu-button sidebar-menu-button-lg" data-dropdown-trigger aria-haspopup="menu" aria-expanded="false">
+              <span class="relative grid size-8 shrink-0 place-items-center rounded-full border-2 border-sidebar-primary text-sidebar-primary">
+                {{ icon("zap", "size-4") }}
+                <span class="absolute -right-0.5 -bottom-0.5 size-2.5 rounded-full border-2 border-sidebar bg-success"></span>
+              </span>
+              <span class="grid flex-1 leading-tight">
+                <span class="truncate font-semibold">Switchboard</span>
+                <span class="truncate font-mono text-xs text-muted-foreground">production</span>
+              </span>
+              {{ icon("chevrons-up-down", "ml-auto") }}
+            </button>
+            <div class="dropdown-menu w-full min-w-64" role="menu" aria-label="Environments" hidden>
+              <p class="dropdown-label">Environment</p>
+              <div role="group" aria-label="Environment">
+                {% for env in environments %}
+                  <button type="button" class="dropdown-item" role="menuitemradio" aria-checked="{{ 'true' if loop.first else 'false' }}">
+                    <span class="grid leading-tight">
+                      <span>{{ env.name }}</span>
+                      <span class="font-mono text-xs text-muted-foreground">{{ env.host }}</span>
+                    </span>
+                    <span class="ml-auto size-2 shrink-0 rounded-full {{ env.status }}" aria-hidden="true"></span>
+                  </button>
+                {% endfor %}
+              </div>
+              <div class="dropdown-separator" role="separator"></div>
+              <button type="button" class="dropdown-item" role="menuitem">{{ icon("plus") }}<span>New environment</span></button>
+            </div>
+          </div>
+        </li>
+      </ul>
+      <div class="input-group sidebar-input">
+        <input class="input" type="search" placeholder="Jump to route…" aria-label="Jump to route" />
+        <span class="input-group-addon">{{ icon("search") }}</span>
+        <span class="input-group-addon input-group-addon-inline-end"><kbd class="kbd">/</kbd></span>
+      </div>
+    </div>
+
+    <nav class="sidebar-content" aria-label="Main">
+      <div class="sidebar-group">
+        <p class="sidebar-group-label">Monitor</p>
+        <ul class="sidebar-menu">
+          {% for item in monitor %}
+            <li class="sidebar-menu-item tooltip">
+              <a href="{{ item.href }}" class="sidebar-menu-button"{% if item.current %} aria-current="page"{% endif %}>{{ icon(item.icon) }}<span>{{ item.title }}</span></a>
+              {% if item.badge %}<span class="sidebar-menu-badge">{{ item.badge }}</span>{% endif %}
+              <span class="tooltip-content tooltip-content-right" aria-hidden="true">{{ item.title }}</span>
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      <div class="sidebar-group">
+        <p class="sidebar-group-label">Ship</p>
+        <ul class="sidebar-menu">
+          {% for item in ship %}
+            <li class="sidebar-menu-item collapsible tooltip" data-collapsible>
+              <button type="button" class="sidebar-menu-button" data-collapsible-trigger aria-expanded="{{ 'true' if item.open else 'false' }}">
+                {{ icon(item.icon) }}<span>{{ item.title }}</span>{{ icon("chevron-right", "collapsible-icon ml-auto") }}
+              </button>
+              <span class="tooltip-content tooltip-content-right" aria-hidden="true">{{ item.title }}</span>
+              <ul class="sidebar-menu-sub" data-collapsible-content{% if not item.open %} hidden{% endif %}>
+                {% for sub in item.items %}
+                  <li class="sidebar-menu-sub-item">
+                    <a href="#{{ item.title | lower }}-{{ loop.index }}" class="sidebar-menu-sub-button{% if item.title == 'Routes' %} font-mono text-xs{% endif %}"{% if item.current == sub %} data-active{% endif %}><span>{{ sub }}</span></a>
+                  </li>
+                {% endfor %}
+              </ul>
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      <div class="sidebar-group collapsible" data-collapsible>
+        <button type="button" class="sidebar-group-label" data-collapsible-trigger aria-expanded="true">
+          Saved views {{ icon("chevron-right", "collapsible-icon") }}
+        </button>
+        <button type="button" class="sidebar-group-action" aria-label="Save the current view">{{ icon("plus") }}</button>
+        <div class="sidebar-group-content" data-collapsible-content>
+          <ul class="sidebar-menu">
+            {% for view in views %}
+              <li class="sidebar-menu-item tooltip">
+                <a href="#view-{{ loop.index }}" class="sidebar-menu-button">{{ icon(view.icon) }}<span>{{ view.title }}</span></a>
+                <span class="tooltip-content tooltip-content-right" aria-hidden="true">{{ view.title }}</span>
+                <div class="dropdown" data-dropdown>
+                  <button type="button" class="sidebar-menu-action sidebar-menu-action-hover" data-dropdown-trigger aria-haspopup="menu" aria-expanded="false" aria-label="Options for {{ view.title }}">{{ icon("ellipsis") }}</button>
+                  <div class="dropdown-menu dropdown-menu-end" role="menu" aria-label="{{ view.title }}" hidden>
+                    <button type="button" class="dropdown-item" role="menuitem">{{ icon("copy") }}<span>Copy link</span></button>
+                    <button type="button" class="dropdown-item" role="menuitem">{{ icon("bell") }}<span>Alert me</span></button>
+                    <div class="dropdown-separator" role="separator"></div>
+                    <button type="button" class="dropdown-item dropdown-item-destructive" role="menuitem">{{ icon("trash") }}<span>Remove view</span></button>
+                  </div>
+                </div>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      {# The plan's usage: hidden in the icon rail, where there is no room for it. #}
+      <div class="sidebar-group-content rounded-lg border border-sidebar-border bg-background p-3 in-data-[state=collapsed]:hidden">
+        <div class="progress-field">
+          <label class="progress-label text-xs" for="usage-meter">Requests this month</label>
+          <span class="progress-value text-xs" aria-hidden="true">72%</span>
+          <progress id="usage-meter" class="progress progress-sm" value="72" max="100">72%</progress>
+        </div>
+        <p class="mt-2 text-xs text-muted-foreground">720k of 1M. <a class="font-medium text-sidebar-primary hover:underline" href="#plan">Raise the limit</a></p>
+      </div>
+      <ul class="sidebar-menu">
+        <li class="sidebar-menu-item">
+          <div class="dropdown w-full" data-dropdown>
+            <button type="button" class="sidebar-menu-button sidebar-menu-button-lg" data-dropdown-trigger aria-haspopup="menu" aria-expanded="false">
+              <span class="avatar shrink-0" aria-hidden="true"><span class="avatar-fallback">RO</span></span>
+              <span class="grid flex-1 leading-tight">
+                <span class="truncate font-medium">Rin Okafor</span>
+                <span class="truncate text-xs text-muted-foreground">Maintainer</span>
+              </span>
+              {{ icon("ellipsis-vertical", "ml-auto") }}
+            </button>
+            <div class="dropdown-menu dropdown-menu-up w-full min-w-56" role="menu" aria-label="Account" hidden>
+              <a class="dropdown-item" role="menuitem" href="#profile">{{ icon("user") }}<span>Profile</span></a>
+              <a class="dropdown-item" role="menuitem" href="#keys">{{ icon("shield-check") }}<span>API keys</span></a>
+              <button type="button" class="dropdown-item" role="menuitemcheckbox" aria-checked="true" data-keep-open><span>Email me about incidents</span></button>
+              <div class="dropdown-separator" role="separator"></div>
+              <button type="button" class="dropdown-item" role="menuitem">{{ icon("log-out") }}<span>Sign out</span></button>
+            </div>
+          </div>
+        </li>
+      </ul>
+    </div>
+
+    <button type="button" class="sidebar-rail" data-sidebar-rail tabindex="-1" aria-label="Toggle sidebar" title="Toggle sidebar"></button>
+  </aside>
+
+  <main class="sidebar-inset">
+    <header class="flex h-14 shrink-0 items-center gap-3 border-b border-border px-4">
+      <button type="button" class="sidebar-trigger -ml-1" data-sidebar-trigger aria-controls="app-sidebar" aria-label="Toggle sidebar" title="Toggle sidebar (Ctrl+B)">{{ icon("panel-left") }}</button>
+      <div class="separator separator-vertical h-4 self-center" role="none"></div>
+      <h1 class="text-sm font-semibold">Requests</h1>
+      <span class="badge badge-success badge-dot hidden sm:inline-flex">Live</span>
+      <span class="ml-auto hidden text-xs text-muted-foreground md:block">
+        Toggle the sidebar: <kbd class="kbd">Ctrl</kbd> <kbd class="kbd">B</kbd> or <kbd class="kbd">⌘</kbd> <kbd class="kbd">B</kbd>
+      </span>
+    </header>
+
+    <div class="flex flex-1 flex-col gap-4 p-4 md:p-6">
+      <div class="grid gap-4 sm:grid-cols-3">
+        {% for stat in [
+          { label: "Requests / min", value: "1,204", note: "+8% on last hour" },
+          { label: "p95 swap time", value: "212 ms", note: "Server 164 ms · swap 48 ms" },
+          { label: "Error rate", value: "0.4%", note: "5 of 1,204 in the last minute" }
+        ] %}
+          <div class="card card-sm">
+            <div class="card-header">
+              <p class="card-description">{{ stat.label }}</p>
+              <p class="text-2xl font-semibold tabular-nums">{{ stat.value }}</p>
+              <p class="text-xs text-muted-foreground">{{ stat.note }}</p>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+
+      <div class="table-wrap">
+        <table class="table table-hover">
+          <caption class="sr-only">Latest requests</caption>
+          <thead>
+            <tr><th>Request</th><th>Status</th><th class="hidden md:table-cell">Swap</th><th class="text-right">Time</th></tr>
+          </thead>
+          <tbody id="request-rows">
+            {% for r in requests %}
+              <tr>
+                <td class="font-mono text-xs"><span class="mr-2 inline-block w-14 font-semibold">{{ r.method }}</span>{{ r.path }}</td>
+                <td><span class="badge {{ 'badge-success' if r.status < 300 else ('badge-warning' if r.status < 500 else 'badge-danger') }}">{{ r.status }}</span></td>
+                <td class="hidden font-mono text-xs text-muted-foreground md:table-cell">{{ r.swap }}</td>
+                <td class="text-right tabular-nums">{{ r.ms }} ms</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <button type="button" class="btn btn-outline btn-sm" hx-get="/api/requests" hx-target="#request-rows" hx-swap="beforeend">
+          Load older requests <span class="htmx-indicator spinner" aria-hidden="true"></span>
+        </button>
+      </div>
+    </div>
+  </main>
+</div>
+{% endblock %}

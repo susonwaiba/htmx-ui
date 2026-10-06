@@ -1,4 +1,5 @@
 {% from "components/icon/icon.html" import icon %}
+{% from "search/macros.html" import search %}
 {% set links = [
   { title: "Docs", href: "/docs" },
   { title: "Components", href: "/docs/components" },
@@ -7,7 +8,7 @@
 <header class="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/70">
   <div class="mx-auto flex h-14 w-full max-w-7xl items-center gap-2 px-4 sm:px-6 lg:px-8">
     {% if has_sidebar %}
-      <button type="button" class="btn btn-ghost btn-icon -ml-2 lg:hidden" data-sidebar-toggle aria-controls="docs-nav" aria-expanded="false" aria-label="Open navigation">{{ icon("menu") }}</button>
+      <button type="button" class="btn btn-ghost btn-icon -ml-2 lg:hidden" data-sidebar-trigger aria-controls="docs-nav" aria-expanded="false" aria-label="Open navigation">{{ icon("menu") }}</button>
     {% endif %}
     <a href="/" class="mr-4 flex items-center gap-2 font-semibold">
       <span class="grid size-7 place-items-center rounded-md bg-primary text-primary-foreground">{{ icon("layers", "size-4") }}</span>
@@ -19,8 +20,8 @@
         <a href="{{ link.href }}" class="rounded-md px-3 py-1.5 transition-colors hover:text-foreground {{ 'text-foreground font-medium' if active else 'text-muted-foreground' }}"{% if active %} aria-current="page"{% endif %}>{{ link.title }}</a>
       {% endfor %}
     </nav>
-    <div class="ml-auto flex items-center gap-1">
-      {% include "partials/search.html" %}
+    <div id="site-main-header-actions" class="ml-auto flex items-center gap-1" hx-preserve="true">
+      {{ search() }}
       <a href="/docs/installation" class="btn btn-primary btn-sm hidden sm:inline-flex">Get started</a>
       <button type="button" class="btn btn-ghost btn-icon" data-theme-toggle aria-pressed="false" title="Toggle light and dark theme">
         <span class="dark:hidden">{{ icon("sun") }}</span>

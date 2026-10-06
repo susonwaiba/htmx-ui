@@ -1,82 +1,687 @@
 {% extends "layouts/docs.html" %}
 {% from "components/icon/icon.html" import icon %}
 {% from "components/code/code.html" import code %}
-{% from "macros/docs.html" import demo, classes %}
+{% from "docs/macros.html" import demo, classes %}
 {% set title = "Sidebar" %}
-{% set description = "A navigation column that sticks beside the content on large screens and slides in over it on small ones. The navigation on this page is one." %}
+{% set description = "A composable, themeable app navigation column: groups, menus, badges, actions and sub-menus, collapsing to an icon rail or off the screen, with an off-canvas panel on mobile." %}
+
+{# A live, full-page example (site/pages/examples/sidebar.html) in a frame. `query` sets its options. #}
+{% macro frame(query, label, class="h-[32rem]") %}
+<div class="not-prose overflow-hidden rounded-[calc(var(--radius)+4px)] border border-border" data-md-skip>
+  <iframe src="/examples/sidebar?{{ query }}" title="{{ label }}" loading="lazy" class="block w-full bg-background {{ class }}"></iframe>
+</div>
+{%- endmacro %}
 
 {% block content %}
   <h2 id="preview">Preview</h2>
-  <p>The links and labels, shown in a fixed-size frame:</p>
-  {% call demo("block p-0") %}
-    <div class="flex h-72 text-left">
-      <nav class="w-56 shrink-0 overflow-y-auto border-r border-border p-4">
-        <div class="sidebar-group">
-          <p class="sidebar-label">Workspace</p>
-          <a href="#preview" class="sidebar-link" aria-current="page">Dashboard</a>
-          <a href="#preview" class="sidebar-link">Projects <span class="badge badge-secondary">4</span></a>
-          <a href="#preview" class="sidebar-link">Deployments</a>
-        </div>
-        <div class="sidebar-group">
-          <p class="sidebar-label">Account</p>
-          <a href="#preview" class="sidebar-link">Settings</a>
-          <a href="#preview" class="sidebar-link">Billing</a>
-        </div>
-      </nav>
-      <div class="flex-1 p-6"><p class="muted">Page content</p></div>
+  <p>
+    Switchboard, a made-up console for watching an htmx app's requests: an environment switcher and a route search in
+    the header, a Monitor group with counts, collapsible Ship items with sub-menus, collapsible Saved views with
+    actions, a usage meter and an account menu in the footer, a rail and a trigger. Collapse it with the button, the
+    rail on its edge or <kbd>Ctrl</kbd> <kbd>B</kbd> (<kbd>⌘</kbd> <kbd>B</kbd> on a Mac) after clicking inside the
+    frame: it shrinks to icons, and each one shows its label as a tooltip.
+    <a href="/examples/sidebar" target="_blank">Open it on its own page</a>, where it also remembers its state and turns
+    into an off-canvas panel on a narrow window.
+  </p>
+  {{ frame("breakpoint=sm", "Sidebar example: an app shell", "h-[36rem]") }}
+
+  <h2 id="structure">Structure</h2>
+  <p>
+    A sidebar is plain markup with classes for each part. The layout holds the sidebar and the main area; the sidebar
+    holds a header, a scrolling content area and a footer; the content holds groups of menus.
+  </p>
+  {% call code("html", title="app.html") %}
+{% raw %}
+<div class="sidebar-layout">
+  <aside id="app-sidebar" class="sidebar" data-sidebar data-collapsible="icon" aria-label="Switchboard">
+    <div class="sidebar-header">…</div>
+    <nav class="sidebar-content" aria-label="Main">
+      <div class="sidebar-group">
+        <p class="sidebar-group-label">Monitor</p>
+        <ul class="sidebar-menu">
+          <li class="sidebar-menu-item">
+            <a href="/requests" class="sidebar-menu-button" aria-current="page">{{ icon("zap") }}<span>Requests</span></a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+    <div class="sidebar-footer">…</div>
+    <button type="button" class="sidebar-rail" data-sidebar-rail tabindex="-1" aria-label="Toggle sidebar"></button>
+  </aside>
+
+  <main class="sidebar-inset">
+    <button type="button" class="sidebar-trigger" data-sidebar-trigger aria-controls="app-sidebar"
+            aria-label="Toggle sidebar">{{ icon("panel-left") }}</button>
+    …
+  </main>
+</div>
+{% endraw %}
+  {% endcall %}
+  <ul>
+    <li><code>.sidebar-layout</code> places the sidebar and <code>.sidebar-inset</code> (the page's main area) side by side.</li>
+    <li><code>.sidebar</code> with <code>data-sidebar</code> is the column. Options are data attributes on it: <a href="#side">side</a>, <a href="#variant">variant</a>, <a href="#collapsible">collapsible</a> and <a href="#mobile">breakpoint</a>.</li>
+    <li><code>.sidebar-header</code> and <code>.sidebar-footer</code> stay put; <code>.sidebar-content</code> between them scrolls.</li>
+    <li><code>.sidebar-group</code> is a section of the content, with a <code>.sidebar-group-label</code>, an optional <code>.sidebar-group-action</code> and its <code>.sidebar-menu</code>.</li>
+    <li><code>.sidebar-menu</code> is a <code>&lt;ul&gt;</code> of <code>.sidebar-menu-item</code>s, each holding a <code>.sidebar-menu-button</code> (a link or button) and optionally an action, a badge or a sub-menu.</li>
+    <li><code>.sidebar-trigger</code> and <code>.sidebar-rail</code> toggle it.</li>
+  </ul>
+  <p>
+    The behaviour (<code>sidebar.ts</code>, run by <code>initComponents()</code>) handles toggling, the keyboard
+    shortcut, the cookie and the mobile panel. Everything else is CSS. The previews below show parts on their own, so
+    they add <code>h-auto</code> (fit the content rather than the window's height) and
+    <code>data-breakpoint="none"</code> (stay a column on a phone).
+  </p>
+
+  <h2 id="layout">Layout and inset</h2>
+  <p>
+    <code>.sidebar-layout</code> is a flex row at least as tall as the window. The sidebar sticks to the top of the
+    window while the page scrolls, and is as tall as the window. If a fixed or sticky header sits above the layout, set
+    <code>--sidebar-top</code> to its height, so the sidebar sticks below it and is shortened to fit. Put the page's
+    content in <code>&lt;main class="sidebar-inset"&gt;</code>, which takes the remaining width.
+  </p>
+  {% call code("html") %}
+    <header class="sticky top-0 h-14">…</header>
+    <div class="sidebar-layout [--sidebar-top:3.5rem]">
+      <aside class="sidebar" data-sidebar>…</aside>
+      <main class="sidebar-inset">…</main>
     </div>
   {% endcall %}
+  <p>The navigation of these docs is one, set up this way (see <a href="#docs-navigation">the docs navigation</a>).</p>
 
-  <h2 id="responsive">Responsive layout</h2>
+  <h2 id="header-footer">Header and footer</h2>
   <p>
-    Put <code>.sidebar</code> on an <code>&lt;aside&gt;</code> next to your content. From the
-    <code>lg</code> breakpoint up it's a sticky column under a 56px header. Below that it hides
-    off-screen until a toggle opens it. Resize this window to try it with the docs navigation.
+    Use the header for a logo, a workspace or environment switcher, or a search field, and the footer for the
+    signed-in user or the plan's usage. A menu in
+    either works like one in the content. Here a large menu button opens a <a href="/docs/components/dropdown">dropdown</a>;
+    in the footer, <code>.dropdown-menu-up</code> opens it upwards.
   </p>
-  {% call code("html", title="layout.html") %}
-    <header class="sticky top-0 h-14 border-b">
-      <button class="btn btn-ghost btn-icon lg:hidden"
-              data-sidebar-toggle aria-controls="nav" aria-expanded="false" aria-label="Open navigation">
-        <!-- menu icon -->
-      </button>
-    </header>
+  {% call demo("items-start") %}
+<aside class="sidebar h-auto rounded-lg border" data-breakpoint="none" aria-label="Header example">
+  <div class="sidebar-header">
+    <ul class="sidebar-menu">
+      <li class="sidebar-menu-item">
+        <div class="dropdown w-full" data-dropdown>
+          <button type="button" class="sidebar-menu-button sidebar-menu-button-lg" data-dropdown-trigger aria-haspopup="menu" aria-expanded="false">
+            <span class="grid size-8 shrink-0 place-items-center rounded-full border-2 border-sidebar-primary text-sidebar-primary">{{ icon("zap") }}</span>
+            <span class="grid flex-1 leading-tight">
+              <span class="truncate font-semibold">Switchboard</span>
+              <span class="truncate font-mono text-xs text-muted-foreground">production</span>
+            </span>
+            {{ icon("chevrons-up-down", "ml-auto") }}
+          </button>
+          <div class="dropdown-menu w-full" role="menu" aria-label="Environments" hidden>
+            <div role="group" aria-label="Environment">
+              <button type="button" class="dropdown-item" role="menuitemradio" aria-checked="true">Production</button>
+              <button type="button" class="dropdown-item" role="menuitemradio" aria-checked="false">Staging</button>
+            </div>
+          </div>
+        </div>
+      </li>
+    </ul>
+    <input class="input sidebar-input" type="search" placeholder="Jump to route…" aria-label="Jump to route" />
+  </div>
+</aside>
+  {% endcall %}
 
-    <div class="mx-auto flex max-w-7xl gap-12 px-4">
-      <aside id="nav" class="sidebar" data-sidebar>
-        <nav class="sidebar-group">
-          <p class="sidebar-label">Getting started</p>
-          <a href="/docs" class="sidebar-link" aria-current="page">Introduction</a>
-          <a href="/docs/installation" class="sidebar-link">Installation</a>
-        </nav>
+  <h2 id="content">Content</h2>
+  <p>
+    <code>.sidebar-content</code> fills the height between the header and the footer and scrolls when its groups don't
+    fit. Make it the <code>&lt;nav&gt;</code> (with an <code>aria-label</code>) when it holds the site's navigation.
+    Separate groups with a <code>.sidebar-separator</code> if they need a line.
+  </p>
+
+  <h2 id="group">Group</h2>
+  <p>
+    A <code>.sidebar-group</code> is a labelled section. <code>.sidebar-group-action</code> is an icon button in its
+    top-right corner (give it an <code>aria-label</code>). Wrap the menu in <code>.sidebar-group-content</code> when the
+    group is <a href="/docs/components/collapsible">collapsible</a>: make the group the collapsible, the label its
+    trigger and the content its content. A chevron with <code>.collapsible-icon</code> turns a quarter while open.
+  </p>
+  {% call demo("items-start") %}
+<aside class="sidebar h-auto rounded-lg border" data-breakpoint="none" aria-label="Group example">
+  <div class="sidebar-group collapsible" data-collapsible>
+    <button type="button" class="sidebar-group-label" data-collapsible-trigger aria-expanded="true">
+      Saved views {{ icon("chevron-right", "collapsible-icon") }}
+    </button>
+    <button type="button" class="sidebar-group-action" aria-label="Save the current view">{{ icon("plus") }}</button>
+    <div class="sidebar-group-content" data-collapsible-content>
+      <ul class="sidebar-menu">
+        <li class="sidebar-menu-item"><a href="#group" class="sidebar-menu-button">{{ icon("star") }}<span>Slower than 1s</span></a></li>
+        <li class="sidebar-menu-item"><a href="#group" class="sidebar-menu-button">{{ icon("alert-triangle") }}<span>Errors this week</span></a></li>
+      </ul>
+    </div>
+  </div>
+</aside>
+  {% endcall %}
+  <p>Without JavaScript, <code>&lt;details class="sidebar-group"&gt;</code> with a <code>&lt;summary class="sidebar-group-label"&gt;</code> works the same way.</p>
+
+  <h2 id="menu">Menu and menu button</h2>
+  <p>
+    A <code>.sidebar-menu</code> is a list; each <code>.sidebar-menu-item</code> holds a
+    <code>.sidebar-menu-button</code>: an <code>&lt;a&gt;</code> for navigation, a <code>&lt;button&gt;</code> for an
+    action. Put an icon first and the label in a <code>&lt;span&gt;</code>, which is cut short with an ellipsis when it
+    doesn't fit.
+  </p>
+  <ul>
+    <li><strong>Current page:</strong> <code>aria-current="page"</code> (or <code>data-active</code> for anything else that should look selected). It is tinted with <code>--sidebar-primary</code> and marked by a bar on its leading edge, which stays visible in the icon rail.</li>
+    <li><strong>Sizes:</strong> <code>.sidebar-menu-button-sm</code> (28px), the default (32px), <code>.sidebar-menu-button-lg</code> (48px, for two lines or an avatar).</li>
+    <li><strong>Variant:</strong> <code>.sidebar-menu-button-outline</code> draws a border and a background.</li>
+    <li><strong>Disabled:</strong> <code>disabled</code> on a button, <code>aria-disabled="true"</code> on a link.</li>
+  </ul>
+  {% call demo("items-start") %}
+<aside class="sidebar h-auto rounded-lg border" data-breakpoint="none" aria-label="Menu example">
+  <div class="sidebar-group">
+    <ul class="sidebar-menu">
+      <li class="sidebar-menu-item"><a href="#menu" class="sidebar-menu-button" aria-current="page">{{ icon("zap") }}<span>Requests</span></a></li>
+      <li class="sidebar-menu-item"><a href="#menu" class="sidebar-menu-button">{{ icon("calendar") }}<span>Fragments swapped in the last 24 hours</span></a></li>
+      <li class="sidebar-menu-item"><a href="#menu" class="sidebar-menu-button sidebar-menu-button-sm">{{ icon("bell") }}<span>Small</span></a></li>
+      <li class="sidebar-menu-item"><button type="button" class="sidebar-menu-button sidebar-menu-button-outline">{{ icon("search") }}<span>Outline</span></button></li>
+      <li class="sidebar-menu-item"><a class="sidebar-menu-button" aria-disabled="true">{{ icon("users") }}<span>Disabled</span></a></li>
+      <li class="sidebar-menu-item">
+        <a href="#menu" class="sidebar-menu-button sidebar-menu-button-lg">
+          <span class="avatar shrink-0" aria-hidden="true"><span class="avatar-fallback">RO</span></span>
+          <span class="grid flex-1 leading-tight"><span class="truncate font-medium">Rin Okafor</span><span class="truncate text-xs text-muted-foreground">Maintainer</span></span>
+        </a>
+      </li>
+    </ul>
+  </div>
+</aside>
+  {% endcall %}
+
+  <h2 id="menu-action">Menu action</h2>
+  <p>
+    A <code>.sidebar-menu-action</code> is a small icon button at the end of an item, next to the menu button rather
+    than inside it (a button can't hold another). Add <code>.sidebar-menu-action-hover</code> to show it only while
+    the item is hovered or focused, or its menu is open; screens that can't hover always show it. To open a
+    <a href="/docs/components/dropdown">dropdown</a>, wrap the action in the dropdown and make it the trigger.
+  </p>
+  {% call demo("items-start") %}
+<aside class="sidebar h-auto rounded-lg border" data-breakpoint="none" aria-label="Action example">
+  <div class="sidebar-group">
+    <ul class="sidebar-menu">
+      <li class="sidebar-menu-item">
+        <a href="#menu-action" class="sidebar-menu-button">{{ icon("bookmark") }}<span>Checkout swaps</span></a>
+        <div class="dropdown" data-dropdown>
+          <button type="button" class="sidebar-menu-action sidebar-menu-action-hover" data-dropdown-trigger aria-haspopup="menu" aria-expanded="false" aria-label="Options for Checkout swaps">{{ icon("ellipsis") }}</button>
+          <div class="dropdown-menu dropdown-menu-end" role="menu" aria-label="Checkout swaps" hidden>
+            <button type="button" class="dropdown-item" role="menuitem">{{ icon("copy") }}<span>Copy link</span></button>
+            <button type="button" class="dropdown-item dropdown-item-destructive" role="menuitem">{{ icon("trash") }}<span>Remove view</span></button>
+          </div>
+        </div>
+      </li>
+      <li class="sidebar-menu-item">
+        <a href="#menu-action" class="sidebar-menu-button">{{ icon("server") }}<span>eu-west</span></a>
+        <button type="button" class="sidebar-menu-action" aria-label="Pin eu-west">{{ icon("star") }}</button>
+      </li>
+    </ul>
+  </div>
+</aside>
+  {% endcall %}
+
+  <h2 id="menu-badge">Menu badge</h2>
+  <p>
+    A <code>.sidebar-menu-badge</code> after the menu button shows a count or a short status at the end of the item.
+    It ignores the pointer, so the whole item stays clickable. Screen readers read it after the link, so keep it
+    meaningful on its own or add hidden text (<code>&lt;span class="sr-only"&gt; unread&lt;/span&gt;</code>).
+  </p>
+  {% call demo("items-start") %}
+<aside class="sidebar h-auto rounded-lg border" data-breakpoint="none" aria-label="Badge example">
+  <div class="sidebar-group">
+    <ul class="sidebar-menu">
+      <li class="sidebar-menu-item"><a href="#menu-badge" class="sidebar-menu-button">{{ icon("zap") }}<span>Requests</span></a><span class="sidebar-menu-badge">1.2k<span class="sr-only"> in the last hour</span></span></li>
+      <li class="sidebar-menu-item"><a href="#menu-badge" class="sidebar-menu-button">{{ icon("bell") }}<span>Alerts</span></a><span class="sidebar-menu-badge"><span class="badge badge-danger badge-solid px-1.5">3</span></span></li>
+    </ul>
+  </div>
+</aside>
+  {% endcall %}
+
+  <h2 id="menu-sub">Menu sub</h2>
+  <p>
+    A <code>.sidebar-menu-sub</code> nests a list of <code>.sidebar-menu-sub-item</code>s with
+    <code>.sidebar-menu-sub-button</code>s under an item, indented along a line. Usually it's the content of a
+    <a href="/docs/components/collapsible">collapsible</a> item: the item is the collapsible, its menu button the
+    trigger with a trailing <code>chevron-right</code>, which turns down while open. The current sub-item lights up
+    its stretch of the line, like a branch of a tree. <code>.sidebar-menu-sub-button-sm</code>
+    makes the text smaller.
+  </p>
+  {% call demo("items-start") %}
+<aside class="sidebar h-auto rounded-lg border" data-breakpoint="none" aria-label="Sub-menu example">
+  <div class="sidebar-group">
+    <ul class="sidebar-menu">
+      <li class="sidebar-menu-item collapsible" data-collapsible>
+        <button type="button" class="sidebar-menu-button" data-collapsible-trigger aria-expanded="true">
+          {{ icon("link") }}<span>Routes</span>{{ icon("chevron-right", "collapsible-icon ml-auto") }}
+        </button>
+        <ul class="sidebar-menu-sub" data-collapsible-content>
+          <li class="sidebar-menu-sub-item"><a href="#menu-sub" class="sidebar-menu-sub-button font-mono text-xs"><span>/orders</span></a></li>
+          <li class="sidebar-menu-sub-item"><a href="#menu-sub" class="sidebar-menu-sub-button font-mono text-xs" aria-current="page"><span>/search</span></a></li>
+          <li class="sidebar-menu-sub-item"><a href="#menu-sub" class="sidebar-menu-sub-button font-mono text-xs"><span>/cart/items</span></a></li>
+        </ul>
+      </li>
+      <li class="sidebar-menu-item collapsible" data-collapsible>
+        <button type="button" class="sidebar-menu-button" data-collapsible-trigger aria-expanded="false">
+          {{ icon("server") }}<span>Servers</span>{{ icon("chevron-right", "collapsible-icon ml-auto") }}
+        </button>
+        <ul class="sidebar-menu-sub" data-collapsible-content hidden>
+          <li class="sidebar-menu-sub-item"><a href="#menu-sub" class="sidebar-menu-sub-button"><span>eu-west</span></a></li>
+          <li class="sidebar-menu-sub-item"><a href="#menu-sub" class="sidebar-menu-sub-button"><span>us-east</span></a></li>
+        </ul>
+      </li>
+    </ul>
+  </div>
+</aside>
+  {% endcall %}
+
+  <h2 id="menu-skeleton">Menu skeleton</h2>
+  <p>
+    <code>.sidebar-menu-skeleton</code> is a placeholder item for a menu that is still loading, with an optional
+    <code>.sidebar-menu-skeleton-icon</code> and a <code>.sidebar-menu-skeleton-text</code> bar whose width is
+    <code>--skeleton-width</code> (70% by default). It pulses, except with reduced motion.
+  </p>
+  {% call demo("items-start") %}
+<aside class="sidebar h-auto rounded-lg border" data-breakpoint="none" aria-label="Skeleton example">
+  <div class="sidebar-group">
+    <p class="sidebar-group-label">Saved views</p>
+    <ul class="sidebar-menu" aria-busy="true">
+      <li class="sr-only">Loading saved views…</li>
+      <li class="sidebar-menu-skeleton" aria-hidden="true"><span class="sidebar-menu-skeleton-icon"></span><span class="sidebar-menu-skeleton-text" style="--skeleton-width: 80%"></span></li>
+      <li class="sidebar-menu-skeleton" aria-hidden="true"><span class="sidebar-menu-skeleton-icon"></span><span class="sidebar-menu-skeleton-text" style="--skeleton-width: 55%"></span></li>
+      <li class="sidebar-menu-skeleton" aria-hidden="true"><span class="sidebar-menu-skeleton-icon"></span><span class="sidebar-menu-skeleton-text" style="--skeleton-width: 65%"></span></li>
+    </ul>
+  </div>
+</aside>
+  {% endcall %}
+  <p>
+    With htmx, render the skeleton in the page and let the menu replace itself once it's loaded. The server answers
+    with the finished <code>&lt;ul class="sidebar-menu"&gt;</code>; see <a href="#htmx">htmx</a>.
+  </p>
+  {% call code("html") %}
+    <ul class="sidebar-menu" hx-get="/fragments/saved-views" hx-trigger="load" hx-swap="outerHTML" aria-busy="true">
+      <li class="sr-only">Loading saved views…</li>
+      <li class="sidebar-menu-skeleton" aria-hidden="true">
+        <span class="sidebar-menu-skeleton-icon"></span>
+        <span class="sidebar-menu-skeleton-text" style="--skeleton-width: 80%"></span>
+      </li>
+      …
+    </ul>
+  {% endcall %}
+
+  <h2 id="separator-input">Separator and input</h2>
+  <p>
+    <code>.sidebar-separator</code> is a line between groups or parts (on an <code>&lt;hr&gt;</code>, or a
+    <code>&lt;div role="separator"&gt;</code>). <code>.sidebar-input</code> goes with <code>.input</code>
+    (<a href="/docs/components/input">Input</a>) for a compact field, such as a search box in the header.
+  </p>
+  {% call demo("items-start") %}
+<aside class="sidebar h-auto rounded-lg border" data-breakpoint="none" aria-label="Separator example">
+  <div class="sidebar-header">
+    <input class="input sidebar-input" type="search" placeholder="Jump to route…" aria-label="Jump to route" />
+  </div>
+  <hr class="sidebar-separator" />
+  <div class="sidebar-group">
+    <ul class="sidebar-menu">
+      <li class="sidebar-menu-item"><a href="#separator-input" class="sidebar-menu-button">{{ icon("bar-chart") }}<span>Overview</span></a></li>
+    </ul>
+  </div>
+</aside>
+  {% endcall %}
+
+  <h2 id="trigger">Trigger</h2>
+  <p>
+    Any button with <code>data-sidebar-trigger</code> toggles the sidebar named by its <code>aria-controls</code>. Without
+    <code>aria-controls</code> it toggles the sidebar of the <code>.sidebar-layout</code> it's in, and gets
+    <code>aria-controls</code> set. Its <code>aria-expanded</code> is kept in sync: whether the sidebar is expanded, or,
+    in mobile mode, whether the panel is open. <code>.sidebar-trigger</code> is a small ghost icon button for it; a
+    <code>.btn</code> works as well. Give it an <code>aria-label</code>.
+  </p>
+  {% call code("html") %}
+{% raw %}
+<button type="button" class="sidebar-trigger" data-sidebar-trigger aria-controls="app-sidebar"
+        aria-label="Toggle sidebar">{{ icon("panel-left") }}</button>
+{% endraw %}
+  {% endcall %}
+  <p>
+    A button with <code>data-sidebar-close</code> only closes: the mobile panel when it's open, else it collapses the
+    sidebar. Use it for a close button inside the panel.
+  </p>
+
+  <h2 id="rail">Rail</h2>
+  <p>
+    <code>.sidebar-rail</code> with <code>data-sidebar-rail</code> is a thin strip along the sidebar's inner edge. Hovering
+    it shows a line and a resize cursor; clicking it toggles the sidebar. When the sidebar has slid off the screen the
+    rail stays at the window's edge, so the sidebar can be brought back from there. It's a pointer shortcut, kept out of
+    the tab order (<code>tabindex="-1"</code>): keyboard users have the trigger and <a href="#keyboard">the shortcut</a>.
+    Put it last in the sidebar. It's hidden in mobile mode and with <code>data-collapsible="none"</code>.
+  </p>
+
+  <h2 id="side">Side</h2>
+  <p>
+    <code>data-side="right"</code> puts the sidebar on the right: its border, rail, slide direction and the inset's
+    margin all follow. In a right sidebar, use <code>.tooltip-content-left</code> for icon-mode tooltips and the
+    <code>panel-right</code> icon for the trigger. A layout can hold a sidebar on each side, each with its own trigger.
+  </p>
+  {{ frame("side=right&breakpoint=sm", "Sidebar example: on the right") }}
+  {% call code("html") %}
+    <aside class="sidebar" data-sidebar data-side="right">…</aside>
+  {% endcall %}
+
+  <h2 id="variant">Variant</h2>
+  <p><code>data-variant</code> sets how the sidebar sits in the page:</p>
+  <ul>
+    <li><code>sidebar</code> (the default): a full-height column with a border on its inner edge. See the <a href="#preview">preview</a>.</li>
+    <li><code>floating</code>: a rounded panel with a border and a shadow, inset from the window's edges.</li>
+    <li><code>inset</code>: the sidebar blends into the page background, and the main area becomes a raised, rounded panel beside it.</li>
+  </ul>
+  {{ frame("variant=floating&breakpoint=sm", "Sidebar example: floating variant") }}
+  {{ frame("variant=inset&breakpoint=sm", "Sidebar example: inset variant") }}
+  {% call code("html") %}
+    <aside class="sidebar" data-sidebar data-variant="floating">…</aside>
+    <aside class="sidebar" data-sidebar data-variant="inset">…</aside>
+  {% endcall %}
+
+  <h2 id="collapsible">Collapsible</h2>
+  <p><code>data-collapsible</code> sets what collapsing does:</p>
+  <ul>
+    <li><code>offcanvas</code> (the default): the sidebar slides fully out, and the main area takes the space. Once out of view it is hidden, so nothing in it can take focus.</li>
+    <li><code>icon</code>: the sidebar shrinks to a rail of icons; see <a href="#icon-mode">Icon mode</a>.</li>
+    <li><code>none</code>: it never collapses (on mobile it's still an off-canvas panel).</li>
+  </ul>
+  <p>
+    The state is <code>data-state="expanded"</code> or <code>"collapsed"</code> on the sidebar. Render the one you
+    want; the behaviour sets <code>expanded</code> when there's none.
+  </p>
+  {{ frame("collapsible=offcanvas&breakpoint=sm", "Sidebar example: off-canvas collapsing") }}
+  {{ frame("collapsible=none&breakpoint=sm", "Sidebar example: not collapsible") }}
+  {% call code("html") %}
+    <aside class="sidebar" data-sidebar data-collapsible="offcanvas" data-state="collapsed">…</aside>
+  {% endcall %}
+
+  <h2 id="icon-mode">Icon mode and tooltips</h2>
+  <p>
+    Collapsed with <code>data-collapsible="icon"</code>, the sidebar is <code>--sidebar-width-icon</code> wide. Menu
+    buttons become squares showing just their icon, large ones just their avatar or logo; group labels, badges, actions,
+    sub-menus and <code>.sidebar-input</code> hide. The labels stay in the page (clipped, not removed), so links keep
+    their accessible names.
+  </p>
+  <p>
+    For a tooltip, make the item a <a href="/docs/components/tooltip">tooltip</a> and add its text after the button.
+    It only shows while the sidebar is collapsed to icons. It repeats the button's name, so hide it from screen readers
+    with <code>aria-hidden="true"</code>; <kbd>Esc</kbd> still dismisses it.
+  </p>
+  {{ frame("state=collapsed&breakpoint=sm", "Sidebar example: collapsed to icons") }}
+  {% call code("html") %}
+{% raw %}
+<li class="sidebar-menu-item tooltip">
+  <a href="/alerts" class="sidebar-menu-button">{{ icon("bell") }}<span>Alerts</span></a>
+  <span class="tooltip-content tooltip-content-right" aria-hidden="true">Alerts</span>
+</li>
+{% endraw %}
+  {% endcall %}
+  <p>
+    In icon mode the content doesn't scroll, so the tooltips and menus can reach outside it: keep the icons to what fits
+    the height of the window.
+  </p>
+
+  <h2 id="width">Width</h2>
+  <p>
+    Three CSS variables set the widths. Set them on the sidebar, the layout or any ancestor, for example with Tailwind's
+    arbitrary properties.
+  </p>
+  {{ classes([
+    ["--sidebar-width", "Expanded width, 16rem by default. Floating and inset sidebars include their 0.5rem margin in it."],
+    ["--sidebar-width-icon", "Width of the icon rail, 3rem by default (a 2rem button and its padding)."],
+    ["--sidebar-width-mobile", "Width of the mobile panel, 18rem by default."],
+    ["--sidebar-top", "Where the sidebar sticks, and how much shorter than the window it is: the height of a header above it. 0 by default."]
+  ], heading="Variable") }}
+  {% call code("html") %}
+    <aside class="sidebar [--sidebar-width:20rem] [--sidebar-width-mobile:85vw]" data-sidebar>…</aside>
+  {% endcall %}
+
+  <h2 id="mobile">Mobile</h2>
+  <p>
+    Below a breakpoint the sidebar becomes an off-canvas panel over the page, with a dimmed backdrop. The same trigger
+    and shortcut open it. It closes on <kbd>Esc</kbd>, a click on the backdrop, following a link inside it, or a
+    <code>data-sidebar-close</code> button. While it's open, focus moves into it (to the current page's link), stays
+    there, the rest of the layout is inert and the page doesn't scroll; closing returns focus to the trigger. The panel
+    always shows the full sidebar, whatever its desktop state.
+  </p>
+  <p>
+    <code>data-breakpoint</code> picks the breakpoint: <code>sm</code> (40rem), <code>md</code> (48rem, the default),
+    <code>lg</code> (64rem), or <code>none</code> to stay a column at every width. The switch is a media query on the
+    window's width, in <code>sidebar.css</code>; the behaviour reads it from the stylesheet (the
+    <code>--sidebar-mobile</code> custom property), so the two always agree, and it marks the sidebar
+    <code>data-mobile</code> while it applies. The frame below is phone-sized:
+  </p>
+  {{ frame("breakpoint=md", "Sidebar example: mobile", "mx-auto h-[40rem] max-w-[375px]") }}
+
+  <h2 id="keyboard">Keyboard</h2>
+  <div class="table-wrap not-prose">
+    <table class="table">
+      <thead><tr><th>Key</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr><td class="whitespace-nowrap"><kbd class="kbd">Ctrl</kbd> <kbd class="kbd">B</kbd> / <kbd class="kbd">⌘</kbd> <kbd class="kbd">B</kbd></td><td class="text-muted-foreground">Toggles the sidebar (opens or closes the panel in mobile mode). Ignored while typing in a field.</td></tr>
+        <tr><td><kbd class="kbd">Tab</kbd> <kbd class="kbd">Shift</kbd> <kbd class="kbd">Tab</kbd></td><td class="text-muted-foreground">Moves through the links and buttons. Inside the open mobile panel, wraps around within it.</td></tr>
+        <tr><td><kbd class="kbd">Enter</kbd> <kbd class="kbd">Space</kbd></td><td class="text-muted-foreground">Follows a link, presses a button, opens or closes a collapsible item or group.</td></tr>
+        <tr><td><kbd class="kbd">Esc</kbd></td><td class="text-muted-foreground">Closes the mobile panel and returns focus to the trigger; otherwise hides an icon-mode tooltip.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>
+    <code>data-shortcut="j"</code> moves the shortcut to another letter; <code>data-shortcut="none"</code> turns it off.
+    Every sidebar listens for its own letter, so with two sidebars on a page give them different letters or turn one
+    off.
+  </p>
+
+  <h2 id="persistence">Persistence and server rendering</h2>
+  <p>
+    With <code>data-cookie="sidebar_state"</code> (any cookie name) the behaviour stores the desktop state each time it
+    changes: <code>true</code> for expanded, <code>false</code> for collapsed, for seven days, on path <code>/</code>,
+    <code>SameSite=Lax</code>. On load it restores a stored state without animating. Without <code>data-cookie</code>
+    nothing is stored.
+  </p>
+  <p>
+    The behaviour only runs once the page has loaded, so a page that renders the sidebar expanded and is then restored to
+    collapsed would show it open for a moment. Render the stored state instead. On a server, read the cookie and pass it
+    to the template (see <a href="/docs/servers/rendering#render-per-request">rendering a page per request</a>):
+  </p>
+  {% call code("ts", title="server.ts") %}
+    app.get("/dashboard", ({ request }) => {
+      const collapsed = /(?:^|;\s*)sidebar_state=false/.test(request.headers.get("cookie") ?? "");
+      return html(site.render("/dashboard", { sidebarState: collapsed ? "collapsed" : "expanded" }));
+    });
+  {% endcall %}
+  {% call code("html", title="pages/dashboard.html") %}
+{% raw %}
+<aside id="app-sidebar" class="sidebar" data-sidebar data-collapsible="icon" data-cookie="sidebar_state"
+       data-state="{{ sidebarState | default('expanded') }}">…</aside>
+{% endraw %}
+  {% endcall %}
+  <p>
+    A static site has no request to read, so set the state from the cookie with a small inline script as the sidebar's
+    first child. It runs before the page is painted:
+  </p>
+  {% call code("html", title="Static pages") %}
+    <aside id="app-sidebar" class="sidebar" data-sidebar data-collapsible="icon" data-cookie="sidebar_state">
+      <script>
+        if (/(?:^|;\s*)sidebar_state=false/.test(document.cookie))
+          document.currentScript.parentElement.dataset.state = "collapsed";
+      </script>
+      …
+    </aside>
+  {% endcall %}
+
+  <h2 id="theming">Theming</h2>
+  <p>
+    The sidebar has its own colour tokens, so it can be tinted apart from the page. By default they follow the page's
+    (<a href="/docs/theming#tokens">Theming</a>), with a slightly darker background in light mode. Override them on
+    <code>:root</code>, under <code>.dark</code>, or on one sidebar. Each is also a Tailwind colour:
+    <code>bg-sidebar</code>, <code>text-sidebar-primary</code>, <code>border-sidebar-border</code>…
+  </p>
+  {{ classes([
+    ["--sidebar", "Background. zinc-50 in light mode, zinc-900 in dark."],
+    ["--sidebar-foreground", "Text and icons. Defaults to --foreground."],
+    ["--sidebar-primary", "Accent fills, such as a logo tile. Defaults to --primary."],
+    ["--sidebar-primary-foreground", "Text on --sidebar-primary."],
+    ["--sidebar-accent", "Hovered and current items. Defaults to --accent."],
+    ["--sidebar-accent-foreground", "Text on --sidebar-accent."],
+    ["--sidebar-border", "Borders, the sub-menu line, separators, the rail. Defaults to --border."],
+    ["--sidebar-ring", "Focus rings. Defaults to --ring."]
+  ], heading="Token") }}
+  {% call code("css") %}
+    /* A dark sidebar in both themes */
+    .sidebar {
+      --sidebar: var(--color-zinc-900);
+      --sidebar-foreground: var(--color-zinc-300);
+      --sidebar-accent: var(--color-zinc-800);
+      --sidebar-accent-foreground: var(--color-white);
+      --sidebar-border: var(--color-zinc-800);
+    }
+  {% endcall %}
+
+  <h2 id="accessibility">Accessibility</h2>
+  <ul>
+    <li>The <code>&lt;aside&gt;</code> is a complementary landmark; give it an <code>aria-label</code>. Make the part holding the site's links a <code>&lt;nav&gt;</code> with its own label.</li>
+    <li>Mark the current page with <code>aria-current="page"</code>: it's both what screen readers announce and the style hook.</li>
+    <li>Menus are lists of links and buttons, not ARIA menus, so <kbd>Tab</kbd> moves through them as through any navigation. Collapsible items and groups are disclosure buttons with <code>aria-expanded</code>.</li>
+    <li>The trigger is a button with <code>aria-controls</code> and an <code>aria-expanded</code> that follows the sidebar. Label it.</li>
+    <li>Collapsed to icons, labels are clipped rather than removed, so links keep their names; the tooltips that repeat them are <code>aria-hidden</code>, appear on keyboard focus too, and <kbd>Esc</kbd> hides them.</li>
+    <li>A sidebar slid off the screen and a closed mobile panel are hidden, so nothing in them can be focused.</li>
+    <li>The open mobile panel keeps focus inside it and makes the rest of the layout inert; closing it returns focus to where it was.</li>
+    <li>Action buttons need an <code>aria-label</code> naming their item ("Options for Checkout swaps"), since several share an icon.</li>
+    <li>With reduced motion the sidebar switches states without animating.</li>
+  </ul>
+
+  <h2 id="htmx">htmx</h2>
+  <p>
+    The behaviour runs again on every element htmx inserts (<code>initComponents</code> on
+    <code>htmx:after:process</code>), so a sidebar, a trigger or a menu returned by the server works without extra
+    code, and the existing triggers follow a sidebar that was replaced. Load slow parts of the menu after the page, as
+    in <a href="#menu-skeleton">Menu skeleton</a>: the fragment the server returns is ordinary sidebar markup.
+  </p>
+  {% call code("html", title="The fragment for hx-get=\"/fragments/saved-views\"") %}
+{% raw %}
+<ul class="sidebar-menu">
+  {% for view in saved_views %}
+    <li class="sidebar-menu-item tooltip">
+      <a href="/views/{{ view.id }}" class="sidebar-menu-button">{{ icon("bookmark") }}<span>{{ view.name }}</span></a>
+      <span class="tooltip-content tooltip-content-right" aria-hidden="true">{{ view.name }}</span>
+    </li>
+  {% endfor %}
+</ul>
+{% endraw %}
+  {% endcall %}
+  <p>
+    With <code>hx-boost</code>, mark the current link from the page being rendered (<code>aria-current="page"</code>)
+    as usual; following a link closes the mobile panel before the new page is swapped in.
+  </p>
+
+  <h2 id="events">Events</h2>
+  <p>
+    Every change fires a bubbling <code>sidebar:toggle</code> event on the sidebar, with <code>detail</code>
+    <code>{ expanded, open, mobile }</code>: the desktop state, whether the mobile panel is open, and whether the
+    sidebar is in mobile mode. To toggle it from a script, click its trigger.
+  </p>
+  {% call code("js") %}
+    document.addEventListener("sidebar:toggle", (e) => {
+      console.log(e.target.id, e.detail.expanded ? "expanded" : "collapsed");
+    });
+    document.querySelector("[data-sidebar-trigger]").click();
+  {% endcall %}
+
+  <h2 id="docs-navigation">The docs navigation</h2>
+  <p>
+    The navigation of these docs is a sidebar composed for a docs site: it never collapses on a desktop
+    (<code>data-collapsible="none"</code>), it's an off-canvas panel below <code>lg</code> opened by the header's menu
+    button, it sticks under the 56px header with <code>--sidebar-top</code>, and its colours come from the tokens:
+    transparent from <code>lg</code> up, with muted links.
+  </p>
+  {% call code("html", title="layouts/docs.html (shortened)") %}
+    <div class="sidebar-layout mx-auto min-h-0 max-w-7xl gap-12 px-4">
+      <aside id="docs-nav" class="sidebar text-foreground [--sidebar-foreground:var(--muted-foreground)]
+                    [--sidebar-top:3.5rem] [--sidebar-width:15rem] [--sidebar:var(--background)]
+                    lg:border-r-0 lg:[--sidebar:transparent]"
+             data-sidebar data-collapsible="none" data-breakpoint="lg" data-shortcut="none" aria-label="Documentation">
+        <div class="sidebar-header flex-row items-center justify-between lg:hidden">
+          <span class="font-semibold">Documentation</span>
+          <button type="button" class="btn btn-ghost btn-icon btn-sm" data-sidebar-close aria-label="Close navigation">…</button>
+        </div>
+        <div class="sidebar-content gap-6 p-6 lg:px-0 lg:py-8">
+          <nav class="sidebar-group p-0" aria-labelledby="docs-nav-1">
+            <p id="docs-nav-1" class="sidebar-group-label …">Getting started</p>
+            <ul class="sidebar-menu gap-0">
+              <li class="sidebar-menu-item"><a href="/docs" class="sidebar-menu-button" aria-current="page"><span>Introduction</span></a></li>
+            </ul>
+          </nav>
+        </div>
       </aside>
-      <div class="sidebar-backdrop" data-sidebar-close></div>
-
       <main class="min-w-0 flex-1">…</main>
     </div>
   {% endcall %}
 
-  <h2 id="behaviour">Behaviour</h2>
-  <ul>
-    <li>A <code>[data-sidebar-toggle]</code> opens or closes the sidebar named by its <code>aria-controls</code>, and keeps <code>aria-expanded</code> in sync.</li>
-    <li>The open sidebar has a <code>data-open</code> attribute, which slides it in and shows the backdrop.</li>
-    <li>It closes on <kbd class="kbd">Esc</kbd>, a click on <code>[data-sidebar-close]</code>, or a click on any link inside it.</li>
-  </ul>
-
-  <h2 id="active">Marking the current page</h2>
-  <p>Set <code>aria-current="page"</code> on the active link. It's both the style hook and what screen readers announce.</p>
-  {% call code("jinja", title="Nunjucks") %}
-    {% raw %}<a href="{{ item.href }}" class="sidebar-link"
-{% if item.href == url %}aria-current="page"{% endif %}>{{ item.title }}</a>{% endraw %}
-  {% endcall %}
+  <h2 id="upgrading">Upgrading from 0.1</h2>
+  <p>The sidebar of 0.1 was a single navigation column. Its classes map to the new parts:</p>
+  {{ classes([
+    [".sidebar-label", ".sidebar-group-label (inside a .sidebar-group)."],
+    [".sidebar-link", ".sidebar-menu-button, in a <li class=\"sidebar-menu-item\"> of a <ul class=\"sidebar-menu\">."],
+    [".sidebar-group", "Still the section, now with padding and no margin between groups: wrap the groups in .sidebar-content and set its gap."],
+    [".sidebar-backdrop", "Remove it: the backdrop is drawn by .sidebar-layout."],
+    ["[data-sidebar-toggle]", "[data-sidebar-trigger]."],
+    ["[data-sidebar-close]", "Same name; now for close buttons, not the backdrop."],
+    ["[data-open]", "Same meaning (the mobile panel is open), but set only in mobile mode."],
+    [".sidebar (lg sticky column)", "Wrap it with its main area in .sidebar-layout. For the old look: data-collapsible=\"none\" data-breakpoint=\"lg\", --sidebar-top for the header, --sidebar-width: 15rem, and a transparent --sidebar from lg up (see the docs navigation above)."]
+  ], heading="0.1") }}
 
   <h2 id="reference">Reference</h2>
   {{ classes([
-    [".sidebar", "Off-canvas panel below lg; sticky 240px column at lg and up."],
-    [".sidebar-backdrop", "Dimmed overlay shown while the sidebar is open on small screens."],
-    [".sidebar-group", "A block of links; adds space between groups."],
-    [".sidebar-label", "Small uppercase group heading."],
-    [".sidebar-link", "Navigation link. Styled as active with aria-current=\"page\"."],
-    ["[data-sidebar-toggle]", "Behaviour: opens/closes the sidebar named in aria-controls."],
-    ["[data-sidebar-close]", "Behaviour: closes the sidebar (use on the backdrop)."]
+    [".sidebar-layout", "The layout: a flex row of the sidebar and .sidebar-inset, at least as tall as the window. Draws the mobile backdrop."],
+    [".sidebar-inset", "The main area beside the sidebar. A raised panel with data-variant=\"inset\"."],
+    [".sidebar", "The sidebar column. Sticky; full height minus --sidebar-top."],
+    [".sidebar-header", "Top part: logo, workspace or environment switcher, search."],
+    [".sidebar-content", "Middle part; scrolls."],
+    [".sidebar-footer", "Bottom part: user menu."],
+    [".sidebar-separator", "A line between parts or groups."],
+    [".sidebar-input", "A compact .input for the sidebar."],
+    [".sidebar-group", "A section of the content."],
+    [".sidebar-group-label", "Group heading. On a button or summary, a collapsible trigger."],
+    [".sidebar-group-action", "Icon button in the group's top-right corner."],
+    [".sidebar-group-content", "Wraps the group's menu (the collapsible content)."],
+    [".sidebar-menu", "A list of items (ul)."],
+    [".sidebar-menu-item", "An item (li). Add .tooltip for an icon-mode tooltip."],
+    [".sidebar-menu-button", "The item's link or button. Current with aria-current=\"page\" or data-active."],
+    [".sidebar-menu-button-sm", "28px tall, smaller text."],
+    [".sidebar-menu-button-lg", "48px tall, for two lines or an avatar."],
+    [".sidebar-menu-button-outline", "With a border and a background."],
+    [".sidebar-menu-action", "Icon button at the end of an item (or a dropdown trigger there)."],
+    [".sidebar-menu-action-hover", "Shows the action only while the item is hovered or focused."],
+    [".sidebar-menu-badge", "A count or status at the end of an item."],
+    [".sidebar-menu-sub", "A nested list under an item."],
+    [".sidebar-menu-sub-item", "An item of a sub-menu."],
+    [".sidebar-menu-sub-button", "A sub-menu link. Current with aria-current=\"page\" or data-active."],
+    [".sidebar-menu-sub-button-sm", "Smaller sub-menu text."],
+    [".sidebar-menu-skeleton", "A loading placeholder item."],
+    [".sidebar-menu-skeleton-icon", "Its icon square."],
+    [".sidebar-menu-skeleton-text", "Its text bar; width from --skeleton-width (70%)."],
+    [".sidebar-trigger", "A small icon button for data-sidebar-trigger."],
+    [".sidebar-rail", "Thin toggle strip along the inner edge (with data-sidebar-rail)."],
+    ["data-sidebar", "Behaviour: marks the sidebar."],
+    ["data-side", "left (default) or right."],
+    ["data-variant", "sidebar (default), floating or inset."],
+    ["data-collapsible", "offcanvas (default), icon or none."],
+    ["data-state", "expanded (default) or collapsed: the desktop state."],
+    ["data-breakpoint", "sm, md (default), lg or none: below it the sidebar is an off-canvas panel."],
+    ["data-shortcut", "The Ctrl/⌘ shortcut's letter (b), or none."],
+    ["data-cookie", "Cookie name to remember the state in (true/false). None by default."],
+    ["data-open", "State, set by the behaviour: the mobile panel is open."],
+    ["data-mobile", "State, set by the behaviour: the sidebar is in mobile mode."],
+    ["data-sidebar-trigger", "Behaviour: toggles the sidebar in aria-controls (or its layout's); aria-expanded kept in sync."],
+    ["data-sidebar-rail", "Behaviour: toggles the sidebar it's in."],
+    ["data-sidebar-close", "Behaviour: closes the mobile panel, or collapses the sidebar."],
+    ["sidebar:toggle", "Event on every change; detail { expanded, open, mobile }."],
+    ["--sidebar-width", "Expanded width (16rem)."],
+    ["--sidebar-width-icon", "Icon rail width (3rem)."],
+    ["--sidebar-width-mobile", "Mobile panel width (18rem)."],
+    ["--sidebar-top", "Sticky offset and height reduction (0)."],
+    ["--skeleton-width", "Width of a .sidebar-menu-skeleton-text bar (70%)."],
+    ["--sidebar, --sidebar-*", "Colour tokens; see Theming."]
   ]) }}
 {% endblock %}

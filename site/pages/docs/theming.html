@@ -23,6 +23,14 @@
   ["--warning", "text-warning", "Warning alerts and badges", "amber-600", "amber-400"],
   ["--danger", "bg-danger", "Destructive buttons, error alerts", "red-600", "red-500"],
   ["--danger-foreground", "text-danger-foreground", "Text on danger", "white", "white"],
+  ["--sidebar", "bg-sidebar", "Sidebar background", "zinc-50", "zinc-900"],
+  ["--sidebar-foreground", "text-sidebar-foreground", "Sidebar text and icons", "--foreground", "--foreground"],
+  ["--sidebar-primary", "bg-sidebar-primary", "Accent fills in the sidebar, such as a logo tile", "--primary", "--primary"],
+  ["--sidebar-primary-foreground", "text-sidebar-primary-foreground", "Text on sidebar primary", "--primary-foreground", "--primary-foreground"],
+  ["--sidebar-accent", "bg-sidebar-accent", "Hovered and current sidebar items", "--accent", "--accent"],
+  ["--sidebar-accent-foreground", "text-sidebar-accent-foreground", "Text on sidebar accent", "--accent-foreground", "--accent-foreground"],
+  ["--sidebar-border", "border-sidebar-border", "Sidebar borders, separators and the rail", "--border", "--border"],
+  ["--sidebar-ring", "ring-sidebar-ring", "Focus rings in the sidebar", "--ring", "--ring"],
   ["--scrollbar-thumb", "(scrollbars)", "Scrollbar thumb; every scrollbar is thin with a transparent track", "foreground at 16%", "foreground at 16%"],
   ["--scrollbar-thumb-hover", "(scrollbars)", "Scrollbar thumb while hovering the scroll area", "foreground at 32%", "foreground at 32%"]
 ] %}
@@ -90,6 +98,11 @@
     </table>
   </div>
   <p>Values are Tailwind palette colours, for example <code>var(--color-indigo-600)</code>. Any CSS colour works: hex, <code>rgb()</code>, <code>oklch()</code>.</p>
+  <p>
+    The <code>--sidebar-*</code> tokens colour the <a href="/docs/components/sidebar">Sidebar</a>, so it can be tinted
+    apart from the page. Apart from <code>--sidebar</code>, they follow the token named in the table unless you set
+    them (<a href="/docs/components/sidebar#theming">Sidebar theming</a>).
+  </p>
 
   <h2 id="override">Overriding tokens</h2>
   <p>Redefine variables after importing the library. Set both the light and dark values for anything that should differ between them.</p>
@@ -167,6 +180,42 @@
 
     /* Native scrollbars for one element */
     .native-scrollbars { scrollbar-color: auto; scrollbar-width: auto; }
+  {% endcall %}
+
+  <h2 id="motion">Motion</h2>
+  <p>
+    Components animate with a small set of duration and easing tokens, so the whole library moves the same way and
+    one override retimes it. With <code>prefers-reduced-motion: reduce</code> every duration is <code>0s</code>:
+    panels still open and close, without moving.
+  </p>
+  <div class="table-wrap not-prose">
+    <table class="table">
+      <thead>
+        <tr><th>Token</th><th>Default</th><th>Used for</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code class="code">--motion-duration-fast</code></td><td>100ms</td><td>Small state changes, panels and tooltips leaving</td></tr>
+        <tr><td><code class="code">--motion-duration-normal</code></td><td>150ms</td><td>Popovers, menus, lists, tooltips, hover cards</td></tr>
+        <tr><td><code class="code">--motion-duration-moderate</code></td><td>200ms</td><td>Dialogs opening</td></tr>
+        <tr><td><code class="code">--motion-duration-slow</code></td><td>300ms</td><td>Sheets</td></tr>
+        <tr><td><code class="code">--motion-duration-slower</code></td><td>400ms</td><td>Drawers</td></tr>
+        <tr><td><code class="code">--motion-ease-out</code></td><td>quick start, soft landing</td><td>Things appearing, responding and leaving</td></tr>
+        <tr><td><code class="code">--motion-ease-in-out</code></td><td>symmetric</td><td>Things moving across the screen</td></tr>
+        <tr><td><code class="code">--motion-ease-drawer</code></td><td>long glide</td><td>Panels sliding from an edge</td></tr>
+        <tr><td><code class="code">--motion-ease-spring</code></td><td>about 8% overshoot</td><td>Playful moves; give it 200ms or more</td></tr>
+      </tbody>
+    </table>
+  </div>
+  {% call code("css", title="src/styles.css") %}
+    /* A calmer library: everything a little slower */
+    :root {
+      --motion-duration-normal: 200ms;
+      --motion-duration-moderate: 260ms;
+    }
+  {% endcall %}
+  <p>Use them in your own markup with Tailwind's variable shorthand:</p>
+  {% call code("html") %}
+    <div class="transition-opacity duration-(--motion-duration-normal) ease-(--motion-ease-out)">…</div>
   {% endcall %}
 
   <h2 id="new-tokens">Adding your own tokens</h2>
