@@ -5,6 +5,35 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{% block title %}HTMX UI{% endblock %}</title>
     {% block head %}{% endblock %}
+    {% if ga %}
+      <!-- Google Analytics, only when GA_MEASUREMENT_ID is set (the deploy pipeline).
+           Locally and in CI it is unset, so no snippet, no request, nothing to block. -->
+      <script async src="https://www.googletagmanager.com/gtag/js?id={{ ga }}"></script>
+      <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() {
+          window.dataLayer.push(arguments);
+        }
+        gtag("js", new Date());
+        gtag("config", "{{ ga }}");
+
+        // Links here are hx-boosted: most navigation is an htmx swap with a pushed
+        // history entry and no page load, so the snippet above would only ever see
+        // the first page. Send a page_view whenever the URL actually changes —
+        // settled, so the new document.title is already in place.
+        let gaUrl = location.pathname + location.search;
+        document.addEventListener("htmx:after:settle", () => {
+          const url = location.pathname + location.search;
+          if (url === gaUrl) return;
+          gaUrl = url;
+          gtag("event", "page_view", {
+            page_location: location.href,
+            page_path: location.pathname,
+            page_title: document.title,
+          });
+        });
+      </script>
+    {% endif %}
     <script>
       // Apply the stored theme before first paint to avoid a flash of the wrong
       // colors. Kept inline and tiny on purpose; htmx-ui/theme takes over

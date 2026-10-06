@@ -45,10 +45,16 @@ jobs:
       # subdirectory, then verify it. The check is the last step, so a dist with
       # a relative URL, a dev-server origin, a dead link or a missing clean-URL
       # route fails the job before anything is uploaded.
+      #
+      # GA_MEASUREMENT_ID (the GA4 stream, e.g. G-XXXXXXX) is an Actions
+      # *variable* under Settings > Secrets and variables > Actions. Left unset,
+      # the build emits no analytics at all — which is what local builds and CI
+      # want, so nothing here hardcodes it.
       - name: Build, prepare and check
         run: bun run deploy
         env:
           SITE_URL: ${{ steps.site.outputs.url }}
+          GA_MEASUREMENT_ID: ${{ vars.GA_MEASUREMENT_ID }}
 
       - name: Upload Artifact
         uses: actions/upload-pages-artifact@v3

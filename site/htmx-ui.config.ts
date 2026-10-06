@@ -19,11 +19,19 @@ import { apiRoutes } from "./server/api";
 
 const site = JSON.parse(readFileSync(resolve(SITE, "data/site.json"), "utf8")) as { name: string; description: string; url: string };
 
+// Google Analytics (GA4). The deploy pipeline sets GA_MEASUREMENT_ID (a repo
+// Actions variable); with it missing — local development, CI — the string is
+// empty and base.html emits no tracking code at all, not even a request.
+const ga = process.env.GA_MEASUREMENT_ID?.trim() ?? "";
+
 export default defineConfig({
   // Absolute URLs in sitemaps and llms.txt, and the `origin` template global. $SITE_URL overrides it.
   url: site.url,
   outDir: DIST,
   publicDir: false,
+
+  // Template globals; `ga` is what the {% if ga %} in layouts/base.html keys on.
+  globals: { ga },
 
   plugins: [docs({ name: site.name, description: site.description }), versions(), search()],
 
