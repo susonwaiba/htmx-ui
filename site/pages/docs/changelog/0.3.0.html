@@ -1,0 +1,30 @@
+{% extends "layouts/docs.html" %}
+{% from "components/icon/icon.html" import icon %}
+{% set release = {} %}
+{% for r in json("data/changelog.json").releases %}{% if r.version == "0.3.0" %}{% set release = r %}{% endif %}{% endfor %}
+{% set title = "v" + release.version %}
+{% set description = release.summary %}
+
+{% block content %}
+  <div class="not-prose flex flex-wrap items-center gap-3">
+    <a href="/docs/changelog" class="btn btn-ghost btn-sm -ml-3">{{ icon("arrow-left") }} All releases</a>
+    {% if not release.date %}
+      <span class="badge badge-primary">In development</span>
+      <span class="muted">Not released yet</span>
+    {% else %}
+      <span class="badge badge-primary">Latest</span>
+      <time datetime="{{ release.date }}" class="muted">{{ release.date }}</time>
+    {% endif %}
+  </div>
+
+  <p>
+    This release is being worked on, and nothing has been recorded yet. Notes land on this page — and in the
+    <code>0.3.0 — Unreleased</code> section of
+    <a href="https://github.com/susonwaiba/htmx-ui/blob/main/CHANGELOG.md">CHANGELOG.md</a> — as work is committed,
+    so this page is always the running account of the release.
+  </p>
+  <p class="muted">
+    Reading what has already shipped? The <a href="/docs/changelog">changelog index</a> lists every released version,
+    and the version switcher in the sidebar takes you to the docs of an older one.
+  </p>
+{% endblock %}
