@@ -56,7 +56,7 @@ The docs site has a fuller page per release (`/docs/changelog`).
   Markdown for every docs page, llms.txt, sitemaps, `docsNav()`, `demo()`/`classes()`/`markdown_actions()`),
   `htmx-ui-plugin-versions` (archived docs versions, the switcher and banner, `htmx-ui versions:name` and
   `htmx-ui versions:archive`) and `htmx-ui-plugin-search` (the Ctrl/⌘K palette). The docs site runs on them.
-- **Components:** checkbox (a native checkbox styled with tokens, sizes and every field state), radio-group (native
+- **Components (37 new, each with a docs page):** checkbox (a native checkbox styled with tokens, sizes and every field state), radio-group (native
   radios as cards or inline rows, submitting with the form), select (a listbox in a popup opened from a button,
   searchable and keyboard driven, with a no-JS fallback to the native `<select>`), and switch (an on/off setting that
   applies immediately, drawn as a sliding track on a real checkbox).
@@ -132,7 +132,11 @@ The docs site has a fuller page per release (`/docs/changelog`).
   `--sidebar-*` theme tokens.
 - **Popover:** `.popover-header` and `.popover-footer`, `.popover-content-start` for explicit alignment, and
   `[data-popover-close]` buttons that close the panel and return focus to the trigger (forms in a popover).
-- **Icons:** `chevrons-up-down`, `command`, `folder`, `folder-open` and `settings`.
+- **Icons:** 37 new: `arrow-down`, `arrow-up`, `arrow-up-right`, `badge-check`, `bar-chart`, `bell`, `calendar`,
+  `chevron-left`, `chevrons-left`, `chevrons-right`, `chevrons-up-down`, `circle`, `circle-alert`, `cloud`, `command`,
+  `credit-card`, `ellipsis-vertical`, `file`, `folder`, `folder-open`, `folder-plus`, `house`, `inbox`, `log-in`,
+  `log-out`, `message-square`, `music`, `panel-left`, `panel-right`, `paperclip`, `play`, `settings`, `shield-check`,
+  `slash`, `user`, `users` and `video`.
 - **Badge:** `.badge-ghost` and `.badge-link` variants, `.badge-solid` for filled status badges, `.badge-tone` with
   `--badge-tone` for any colour, and hover and focus styles on badges that are links or buttons.
 - **`roots` in `htmx-ui.config.ts`:** an ordered list of template directories, each optionally named. The first entry is
@@ -148,25 +152,46 @@ The docs site has a fuller page per release (`/docs/changelog`).
   Names work everywhere a template name does — `extends`, `include`, `import`, `from`, `json()`, `svg()`, `glob()` and
   `asset()` — because resolution moved into a loader Nunjucks uses for every template load. See
   [Roots](https://susonwaiba.github.io/htmx-ui/docs/engine#roots).
-- **Serving a site from your own backend:** `createSite()` is the framework-free core of the dev servers, and three
+- **Serving a site from your own backend:** `createSite()` is the framework-free core of the dev servers, and five
   adapters wrap it, none importing its framework:
   - `htmx-ui-engine/elysia` — a plugin, so `.use(htmxUi()).listen()` chains and a specific route always beats the
     catch-all. **Recommended.**
+  - `htmx-ui-engine/fastify` — a plugin that becomes Fastify's not-found handler; register it anywhere.
+  - `htmx-ui-engine/koa` — middleware that answers only what nothing else did; mount it anywhere.
   - `htmx-ui-engine/express` and `htmx-ui-engine/hono` — `Request`/`Response` middleware; mount last.
 
+  Elysia, Fastify and Koa answer only what your own routes don't, whatever order they are registered in; Express and
+  Hono answer every request they see, so they are mounted last. Bodies a framework's parser already read
+  (`express.urlencoded()`, `express.json()`, Fastify's JSON parser, Koa body parsers) reach the config's `routes`
+  intact.
+
   `site.render()` renders a full page, `site.fragment()` renders any template as an htmx fragment, and `site.handle()`
-  answers a request from config `routes`, the built `dist/`, the config's `fetch`, the built 404, then returns `null`
-  so your framework can answer. See [Server frameworks](https://susonwaiba.github.io/htmx-ui/docs/servers).
+  answers a request from config `routes`, the built `dist/`, the config's `fetch`, a 404, then returns `null`
+  so your framework can answer. While `NODE_ENV` is not `production` it renders the page from its template when
+  nothing is built yet, with the `context` you pass. See
+  [Server frameworks](https://susonwaiba.github.io/htmx-ui/docs/servers).
+- **A default 404 page:** a project without `pages/404.html` gets htmx-ui's own, from the server adapters,
+  `htmx-ui dev`, `htmx-ui preview`, and as `dist/404.html` in every build. Add `pages/404.html` to replace it.
+- **Code blocks highlight `docker` and `nginx`** (`Dockerfile` is mapped onto `docker`).
 - **`render: true` in the config** checks at startup that the template roots and pages directory arrived, turning a
   packaging mistake into a failed boot instead of a 500 on the first request.
 - **A cached runtime renderer:** `render(path, roots, { cache: true })`, with `warm()` to compile ahead of the first
   request (`createSite()` does both). A global that returns HTML can wrap its result in `markup()`.
-- **`debug` in the config** (`debug: { requests: true, build: true }`) logs requests, unmatched routes, builds and
-  reloads, per topic.
+- **`debug` in the config** — `debug: true` for everything, or a list of topics
+  (`debug: ["requests", "render"]`; the topics are `requests`, `render`, `templates`, `build`) logs what answered each
+  request, every render with its duration, what the template cache compiled, and builds and dev servers. Off by
+  default.
 - **Exports:** `queryAll` and the `Theme` type from `htmx-ui`; `createSite`, `Site`, `SiteOptions`, `normalizeRoots`,
-  `tryLocate`, `locate`, `TemplateRoot`, `RootSpec`, `warm`, `markup` and `logger` from `htmx-ui-engine`.
-- **Docs:** [Server frameworks](https://susonwaiba.github.io/htmx-ui/docs/servers) with a page each for Elysia, Express
-  and Hono, including how to deploy templates that a server renders at runtime.
+  `tryLocate`, `locate`, `TemplateRoot`, `RootSpec`, `warm`, `markup`, `logger`, `TOPICS`, `Debug`, `Logger`, `Topic`,
+  `Importer`, `definePlugin`, `Plugin`, `editHtml`, `HtmlElement`, `HtmlHandlers` and `contentType` from
+  `htmx-ui-engine`.
+- **Docs:** [Server frameworks](https://susonwaiba.github.io/htmx-ui/docs/servers) — how a request is answered, the
+  404 page, pages and fragments, deploying, the `createSite()` API, and a page each for Elysia, Fastify, Koa, Express,
+  Hono, `Bun.serve`, Deno / `node:http` / h3 / NestJS, and backends in other languages (Django, Rails, Go), including
+  how to deploy templates that a server renders at runtime. [Plugins](https://susonwaiba.github.io/htmx-ui/docs/plugins)
+  with a page per plugin and [writing one](https://susonwaiba.github.io/htmx-ui/docs/plugins/writing). The components
+  index is grouped by category — forms, actions, navigation, overlays, feedback, layout, data, content and chat — so
+  the sidebar, prev/next links and the agent outputs follow the same order.
 
 ### Changed
 
@@ -178,8 +203,8 @@ The docs site has a fuller page per release (`/docs/changelog`).
 - **The dev watcher honours `.gitignore`** and skips `node_modules`, `dist`, `public` and `.git` whatever the roots say,
   so a root of `.` no longer adds a file watcher for every directory in `node_modules`. The trade-off: a new file under
   one of those directories shows up on the next refresh rather than immediately.
-- **`bun run version:set <x.y.z>`** names the docs version in development, dates it, and sets all three package versions
-  at once, so a release cannot leave them out of step.
+- **`bun run version:set <x.y.z>`** names the docs version in development, dates it, and sets the version on every
+  package at once, so a release cannot leave one of them out of step.
 
 - **Dropdown items** no longer spread their content apart (`justify-between`): content is left-aligned and trailing
   badges, shortcuts and icons are pushed right. Hovering an item focuses it, choosing one returns focus to the trigger,

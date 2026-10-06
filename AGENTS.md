@@ -169,7 +169,7 @@ The engine wires Tailwind in for both runtimes; there is nothing to configure pe
 ### 4.5. Mock Backend & Request Endpoints (`site/server/api.ts`)
 - Mock routes return HTML fragments using `new Response(htmlString, { headers: { "Content-Type": "text/html; charset=utf-8" } })`.
 - `apiRoutes` is spread into `routes` in `site/htmx-ui.config.ts`. Engine `routes` use Bun.serve route syntax (`/api/:id`, `/files/*`) on both runtimes, and get a web `Request` (with `params`).
-- **Static Output Warning:** The production build (`dist/`) is purely static. Mock endpoints are not compiled into `dist/`; they are served by `htmx-ui dev` and by the engine's own server adapters (§4.6), so they work behind Elysia, Express or Hono, but not under `bun run preview` or on a plain static host.
+- **Static Output Warning:** The production build (`dist/`) is purely static. Mock endpoints are not compiled into `dist/`; they are served by `htmx-ui dev` and by the engine's own server adapters (§4.6), so they work behind any of the server adapters (§4.6), but not under `bun run preview` or on a plain static host.
 
 ### 4.6. Serving a Site from a Backend (`packages/engine/src/core/site.ts`)
 `createSite(options?)` is the framework-free core of the dev servers, reusable by a real backend. Everything in `core/` must run on both runtimes (`node:` APIs only).

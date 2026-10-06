@@ -63,6 +63,11 @@
 
   <h2 id="added">Added</h2>
   <h3>Components</h3>
+  <p>
+    37 new components, each with a docs page of its own. The <a href="/docs/components">components index</a> now
+    groups every component by category (forms, actions, navigation, overlays, feedback, layout, data, content and
+    chat), so the sidebar, prev/next links and the agent outputs follow the same order.
+  </p>
   <ul>
     <li>
       <a href="/docs/components/checkbox">Checkbox</a>: a native checkbox styled with the design tokens, in sizes, with
@@ -200,7 +205,7 @@
       <a href="/docs/components/prompt-input">Prompt input</a>: the text box of an AI chat: a growing textarea, tools, send and stop, and <code>@</code> mention and <code>/</code> command menus.
     </li>
     <li>
-      <a href="/docs/components/message-scroller">Message scroller</a>: scrolling for a streaming chat transcript: new questions rise to the top, replies grow beneath them, the reader\'s place survives layout changes and loaded history, and links jump to any message.
+      <a href="/docs/components/message-scroller">Message scroller</a>: scrolling for a streaming chat transcript: new questions rise to the top, replies grow beneath them, the reader's place survives layout changes and loaded history, and links jump to any message.
     </li>
     <li>
       <a href="/docs/components/textarea">Textarea</a>: its own page, a character count, keyboard submit, sizes and states.
@@ -294,23 +299,34 @@
       returns HTML.
     </li>
     <li>
-      <code>debug</code> in the config logs requests, unmatched routes, builds and reloads, per topic.
+      <code>debug</code> in the config logs what answered each request, every render with its duration, what the
+      template cache compiled, and builds: <code>debug: true</code> for everything or a list of topics
+      (<code>requests</code>, <code>render</code>, <code>templates</code>, <code>build</code>). Off by default.
     </li>
   </ul>
   <h3>Package</h3>
   <ul>
     <li>
-      <code>htmx-ui</code> exports <code>queryAll</code> (the helper components use to include the root in their scan)
-      and the <code>Theme</code> type.
+      <code>htmx-ui</code> exports the component APIs for script &mdash; <code>toast</code> and its types,
+      <code>registerCarouselPlugin</code>, <code>getCarousel</code>, <code>matchesHotkey</code>,
+      <code>commandMatches</code>, <code>getMessageScroller</code>, <code>scrollToEdge</code>,
+      <code>distanceFromEdge</code> and <code>scrollTargetOf</code> &mdash; plus <code>queryAll</code> (the helper
+      components use to include the root in their scan) and the <code>Theme</code> type. It now depends on
+      <code>embla-carousel</code> for the carousel.
     </li>
     <li>
       <code>htmx-ui-engine</code> exports <code>createSite</code>, <code>Site</code>, <code>SiteOptions</code>,
       <code>normalizeRoots</code>, <code>tryLocate</code>, <code>locate</code>, <code>TemplateRoot</code>,
-      <code>RootSpec</code>, <code>warm</code>, <code>markup</code> and <code>logger</code>.
+      <code>RootSpec</code>, <code>warm</code>, <code>markup</code>, <code>logger</code>, <code>TOPICS</code> and the
+      plugin writer's kit: <code>definePlugin</code>, <code>editHtml</code> and <code>contentType</code>.
     </li>
     <li>
-      <code>bun run version:set &lt;x.y.z&gt;</code> names the docs version in development, dates it, and sets all three
-      package versions at once.
+      37 new icons, from <code>arrow-up</code> and <code>bell</code> to <code>folder-plus</code>, <code>paperclip</code>,
+      <code>shield-check</code> and <code>users</code>.
+    </li>
+    <li>
+      <code>bun run version:set &lt;x.y.z&gt;</code> names the docs version in development, dates it, and sets the
+      version on every package at once.
     </li>
   </ul>
 
