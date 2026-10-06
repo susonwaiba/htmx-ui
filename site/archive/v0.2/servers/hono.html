@@ -1,0 +1,607 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Hono · HTMX UI</title>
+  <meta name="description" content="Mount a built htmx-ui site as Hono middleware, and render pages and fragments from your handlers." />
+    <script>
+      // Apply the stored theme before first paint to avoid a flash of the wrong
+      // colors. Kept inline and tiny on purpose; htmx-ui/theme takes over
+      // once app.ts loads.
+      (() => {
+        const stored = localStorage.getItem("theme");
+        const dark = stored ? stored === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+        document.documentElement.classList.toggle("dark", dark);
+      })();
+    </script>
+    
+  <link rel="stylesheet" crossorigin href="/docs/v0.2/_assets/index-c9g4cdt8.css"><script type="module" crossorigin src="/docs/v0.2/_assets/index-9ez8fwh5.js"></script><link rel="modulepreload" crossorigin href="/docs/v0.2/_assets/index-9ez8fwh5.js"><meta name="robots" content="noindex" /></head>
+  <body hx-boost:inherited="true" class="min-h-dvh bg-background text-foreground antialiased">
+<header class="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/70">
+  <div class="mx-auto flex h-14 w-full max-w-7xl items-center gap-2 px-4 sm:px-6 lg:px-8">
+      <button type="button" class="btn btn-ghost btn-icon -ml-2 lg:hidden" data-sidebar-trigger aria-controls="docs-nav" aria-expanded="false" aria-label="Open navigation"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+    <a href="/" class="mr-4 flex items-center gap-2 font-semibold">
+      <span class="grid size-7 place-items-center rounded-md bg-primary text-primary-foreground"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65M22 12.65l-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/></svg></span>
+      HTMX UI
+    </a>
+    <nav class="hidden items-center gap-1 text-sm sm:flex">
+        <a href="/docs/v0.2" class="rounded-md px-3 py-1.5 transition-colors hover:text-foreground text-foreground font-medium" aria-current="page">Docs</a>
+        <a href="/docs/v0.2/components" class="rounded-md px-3 py-1.5 transition-colors hover:text-foreground text-muted-foreground">Components</a>
+        <a href="/docs/v0.2/changelog" class="rounded-md px-3 py-1.5 transition-colors hover:text-foreground text-muted-foreground">Changelog</a>
+    </nav>
+    <div id="site-main-header-actions" class="ml-auto flex items-center gap-1" hx-preserve="true">
+      <button type="button" class="btn btn-outline btn-sm hidden w-56 justify-between font-normal text-muted-foreground md:inline-flex" data-search-open aria-haspopup="dialog" aria-label="Search the docs">
+  <span class="inline-flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg> Search docs…</span>
+  <kbd class="kbd" data-search-shortcut>Ctrl K</kbd>
+</button>
+<button type="button" class="btn btn-ghost btn-icon md:hidden" data-search-open aria-haspopup="dialog" aria-label="Search the docs"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></button>
+
+<dialog class="search-dialog" data-search-dialog data-search-src="/sitemap.json" aria-label="Search the docs">
+  <div class="search-field">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4 shrink-0 text-muted-foreground" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+    <input type="search" class="search-input" placeholder="Search docs, components, sections…" autocomplete="off" spellcheck="false"
+      role="combobox" aria-expanded="false" aria-controls="search-results" aria-autocomplete="list" aria-label="Search" data-search-input />
+    <kbd class="kbd">Esc</kbd>
+  </div>
+  <div class="search-body">
+    <ul id="search-results" class="search-results" role="listbox" aria-label="Results" data-search-results></ul>
+    <p class="search-message" data-search-message>Type to search pages and sections.</p>
+  </div>
+  <div class="search-footer" aria-hidden="true">
+    <span><kbd class="kbd">↑</kbd> <kbd class="kbd">↓</kbd> to navigate</span>
+    <span><kbd class="kbd"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-3" aria-hidden="true"><path d="M10 9V5l-7 7 7 7v-4.1c5 0 8.5 1.6 11 5.1-1-5-4-10-11-11z"/></svg></kbd> to open</span>
+    <span class="ml-auto" data-search-version></span>
+  </div>
+</dialog>
+      <a href="/docs/v0.2/installation" class="btn btn-primary btn-sm hidden sm:inline-flex">Get started</a>
+      <button type="button" class="btn btn-ghost btn-icon" data-theme-toggle aria-pressed="false" title="Toggle light and dark theme">
+        <span class="dark:hidden"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg></span>
+        <span class="hidden dark:inline"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg></span>
+        <span class="sr-only">Theme: <span data-theme-label>light</span></span>
+      </button>
+    </div>
+  </div>
+</header>
+  
+  <div class="sidebar-layout mx-auto min-h-0 max-w-7xl gap-12 px-4 sm:px-6 lg:px-8">
+    <aside id="docs-nav" class="sidebar [--sidebar-foreground:var(--muted-foreground)] [--sidebar-top:3.5rem] [--sidebar-width:15rem] [--sidebar:var(--background)] text-foreground lg:border-r-0 lg:[--sidebar:transparent]"
+           data-sidebar data-collapsible="none" data-breakpoint="lg" data-shortcut="none" aria-label="Documentation">
+      <div class="sidebar-header flex-row items-center justify-between px-6 pt-6 pb-0 lg:hidden">
+        <span class="font-semibold">Documentation</span>
+        <button type="button" class="btn btn-ghost btn-icon btn-sm" data-sidebar-close aria-label="Close navigation"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+      </div>
+      <div class="sidebar-content gap-6 p-6 lg:px-0 lg:py-8">
+        <div class="dropdown w-full" data-dropdown data-version-switcher data-version="0.2" data-versions-src="/docs/versions.json">
+  <button type="button" class="btn btn-outline w-full justify-between" data-dropdown-trigger aria-haspopup="menu" aria-expanded="false">
+    <span class="flex items-center gap-2 text-muted-foreground"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5M12 7v5l4 2"/></svg> Version</span>
+    <span class="flex items-center gap-1.5"><span class="font-mono">v0.2</span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span>
+  </button>
+  <div class="dropdown-menu w-full" role="menu" aria-label="Documentation version" hidden>
+    <p class="dropdown-label">Documentation versions</p>
+    <div data-version-items>
+        <a role="menuitem" class="dropdown-item" data-version-link href="/docs" aria-current="true">
+          <span class="font-mono">v0.2</span>
+<span class="badge badge-primary">Latest</span>        </a>
+        <a role="menuitem" class="dropdown-item" data-version-link href="/docs/v0.1">
+          <span class="font-mono">v0.1</span>
+        </a>
+    </div>
+      <div class="dropdown-separator" role="separator"></div>
+        <a role="menuitem" class="dropdown-item" data-version-link href="/docs/changelog">Changelog <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a>
+  </div>
+</div>
+          <nav class="sidebar-group p-0" aria-labelledby="docs-nav-1">
+            <p id="docs-nav-1" class="sidebar-group-label mb-1.5 h-auto font-semibold tracking-wider text-foreground uppercase">Getting started</p>
+              <ul class="sidebar-menu gap-0">
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2" class="sidebar-menu-button"><span>Introduction</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/installation" class="sidebar-menu-button"><span>Installation</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/engine" class="sidebar-menu-button"><span>Engine</span></a>
+    </li>
+</ul>
+          </nav>
+          <nav class="sidebar-group p-0" aria-labelledby="docs-nav-2">
+            <p id="docs-nav-2" class="sidebar-group-label mb-1.5 h-auto font-semibold tracking-wider text-foreground uppercase">Customization</p>
+              <ul class="sidebar-menu gap-0">
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/theming" class="sidebar-menu-button"><span>Theming</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/dark-mode" class="sidebar-menu-button"><span>Dark mode</span></a>
+    </li>
+</ul>
+          </nav>
+          <nav class="sidebar-group p-0" aria-labelledby="docs-nav-3">
+            <p id="docs-nav-3" class="sidebar-group-label mb-1.5 h-auto font-semibold tracking-wider text-foreground uppercase">Guides</p>
+              <ul class="sidebar-menu gap-0">
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/templates" class="sidebar-menu-button"><span>Templates &amp; data</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/ai-agents" class="sidebar-menu-button"><span>AI agents</span></a>
+    </li>
+</ul>
+          </nav>
+          <nav class="sidebar-group p-0" aria-labelledby="docs-nav-4">
+            <p id="docs-nav-4" class="sidebar-group-label mb-1.5 h-auto font-semibold tracking-wider text-foreground uppercase">Plugins</p>
+              <ul class="sidebar-menu gap-0">
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/plugins" class="sidebar-menu-button"><span>Plugins</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/plugins/docs" class="sidebar-menu-button"><span>Docs</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/plugins/versions" class="sidebar-menu-button"><span>Versions</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/plugins/search" class="sidebar-menu-button"><span>Search</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/plugins/writing" class="sidebar-menu-button"><span>Writing a plugin</span></a>
+    </li>
+</ul>
+          </nav>
+          <nav class="sidebar-group p-0" aria-labelledby="docs-nav-5">
+            <p id="docs-nav-5" class="sidebar-group-label mb-1.5 h-auto font-semibold tracking-wider text-foreground uppercase">Servers</p>
+              <ul class="sidebar-menu gap-0">
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/servers" class="sidebar-menu-button"><span>Server frameworks</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/servers/rendering" class="sidebar-menu-button"><span>Pages &amp; fragments</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/servers/deploying" class="sidebar-menu-button"><span>Deploying</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/servers/api" class="sidebar-menu-button"><span>createSite() API</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/servers/elysia" class="sidebar-menu-button"><span>Elysia</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/servers/fastify" class="sidebar-menu-button"><span>Fastify</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/servers/koa" class="sidebar-menu-button"><span>Koa</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/servers/express" class="sidebar-menu-button"><span>Express</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/servers/hono" class="sidebar-menu-button" aria-current="page"><span>Hono</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/servers/bun" class="sidebar-menu-button"><span>Bun.serve</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/servers/other" class="sidebar-menu-button"><span>Other JavaScript servers</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/servers/any-backend" class="sidebar-menu-button"><span>Django, Rails, Go and others</span></a>
+    </li>
+</ul>
+          </nav>
+          <nav class="sidebar-group p-0" aria-labelledby="docs-nav-6">
+            <p id="docs-nav-6" class="sidebar-group-label mb-1.5 h-auto font-semibold tracking-wider text-foreground uppercase">Components</p>
+<ul class="sidebar-menu gap-0">
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components" class="sidebar-menu-button"><span>Overview</span></a>
+    </li>
+</ul>                  <div class="mt-3" role="group" aria-labelledby="docs-nav-6-forms">
+                    <p id="docs-nav-6-forms" class="mb-3 px-2 text-xs font-medium text-muted-foreground/70">Forms &amp; inputs</p>
+                    <ul class="sidebar-menu gap-0">
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/checkbox" class="sidebar-menu-button"><span>Checkbox</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/combobox" class="sidebar-menu-button"><span>Combobox</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/field" class="sidebar-menu-button"><span>Field</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/input" class="sidebar-menu-button"><span>Input</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/input-group" class="sidebar-menu-button"><span>Input group</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/input-otp" class="sidebar-menu-button"><span>Input OTP</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/label" class="sidebar-menu-button"><span>Label</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/radio-group" class="sidebar-menu-button"><span>Radio group</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/select" class="sidebar-menu-button"><span>Select</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/slider" class="sidebar-menu-button"><span>Slider</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/switch" class="sidebar-menu-button"><span>Switch</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/textarea" class="sidebar-menu-button"><span>Textarea</span></a>
+    </li>
+</ul>
+                  </div>
+                  <div class="mt-3" role="group" aria-labelledby="docs-nav-6-actions">
+                    <p id="docs-nav-6-actions" class="mb-3 px-2 text-xs font-medium text-muted-foreground/70">Actions &amp; menus</p>
+                    <ul class="sidebar-menu gap-0">
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/button" class="sidebar-menu-button"><span>Button</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/button-group" class="sidebar-menu-button"><span>Button group</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/command" class="sidebar-menu-button"><span>Command</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/dropdown" class="sidebar-menu-button"><span>Dropdown</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/menubar" class="sidebar-menu-button"><span>Menubar</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/scroll-button" class="sidebar-menu-button"><span>Scroll button</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/toggle" class="sidebar-menu-button"><span>Toggle</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/toggle-group" class="sidebar-menu-button"><span>Toggle group</span></a>
+    </li>
+</ul>
+                  </div>
+                  <div class="mt-3" role="group" aria-labelledby="docs-nav-6-navigation">
+                    <p id="docs-nav-6-navigation" class="mb-3 px-2 text-xs font-medium text-muted-foreground/70">Navigation</p>
+                    <ul class="sidebar-menu gap-0">
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/breadcrumb" class="sidebar-menu-button"><span>Breadcrumb</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/navigation-menu" class="sidebar-menu-button"><span>Navigation menu</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/pagination" class="sidebar-menu-button"><span>Pagination</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/sidebar" class="sidebar-menu-button"><span>Sidebar</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/tabs" class="sidebar-menu-button"><span>Tabs</span></a>
+    </li>
+</ul>
+                  </div>
+                  <div class="mt-3" role="group" aria-labelledby="docs-nav-6-overlays">
+                    <p id="docs-nav-6-overlays" class="mb-3 px-2 text-xs font-medium text-muted-foreground/70">Overlays</p>
+                    <ul class="sidebar-menu gap-0">
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/alert-dialog" class="sidebar-menu-button"><span>Alert dialog</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/dialog" class="sidebar-menu-button"><span>Dialog</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/drawer" class="sidebar-menu-button"><span>Drawer</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/hover-card" class="sidebar-menu-button"><span>Hover card</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/popover" class="sidebar-menu-button"><span>Popover</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/sheet" class="sidebar-menu-button"><span>Sheet</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/tooltip" class="sidebar-menu-button"><span>Tooltip</span></a>
+    </li>
+</ul>
+                  </div>
+                  <div class="mt-3" role="group" aria-labelledby="docs-nav-6-feedback">
+                    <p id="docs-nav-6-feedback" class="mb-3 px-2 text-xs font-medium text-muted-foreground/70">Feedback &amp; status</p>
+                    <ul class="sidebar-menu gap-0">
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/alert" class="sidebar-menu-button"><span>Alert</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/badge" class="sidebar-menu-button"><span>Badge</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/empty" class="sidebar-menu-button"><span>Empty</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/loader" class="sidebar-menu-button"><span>Loader</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/progress" class="sidebar-menu-button"><span>Progress</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/skeleton" class="sidebar-menu-button"><span>Skeleton</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/spinner" class="sidebar-menu-button"><span>Spinner</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/toast" class="sidebar-menu-button"><span>Toast</span></a>
+    </li>
+</ul>
+                  </div>
+                  <div class="mt-3" role="group" aria-labelledby="docs-nav-6-layout">
+                    <p id="docs-nav-6-layout" class="mb-3 px-2 text-xs font-medium text-muted-foreground/70">Layout &amp; disclosure</p>
+                    <ul class="sidebar-menu gap-0">
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/accordion" class="sidebar-menu-button"><span>Accordion</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/card" class="sidebar-menu-button"><span>Card</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/carousel" class="sidebar-menu-button"><span>Carousel</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/collapsible" class="sidebar-menu-button"><span>Collapsible</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/separator" class="sidebar-menu-button"><span>Separator</span></a>
+    </li>
+</ul>
+                  </div>
+                  <div class="mt-3" role="group" aria-labelledby="docs-nav-6-data">
+                    <p id="docs-nav-6-data" class="mb-3 px-2 text-xs font-medium text-muted-foreground/70">Data display</p>
+                    <ul class="sidebar-menu gap-0">
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/avatar" class="sidebar-menu-button"><span>Avatar</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/item" class="sidebar-menu-button"><span>Item</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/table" class="sidebar-menu-button"><span>Table</span></a>
+    </li>
+</ul>
+                  </div>
+                  <div class="mt-3" role="group" aria-labelledby="docs-nav-6-content">
+                    <p id="docs-nav-6-content" class="mb-3 px-2 text-xs font-medium text-muted-foreground/70">Typography &amp; media</p>
+                    <ul class="sidebar-menu gap-0">
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/code-block" class="sidebar-menu-button"><span>Code block</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/icon" class="sidebar-menu-button"><span>Icon</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/kbd" class="sidebar-menu-button"><span>Kbd</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/text" class="sidebar-menu-button"><span>Text</span></a>
+    </li>
+</ul>
+                  </div>
+                  <div class="mt-3" role="group" aria-labelledby="docs-nav-6-chat">
+                    <p id="docs-nav-6-chat" class="mb-3 px-2 text-xs font-medium text-muted-foreground/70">Chat &amp; AI</p>
+                    <ul class="sidebar-menu gap-0">
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/attachment" class="sidebar-menu-button"><span>Attachment</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/chain-of-thought" class="sidebar-menu-button"><span>Chain of thought</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/message" class="sidebar-menu-button"><span>Message</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/message-scroller" class="sidebar-menu-button"><span>Message scroller</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/prompt-input" class="sidebar-menu-button"><span>Prompt input</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/reasoning" class="sidebar-menu-button"><span>Reasoning</span></a>
+    </li>
+</ul>
+                  </div>
+          </nav>
+          <nav class="sidebar-group p-0" aria-labelledby="docs-nav-7">
+            <p id="docs-nav-7" class="sidebar-group-label mb-1.5 h-auto font-semibold tracking-wider text-foreground uppercase">Project</p>
+              <ul class="sidebar-menu gap-0">
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/changelog" class="sidebar-menu-button"><span>Changelog</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/versions" class="sidebar-menu-button"><span>Versions</span></a>
+    </li>
+</ul>
+          </nav>
+      </div>
+    </aside>
+
+    <main class="min-w-0 flex-1 pt-8 pb-16 lg:pt-12">
+      <article class="mx-auto max-w-3xl">
+        
+        <div class="alert alert-warning mb-8" role="status" data-version-banner data-md-skip><div class="alert-title">You're viewing the docs for v0.2.</div><div class="alert-description">The latest version is next. <a class="link" href="/docs/servers/hono">Go to this page in next</a>.</div></div>
+        <header class="mb-10 space-y-3 border-b border-border pb-8">
+          <p class="eyebrow">Servers</p>
+          <h1 class="h1">Hono</h1>
+<p class="lead">Mount a built htmx-ui site as Hono middleware, and render pages and fragments from your handlers.</p>          <div class="pt-2"><div class="flex flex-wrap gap-2">
+  <button type="button" class="btn btn-outline btn-sm" data-markdown-copy="/docs/v0.2/servers/hono.md">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg> <span data-markdown-copy-label>Copy Markdown</span>
+  </button>
+  <a hx-boost="false" href="/docs/v0.2/servers/hono.md" target="_blank" class="btn btn-ghost btn-sm" title="This page as Markdown, for AI agents"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4M10 9H8M16 13H8M16 17H8"/></svg> View .md</a>
+</div></div>
+        </header>
+
+        <div data-docs-content class="prose docs-prose max-w-none">
+  <p>
+    <code>htmx-ui-engine/hono</code> exports <code>htmxUi()</code>, middleware that serves the built site. It runs
+    wherever Hono has a filesystem: Bun, Node (with <code>@hono/node-server</code>) and Deno. Edge runtimes with no
+    filesystem, such as Cloudflare Workers, can't read <code>dist/</code>, so the adapter doesn't work there.
+  </p>
+  <div class="code-block not-prose" data-code data-tabs data-tabs-sync="pm">
+  <div class="code-block-header pl-1">
+    <div class="code-tabs" role="tablist">
+        <button type="button" class="code-tab" role="tab" data-tab="bun" aria-selected="true">bun</button>
+        <button type="button" class="code-tab" role="tab" data-tab="npm" aria-selected="false">npm</button>
+        <button type="button" class="code-tab" role="tab" data-tab="pnpm" aria-selected="false">pnpm</button>
+        <button type="button" class="code-tab" role="tab" data-tab="yarn" aria-selected="false">yarn</button>
+    </div>
+    <button type="button" class="code-copy" data-copy aria-label="Copy code">
+  <span class="code-copy-idle inline-flex items-center gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg><span data-copy-label>Copy</span></span>
+  <span class="code-copied items-center gap-1.5" aria-live="polite"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Copied</span>
+</button>
+  </div>
+    <pre role="tabpanel" data-tab-panel="bun"><code data-lang="bash"><span class="line"><span style="color:var(--code-token-function)">bun</span><span style="color:var(--code-token-string)"> add</span><span style="color:var(--code-token-string)"> htmx-ui-engine</span><span style="color:var(--code-token-string)"> hono</span></span></code></pre>
+    <pre role="tabpanel" data-tab-panel="npm" hidden><code data-lang="bash"><span class="line"><span style="color:var(--code-token-function)">npm</span><span style="color:var(--code-token-string)"> install</span><span style="color:var(--code-token-string)"> htmx-ui-engine</span><span style="color:var(--code-token-string)"> hono</span></span></code></pre>
+    <pre role="tabpanel" data-tab-panel="pnpm" hidden><code data-lang="bash"><span class="line"><span style="color:var(--code-token-function)">pnpm</span><span style="color:var(--code-token-string)"> add</span><span style="color:var(--code-token-string)"> htmx-ui-engine</span><span style="color:var(--code-token-string)"> hono</span></span></code></pre>
+    <pre role="tabpanel" data-tab-panel="yarn" hidden><code data-lang="bash"><span class="line"><span style="color:var(--code-token-function)">yarn</span><span style="color:var(--code-token-string)"> add</span><span style="color:var(--code-token-string)"> htmx-ui-engine</span><span style="color:var(--code-token-string)"> hono</span></span></code></pre>
+</div>
+
+  <h2 id="mount">Mount it last<a class="heading-anchor" href="#mount" aria-label="Link to this section" data-md-skip>#</a></h2>
+  <p>
+    Hono runs middleware in registration order, and htmx-ui answers every request it sees, with a 404 page when
+    nothing matches. Register it <strong>after</strong> your own handlers:
+  </p>
+<div class="code-block not-prose" data-code>
+  <div class="code-block-header">
+    <span class="font-mono">server.ts</span>
+    <button type="button" class="code-copy" data-copy aria-label="Copy code">
+  <span class="code-copy-idle inline-flex items-center gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg><span data-copy-label>Copy</span></span>
+  <span class="code-copied items-center gap-1.5" aria-live="polite"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Copied</span>
+</button>
+  </div>
+  <pre><code data-lang="ts"><span class="line"><span style="color:var(--code-token-keyword)">import</span><span style="color:var(--code-foreground)"> &#123; Hono } </span><span style="color:var(--code-token-keyword)">from</span><span style="color:var(--code-token-string-expression)"> "hono"</span><span style="color:var(--code-foreground)">;</span></span>
+<span class="line"><span style="color:var(--code-token-keyword)">import</span><span style="color:var(--code-foreground)"> &#123; htmxUi } </span><span style="color:var(--code-token-keyword)">from</span><span style="color:var(--code-token-string-expression)"> "htmx-ui-engine/hono"</span><span style="color:var(--code-foreground)">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:var(--code-token-keyword)">const</span><span style="color:var(--code-token-constant)"> app</span><span style="color:var(--code-token-keyword)"> =</span><span style="color:var(--code-token-keyword)"> new</span><span style="color:var(--code-token-function)"> Hono</span><span style="color:var(--code-foreground)">();</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:var(--code-token-constant)">app</span><span style="color:var(--code-token-function)">.get</span><span style="color:var(--code-foreground)">(</span><span style="color:var(--code-token-string-expression)">"/api/invoices"</span><span style="color:var(--code-token-punctuation)">,</span><span style="color:var(--code-foreground)"> (c) </span><span style="color:var(--code-token-keyword)">=></span><span style="color:var(--code-token-constant)"> c</span><span style="color:var(--code-token-function)">.json</span><span style="color:var(--code-foreground)">(</span><span style="color:var(--code-token-constant)">invoices</span><span style="color:var(--code-token-function)">.list</span><span style="color:var(--code-foreground)">()));</span></span>
+<span class="line"><span style="color:var(--code-token-constant)">app</span><span style="color:var(--code-token-function)">.post</span><span style="color:var(--code-foreground)">(</span><span style="color:var(--code-token-string-expression)">"/api/invoices"</span><span style="color:var(--code-token-punctuation)">,</span><span style="color:var(--code-token-keyword)"> async</span><span style="color:var(--code-foreground)"> (c) </span><span style="color:var(--code-token-keyword)">=></span><span style="color:var(--code-token-constant)"> c</span><span style="color:var(--code-token-function)">.json</span><span style="color:var(--code-foreground)">(</span><span style="color:var(--code-token-keyword)">await</span><span style="color:var(--code-token-constant)"> invoices</span><span style="color:var(--code-token-function)">.create</span><span style="color:var(--code-foreground)">(</span><span style="color:var(--code-token-keyword)">await</span><span style="color:var(--code-token-constant)"> c</span><span style="color:var(--code-token-function)">.</span><span style="color:var(--code-token-constant)">req</span><span style="color:var(--code-token-function)">.json</span><span style="color:var(--code-foreground)">())</span><span style="color:var(--code-token-punctuation)">,</span><span style="color:var(--code-token-constant)"> 201</span><span style="color:var(--code-foreground)">));</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:var(--code-token-constant)">app</span><span style="color:var(--code-token-function)">.use</span><span style="color:var(--code-foreground)">(</span><span style="color:var(--code-token-function)">htmxUi</span><span style="color:var(--code-foreground)">()); </span><span style="color:var(--code-token-comment)">// last: pages, assets, public files, the config's routes, a 404 page</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:var(--code-token-keyword)">export</span><span style="color:var(--code-token-keyword)"> default</span><span style="color:var(--code-foreground)"> app; </span><span style="color:var(--code-token-comment)">// Bun and Deno serve the default export's fetch</span></span></code></pre>
+</div>  <p>
+    Paths nothing claims get the <a href="/docs/v0.2/servers#not-found">404 page</a>: your <code>pages/404.html</code>, or
+    htmx-ui's default. Because the middleware answers them, Hono's <code>app.notFound()</code> never runs.
+  </p>
+
+  <h2 id="fragments">Fragments and pages<a class="heading-anchor" href="#fragments" aria-label="Link to this section" data-md-skip>#</a></h2>
+  <p><code>c.html()</code> sends rendered HTML with the right content type:</p>
+<div class="code-block not-prose" data-code>
+  <div class="code-block-header">
+    <span class="font-mono">server.ts</span>
+    <button type="button" class="code-copy" data-copy aria-label="Copy code">
+  <span class="code-copy-idle inline-flex items-center gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg><span data-copy-label>Copy</span></span>
+  <span class="code-copied items-center gap-1.5" aria-live="polite"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Copied</span>
+</button>
+  </div>
+  <pre><code data-lang="ts"><span class="line"><span style="color:var(--code-token-keyword)">import</span><span style="color:var(--code-foreground)"> &#123; Hono } </span><span style="color:var(--code-token-keyword)">from</span><span style="color:var(--code-token-string-expression)"> "hono"</span><span style="color:var(--code-foreground)">;</span></span>
+<span class="line"><span style="color:var(--code-token-keyword)">import</span><span style="color:var(--code-foreground)"> &#123; createSite } </span><span style="color:var(--code-token-keyword)">from</span><span style="color:var(--code-token-string-expression)"> "htmx-ui-engine"</span><span style="color:var(--code-foreground)">;</span></span>
+<span class="line"><span style="color:var(--code-token-keyword)">import</span><span style="color:var(--code-foreground)"> &#123; htmxUi } </span><span style="color:var(--code-token-keyword)">from</span><span style="color:var(--code-token-string-expression)"> "htmx-ui-engine/hono"</span><span style="color:var(--code-foreground)">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:var(--code-token-keyword)">const</span><span style="color:var(--code-token-constant)"> site</span><span style="color:var(--code-token-keyword)"> =</span><span style="color:var(--code-token-keyword)"> await</span><span style="color:var(--code-token-function)"> createSite</span><span style="color:var(--code-foreground)">();</span></span>
+<span class="line"><span style="color:var(--code-token-keyword)">const</span><span style="color:var(--code-token-constant)"> app</span><span style="color:var(--code-token-keyword)"> =</span><span style="color:var(--code-token-keyword)"> new</span><span style="color:var(--code-token-function)"> Hono</span><span style="color:var(--code-foreground)">();</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:var(--code-token-constant)">app</span><span style="color:var(--code-token-function)">.post</span><span style="color:var(--code-foreground)">(</span><span style="color:var(--code-token-string-expression)">"/api/invoices/:id/refund"</span><span style="color:var(--code-token-punctuation)">,</span><span style="color:var(--code-foreground)"> (c) </span><span style="color:var(--code-token-keyword)">=></span></span>
+<span class="line"><span style="color:var(--code-token-constant)">  c</span><span style="color:var(--code-token-function)">.html</span><span style="color:var(--code-foreground)">(</span><span style="color:var(--code-token-constant)">site</span><span style="color:var(--code-token-function)">.fragment</span><span style="color:var(--code-foreground)">(</span><span style="color:var(--code-token-string-expression)">"partials/invoice-row.html"</span><span style="color:var(--code-token-punctuation)">,</span><span style="color:var(--code-foreground)"> &#123; invoice</span><span style="color:var(--code-token-keyword)">:</span><span style="color:var(--code-token-function)"> refund</span><span style="color:var(--code-foreground)">(</span><span style="color:var(--code-token-constant)">c</span><span style="color:var(--code-token-function)">.</span><span style="color:var(--code-token-constant)">req</span><span style="color:var(--code-token-function)">.param</span><span style="color:var(--code-foreground)">(</span><span style="color:var(--code-token-string-expression)">"id"</span><span style="color:var(--code-foreground)">)) }))</span><span style="color:var(--code-token-punctuation)">,</span></span>
+<span class="line"><span style="color:var(--code-foreground)">);</span></span>
+<span class="line"><span style="color:var(--code-token-constant)">app</span><span style="color:var(--code-token-function)">.get</span><span style="color:var(--code-foreground)">(</span><span style="color:var(--code-token-string-expression)">"/dashboard"</span><span style="color:var(--code-token-punctuation)">,</span><span style="color:var(--code-foreground)"> (c) </span><span style="color:var(--code-token-keyword)">=></span><span style="color:var(--code-token-constant)"> c</span><span style="color:var(--code-token-function)">.html</span><span style="color:var(--code-foreground)">(</span><span style="color:var(--code-token-constant)">site</span><span style="color:var(--code-token-function)">.render</span><span style="color:var(--code-foreground)">(</span><span style="color:var(--code-token-string-expression)">"/dashboard"</span><span style="color:var(--code-token-punctuation)">,</span><span style="color:var(--code-foreground)"> &#123; user</span><span style="color:var(--code-token-keyword)">:</span><span style="color:var(--code-token-function)"> currentUser</span><span style="color:var(--code-foreground)">(c) })));</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:var(--code-token-constant)">app</span><span style="color:var(--code-token-function)">.use</span><span style="color:var(--code-foreground)">(</span><span style="color:var(--code-token-function)">htmxUi</span><span style="color:var(--code-foreground)">(&#123; site })); </span><span style="color:var(--code-token-comment)">// the same site: templates compiled once</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:var(--code-token-keyword)">export</span><span style="color:var(--code-token-keyword)"> default</span><span style="color:var(--code-foreground)"> app;</span></span></code></pre>
+</div>  <p>
+    See <a href="/docs/v0.2/servers/rendering">Pages &amp; fragments</a> for forms (<code>c.req.parseBody()</code>), htmx
+    headers and error fragments.
+  </p>
+
+  <h2 id="options">Options<a class="heading-anchor" href="#options" aria-label="Link to this section" data-md-skip>#</a></h2>
+  <p>
+    <code>htmxUi(options)</code> takes the options of <a href="/docs/v0.2/servers/api#options"><code>createSite()</code></a>:
+    <code>root</code>, <code>config</code>, <code>context</code>, <code>asset</code>, <code>cache</code> and
+    <code>site</code>. For example, to serve a site from another directory:
+  </p>
+<div class="code-block not-prose" data-code>
+  <div class="code-block-header">
+    <span class="font-mono">server.ts</span>
+    <button type="button" class="code-copy" data-copy aria-label="Copy code">
+  <span class="code-copy-idle inline-flex items-center gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg><span data-copy-label>Copy</span></span>
+  <span class="code-copied items-center gap-1.5" aria-live="polite"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Copied</span>
+</button>
+  </div>
+  <pre><code data-lang="ts"><span class="line"><span style="color:var(--code-token-constant)">app</span><span style="color:var(--code-token-function)">.use</span><span style="color:var(--code-foreground)">(</span><span style="color:var(--code-token-function)">htmxUi</span><span style="color:var(--code-foreground)">(&#123; root</span><span style="color:var(--code-token-keyword)">:</span><span style="color:var(--code-token-string-expression)"> "../marketing"</span><span style="color:var(--code-foreground)"> }));</span></span></code></pre>
+</div>
+  <h2 id="testing">Testing<a class="heading-anchor" href="#testing" aria-label="Link to this section" data-md-skip>#</a></h2>
+  <p><code>app.request()</code> answers in-process, with no port:</p>
+<div class="code-block not-prose" data-code>
+  <div class="code-block-header">
+    <span class="font-mono">server.test.ts</span>
+    <button type="button" class="code-copy" data-copy aria-label="Copy code">
+  <span class="code-copy-idle inline-flex items-center gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg><span data-copy-label>Copy</span></span>
+  <span class="code-copied items-center gap-1.5" aria-live="polite"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Copied</span>
+</button>
+  </div>
+  <pre><code data-lang="ts"><span class="line"><span style="color:var(--code-token-keyword)">import</span><span style="color:var(--code-foreground)"> &#123; expect</span><span style="color:var(--code-token-punctuation)">,</span><span style="color:var(--code-foreground)"> test } </span><span style="color:var(--code-token-keyword)">from</span><span style="color:var(--code-token-string-expression)"> "bun:test"</span><span style="color:var(--code-foreground)">;</span></span>
+<span class="line"><span style="color:var(--code-token-keyword)">import</span><span style="color:var(--code-foreground)"> app </span><span style="color:var(--code-token-keyword)">from</span><span style="color:var(--code-token-string-expression)"> "./server"</span><span style="color:var(--code-foreground)">;</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:var(--code-token-function)">test</span><span style="color:var(--code-foreground)">(</span><span style="color:var(--code-token-string-expression)">"serves the home page"</span><span style="color:var(--code-token-punctuation)">,</span><span style="color:var(--code-token-keyword)"> async</span><span style="color:var(--code-foreground)"> () </span><span style="color:var(--code-token-keyword)">=></span><span style="color:var(--code-foreground)"> &#123;</span></span>
+<span class="line"><span style="color:var(--code-token-keyword)">  const</span><span style="color:var(--code-token-constant)"> res</span><span style="color:var(--code-token-keyword)"> =</span><span style="color:var(--code-token-keyword)"> await</span><span style="color:var(--code-token-constant)"> app</span><span style="color:var(--code-token-function)">.request</span><span style="color:var(--code-foreground)">(</span><span style="color:var(--code-token-string-expression)">"/"</span><span style="color:var(--code-foreground)">);</span></span>
+<span class="line"><span style="color:var(--code-token-function)">  expect</span><span style="color:var(--code-foreground)">(</span><span style="color:var(--code-token-constant)">res</span><span style="color:var(--code-foreground)">.status)</span><span style="color:var(--code-token-function)">.toBe</span><span style="color:var(--code-foreground)">(</span><span style="color:var(--code-token-constant)">200</span><span style="color:var(--code-foreground)">);</span></span>
+<span class="line"><span style="color:var(--code-foreground)">});</span></span></code></pre>
+</div>
+  <h2 id="run">Build and run<a class="heading-anchor" href="#run" aria-label="Link to this section" data-md-skip>#</a></h2>
+  <p>
+    In production the middleware serves <code>dist/</code>, so build first and set <code>NODE_ENV</code>:
+  </p>
+<div class="code-block not-prose" data-code>
+  <div class="code-block-header">
+    <span class="font-mono">Terminal</span>
+    <button type="button" class="code-copy" data-copy aria-label="Copy code">
+  <span class="code-copy-idle inline-flex items-center gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg><span data-copy-label>Copy</span></span>
+  <span class="code-copied items-center gap-1.5" aria-live="polite"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Copied</span>
+</button>
+  </div>
+  <pre><code data-lang="bash"><span class="line"><span style="color:var(--code-token-function)">htmx-ui</span><span style="color:var(--code-token-string)"> build</span><span style="color:var(--code-token-punctuation)"> &#x26;&#x26;</span><span style="color:var(--code-foreground)"> NODE_ENV</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string)">production</span><span style="color:var(--code-token-function)"> bun</span><span style="color:var(--code-token-string)"> server.ts</span></span></code></pre>
+</div>  <p>
+    On Node, serve the app with <code>@hono/node-server</code>'s <code>serve(app)</code>. See
+    <a href="/docs/v0.2/servers/deploying">Deploying</a> for what to ship, cache headers and Docker.
+  </p>
+        </div>
+
+          <nav class="mt-16 grid gap-4 border-t border-border pt-8 sm:grid-cols-2" aria-label="Pagination">
+              <a href="/docs/v0.2/servers/express" class="card card-link p-4">
+                <span class="muted inline-flex items-center gap-1"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-3.5" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg> Previous</span>
+                <span class="mt-1 font-medium">Express</span>
+              </a>
+              <a href="/docs/v0.2/servers/bun" class="card card-link p-4 text-right sm:col-start-2">
+                <span class="muted inline-flex items-center justify-end gap-1">Next <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-3.5" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+                <span class="mt-1 font-medium">Bun.serve</span>
+              </a>
+          </nav>
+      </article>
+    </main>
+  </div>
+<footer class="border-t border-border">
+  <div class="mx-auto flex w-full max-w-7xl flex-col items-center justify-between gap-4 px-4 py-8 text-sm text-muted-foreground sm:flex-row sm:px-6 lg:px-8">
+    <p>© <span data-year></span> HTMX UI. Built with htmx, Tailwind CSS and Bun.</p>
+    <nav class="flex gap-5">
+      <a href="/docs/v0.2" class="hover:text-foreground">Docs</a>
+      <a href="/docs/v0.2/changelog" class="hover:text-foreground">Changelog</a>
+      <a href="/about" class="hover:text-foreground">About</a>
+    </nav>
+  </div>
+</footer>
+  </body>
+</html>

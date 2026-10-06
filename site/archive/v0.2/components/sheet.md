@@ -1,0 +1,382 @@
+---
+title: "Sheet"
+description: "A dialog that slides in from an edge of the screen, for content that complements the page: settings, filters, details or navigation."
+url: "/docs/v0.2/components/sheet"
+section: "Components"
+---
+
+# Sheet
+
+A dialog that slides in from an edge of the screen, for content that complements the page: settings, filters, details or navigation.
+
+```html
+<button type="button" class="btn btn-outline" commandfor="sheet-profile" command="show-modal">Open</button>
+<dialog id="sheet-profile" class="sheet" data-dialog aria-labelledby="sheet-profile-title" aria-describedby="sheet-profile-description">
+  <div class="sheet-header">
+    <h2 class="sheet-title" id="sheet-profile-title">Edit profile</h2>
+    <p class="sheet-description" id="sheet-profile-description">Make changes to your profile here. Click save when you're done.</p>
+  </div>
+  <form class="contents" method="dialog">
+    <div class="grid gap-4">
+      <div class="field">
+        <label class="field-label" for="sheet-profile-name">Name</label>
+        <input class="input" id="sheet-profile-name" name="name" value="Pedro Duarte" />
+      </div>
+      <div class="field">
+        <label class="field-label" for="sheet-profile-username">Username</label>
+        <input class="input" id="sheet-profile-username" name="username" value="@peduarte" />
+      </div>
+    </div>
+    <div class="sheet-footer">
+      <button type="button" class="btn btn-outline" data-dialog-close>Close</button>
+      <button class="btn btn-primary" value="save">Save changes</button>
+    </div>
+  </form>
+  <button type="button" class="sheet-close" data-dialog-close aria-label="Close"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+</dialog>
+```
+
+## Markup
+
+A sheet is a native `<dialog>` with `.sheet` and `data-dialog`. It is a [dialog](/docs/v0.2/components/dialog) in every way but its place on the screen: it opens and closes the same ways, puts the rest of the page out of reach while it is open, and works with htmx the same way. Instead of appearing in the middle, it fills one edge of the screen and slides in from it.
+
+- `.sheet-header` holds `.sheet-title` and `.sheet-description`. Point `aria-labelledby` and `aria-describedby` at them.
+- `.sheet-content` is an optional body that takes the free height and scrolls on its own, keeping the header and footer in view.
+- `.sheet-footer` sits at the bottom: its buttons stacked, the last one on top.
+- `.sheet-close` is the corner close button. It is optional.
+
+The sheet has its own `.sheet-*` parts rather than the dialog's: they are laid out for a tall, narrow panel (left-aligned header, footer pinned to the bottom, wider padding for the scrollbar). Use `.sheet` on its own, not together with `.dialog`.
+
+## Opening and closing
+
+Exactly as for a [dialog](/docs/v0.2/components/dialog#open-and-close): a button with `commandfor="<sheet id>"` and `command="show-modal"` opens it, or `sheet.showModal()` from script. `Esc`, a click outside, any element inside with `data-dialog-close`, a `<form method="dialog">` or `command="close"` closes it, and the native `close` event fires on the `<dialog>` with the answer in `returnValue`.
+
+## Sides
+
+A sheet opens on the right. `.sheet-left`, `.sheet-top` and `.sheet-bottom` attach it to another edge (`.sheet-right` names the default). Left and right sheets are full height, three quarters of the screen wide and at most `max-w-sm`; top and bottom sheets are full width and as tall as their content, up to the viewport height less a margin.
+
+```html
+<button type="button" class="btn btn-outline" commandfor="sheet-side-top" command="show-modal">Top</button>
+<dialog id="sheet-side-top" class="sheet sheet-top" data-dialog aria-labelledby="sheet-side-top-title" aria-describedby="sheet-side-top-description">
+  <div class="sheet-header">
+    <h2 class="sheet-title" id="sheet-side-top-title">Edit profile</h2>
+    <p class="sheet-description" id="sheet-side-top-description">This sheet opens from the top.</p>
+  </div>
+  <div class="sheet-footer">
+    <button type="button" class="btn btn-outline" data-dialog-close>Cancel</button>
+    <button type="button" class="btn btn-primary" data-dialog-close="save">Save changes</button>
+  </div>
+  <button type="button" class="sheet-close" data-dialog-close aria-label="Close"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+</dialog>
+<button type="button" class="btn btn-outline" commandfor="sheet-side-right" command="show-modal">Right</button>
+<dialog id="sheet-side-right" class="sheet sheet-right" data-dialog aria-labelledby="sheet-side-right-title" aria-describedby="sheet-side-right-description">
+  <div class="sheet-header">
+    <h2 class="sheet-title" id="sheet-side-right-title">Edit profile</h2>
+    <p class="sheet-description" id="sheet-side-right-description">This sheet opens from the right.</p>
+  </div>
+  <div class="sheet-footer">
+    <button type="button" class="btn btn-outline" data-dialog-close>Cancel</button>
+    <button type="button" class="btn btn-primary" data-dialog-close="save">Save changes</button>
+  </div>
+  <button type="button" class="sheet-close" data-dialog-close aria-label="Close"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+</dialog>
+<button type="button" class="btn btn-outline" commandfor="sheet-side-bottom" command="show-modal">Bottom</button>
+<dialog id="sheet-side-bottom" class="sheet sheet-bottom" data-dialog aria-labelledby="sheet-side-bottom-title" aria-describedby="sheet-side-bottom-description">
+  <div class="sheet-header">
+    <h2 class="sheet-title" id="sheet-side-bottom-title">Edit profile</h2>
+    <p class="sheet-description" id="sheet-side-bottom-description">This sheet opens from the bottom.</p>
+  </div>
+  <div class="sheet-footer">
+    <button type="button" class="btn btn-outline" data-dialog-close>Cancel</button>
+    <button type="button" class="btn btn-primary" data-dialog-close="save">Save changes</button>
+  </div>
+  <button type="button" class="sheet-close" data-dialog-close aria-label="Close"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+</dialog>
+<button type="button" class="btn btn-outline" commandfor="sheet-side-left" command="show-modal">Left</button>
+<dialog id="sheet-side-left" class="sheet sheet-left" data-dialog aria-labelledby="sheet-side-left-title" aria-describedby="sheet-side-left-description">
+  <div class="sheet-header">
+    <h2 class="sheet-title" id="sheet-side-left-title">Edit profile</h2>
+    <p class="sheet-description" id="sheet-side-left-description">This sheet opens from the left.</p>
+  </div>
+  <div class="sheet-footer">
+    <button type="button" class="btn btn-outline" data-dialog-close>Cancel</button>
+    <button type="button" class="btn btn-primary" data-dialog-close="save">Save changes</button>
+  </div>
+  <button type="button" class="sheet-close" data-dialog-close aria-label="Close"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+</dialog>
+```
+
+## Sizes
+
+`.sheet-sm`, `.sheet-lg` and `.sheet-xl` set the width of a left or right sheet: `max-w-xs`, `max-w-lg` and `max-w-2xl` (the default is `max-w-sm`). Any `max-w-*` utility works too, and on a top or bottom sheet an `h-*` utility fixes its height.
+
+```html
+<button type="button" class="btn btn-outline" commandfor="sheet-size-sm" command="show-modal">Small</button>
+<button type="button" class="btn btn-outline" commandfor="sheet-size-xl" command="show-modal">Extra large</button>
+<button type="button" class="btn btn-outline" commandfor="sheet-size-half" command="show-modal">Half-height bottom</button>
+<dialog id="sheet-size-sm" class="sheet sheet-sm" data-dialog aria-labelledby="sheet-size-sm-title">
+  <div class="sheet-header"><h2 class="sheet-title" id="sheet-size-sm-title">Small sheet</h2></div>
+  <p class="muted">.sheet-sm is max-w-xs.</p>
+  <button type="button" class="sheet-close" data-dialog-close aria-label="Close"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+</dialog>
+<dialog id="sheet-size-xl" class="sheet sheet-xl" data-dialog aria-labelledby="sheet-size-xl-title">
+  <div class="sheet-header"><h2 class="sheet-title" id="sheet-size-xl-title">Extra large sheet</h2></div>
+  <p class="muted">.sheet-xl is max-w-2xl.</p>
+  <button type="button" class="sheet-close" data-dialog-close aria-label="Close"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+</dialog>
+<dialog id="sheet-size-half" class="sheet sheet-bottom h-1/2" data-dialog aria-labelledby="sheet-size-half-title">
+  <div class="sheet-header"><h2 class="sheet-title" id="sheet-size-half-title">Half-height sheet</h2></div>
+  <p class="muted">A bottom sheet with h-1/2.</p>
+  <button type="button" class="sheet-close" data-dialog-close aria-label="Close"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+</dialog>
+```
+
+## No close button
+
+Leave out `.sheet-close` for a sheet that closes with `Esc`, a click outside or a button of your own.
+
+```html
+<button type="button" class="btn btn-outline" commandfor="sheet-no-close" command="show-modal">No close button</button>
+<dialog id="sheet-no-close" class="sheet" data-dialog aria-labelledby="sheet-no-close-title" aria-describedby="sheet-no-close-description">
+  <div class="sheet-header">
+    <h2 class="sheet-title" id="sheet-no-close-title">No close button</h2>
+    <p class="sheet-description" id="sheet-no-close-description">Press Escape, click outside or use the button below.</p>
+  </div>
+  <div class="sheet-footer">
+    <button type="button" class="btn btn-outline" data-dialog-close>Done</button>
+  </div>
+</dialog>
+```
+
+## Scrolling content
+
+Long content goes in `.sheet-content`, which scrolls between a header and footer that stay in view. `.sheet-footer-sticky` sets the footer apart: tinted, edge to edge, with a border on top.
+
+```html
+<button type="button" class="btn btn-outline" commandfor="sheet-scroll" command="show-modal">Release notes</button>
+<dialog id="sheet-scroll" class="sheet" data-dialog aria-labelledby="sheet-scroll-title">
+  <div class="sheet-header">
+    <h2 class="sheet-title" id="sheet-scroll-title">Release notes</h2>
+    <p class="sheet-description">What changed in the last ten releases.</p>
+  </div>
+  <div class="sheet-content space-y-4 leading-relaxed">
+    <div>
+      <p class="font-medium">Version 0.10.0</p>
+      <p class="muted">Components inside fragments initialise as soon as htmx inserts them. Tokens drive every colour, in light and dark. Dialogs, sheets and drawers share one behaviour.</p>
+    </div>
+    <div>
+      <p class="font-medium">Version 0.9.0</p>
+      <p class="muted">Components inside fragments initialise as soon as htmx inserts them. Tokens drive every colour, in light and dark. Dialogs, sheets and drawers share one behaviour.</p>
+    </div>
+    <div>
+      <p class="font-medium">Version 0.8.0</p>
+      <p class="muted">Components inside fragments initialise as soon as htmx inserts them. Tokens drive every colour, in light and dark. Dialogs, sheets and drawers share one behaviour.</p>
+    </div>
+    <div>
+      <p class="font-medium">Version 0.7.0</p>
+      <p class="muted">Components inside fragments initialise as soon as htmx inserts them. Tokens drive every colour, in light and dark. Dialogs, sheets and drawers share one behaviour.</p>
+    </div>
+    <div>
+      <p class="font-medium">Version 0.6.0</p>
+      <p class="muted">Components inside fragments initialise as soon as htmx inserts them. Tokens drive every colour, in light and dark. Dialogs, sheets and drawers share one behaviour.</p>
+    </div>
+    <div>
+      <p class="font-medium">Version 0.5.0</p>
+      <p class="muted">Components inside fragments initialise as soon as htmx inserts them. Tokens drive every colour, in light and dark. Dialogs, sheets and drawers share one behaviour.</p>
+    </div>
+    <div>
+      <p class="font-medium">Version 0.4.0</p>
+      <p class="muted">Components inside fragments initialise as soon as htmx inserts them. Tokens drive every colour, in light and dark. Dialogs, sheets and drawers share one behaviour.</p>
+    </div>
+    <div>
+      <p class="font-medium">Version 0.3.0</p>
+      <p class="muted">Components inside fragments initialise as soon as htmx inserts them. Tokens drive every colour, in light and dark. Dialogs, sheets and drawers share one behaviour.</p>
+    </div>
+    <div>
+      <p class="font-medium">Version 0.2.0</p>
+      <p class="muted">Components inside fragments initialise as soon as htmx inserts them. Tokens drive every colour, in light and dark. Dialogs, sheets and drawers share one behaviour.</p>
+    </div>
+    <div>
+      <p class="font-medium">Version 0.1.0</p>
+      <p class="muted">Components inside fragments initialise as soon as htmx inserts them. Tokens drive every colour, in light and dark. Dialogs, sheets and drawers share one behaviour.</p>
+    </div>
+  </div>
+  <div class="sheet-footer sheet-footer-sticky">
+    <button type="button" class="btn btn-outline" data-dialog-close>Close</button>
+  </div>
+  <button type="button" class="sheet-close" data-dialog-close aria-label="Close"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+</dialog>
+```
+
+## Navigation
+
+A left sheet makes a menu for small screens. The links are ordinary links in a `<nav>`; the sheet closes when the next page loads, or give each link `data-dialog-close` to close it straight away (for links to sections of the same page, or with `hx-boost`).
+
+```html
+<button type="button" class="btn btn-outline btn-icon" commandfor="sheet-nav" command="show-modal" aria-label="Open menu"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+<dialog id="sheet-nav" class="sheet sheet-left sheet-sm" data-dialog aria-labelledby="sheet-nav-title">
+  <div class="sheet-header">
+    <h2 class="sheet-title" id="sheet-nav-title">Acme Inc.</h2>
+  </div>
+  <nav class="sheet-content" aria-labelledby="sheet-nav-title">
+    <div class="sidebar-group">
+      <p class="sidebar-group-label">Workspace</p>
+      <ul class="sidebar-menu">
+        <li class="sidebar-menu-item"><a class="sidebar-menu-button" href="#" aria-current="page" data-dialog-close>Dashboard</a></li>
+        <li class="sidebar-menu-item"><a class="sidebar-menu-button" href="#" data-dialog-close>Projects</a></li>
+        <li class="sidebar-menu-item"><a class="sidebar-menu-button" href="#" data-dialog-close>Team</a></li>
+      </ul>
+    </div>
+    <div class="sidebar-group">
+      <p class="sidebar-group-label">Account</p>
+      <ul class="sidebar-menu">
+        <li class="sidebar-menu-item"><a class="sidebar-menu-button" href="#" data-dialog-close>Settings</a></li>
+        <li class="sidebar-menu-item"><a class="sidebar-menu-button" href="#" data-dialog-close>Billing</a></li>
+      </ul>
+    </div>
+  </nav>
+  <button type="button" class="sheet-close" data-dialog-close aria-label="Close menu"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+</dialog>
+```
+
+## Over a dialog
+
+A button inside a dialog (or another sheet) can open a sheet. It stacks on top with its own backdrop, and `Esc` or a click outside closes the topmost first.
+
+```html
+<button type="button" class="btn btn-outline" commandfor="sheet-over-dialog" command="show-modal">Invite people</button>
+<dialog id="sheet-over-dialog" class="dialog dialog-sm" data-dialog aria-labelledby="sheet-over-dialog-title">
+  <div class="dialog-header">
+    <h2 class="dialog-title" id="sheet-over-dialog-title">Invite people</h2>
+    <p class="dialog-description">Not sure who has access already?</p>
+  </div>
+  <div class="dialog-footer">
+    <button type="button" class="btn btn-outline" commandfor="sheet-members" command="show-modal"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg> Show members</button>
+    <button type="button" class="btn btn-primary" data-dialog-close>Done</button>
+  </div>
+</dialog>
+<dialog id="sheet-members" class="sheet" data-dialog aria-labelledby="sheet-members-title">
+  <div class="sheet-header">
+    <h2 class="sheet-title" id="sheet-members-title">Members</h2>
+    <p class="sheet-description">A sheet over the dialog.</p>
+  </div>
+  <ul class="grid gap-2">
+    <li>Olivia Martin</li>
+    <li>Jackson Lee</li>
+    <li>Isabella Nguyen</li>
+  </ul>
+  <button type="button" class="sheet-close" data-dialog-close aria-label="Close"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+</dialog>
+```
+
+## Keyboard
+
+- `Esc` closes the topmost sheet.
+- `Tab` and `Shift` + `Tab` move through the sheet's controls; the page behind it is inert.
+- `Enter` or `Space` on the opening button opens it.
+
+## With htmx
+
+### Posting a form, closing from the server
+
+A form in a sheet can post with htmx. When the server has saved it, the response header `HX-Trigger: dialog:close` closes the sheet (the `dialog:close` event closes the sheet, dialog or drawer it is dispatched in), while the response body goes to the form's `hx-target`. On a validation error, leave the header off and return the form with its messages. This demo posts to the same endpoint as the dialog's.
+
+```html
+<button type="button" class="btn btn-outline" commandfor="sheet-rename" command="show-modal">Rename project</button>
+<span id="sheet-rename-result" class="muted"></span>
+<dialog id="sheet-rename" class="sheet" data-dialog aria-labelledby="sheet-rename-title">
+  <div class="sheet-header">
+    <h2 class="sheet-title" id="sheet-rename-title">Rename project</h2>
+    <p class="sheet-description">The server closes this sheet once it has saved the name.</p>
+  </div>
+  <form class="contents" hx-post="/api/dialog/save" hx-target="#sheet-rename-result">
+    <div class="field">
+      <label class="field-label" for="sheet-rename-name">Name</label>
+      <input class="input" id="sheet-rename-name" name="name" value="htmx-ui" required />
+    </div>
+    <div class="sheet-footer">
+      <button type="button" class="btn btn-outline" data-dialog-close>Cancel</button>
+      <button class="btn btn-primary">Save</button>
+    </div>
+  </form>
+  <button type="button" class="sheet-close" data-dialog-close aria-label="Close"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+</dialog>
+```
+
+```text
+HTTP/1.1 200 OK
+Content-Type: text/html; charset=utf-8
+HX-Trigger: dialog:close
+
+<span class="text-success">Renamed to htmx-ui</span>
+```
+
+### A sheet from the server
+
+A sheet can also come from the server. `data-dialog-show` opens it as soon as htmx inserts it, and `data-dialog-remove` takes it out of the page once it has slid away, so every click loads a fresh one. Append it to the body:
+
+```html
+<button class="btn btn-outline" hx-get="/api/order/42" hx-target="body" hx-swap="beforeend">Order details</button>
+
+<!-- The response <!-- The response -->
+<dialog class="sheet" data-dialog data-dialog-show data-dialog-remove aria-labelledby="order-title">
+  <div class="sheet-header">
+    <h2 class="sheet-title" id="order-title">Order #42</h2>
+    <p class="sheet-description">Placed on 3 October.</p>
+  </div>
+  <div class="sheet-content">…</div>
+  <button class="sheet-close" data-dialog-close aria-label="Close">…</button>
+</dialog>
+```
+
+## Macro
+
+`sheet()` writes the `<dialog>`, its header and the close button, with the ids and ARIA attributes wired up. The call body is everything after the header.
+
+```jinja
+{% from "components/sheet/sheet.html" import sheet %}
+
+<button class="btn btn-outline" commandfor="filters" command="show-modal">Filters</button>
+{% call sheet("filters", "Filters", "Narrow down the list.", side="left", size="sm") %}
+  <div class="sheet-content">…</div>
+  <div class="sheet-footer">
+    <button class="btn btn-outline" data-dialog-close>Reset</button>
+    <button class="btn btn-primary" data-dialog-close="apply">Apply</button>
+  </div>
+{% endcall %}
+```
+
+| Parameter | Description |
+| --- | --- |
+| `id` | Required. The id buttons point commandfor at; also prefixes the title and description ids. |
+| `title, description` | Header text. Each sets aria-labelledby / aria-describedby. |
+| `side="right"` | "top", "right", "bottom" or "left". |
+| `close=true` | The corner close button. false leaves it out. |
+| `size` | "sm", "lg" or "xl": the width of a left or right sheet. |
+| `show, remove` | data-dialog-show and data-dialog-remove, for sheets returned by htmx. |
+| `class` | More classes on the <dialog>. |
+
+## Accessibility
+
+- A sheet is a modal dialog: the browser moves focus into it, makes the page behind it inert and returns focus to the opening button when it closes.
+- Give every sheet a name: `aria-labelledby` pointing at its title, or `aria-label`.
+- Put `autofocus` on the field the user needs first; otherwise focus goes to the first focusable element.
+- An icon-only button, like the close button or a menu button, needs an `aria-label`.
+- The slide is skipped for people who ask for reduced motion.
+
+## Reference
+
+| Class | Description |
+| --- | --- |
+| `.sheet` | The <dialog>: attached to the right edge, full height, w-3/4 up to max-w-sm. Slides in and out. |
+| `.sheet-right / -left / -top / -bottom` | The edge it is attached to (right is the default). |
+| `.sheet-sm / -lg / -xl` | Widths of a left or right sheet: max-w-xs, max-w-lg, max-w-2xl. |
+| `.sheet-header / .sheet-title / .sheet-description` | Title block. |
+| `.sheet-content` | Body that takes the free height and scrolls on its own. |
+| `.sheet-footer` | Actions at the bottom, stacked with the last on top; a right-aligned row in top and bottom sheets from sm. |
+| `.sheet-footer-sticky` | Tinted, edge-to-edge footer with a top border. |
+| `.sheet-close` | Corner close button. |
+| `[data-dialog]` | The dialog behaviour: closes on a click outside and on [data-dialog-close], opens command buttons in older browsers. |
+| `[data-dialog-close="value"]` | Closes the sheet it is in; the value becomes returnValue. |
+| `[data-dialog-show] / [data-dialog-remove]` | Open as a modal when initialised / remove from the page once closed. |
+| `dialog:close event` | Closes the sheet it is dispatched in, e.g. from an HX-Trigger response header. |

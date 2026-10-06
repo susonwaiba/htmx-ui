@@ -1,0 +1,1030 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Empty · HTMX UI</title>
+  <meta name="description" content="Displays an empty state: no data yet, no results, nothing to show, with a way forward." />
+    <script>
+      // Apply the stored theme before first paint to avoid a flash of the wrong
+      // colors. Kept inline and tiny on purpose; htmx-ui/theme takes over
+      // once app.ts loads.
+      (() => {
+        const stored = localStorage.getItem("theme");
+        const dark = stored ? stored === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
+        document.documentElement.classList.toggle("dark", dark);
+      })();
+    </script>
+    
+  <link rel="stylesheet" crossorigin href="/docs/v0.2/_assets/index-c9g4cdt8.css"><script type="module" crossorigin src="/docs/v0.2/_assets/index-9ez8fwh5.js"></script><link rel="modulepreload" crossorigin href="/docs/v0.2/_assets/index-9ez8fwh5.js"><meta name="robots" content="noindex" /></head>
+  <body hx-boost:inherited="true" class="min-h-dvh bg-background text-foreground antialiased">
+<header class="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/70">
+  <div class="mx-auto flex h-14 w-full max-w-7xl items-center gap-2 px-4 sm:px-6 lg:px-8">
+      <button type="button" class="btn btn-ghost btn-icon -ml-2 lg:hidden" data-sidebar-trigger aria-controls="docs-nav" aria-expanded="false" aria-label="Open navigation"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+    <a href="/" class="mr-4 flex items-center gap-2 font-semibold">
+      <span class="grid size-7 place-items-center rounded-md bg-primary text-primary-foreground"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65M22 12.65l-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/></svg></span>
+      HTMX UI
+    </a>
+    <nav class="hidden items-center gap-1 text-sm sm:flex">
+        <a href="/docs/v0.2" class="rounded-md px-3 py-1.5 transition-colors hover:text-foreground text-muted-foreground">Docs</a>
+        <a href="/docs/v0.2/components" class="rounded-md px-3 py-1.5 transition-colors hover:text-foreground text-foreground font-medium" aria-current="page">Components</a>
+        <a href="/docs/v0.2/changelog" class="rounded-md px-3 py-1.5 transition-colors hover:text-foreground text-muted-foreground">Changelog</a>
+    </nav>
+    <div id="site-main-header-actions" class="ml-auto flex items-center gap-1" hx-preserve="true">
+      <button type="button" class="btn btn-outline btn-sm hidden w-56 justify-between font-normal text-muted-foreground md:inline-flex" data-search-open aria-haspopup="dialog" aria-label="Search the docs">
+  <span class="inline-flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg> Search docs…</span>
+  <kbd class="kbd" data-search-shortcut>Ctrl K</kbd>
+</button>
+<button type="button" class="btn btn-ghost btn-icon md:hidden" data-search-open aria-haspopup="dialog" aria-label="Search the docs"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></button>
+
+<dialog class="search-dialog" data-search-dialog data-search-src="/sitemap.json" aria-label="Search the docs">
+  <div class="search-field">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4 shrink-0 text-muted-foreground" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+    <input type="search" class="search-input" placeholder="Search docs, components, sections…" autocomplete="off" spellcheck="false"
+      role="combobox" aria-expanded="false" aria-controls="search-results" aria-autocomplete="list" aria-label="Search" data-search-input />
+    <kbd class="kbd">Esc</kbd>
+  </div>
+  <div class="search-body">
+    <ul id="search-results" class="search-results" role="listbox" aria-label="Results" data-search-results></ul>
+    <p class="search-message" data-search-message>Type to search pages and sections.</p>
+  </div>
+  <div class="search-footer" aria-hidden="true">
+    <span><kbd class="kbd">↑</kbd> <kbd class="kbd">↓</kbd> to navigate</span>
+    <span><kbd class="kbd"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-3" aria-hidden="true"><path d="M10 9V5l-7 7 7 7v-4.1c5 0 8.5 1.6 11 5.1-1-5-4-10-11-11z"/></svg></kbd> to open</span>
+    <span class="ml-auto" data-search-version></span>
+  </div>
+</dialog>
+      <a href="/docs/v0.2/installation" class="btn btn-primary btn-sm hidden sm:inline-flex">Get started</a>
+      <button type="button" class="btn btn-ghost btn-icon" data-theme-toggle aria-pressed="false" title="Toggle light and dark theme">
+        <span class="dark:hidden"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg></span>
+        <span class="hidden dark:inline"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg></span>
+        <span class="sr-only">Theme: <span data-theme-label>light</span></span>
+      </button>
+    </div>
+  </div>
+</header>
+  
+  <div class="sidebar-layout mx-auto min-h-0 max-w-7xl gap-12 px-4 sm:px-6 lg:px-8">
+    <aside id="docs-nav" class="sidebar [--sidebar-foreground:var(--muted-foreground)] [--sidebar-top:3.5rem] [--sidebar-width:15rem] [--sidebar:var(--background)] text-foreground lg:border-r-0 lg:[--sidebar:transparent]"
+           data-sidebar data-collapsible="none" data-breakpoint="lg" data-shortcut="none" aria-label="Documentation">
+      <div class="sidebar-header flex-row items-center justify-between px-6 pt-6 pb-0 lg:hidden">
+        <span class="font-semibold">Documentation</span>
+        <button type="button" class="btn btn-ghost btn-icon btn-sm" data-sidebar-close aria-label="Close navigation"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+      </div>
+      <div class="sidebar-content gap-6 p-6 lg:px-0 lg:py-8">
+        <div class="dropdown w-full" data-dropdown data-version-switcher data-version="0.2" data-versions-src="/docs/versions.json">
+  <button type="button" class="btn btn-outline w-full justify-between" data-dropdown-trigger aria-haspopup="menu" aria-expanded="false">
+    <span class="flex items-center gap-2 text-muted-foreground"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5M12 7v5l4 2"/></svg> Version</span>
+    <span class="flex items-center gap-1.5"><span class="font-mono">v0.2</span><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></span>
+  </button>
+  <div class="dropdown-menu w-full" role="menu" aria-label="Documentation version" hidden>
+    <p class="dropdown-label">Documentation versions</p>
+    <div data-version-items>
+        <a role="menuitem" class="dropdown-item" data-version-link href="/docs" aria-current="true">
+          <span class="font-mono">v0.2</span>
+<span class="badge badge-primary">Latest</span>        </a>
+        <a role="menuitem" class="dropdown-item" data-version-link href="/docs/v0.1">
+          <span class="font-mono">v0.1</span>
+        </a>
+    </div>
+      <div class="dropdown-separator" role="separator"></div>
+        <a role="menuitem" class="dropdown-item" data-version-link href="/docs/changelog">Changelog <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg></a>
+  </div>
+</div>
+          <nav class="sidebar-group p-0" aria-labelledby="docs-nav-1">
+            <p id="docs-nav-1" class="sidebar-group-label mb-1.5 h-auto font-semibold tracking-wider text-foreground uppercase">Getting started</p>
+              <ul class="sidebar-menu gap-0">
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2" class="sidebar-menu-button"><span>Introduction</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/installation" class="sidebar-menu-button"><span>Installation</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/engine" class="sidebar-menu-button"><span>Engine</span></a>
+    </li>
+</ul>
+          </nav>
+          <nav class="sidebar-group p-0" aria-labelledby="docs-nav-2">
+            <p id="docs-nav-2" class="sidebar-group-label mb-1.5 h-auto font-semibold tracking-wider text-foreground uppercase">Customization</p>
+              <ul class="sidebar-menu gap-0">
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/theming" class="sidebar-menu-button"><span>Theming</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/dark-mode" class="sidebar-menu-button"><span>Dark mode</span></a>
+    </li>
+</ul>
+          </nav>
+          <nav class="sidebar-group p-0" aria-labelledby="docs-nav-3">
+            <p id="docs-nav-3" class="sidebar-group-label mb-1.5 h-auto font-semibold tracking-wider text-foreground uppercase">Guides</p>
+              <ul class="sidebar-menu gap-0">
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/templates" class="sidebar-menu-button"><span>Templates &amp; data</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/ai-agents" class="sidebar-menu-button"><span>AI agents</span></a>
+    </li>
+</ul>
+          </nav>
+          <nav class="sidebar-group p-0" aria-labelledby="docs-nav-4">
+            <p id="docs-nav-4" class="sidebar-group-label mb-1.5 h-auto font-semibold tracking-wider text-foreground uppercase">Plugins</p>
+              <ul class="sidebar-menu gap-0">
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/plugins" class="sidebar-menu-button"><span>Plugins</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/plugins/docs" class="sidebar-menu-button"><span>Docs</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/plugins/versions" class="sidebar-menu-button"><span>Versions</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/plugins/search" class="sidebar-menu-button"><span>Search</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/plugins/writing" class="sidebar-menu-button"><span>Writing a plugin</span></a>
+    </li>
+</ul>
+          </nav>
+          <nav class="sidebar-group p-0" aria-labelledby="docs-nav-5">
+            <p id="docs-nav-5" class="sidebar-group-label mb-1.5 h-auto font-semibold tracking-wider text-foreground uppercase">Servers</p>
+              <ul class="sidebar-menu gap-0">
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/servers" class="sidebar-menu-button"><span>Server frameworks</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/servers/rendering" class="sidebar-menu-button"><span>Pages &amp; fragments</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/servers/deploying" class="sidebar-menu-button"><span>Deploying</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/servers/api" class="sidebar-menu-button"><span>createSite() API</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/servers/elysia" class="sidebar-menu-button"><span>Elysia</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/servers/fastify" class="sidebar-menu-button"><span>Fastify</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/servers/koa" class="sidebar-menu-button"><span>Koa</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/servers/express" class="sidebar-menu-button"><span>Express</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/servers/hono" class="sidebar-menu-button"><span>Hono</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/servers/bun" class="sidebar-menu-button"><span>Bun.serve</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/servers/other" class="sidebar-menu-button"><span>Other JavaScript servers</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/servers/any-backend" class="sidebar-menu-button"><span>Django, Rails, Go and others</span></a>
+    </li>
+</ul>
+          </nav>
+          <nav class="sidebar-group p-0" aria-labelledby="docs-nav-6">
+            <p id="docs-nav-6" class="sidebar-group-label mb-1.5 h-auto font-semibold tracking-wider text-foreground uppercase">Components</p>
+<ul class="sidebar-menu gap-0">
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components" class="sidebar-menu-button"><span>Overview</span></a>
+    </li>
+</ul>                  <div class="mt-3" role="group" aria-labelledby="docs-nav-6-forms">
+                    <p id="docs-nav-6-forms" class="mb-3 px-2 text-xs font-medium text-muted-foreground/70">Forms &amp; inputs</p>
+                    <ul class="sidebar-menu gap-0">
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/checkbox" class="sidebar-menu-button"><span>Checkbox</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/combobox" class="sidebar-menu-button"><span>Combobox</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/field" class="sidebar-menu-button"><span>Field</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/input" class="sidebar-menu-button"><span>Input</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/input-group" class="sidebar-menu-button"><span>Input group</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/input-otp" class="sidebar-menu-button"><span>Input OTP</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/label" class="sidebar-menu-button"><span>Label</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/radio-group" class="sidebar-menu-button"><span>Radio group</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/select" class="sidebar-menu-button"><span>Select</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/slider" class="sidebar-menu-button"><span>Slider</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/switch" class="sidebar-menu-button"><span>Switch</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/textarea" class="sidebar-menu-button"><span>Textarea</span></a>
+    </li>
+</ul>
+                  </div>
+                  <div class="mt-3" role="group" aria-labelledby="docs-nav-6-actions">
+                    <p id="docs-nav-6-actions" class="mb-3 px-2 text-xs font-medium text-muted-foreground/70">Actions &amp; menus</p>
+                    <ul class="sidebar-menu gap-0">
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/button" class="sidebar-menu-button"><span>Button</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/button-group" class="sidebar-menu-button"><span>Button group</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/command" class="sidebar-menu-button"><span>Command</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/dropdown" class="sidebar-menu-button"><span>Dropdown</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/menubar" class="sidebar-menu-button"><span>Menubar</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/scroll-button" class="sidebar-menu-button"><span>Scroll button</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/toggle" class="sidebar-menu-button"><span>Toggle</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/toggle-group" class="sidebar-menu-button"><span>Toggle group</span></a>
+    </li>
+</ul>
+                  </div>
+                  <div class="mt-3" role="group" aria-labelledby="docs-nav-6-navigation">
+                    <p id="docs-nav-6-navigation" class="mb-3 px-2 text-xs font-medium text-muted-foreground/70">Navigation</p>
+                    <ul class="sidebar-menu gap-0">
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/breadcrumb" class="sidebar-menu-button"><span>Breadcrumb</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/navigation-menu" class="sidebar-menu-button"><span>Navigation menu</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/pagination" class="sidebar-menu-button"><span>Pagination</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/sidebar" class="sidebar-menu-button"><span>Sidebar</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/tabs" class="sidebar-menu-button"><span>Tabs</span></a>
+    </li>
+</ul>
+                  </div>
+                  <div class="mt-3" role="group" aria-labelledby="docs-nav-6-overlays">
+                    <p id="docs-nav-6-overlays" class="mb-3 px-2 text-xs font-medium text-muted-foreground/70">Overlays</p>
+                    <ul class="sidebar-menu gap-0">
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/alert-dialog" class="sidebar-menu-button"><span>Alert dialog</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/dialog" class="sidebar-menu-button"><span>Dialog</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/drawer" class="sidebar-menu-button"><span>Drawer</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/hover-card" class="sidebar-menu-button"><span>Hover card</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/popover" class="sidebar-menu-button"><span>Popover</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/sheet" class="sidebar-menu-button"><span>Sheet</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/tooltip" class="sidebar-menu-button"><span>Tooltip</span></a>
+    </li>
+</ul>
+                  </div>
+                  <div class="mt-3" role="group" aria-labelledby="docs-nav-6-feedback">
+                    <p id="docs-nav-6-feedback" class="mb-3 px-2 text-xs font-medium text-muted-foreground/70">Feedback &amp; status</p>
+                    <ul class="sidebar-menu gap-0">
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/alert" class="sidebar-menu-button"><span>Alert</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/badge" class="sidebar-menu-button"><span>Badge</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/empty" class="sidebar-menu-button" aria-current="page"><span>Empty</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/loader" class="sidebar-menu-button"><span>Loader</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/progress" class="sidebar-menu-button"><span>Progress</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/skeleton" class="sidebar-menu-button"><span>Skeleton</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/spinner" class="sidebar-menu-button"><span>Spinner</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/toast" class="sidebar-menu-button"><span>Toast</span></a>
+    </li>
+</ul>
+                  </div>
+                  <div class="mt-3" role="group" aria-labelledby="docs-nav-6-layout">
+                    <p id="docs-nav-6-layout" class="mb-3 px-2 text-xs font-medium text-muted-foreground/70">Layout &amp; disclosure</p>
+                    <ul class="sidebar-menu gap-0">
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/accordion" class="sidebar-menu-button"><span>Accordion</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/card" class="sidebar-menu-button"><span>Card</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/carousel" class="sidebar-menu-button"><span>Carousel</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/collapsible" class="sidebar-menu-button"><span>Collapsible</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/separator" class="sidebar-menu-button"><span>Separator</span></a>
+    </li>
+</ul>
+                  </div>
+                  <div class="mt-3" role="group" aria-labelledby="docs-nav-6-data">
+                    <p id="docs-nav-6-data" class="mb-3 px-2 text-xs font-medium text-muted-foreground/70">Data display</p>
+                    <ul class="sidebar-menu gap-0">
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/avatar" class="sidebar-menu-button"><span>Avatar</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/item" class="sidebar-menu-button"><span>Item</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/table" class="sidebar-menu-button"><span>Table</span></a>
+    </li>
+</ul>
+                  </div>
+                  <div class="mt-3" role="group" aria-labelledby="docs-nav-6-content">
+                    <p id="docs-nav-6-content" class="mb-3 px-2 text-xs font-medium text-muted-foreground/70">Typography &amp; media</p>
+                    <ul class="sidebar-menu gap-0">
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/code-block" class="sidebar-menu-button"><span>Code block</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/icon" class="sidebar-menu-button"><span>Icon</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/kbd" class="sidebar-menu-button"><span>Kbd</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/text" class="sidebar-menu-button"><span>Text</span></a>
+    </li>
+</ul>
+                  </div>
+                  <div class="mt-3" role="group" aria-labelledby="docs-nav-6-chat">
+                    <p id="docs-nav-6-chat" class="mb-3 px-2 text-xs font-medium text-muted-foreground/70">Chat &amp; AI</p>
+                    <ul class="sidebar-menu gap-0">
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/attachment" class="sidebar-menu-button"><span>Attachment</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/chain-of-thought" class="sidebar-menu-button"><span>Chain of thought</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/message" class="sidebar-menu-button"><span>Message</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/message-scroller" class="sidebar-menu-button"><span>Message scroller</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/prompt-input" class="sidebar-menu-button"><span>Prompt input</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/components/reasoning" class="sidebar-menu-button"><span>Reasoning</span></a>
+    </li>
+</ul>
+                  </div>
+          </nav>
+          <nav class="sidebar-group p-0" aria-labelledby="docs-nav-7">
+            <p id="docs-nav-7" class="sidebar-group-label mb-1.5 h-auto font-semibold tracking-wider text-foreground uppercase">Project</p>
+              <ul class="sidebar-menu gap-0">
+    <li class="sidebar-menu-item">
+      <a href="/docs/v0.2/changelog" class="sidebar-menu-button"><span>Changelog</span></a>
+    </li>
+    <li class="sidebar-menu-item">
+      <a href="/docs/versions" class="sidebar-menu-button"><span>Versions</span></a>
+    </li>
+</ul>
+          </nav>
+      </div>
+    </aside>
+
+    <main class="min-w-0 flex-1 pt-8 pb-16 lg:pt-12">
+      <article class="mx-auto max-w-3xl">
+        
+        <div class="alert alert-warning mb-8" role="status" data-version-banner data-md-skip><div class="alert-title">You're viewing the docs for v0.2.</div><div class="alert-description">The latest version is next. <a class="link" href="/docs/components/empty">Go to this page in next</a>.</div></div>
+        <header class="mb-10 space-y-3 border-b border-border pb-8">
+          <p class="eyebrow">Components</p>
+          <h1 class="h1">Empty</h1>
+<p class="lead">Displays an empty state: no data yet, no results, nothing to show, with a way forward.</p>          <div class="pt-2"><div class="flex flex-wrap gap-2">
+  <button type="button" class="btn btn-outline btn-sm" data-markdown-copy="/docs/v0.2/components/empty.md">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg> <span data-markdown-copy-label>Copy Markdown</span>
+  </button>
+  <a hx-boost="false" href="/docs/v0.2/components/empty.md" target="_blank" class="btn btn-ghost btn-sm" title="This page as Markdown, for AI agents"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4M10 9H8M16 13H8M16 17H8"/></svg> View .md</a>
+</div></div>
+        </header>
+
+        <div data-docs-content class="prose docs-prose max-w-none">
+<div class="demo not-prose overflow-hidden rounded-[calc(var(--radius)+4px)] border border-border [&_.code-block]:rounded-none [&_.code-block]:border-0">
+  <div class="flex min-h-40 flex-wrap items-center justify-center gap-3 bg-background p-6 sm:p-10 " data-md-skip>    <div class="empty">
+      <div class="empty-header">
+        <div class="empty-media empty-media-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M12 10v6"/><path d="M9 13h6"/><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg></div>
+        <h3 class="empty-title">No projects yet</h3>
+        <p class="empty-description">You haven't created any projects yet. Get started by creating your first project.</p>
+      </div>
+      <div class="empty-content">
+        <div class="flex gap-2">
+          <button type="button" class="btn btn-primary">Create project</button>
+          <button type="button" class="btn btn-outline">Import project</button>
+        </div>
+      </div>
+      <a class="btn btn-link btn-sm text-muted-foreground" href="#">Learn more <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M7 7h10v10"/><path d="M7 17 17 7"/></svg></a>
+    </div>
+</div>
+<div class="border-t border-border"><div class="code-block not-prose" data-code>
+  <div class="code-block-header">
+    <span class="font-mono">html</span>
+    <button type="button" class="code-copy" data-copy aria-label="Copy code">
+  <span class="code-copy-idle inline-flex items-center gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg><span data-copy-label>Copy</span></span>
+  <span class="code-copied items-center gap-1.5" aria-live="polite"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Copied</span>
+</button>
+  </div>
+  <pre><code data-lang="html"><span class="line"><span style="color:var(--code-foreground)">&#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty"</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty-header"</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">    &#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty-media empty-media-icon"</span><span style="color:var(--code-foreground)">>&#x3C;</span><span style="color:var(--code-token-string-expression)">svg</span><span style="color:var(--code-token-function)"> xmlns</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"http://www.w3.org/2000/svg"</span><span style="color:var(--code-token-function)"> width</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"24"</span><span style="color:var(--code-token-function)"> height</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"24"</span><span style="color:var(--code-token-function)"> viewBox</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"0 0 24 24"</span><span style="color:var(--code-token-function)"> fill</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"none"</span><span style="color:var(--code-token-function)"> stroke</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"currentColor"</span><span style="color:var(--code-token-function)"> stroke-width</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"2"</span><span style="color:var(--code-token-function)"> stroke-linecap</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"round"</span><span style="color:var(--code-token-function)"> stroke-linejoin</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"round"</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"size-4"</span><span style="color:var(--code-token-function)"> aria-hidden</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"true"</span><span style="color:var(--code-foreground)">>&#x3C;</span><span style="color:var(--code-token-string-expression)">path</span><span style="color:var(--code-token-function)"> d</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"M12 10v6"</span><span style="color:var(--code-foreground)">/>&#x3C;</span><span style="color:var(--code-token-string-expression)">path</span><span style="color:var(--code-token-function)"> d</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"M9 13h6"</span><span style="color:var(--code-foreground)">/>&#x3C;</span><span style="color:var(--code-token-string-expression)">path</span><span style="color:var(--code-token-function)"> d</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"</span><span style="color:var(--code-foreground)">/>&#x3C;/</span><span style="color:var(--code-token-string-expression)">svg</span><span style="color:var(--code-foreground)">>&#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">    &#x3C;</span><span style="color:var(--code-token-string-expression)">h3</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty-title"</span><span style="color:var(--code-foreground)">>No projects yet&#x3C;/</span><span style="color:var(--code-token-string-expression)">h3</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">    &#x3C;</span><span style="color:var(--code-token-string-expression)">p</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty-description"</span><span style="color:var(--code-foreground)">>You haven't created any projects yet. Get started by creating your first project.&#x3C;/</span><span style="color:var(--code-token-string-expression)">p</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty-content"</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">    &#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"flex gap-2"</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">      &#x3C;</span><span style="color:var(--code-token-string-expression)">button</span><span style="color:var(--code-token-function)"> type</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"button"</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"btn btn-primary"</span><span style="color:var(--code-foreground)">>Create project&#x3C;/</span><span style="color:var(--code-token-string-expression)">button</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">      &#x3C;</span><span style="color:var(--code-token-string-expression)">button</span><span style="color:var(--code-token-function)"> type</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"button"</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"btn btn-outline"</span><span style="color:var(--code-foreground)">>Import project&#x3C;/</span><span style="color:var(--code-token-string-expression)">button</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">    &#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;</span><span style="color:var(--code-token-string-expression)">a</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"btn btn-link btn-sm text-muted-foreground"</span><span style="color:var(--code-token-function)"> href</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"#"</span><span style="color:var(--code-foreground)">>Learn more &#x3C;</span><span style="color:var(--code-token-string-expression)">svg</span><span style="color:var(--code-token-function)"> xmlns</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"http://www.w3.org/2000/svg"</span><span style="color:var(--code-token-function)"> width</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"24"</span><span style="color:var(--code-token-function)"> height</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"24"</span><span style="color:var(--code-token-function)"> viewBox</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"0 0 24 24"</span><span style="color:var(--code-token-function)"> fill</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"none"</span><span style="color:var(--code-token-function)"> stroke</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"currentColor"</span><span style="color:var(--code-token-function)"> stroke-width</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"2"</span><span style="color:var(--code-token-function)"> stroke-linecap</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"round"</span><span style="color:var(--code-token-function)"> stroke-linejoin</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"round"</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"size-4"</span><span style="color:var(--code-token-function)"> aria-hidden</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"true"</span><span style="color:var(--code-foreground)">>&#x3C;</span><span style="color:var(--code-token-string-expression)">path</span><span style="color:var(--code-token-function)"> d</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"M7 7h10v10"</span><span style="color:var(--code-foreground)">/>&#x3C;</span><span style="color:var(--code-token-string-expression)">path</span><span style="color:var(--code-token-function)"> d</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"M7 17 17 7"</span><span style="color:var(--code-foreground)">/>&#x3C;/</span><span style="color:var(--code-token-string-expression)">svg</span><span style="color:var(--code-foreground)">>&#x3C;/</span><span style="color:var(--code-token-string-expression)">a</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">&#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span></code></pre>
+</div></div></div>
+  <h2 id="markup">Markup<a class="heading-anchor" href="#markup" aria-label="Link to this section" data-md-skip>#</a></h2>
+<div class="code-block not-prose" data-code>
+  <div class="code-block-header">
+    <span class="font-mono">html</span>
+    <button type="button" class="code-copy" data-copy aria-label="Copy code">
+  <span class="code-copy-idle inline-flex items-center gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg><span data-copy-label>Copy</span></span>
+  <span class="code-copied items-center gap-1.5" aria-live="polite"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Copied</span>
+</button>
+  </div>
+  <pre><code data-lang="html"><span class="line"><span style="color:var(--code-foreground)">&#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty"</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty-header"</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">    &#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty-media empty-media-icon"</span><span style="color:var(--code-foreground)">>…icon…&#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">    &#x3C;</span><span style="color:var(--code-token-string-expression)">h3</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty-title"</span><span style="color:var(--code-foreground)">>No projects yet&#x3C;/</span><span style="color:var(--code-token-string-expression)">h3</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">    &#x3C;</span><span style="color:var(--code-token-string-expression)">p</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty-description"</span><span style="color:var(--code-foreground)">>…&#x3C;/</span><span style="color:var(--code-token-string-expression)">p</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty-content"</span><span style="color:var(--code-foreground)">>…buttons, an input…&#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">&#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span></code></pre>
+</div>  <ul>
+    <li><code>.empty</code> centres everything in a column and grows to fill its container. It has generous padding, more from the <code>md</code> breakpoint.</li>
+    <li><code>.empty-header</code> holds the media, title and description, at most 24rem wide.</li>
+    <li><code>.empty-media</code> holds an icon, an avatar or an avatar group. With <code>.empty-media-icon</code> it is a muted rounded square around an icon.</li>
+    <li><code>.empty-title</code> says what is missing; <code>.empty-description</code> says why, or what to do. Links in the description are underlined.</li>
+    <li><code>.empty-content</code> holds the way forward: buttons, a search field, a link.</li>
+  </ul>
+
+  <h2 id="outline">Outline<a class="heading-anchor" href="#outline" aria-label="Link to this section" data-md-skip>#</a></h2>
+  <p><code>.empty-outline</code> adds a dashed border, as for a drop zone or a slot waiting to be filled.</p>
+<div class="demo not-prose overflow-hidden rounded-[calc(var(--radius)+4px)] border border-border [&_.code-block]:rounded-none [&_.code-block]:border-0">
+  <div class="flex min-h-40 flex-wrap items-center justify-center gap-3 bg-background p-6 sm:p-10 " data-md-skip>    <div class="empty empty-outline">
+      <div class="empty-header">
+        <div class="empty-media empty-media-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></svg></div>
+        <h3 class="empty-title">Cloud storage empty</h3>
+        <p class="empty-description">Upload files to your cloud storage to access them anywhere.</p>
+      </div>
+      <div class="empty-content">
+        <button type="button" class="btn btn-outline btn-sm"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg> Upload files</button>
+      </div>
+    </div>
+</div>
+<div class="border-t border-border"><div class="code-block not-prose" data-code>
+  <div class="code-block-header">
+    <span class="font-mono">html</span>
+    <button type="button" class="code-copy" data-copy aria-label="Copy code">
+  <span class="code-copy-idle inline-flex items-center gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg><span data-copy-label>Copy</span></span>
+  <span class="code-copied items-center gap-1.5" aria-live="polite"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Copied</span>
+</button>
+  </div>
+  <pre><code data-lang="html"><span class="line"><span style="color:var(--code-foreground)">&#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty empty-outline"</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty-header"</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">    &#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty-media empty-media-icon"</span><span style="color:var(--code-foreground)">>&#x3C;</span><span style="color:var(--code-token-string-expression)">svg</span><span style="color:var(--code-token-function)"> xmlns</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"http://www.w3.org/2000/svg"</span><span style="color:var(--code-token-function)"> width</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"24"</span><span style="color:var(--code-token-function)"> height</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"24"</span><span style="color:var(--code-token-function)"> viewBox</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"0 0 24 24"</span><span style="color:var(--code-token-function)"> fill</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"none"</span><span style="color:var(--code-token-function)"> stroke</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"currentColor"</span><span style="color:var(--code-token-function)"> stroke-width</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"2"</span><span style="color:var(--code-token-function)"> stroke-linecap</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"round"</span><span style="color:var(--code-token-function)"> stroke-linejoin</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"round"</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"size-4"</span><span style="color:var(--code-token-function)"> aria-hidden</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"true"</span><span style="color:var(--code-foreground)">>&#x3C;</span><span style="color:var(--code-token-string-expression)">path</span><span style="color:var(--code-token-function)"> d</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"</span><span style="color:var(--code-foreground)">/>&#x3C;/</span><span style="color:var(--code-token-string-expression)">svg</span><span style="color:var(--code-foreground)">>&#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">    &#x3C;</span><span style="color:var(--code-token-string-expression)">h3</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty-title"</span><span style="color:var(--code-foreground)">>Cloud storage empty&#x3C;/</span><span style="color:var(--code-token-string-expression)">h3</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">    &#x3C;</span><span style="color:var(--code-token-string-expression)">p</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty-description"</span><span style="color:var(--code-foreground)">>Upload files to your cloud storage to access them anywhere.&#x3C;/</span><span style="color:var(--code-token-string-expression)">p</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty-content"</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">    &#x3C;</span><span style="color:var(--code-token-string-expression)">button</span><span style="color:var(--code-token-function)"> type</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"button"</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"btn btn-outline btn-sm"</span><span style="color:var(--code-foreground)">>&#x3C;</span><span style="color:var(--code-token-string-expression)">svg</span><span style="color:var(--code-token-function)"> xmlns</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"http://www.w3.org/2000/svg"</span><span style="color:var(--code-token-function)"> width</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"24"</span><span style="color:var(--code-token-function)"> height</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"24"</span><span style="color:var(--code-token-function)"> viewBox</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"0 0 24 24"</span><span style="color:var(--code-token-function)"> fill</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"none"</span><span style="color:var(--code-token-function)"> stroke</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"currentColor"</span><span style="color:var(--code-token-function)"> stroke-width</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"2"</span><span style="color:var(--code-token-function)"> stroke-linecap</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"round"</span><span style="color:var(--code-token-function)"> stroke-linejoin</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"round"</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"size-4"</span><span style="color:var(--code-token-function)"> aria-hidden</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"true"</span><span style="color:var(--code-foreground)">>&#x3C;</span><span style="color:var(--code-token-string-expression)">path</span><span style="color:var(--code-token-function)"> d</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"</span><span style="color:var(--code-foreground)">/>&#x3C;/</span><span style="color:var(--code-token-string-expression)">svg</span><span style="color:var(--code-foreground)">> Upload files&#x3C;/</span><span style="color:var(--code-token-string-expression)">button</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">&#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span></code></pre>
+</div></div></div>
+  <h2 id="background">Background<a class="heading-anchor" href="#background" aria-label="Link to this section" data-md-skip>#</a></h2>
+  <p><code>.empty-muted</code> adds a muted wash that fades out towards the bottom.</p>
+<div class="demo not-prose overflow-hidden rounded-[calc(var(--radius)+4px)] border border-border [&_.code-block]:rounded-none [&_.code-block]:border-0">
+  <div class="flex min-h-40 flex-wrap items-center justify-center gap-3 bg-background p-6 sm:p-10 " data-md-skip>    <div class="empty empty-muted">
+      <div class="empty-header">
+        <div class="empty-media empty-media-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></div>
+        <h3 class="empty-title">No notifications</h3>
+        <p class="empty-description">You're all caught up. New notifications will appear here.</p>
+      </div>
+      <div class="empty-content">
+        <button type="button" class="btn btn-outline btn-sm"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg> Refresh</button>
+      </div>
+    </div>
+</div>
+<div class="border-t border-border"><div class="code-block not-prose" data-code>
+  <div class="code-block-header">
+    <span class="font-mono">html</span>
+    <button type="button" class="code-copy" data-copy aria-label="Copy code">
+  <span class="code-copy-idle inline-flex items-center gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg><span data-copy-label>Copy</span></span>
+  <span class="code-copied items-center gap-1.5" aria-live="polite"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Copied</span>
+</button>
+  </div>
+  <pre><code data-lang="html"><span class="line"><span style="color:var(--code-foreground)">&#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty empty-muted"</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty-header"</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">    &#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty-media empty-media-icon"</span><span style="color:var(--code-foreground)">>&#x3C;</span><span style="color:var(--code-token-string-expression)">svg</span><span style="color:var(--code-token-function)"> xmlns</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"http://www.w3.org/2000/svg"</span><span style="color:var(--code-token-function)"> width</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"24"</span><span style="color:var(--code-token-function)"> height</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"24"</span><span style="color:var(--code-token-function)"> viewBox</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"0 0 24 24"</span><span style="color:var(--code-token-function)"> fill</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"none"</span><span style="color:var(--code-token-function)"> stroke</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"currentColor"</span><span style="color:var(--code-token-function)"> stroke-width</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"2"</span><span style="color:var(--code-token-function)"> stroke-linecap</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"round"</span><span style="color:var(--code-token-function)"> stroke-linejoin</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"round"</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"size-4"</span><span style="color:var(--code-token-function)"> aria-hidden</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"true"</span><span style="color:var(--code-foreground)">>&#x3C;</span><span style="color:var(--code-token-string-expression)">path</span><span style="color:var(--code-token-function)"> d</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"</span><span style="color:var(--code-foreground)">/>&#x3C;</span><span style="color:var(--code-token-string-expression)">path</span><span style="color:var(--code-token-function)"> d</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"M10.3 21a1.94 1.94 0 0 0 3.4 0"</span><span style="color:var(--code-foreground)">/>&#x3C;/</span><span style="color:var(--code-token-string-expression)">svg</span><span style="color:var(--code-foreground)">>&#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">    &#x3C;</span><span style="color:var(--code-token-string-expression)">h3</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty-title"</span><span style="color:var(--code-foreground)">>No notifications&#x3C;/</span><span style="color:var(--code-token-string-expression)">h3</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">    &#x3C;</span><span style="color:var(--code-token-string-expression)">p</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty-description"</span><span style="color:var(--code-foreground)">>You're all caught up. New notifications will appear here.&#x3C;/</span><span style="color:var(--code-token-string-expression)">p</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty-content"</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">    &#x3C;</span><span style="color:var(--code-token-string-expression)">button</span><span style="color:var(--code-token-function)"> type</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"button"</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"btn btn-outline btn-sm"</span><span style="color:var(--code-foreground)">>&#x3C;</span><span style="color:var(--code-token-string-expression)">svg</span><span style="color:var(--code-token-function)"> xmlns</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"http://www.w3.org/2000/svg"</span><span style="color:var(--code-token-function)"> width</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"24"</span><span style="color:var(--code-token-function)"> height</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"24"</span><span style="color:var(--code-token-function)"> viewBox</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"0 0 24 24"</span><span style="color:var(--code-token-function)"> fill</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"none"</span><span style="color:var(--code-token-function)"> stroke</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"currentColor"</span><span style="color:var(--code-token-function)"> stroke-width</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"2"</span><span style="color:var(--code-token-function)"> stroke-linecap</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"round"</span><span style="color:var(--code-token-function)"> stroke-linejoin</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"round"</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"size-4"</span><span style="color:var(--code-token-function)"> aria-hidden</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"true"</span><span style="color:var(--code-foreground)">>&#x3C;</span><span style="color:var(--code-token-string-expression)">path</span><span style="color:var(--code-token-function)"> d</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"</span><span style="color:var(--code-foreground)">/>&#x3C;</span><span style="color:var(--code-token-string-expression)">path</span><span style="color:var(--code-token-function)"> d</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"M21 3v5h-5"</span><span style="color:var(--code-foreground)">/>&#x3C;</span><span style="color:var(--code-token-string-expression)">path</span><span style="color:var(--code-token-function)"> d</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"</span><span style="color:var(--code-foreground)">/>&#x3C;</span><span style="color:var(--code-token-string-expression)">path</span><span style="color:var(--code-token-function)"> d</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"M8 16H3v5"</span><span style="color:var(--code-foreground)">/>&#x3C;/</span><span style="color:var(--code-token-string-expression)">svg</span><span style="color:var(--code-foreground)">> Refresh&#x3C;/</span><span style="color:var(--code-token-string-expression)">button</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">&#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span></code></pre>
+</div></div></div>
+  <h2 id="avatar">Avatar<a class="heading-anchor" href="#avatar" aria-label="Link to this section" data-md-skip>#</a></h2>
+  <p>
+    An <a href="/docs/v0.2/components/avatar">avatar</a> in <code>.empty-media</code> (without
+    <code>.empty-media-icon</code>) is shown at 3rem unless it has a size class of its own. It names the person in the
+    title, so it is decorative here.
+  </p>
+<div class="demo not-prose overflow-hidden rounded-[calc(var(--radius)+4px)] border border-border [&_.code-block]:rounded-none [&_.code-block]:border-0">
+  <div class="flex min-h-40 flex-wrap items-center justify-center gap-3 bg-background p-6 sm:p-10 " data-md-skip>    <div class="empty">
+      <div class="empty-header">
+        <div class="empty-media">
+          <span class="avatar" aria-hidden="true"><img class="avatar-image" src="/docs/v0.2/_assets/avatar-2-nymqcf2f.svg" alt="" /><span class="avatar-fallback">KM</span></span>
+        </div>
+        <h3 class="empty-title">Kofi is offline</h3>
+        <p class="empty-description">Kofi is away right now. Leave a message and they'll see it when they're back.</p>
+      </div>
+      <div class="empty-content">
+        <button type="button" class="btn btn-primary btn-sm"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> Leave a message</button>
+      </div>
+    </div>
+</div>
+<div class="border-t border-border"><div class="code-block not-prose" data-code>
+  <div class="code-block-header">
+    <span class="font-mono">html</span>
+    <button type="button" class="code-copy" data-copy aria-label="Copy code">
+  <span class="code-copy-idle inline-flex items-center gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg><span data-copy-label>Copy</span></span>
+  <span class="code-copied items-center gap-1.5" aria-live="polite"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Copied</span>
+</button>
+  </div>
+  <pre><code data-lang="html"><span class="line"><span style="color:var(--code-foreground)">&#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty"</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty-header"</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">    &#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty-media"</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">      &#x3C;</span><span style="color:var(--code-token-string-expression)">span</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"avatar"</span><span style="color:var(--code-token-function)"> aria-hidden</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"true"</span><span style="color:var(--code-foreground)">>&#x3C;</span><span style="color:var(--code-token-string-expression)">img</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"avatar-image"</span><span style="color:var(--code-token-function)"> src</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"../../../images/avatar-2.svg"</span><span style="color:var(--code-token-function)"> alt</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">""</span><span style="color:var(--code-foreground)"> />&#x3C;</span><span style="color:var(--code-token-string-expression)">span</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"avatar-fallback"</span><span style="color:var(--code-foreground)">>KM&#x3C;/</span><span style="color:var(--code-token-string-expression)">span</span><span style="color:var(--code-foreground)">>&#x3C;/</span><span style="color:var(--code-token-string-expression)">span</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">    &#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">    &#x3C;</span><span style="color:var(--code-token-string-expression)">h3</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty-title"</span><span style="color:var(--code-foreground)">>Kofi is offline&#x3C;/</span><span style="color:var(--code-token-string-expression)">h3</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">    &#x3C;</span><span style="color:var(--code-token-string-expression)">p</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty-description"</span><span style="color:var(--code-foreground)">>Kofi is away right now. Leave a message and they'll see it when they're back.&#x3C;/</span><span style="color:var(--code-token-string-expression)">p</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty-content"</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">    &#x3C;</span><span style="color:var(--code-token-string-expression)">button</span><span style="color:var(--code-token-function)"> type</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"button"</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"btn btn-primary btn-sm"</span><span style="color:var(--code-foreground)">>&#x3C;</span><span style="color:var(--code-token-string-expression)">svg</span><span style="color:var(--code-token-function)"> xmlns</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"http://www.w3.org/2000/svg"</span><span style="color:var(--code-token-function)"> width</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"24"</span><span style="color:var(--code-token-function)"> height</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"24"</span><span style="color:var(--code-token-function)"> viewBox</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"0 0 24 24"</span><span style="color:var(--code-token-function)"> fill</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"none"</span><span style="color:var(--code-token-function)"> stroke</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"currentColor"</span><span style="color:var(--code-token-function)"> stroke-width</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"2"</span><span style="color:var(--code-token-function)"> stroke-linecap</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"round"</span><span style="color:var(--code-token-function)"> stroke-linejoin</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"round"</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"size-4"</span><span style="color:var(--code-token-function)"> aria-hidden</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"true"</span><span style="color:var(--code-foreground)">>&#x3C;</span><span style="color:var(--code-token-string-expression)">path</span><span style="color:var(--code-token-function)"> d</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"</span><span style="color:var(--code-foreground)">/>&#x3C;/</span><span style="color:var(--code-token-string-expression)">svg</span><span style="color:var(--code-foreground)">> Leave a message&#x3C;/</span><span style="color:var(--code-token-string-expression)">button</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">&#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span></code></pre>
+</div></div></div>
+  <h2 id="avatar-group">Avatar group<a class="heading-anchor" href="#avatar-group" aria-label="Link to this section" data-md-skip>#</a></h2>
+  <p>An avatar group is shown large and in grey, for a team that hasn't joined yet. A <code>.avatar-group-count</code> keeps its colour.</p>
+<div class="demo not-prose overflow-hidden rounded-[calc(var(--radius)+4px)] border border-border [&_.code-block]:rounded-none [&_.code-block]:border-0">
+  <div class="flex min-h-40 flex-wrap items-center justify-center gap-3 bg-background p-6 sm:p-10 " data-md-skip>    <div class="empty">
+      <div class="empty-header">
+        <div class="empty-media">
+          <div class="avatar-group" aria-hidden="true">
+            <span class="avatar"><img class="avatar-image" src="/docs/v0.2/_assets/avatar-1-qzvzyme9.svg" alt="" /><span class="avatar-fallback">AL</span></span>
+            <span class="avatar"><img class="avatar-image" src="/docs/v0.2/_assets/avatar-3-r1sgpd6e.svg" alt="" /><span class="avatar-fallback">RP</span></span>
+            <span class="avatar"><img class="avatar-image" src="/docs/v0.2/_assets/avatar-4-477vk3fs.svg" alt="" /><span class="avatar-fallback">MC</span></span>
+          </div>
+        </div>
+        <h3 class="empty-title">No team members</h3>
+        <p class="empty-description">Invite your team to collaborate on this project.</p>
+      </div>
+      <div class="empty-content">
+        <button type="button" class="btn btn-outline btn-sm"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M5 12h14M12 5v14"/></svg> Invite members</button>
+      </div>
+    </div>
+</div>
+<div class="border-t border-border"><div class="code-block not-prose" data-code>
+  <div class="code-block-header">
+    <span class="font-mono">html</span>
+    <button type="button" class="code-copy" data-copy aria-label="Copy code">
+  <span class="code-copy-idle inline-flex items-center gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg><span data-copy-label>Copy</span></span>
+  <span class="code-copied items-center gap-1.5" aria-live="polite"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Copied</span>
+</button>
+  </div>
+  <pre><code data-lang="html"><span class="line"><span style="color:var(--code-foreground)">&#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty"</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty-header"</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">    &#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty-media"</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">      &#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"avatar-group"</span><span style="color:var(--code-token-function)"> aria-hidden</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"true"</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">        &#x3C;</span><span style="color:var(--code-token-string-expression)">span</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"avatar"</span><span style="color:var(--code-foreground)">>&#x3C;</span><span style="color:var(--code-token-string-expression)">img</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"avatar-image"</span><span style="color:var(--code-token-function)"> src</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"../../../images/avatar-1.svg"</span><span style="color:var(--code-token-function)"> alt</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">""</span><span style="color:var(--code-foreground)"> />&#x3C;</span><span style="color:var(--code-token-string-expression)">span</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"avatar-fallback"</span><span style="color:var(--code-foreground)">>AL&#x3C;/</span><span style="color:var(--code-token-string-expression)">span</span><span style="color:var(--code-foreground)">>&#x3C;/</span><span style="color:var(--code-token-string-expression)">span</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">        &#x3C;</span><span style="color:var(--code-token-string-expression)">span</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"avatar"</span><span style="color:var(--code-foreground)">>&#x3C;</span><span style="color:var(--code-token-string-expression)">img</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"avatar-image"</span><span style="color:var(--code-token-function)"> src</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"../../../images/avatar-3.svg"</span><span style="color:var(--code-token-function)"> alt</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">""</span><span style="color:var(--code-foreground)"> />&#x3C;</span><span style="color:var(--code-token-string-expression)">span</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"avatar-fallback"</span><span style="color:var(--code-foreground)">>RP&#x3C;/</span><span style="color:var(--code-token-string-expression)">span</span><span style="color:var(--code-foreground)">>&#x3C;/</span><span style="color:var(--code-token-string-expression)">span</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">        &#x3C;</span><span style="color:var(--code-token-string-expression)">span</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"avatar"</span><span style="color:var(--code-foreground)">>&#x3C;</span><span style="color:var(--code-token-string-expression)">img</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"avatar-image"</span><span style="color:var(--code-token-function)"> src</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"../../../images/avatar-4.svg"</span><span style="color:var(--code-token-function)"> alt</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">""</span><span style="color:var(--code-foreground)"> />&#x3C;</span><span style="color:var(--code-token-string-expression)">span</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"avatar-fallback"</span><span style="color:var(--code-foreground)">>MC&#x3C;/</span><span style="color:var(--code-token-string-expression)">span</span><span style="color:var(--code-foreground)">>&#x3C;/</span><span style="color:var(--code-token-string-expression)">span</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">      &#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">    &#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">    &#x3C;</span><span style="color:var(--code-token-string-expression)">h3</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty-title"</span><span style="color:var(--code-foreground)">>No team members&#x3C;/</span><span style="color:var(--code-token-string-expression)">h3</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">    &#x3C;</span><span style="color:var(--code-token-string-expression)">p</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty-description"</span><span style="color:var(--code-foreground)">>Invite your team to collaborate on this project.&#x3C;/</span><span style="color:var(--code-token-string-expression)">p</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty-content"</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">    &#x3C;</span><span style="color:var(--code-token-string-expression)">button</span><span style="color:var(--code-token-function)"> type</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"button"</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"btn btn-outline btn-sm"</span><span style="color:var(--code-foreground)">>&#x3C;</span><span style="color:var(--code-token-string-expression)">svg</span><span style="color:var(--code-token-function)"> xmlns</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"http://www.w3.org/2000/svg"</span><span style="color:var(--code-token-function)"> width</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"24"</span><span style="color:var(--code-token-function)"> height</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"24"</span><span style="color:var(--code-token-function)"> viewBox</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"0 0 24 24"</span><span style="color:var(--code-token-function)"> fill</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"none"</span><span style="color:var(--code-token-function)"> stroke</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"currentColor"</span><span style="color:var(--code-token-function)"> stroke-width</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"2"</span><span style="color:var(--code-token-function)"> stroke-linecap</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"round"</span><span style="color:var(--code-token-function)"> stroke-linejoin</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"round"</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"size-4"</span><span style="color:var(--code-token-function)"> aria-hidden</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"true"</span><span style="color:var(--code-foreground)">>&#x3C;</span><span style="color:var(--code-token-string-expression)">path</span><span style="color:var(--code-token-function)"> d</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"M5 12h14M12 5v14"</span><span style="color:var(--code-foreground)">/>&#x3C;/</span><span style="color:var(--code-token-string-expression)">svg</span><span style="color:var(--code-foreground)">> Invite members&#x3C;/</span><span style="color:var(--code-token-string-expression)">button</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">&#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span></code></pre>
+</div></div></div>
+  <h2 id="input-group">Input group<a class="heading-anchor" href="#input-group" aria-label="Link to this section" data-md-skip>#</a></h2>
+  <p>
+    <code>.empty-content</code> is a column up to 24rem wide, so a field fills it. Here a not-found page offers a
+    search, using an <a href="/docs/v0.2/components/input-group">input group</a>, and a link to help.
+  </p>
+<div class="demo not-prose overflow-hidden rounded-[calc(var(--radius)+4px)] border border-border [&_.code-block]:rounded-none [&_.code-block]:border-0">
+  <div class="flex min-h-40 flex-wrap items-center justify-center gap-3 bg-background p-6 sm:p-10 " data-md-skip>    <div class="empty">
+      <div class="empty-header">
+        <h3 class="empty-title">404 – Page not found</h3>
+        <p class="empty-description">The page you're looking for doesn't exist. Try searching for what you need below.</p>
+      </div>
+      <div class="empty-content">
+        <form class="w-full" role="search" action="#">
+          <div class="input-group">
+            <input class="input" type="search" name="q" placeholder="Search pages…" aria-label="Search pages" />
+            <span class="input-group-addon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></span>
+            <span class="input-group-addon input-group-addon-inline-end"><kbd class="kbd">/</kbd></span>
+          </div>
+        </form>
+        <p class="empty-description">Need help? <a href="#">Contact support</a></p>
+      </div>
+    </div>
+</div>
+<div class="border-t border-border"><div class="code-block not-prose" data-code>
+  <div class="code-block-header">
+    <span class="font-mono">html</span>
+    <button type="button" class="code-copy" data-copy aria-label="Copy code">
+  <span class="code-copy-idle inline-flex items-center gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg><span data-copy-label>Copy</span></span>
+  <span class="code-copied items-center gap-1.5" aria-live="polite"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Copied</span>
+</button>
+  </div>
+  <pre><code data-lang="html"><span class="line"><span style="color:var(--code-foreground)">&#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty"</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty-header"</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">    &#x3C;</span><span style="color:var(--code-token-string-expression)">h3</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty-title"</span><span style="color:var(--code-foreground)">>404 – Page not found&#x3C;/</span><span style="color:var(--code-token-string-expression)">h3</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">    &#x3C;</span><span style="color:var(--code-token-string-expression)">p</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty-description"</span><span style="color:var(--code-foreground)">>The page you're looking for doesn't exist. Try searching for what you need below.&#x3C;/</span><span style="color:var(--code-token-string-expression)">p</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty-content"</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">    &#x3C;</span><span style="color:var(--code-token-string-expression)">form</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"w-full"</span><span style="color:var(--code-token-function)"> role</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"search"</span><span style="color:var(--code-token-function)"> action</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"#"</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">      &#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"input-group"</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">        &#x3C;</span><span style="color:var(--code-token-string-expression)">input</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"input"</span><span style="color:var(--code-token-function)"> type</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"search"</span><span style="color:var(--code-token-function)"> name</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"q"</span><span style="color:var(--code-token-function)"> placeholder</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"Search pages…"</span><span style="color:var(--code-token-function)"> aria-label</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"Search pages"</span><span style="color:var(--code-foreground)"> /></span></span>
+<span class="line"><span style="color:var(--code-foreground)">        &#x3C;</span><span style="color:var(--code-token-string-expression)">span</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"input-group-addon"</span><span style="color:var(--code-foreground)">>&#x3C;</span><span style="color:var(--code-token-string-expression)">svg</span><span style="color:var(--code-token-function)"> xmlns</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"http://www.w3.org/2000/svg"</span><span style="color:var(--code-token-function)"> width</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"24"</span><span style="color:var(--code-token-function)"> height</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"24"</span><span style="color:var(--code-token-function)"> viewBox</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"0 0 24 24"</span><span style="color:var(--code-token-function)"> fill</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"none"</span><span style="color:var(--code-token-function)"> stroke</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"currentColor"</span><span style="color:var(--code-token-function)"> stroke-width</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"2"</span><span style="color:var(--code-token-function)"> stroke-linecap</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"round"</span><span style="color:var(--code-token-function)"> stroke-linejoin</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"round"</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"size-4"</span><span style="color:var(--code-token-function)"> aria-hidden</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"true"</span><span style="color:var(--code-foreground)">>&#x3C;</span><span style="color:var(--code-token-string-expression)">circle</span><span style="color:var(--code-token-function)"> cx</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"11"</span><span style="color:var(--code-token-function)"> cy</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"11"</span><span style="color:var(--code-token-function)"> r</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"8"</span><span style="color:var(--code-foreground)">/>&#x3C;</span><span style="color:var(--code-token-string-expression)">path</span><span style="color:var(--code-token-function)"> d</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"m21 21-4.3-4.3"</span><span style="color:var(--code-foreground)">/>&#x3C;/</span><span style="color:var(--code-token-string-expression)">svg</span><span style="color:var(--code-foreground)">>&#x3C;/</span><span style="color:var(--code-token-string-expression)">span</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">        &#x3C;</span><span style="color:var(--code-token-string-expression)">span</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"input-group-addon input-group-addon-inline-end"</span><span style="color:var(--code-foreground)">>&#x3C;</span><span style="color:var(--code-token-string-expression)">kbd</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"kbd"</span><span style="color:var(--code-foreground)">>/&#x3C;/</span><span style="color:var(--code-token-string-expression)">kbd</span><span style="color:var(--code-foreground)">>&#x3C;/</span><span style="color:var(--code-token-string-expression)">span</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">      &#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">    &#x3C;/</span><span style="color:var(--code-token-string-expression)">form</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">    &#x3C;</span><span style="color:var(--code-token-string-expression)">p</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty-description"</span><span style="color:var(--code-foreground)">>Need help? &#x3C;</span><span style="color:var(--code-token-string-expression)">a</span><span style="color:var(--code-token-function)"> href</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"#"</span><span style="color:var(--code-foreground)">>Contact support&#x3C;/</span><span style="color:var(--code-token-string-expression)">a</span><span style="color:var(--code-foreground)">>&#x3C;/</span><span style="color:var(--code-token-string-expression)">p</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">&#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span></code></pre>
+</div></div></div>
+  <h2 id="sizes">Sizes<a class="heading-anchor" href="#sizes" aria-label="Link to this section" data-md-skip>#</a></h2>
+  <p>
+    <code>.empty-sm</code> is compact, for small panels, sidebars and table bodies: less padding and smaller gaps, a
+    smaller icon square and title.
+  </p>
+<div class="demo not-prose overflow-hidden rounded-[calc(var(--radius)+4px)] border border-border [&_.code-block]:rounded-none [&_.code-block]:border-0">
+  <div class="flex min-h-40 flex-wrap items-center justify-center gap-3 bg-background p-6 sm:p-10 items-start" data-md-skip>    <div class="w-full max-w-xs rounded-[calc(var(--radius)+4px)] border border-border bg-surface">
+      <div class="border-b border-border px-4 py-3 text-sm font-medium">Activity</div>
+      <div class="empty empty-sm">
+        <div class="empty-header">
+          <div class="empty-media empty-media-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg></div>
+          <p class="empty-title">No activity this week</p>
+          <p class="empty-description">Activity from your projects shows up here.</p>
+        </div>
+      </div>
+    </div>
+</div>
+<div class="border-t border-border"><div class="code-block not-prose" data-code>
+  <div class="code-block-header">
+    <span class="font-mono">html</span>
+    <button type="button" class="code-copy" data-copy aria-label="Copy code">
+  <span class="code-copy-idle inline-flex items-center gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg><span data-copy-label>Copy</span></span>
+  <span class="code-copied items-center gap-1.5" aria-live="polite"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Copied</span>
+</button>
+  </div>
+  <pre><code data-lang="html"><span class="line"><span style="color:var(--code-foreground)">&#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"w-full max-w-xs rounded-[calc(var(--radius)+4px)] border border-border bg-surface"</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"border-b border-border px-4 py-3 text-sm font-medium"</span><span style="color:var(--code-foreground)">>Activity&#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty empty-sm"</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">    &#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty-header"</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">      &#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty-media empty-media-icon"</span><span style="color:var(--code-foreground)">>&#x3C;</span><span style="color:var(--code-token-string-expression)">svg</span><span style="color:var(--code-token-function)"> xmlns</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"http://www.w3.org/2000/svg"</span><span style="color:var(--code-token-function)"> width</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"24"</span><span style="color:var(--code-token-function)"> height</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"24"</span><span style="color:var(--code-token-function)"> viewBox</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"0 0 24 24"</span><span style="color:var(--code-token-function)"> fill</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"none"</span><span style="color:var(--code-token-function)"> stroke</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"currentColor"</span><span style="color:var(--code-token-function)"> stroke-width</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"2"</span><span style="color:var(--code-token-function)"> stroke-linecap</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"round"</span><span style="color:var(--code-token-function)"> stroke-linejoin</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"round"</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"size-4"</span><span style="color:var(--code-token-function)"> aria-hidden</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"true"</span><span style="color:var(--code-foreground)">>&#x3C;</span><span style="color:var(--code-token-string-expression)">path</span><span style="color:var(--code-token-function)"> d</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"M12 20V10"</span><span style="color:var(--code-foreground)">/>&#x3C;</span><span style="color:var(--code-token-string-expression)">path</span><span style="color:var(--code-token-function)"> d</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"M18 20V4"</span><span style="color:var(--code-foreground)">/>&#x3C;</span><span style="color:var(--code-token-string-expression)">path</span><span style="color:var(--code-token-function)"> d</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"M6 20v-4"</span><span style="color:var(--code-foreground)">/>&#x3C;/</span><span style="color:var(--code-token-string-expression)">svg</span><span style="color:var(--code-foreground)">>&#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">      &#x3C;</span><span style="color:var(--code-token-string-expression)">p</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty-title"</span><span style="color:var(--code-foreground)">>No activity this week&#x3C;/</span><span style="color:var(--code-token-string-expression)">p</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">      &#x3C;</span><span style="color:var(--code-token-string-expression)">p</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty-description"</span><span style="color:var(--code-foreground)">>Activity from your projects shows up here.&#x3C;/</span><span style="color:var(--code-token-string-expression)">p</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">    &#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">&#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span></code></pre>
+</div></div></div>
+  <h2 id="card">In a card<a class="heading-anchor" href="#card" aria-label="Link to this section" data-md-skip>#</a></h2>
+  <p>Put the empty state in <code>.card-content</code> in place of the content that's missing. Without a variant it has no frame of its own, so it sits in the card's.</p>
+<div class="demo not-prose overflow-hidden rounded-[calc(var(--radius)+4px)] border border-border [&_.code-block]:rounded-none [&_.code-block]:border-0">
+  <div class="flex min-h-40 flex-wrap items-center justify-center gap-3 bg-background p-6 sm:p-10 " data-md-skip>    <div class="card w-full max-w-md">
+      <div class="card-header">
+        <h3 class="card-title">Payment methods</h3>
+        <p class="card-description">Cards and accounts you pay with.</p>
+      </div>
+      <div class="card-content">
+        <div class="empty empty-outline empty-sm">
+          <div class="empty-header">
+            <div class="empty-media empty-media-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><rect width="20" height="14" x="2" y="5" rx="2"/><path d="M2 10h20"/></svg></div>
+            <p class="empty-title">No payment methods</p>
+            <p class="empty-description">Add a card to pay for your subscription.</p>
+          </div>
+          <div class="empty-content">
+            <button type="button" class="btn btn-primary btn-sm"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M5 12h14M12 5v14"/></svg> Add a card</button>
+          </div>
+        </div>
+      </div>
+    </div>
+</div>
+<div class="border-t border-border"><div class="code-block not-prose" data-code>
+  <div class="code-block-header">
+    <span class="font-mono">html</span>
+    <button type="button" class="code-copy" data-copy aria-label="Copy code">
+  <span class="code-copy-idle inline-flex items-center gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg><span data-copy-label>Copy</span></span>
+  <span class="code-copied items-center gap-1.5" aria-live="polite"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Copied</span>
+</button>
+  </div>
+  <pre><code data-lang="html"><span class="line"><span style="color:var(--code-foreground)">&#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"card w-full max-w-md"</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"card-header"</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">    &#x3C;</span><span style="color:var(--code-token-string-expression)">h3</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"card-title"</span><span style="color:var(--code-foreground)">>Payment methods&#x3C;/</span><span style="color:var(--code-token-string-expression)">h3</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">    &#x3C;</span><span style="color:var(--code-token-string-expression)">p</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"card-description"</span><span style="color:var(--code-foreground)">>Cards and accounts you pay with.&#x3C;/</span><span style="color:var(--code-token-string-expression)">p</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"card-content"</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">    &#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty empty-outline empty-sm"</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">      &#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty-header"</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">        &#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty-media empty-media-icon"</span><span style="color:var(--code-foreground)">>&#x3C;</span><span style="color:var(--code-token-string-expression)">svg</span><span style="color:var(--code-token-function)"> xmlns</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"http://www.w3.org/2000/svg"</span><span style="color:var(--code-token-function)"> width</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"24"</span><span style="color:var(--code-token-function)"> height</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"24"</span><span style="color:var(--code-token-function)"> viewBox</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"0 0 24 24"</span><span style="color:var(--code-token-function)"> fill</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"none"</span><span style="color:var(--code-token-function)"> stroke</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"currentColor"</span><span style="color:var(--code-token-function)"> stroke-width</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"2"</span><span style="color:var(--code-token-function)"> stroke-linecap</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"round"</span><span style="color:var(--code-token-function)"> stroke-linejoin</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"round"</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"size-4"</span><span style="color:var(--code-token-function)"> aria-hidden</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"true"</span><span style="color:var(--code-foreground)">>&#x3C;</span><span style="color:var(--code-token-string-expression)">rect</span><span style="color:var(--code-token-function)"> width</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"20"</span><span style="color:var(--code-token-function)"> height</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"14"</span><span style="color:var(--code-token-function)"> x</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"2"</span><span style="color:var(--code-token-function)"> y</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"5"</span><span style="color:var(--code-token-function)"> rx</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"2"</span><span style="color:var(--code-foreground)">/>&#x3C;</span><span style="color:var(--code-token-string-expression)">path</span><span style="color:var(--code-token-function)"> d</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"M2 10h20"</span><span style="color:var(--code-foreground)">/>&#x3C;/</span><span style="color:var(--code-token-string-expression)">svg</span><span style="color:var(--code-foreground)">>&#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">        &#x3C;</span><span style="color:var(--code-token-string-expression)">p</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty-title"</span><span style="color:var(--code-foreground)">>No payment methods&#x3C;/</span><span style="color:var(--code-token-string-expression)">p</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">        &#x3C;</span><span style="color:var(--code-token-string-expression)">p</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty-description"</span><span style="color:var(--code-foreground)">>Add a card to pay for your subscription.&#x3C;/</span><span style="color:var(--code-token-string-expression)">p</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">      &#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">      &#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty-content"</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">        &#x3C;</span><span style="color:var(--code-token-string-expression)">button</span><span style="color:var(--code-token-function)"> type</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"button"</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"btn btn-primary btn-sm"</span><span style="color:var(--code-foreground)">>&#x3C;</span><span style="color:var(--code-token-string-expression)">svg</span><span style="color:var(--code-token-function)"> xmlns</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"http://www.w3.org/2000/svg"</span><span style="color:var(--code-token-function)"> width</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"24"</span><span style="color:var(--code-token-function)"> height</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"24"</span><span style="color:var(--code-token-function)"> viewBox</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"0 0 24 24"</span><span style="color:var(--code-token-function)"> fill</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"none"</span><span style="color:var(--code-token-function)"> stroke</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"currentColor"</span><span style="color:var(--code-token-function)"> stroke-width</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"2"</span><span style="color:var(--code-token-function)"> stroke-linecap</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"round"</span><span style="color:var(--code-token-function)"> stroke-linejoin</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"round"</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"size-4"</span><span style="color:var(--code-token-function)"> aria-hidden</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"true"</span><span style="color:var(--code-foreground)">>&#x3C;</span><span style="color:var(--code-token-string-expression)">path</span><span style="color:var(--code-token-function)"> d</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"M5 12h14M12 5v14"</span><span style="color:var(--code-foreground)">/>&#x3C;/</span><span style="color:var(--code-token-string-expression)">svg</span><span style="color:var(--code-foreground)">> Add a card&#x3C;/</span><span style="color:var(--code-token-string-expression)">button</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">      &#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">    &#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">&#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span></code></pre>
+</div></div></div>
+  <h2 id="table">In a table<a class="heading-anchor" href="#table" aria-label="Link to this section" data-md-skip>#</a></h2>
+  <p>
+    For a table with no rows, keep the header (so the columns still explain the data) and put a compact empty state
+    in a single cell spanning every column.
+  </p>
+<div class="demo not-prose overflow-hidden rounded-[calc(var(--radius)+4px)] border border-border [&_.code-block]:rounded-none [&_.code-block]:border-0">
+  <div class="flex min-h-40 flex-wrap items-center justify-center gap-3 bg-background p-6 sm:p-10 block p-4 sm:p-6" data-md-skip>    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>Invoice</th><th>Status</th><th class="text-right">Amount</th></tr></thead>
+        <tbody>
+          <tr>
+            <td colspan="3">
+              <div class="empty empty-sm">
+                <div class="empty-header">
+                  <div class="empty-media empty-media-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></div>
+                  <p class="empty-title">No invoices found</p>
+                  <p class="empty-description">No invoices match &ldquo;acme&rdquo;. Try another search, or clear the filters.</p>
+                </div>
+                <div class="empty-content">
+                  <button type="button" class="btn btn-outline btn-sm">Clear filters</button>
+                </div>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+</div>
+<div class="border-t border-border"><div class="code-block not-prose" data-code>
+  <div class="code-block-header">
+    <span class="font-mono">html</span>
+    <button type="button" class="code-copy" data-copy aria-label="Copy code">
+  <span class="code-copy-idle inline-flex items-center gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg><span data-copy-label>Copy</span></span>
+  <span class="code-copied items-center gap-1.5" aria-live="polite"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Copied</span>
+</button>
+  </div>
+  <pre><code data-lang="html"><span class="line"><span style="color:var(--code-foreground)">&#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"table-wrap"</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;</span><span style="color:var(--code-token-string-expression)">table</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"table"</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">    &#x3C;</span><span style="color:var(--code-token-string-expression)">thead</span><span style="color:var(--code-foreground)">>&#x3C;</span><span style="color:var(--code-token-string-expression)">tr</span><span style="color:var(--code-foreground)">>&#x3C;</span><span style="color:var(--code-token-string-expression)">th</span><span style="color:var(--code-foreground)">>Invoice&#x3C;/</span><span style="color:var(--code-token-string-expression)">th</span><span style="color:var(--code-foreground)">>&#x3C;</span><span style="color:var(--code-token-string-expression)">th</span><span style="color:var(--code-foreground)">>Status&#x3C;/</span><span style="color:var(--code-token-string-expression)">th</span><span style="color:var(--code-foreground)">>&#x3C;</span><span style="color:var(--code-token-string-expression)">th</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"text-right"</span><span style="color:var(--code-foreground)">>Amount&#x3C;/</span><span style="color:var(--code-token-string-expression)">th</span><span style="color:var(--code-foreground)">>&#x3C;/</span><span style="color:var(--code-token-string-expression)">tr</span><span style="color:var(--code-foreground)">>&#x3C;/</span><span style="color:var(--code-token-string-expression)">thead</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">    &#x3C;</span><span style="color:var(--code-token-string-expression)">tbody</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">      &#x3C;</span><span style="color:var(--code-token-string-expression)">tr</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">        &#x3C;</span><span style="color:var(--code-token-string-expression)">td</span><span style="color:var(--code-token-function)"> colspan</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"3"</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">          &#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty empty-sm"</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">            &#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty-header"</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">              &#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty-media empty-media-icon"</span><span style="color:var(--code-foreground)">>&#x3C;</span><span style="color:var(--code-token-string-expression)">svg</span><span style="color:var(--code-token-function)"> xmlns</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"http://www.w3.org/2000/svg"</span><span style="color:var(--code-token-function)"> width</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"24"</span><span style="color:var(--code-token-function)"> height</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"24"</span><span style="color:var(--code-token-function)"> viewBox</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"0 0 24 24"</span><span style="color:var(--code-token-function)"> fill</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"none"</span><span style="color:var(--code-token-function)"> stroke</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"currentColor"</span><span style="color:var(--code-token-function)"> stroke-width</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"2"</span><span style="color:var(--code-token-function)"> stroke-linecap</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"round"</span><span style="color:var(--code-token-function)"> stroke-linejoin</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"round"</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"size-4"</span><span style="color:var(--code-token-function)"> aria-hidden</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"true"</span><span style="color:var(--code-foreground)">>&#x3C;</span><span style="color:var(--code-token-string-expression)">circle</span><span style="color:var(--code-token-function)"> cx</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"11"</span><span style="color:var(--code-token-function)"> cy</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"11"</span><span style="color:var(--code-token-function)"> r</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"8"</span><span style="color:var(--code-foreground)">/>&#x3C;</span><span style="color:var(--code-token-string-expression)">path</span><span style="color:var(--code-token-function)"> d</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"m21 21-4.3-4.3"</span><span style="color:var(--code-foreground)">/>&#x3C;/</span><span style="color:var(--code-token-string-expression)">svg</span><span style="color:var(--code-foreground)">>&#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">              &#x3C;</span><span style="color:var(--code-token-string-expression)">p</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty-title"</span><span style="color:var(--code-foreground)">>No invoices found&#x3C;/</span><span style="color:var(--code-token-string-expression)">p</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">              &#x3C;</span><span style="color:var(--code-token-string-expression)">p</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty-description"</span><span style="color:var(--code-foreground)">>No invoices match &#x26;ldquo;acme&#x26;rdquo;. Try another search, or clear the filters.&#x3C;/</span><span style="color:var(--code-token-string-expression)">p</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">            &#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">            &#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty-content"</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">              &#x3C;</span><span style="color:var(--code-token-string-expression)">button</span><span style="color:var(--code-token-function)"> type</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"button"</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"btn btn-outline btn-sm"</span><span style="color:var(--code-foreground)">>Clear filters&#x3C;/</span><span style="color:var(--code-token-string-expression)">button</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">            &#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">          &#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">        &#x3C;/</span><span style="color:var(--code-token-string-expression)">td</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">      &#x3C;/</span><span style="color:var(--code-token-string-expression)">tr</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">    &#x3C;/</span><span style="color:var(--code-token-string-expression)">tbody</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;/</span><span style="color:var(--code-token-string-expression)">table</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">&#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span></code></pre>
+</div></div></div>
+  <h2 id="htmx">With htmx<a class="heading-anchor" href="#htmx" aria-label="Link to this section" data-md-skip>#</a></h2>
+  <p>
+    The empty state is ordinary markup, so a request can replace it with content. Here the button loads rows from the
+    server into the table body with <code>hx-swap="innerHTML"</code>, which replaces the empty row with them:
+  </p>
+<div class="demo not-prose overflow-hidden rounded-[calc(var(--radius)+4px)] border border-border [&_.code-block]:rounded-none [&_.code-block]:border-0">
+  <div class="flex min-h-40 flex-wrap items-center justify-center gap-3 bg-background p-6 sm:p-10 block p-4 sm:p-6" data-md-skip>    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>Invoice</th><th>Status</th><th class="text-right">Amount</th></tr></thead>
+        <tbody id="empty-invoices">
+          <tr>
+            <td colspan="3">
+              <div class="empty empty-sm">
+                <div class="empty-header">
+                  <div class="empty-media empty-media-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4M10 9H8M16 13H8M16 17H8"/></svg></div>
+                  <p class="empty-title">No invoices yet</p>
+                  <p class="empty-description">Invoices you send show up here.</p>
+                </div>
+                <div class="empty-content">
+                  <button type="button" class="btn btn-primary btn-sm" hx-get="/api/invoices" hx-target="#empty-invoices" hx-swap="innerHTML">Load invoices</button>
+                </div>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+</div>
+<div class="border-t border-border"><div class="code-block not-prose" data-code>
+  <div class="code-block-header">
+    <span class="font-mono">html</span>
+    <button type="button" class="code-copy" data-copy aria-label="Copy code">
+  <span class="code-copy-idle inline-flex items-center gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg><span data-copy-label>Copy</span></span>
+  <span class="code-copied items-center gap-1.5" aria-live="polite"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Copied</span>
+</button>
+  </div>
+  <pre><code data-lang="html"><span class="line"><span style="color:var(--code-foreground)">&#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"table-wrap"</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;</span><span style="color:var(--code-token-string-expression)">table</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"table"</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">    &#x3C;</span><span style="color:var(--code-token-string-expression)">thead</span><span style="color:var(--code-foreground)">>&#x3C;</span><span style="color:var(--code-token-string-expression)">tr</span><span style="color:var(--code-foreground)">>&#x3C;</span><span style="color:var(--code-token-string-expression)">th</span><span style="color:var(--code-foreground)">>Invoice&#x3C;/</span><span style="color:var(--code-token-string-expression)">th</span><span style="color:var(--code-foreground)">>&#x3C;</span><span style="color:var(--code-token-string-expression)">th</span><span style="color:var(--code-foreground)">>Status&#x3C;/</span><span style="color:var(--code-token-string-expression)">th</span><span style="color:var(--code-foreground)">>&#x3C;</span><span style="color:var(--code-token-string-expression)">th</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"text-right"</span><span style="color:var(--code-foreground)">>Amount&#x3C;/</span><span style="color:var(--code-token-string-expression)">th</span><span style="color:var(--code-foreground)">>&#x3C;/</span><span style="color:var(--code-token-string-expression)">tr</span><span style="color:var(--code-foreground)">>&#x3C;/</span><span style="color:var(--code-token-string-expression)">thead</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">    &#x3C;</span><span style="color:var(--code-token-string-expression)">tbody</span><span style="color:var(--code-token-function)"> id</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty-invoices"</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">      &#x3C;</span><span style="color:var(--code-token-string-expression)">tr</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">        &#x3C;</span><span style="color:var(--code-token-string-expression)">td</span><span style="color:var(--code-token-function)"> colspan</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"3"</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">          &#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty empty-sm"</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">            &#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty-header"</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">              &#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty-media empty-media-icon"</span><span style="color:var(--code-foreground)">>&#x3C;</span><span style="color:var(--code-token-string-expression)">svg</span><span style="color:var(--code-token-function)"> xmlns</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"http://www.w3.org/2000/svg"</span><span style="color:var(--code-token-function)"> width</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"24"</span><span style="color:var(--code-token-function)"> height</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"24"</span><span style="color:var(--code-token-function)"> viewBox</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"0 0 24 24"</span><span style="color:var(--code-token-function)"> fill</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"none"</span><span style="color:var(--code-token-function)"> stroke</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"currentColor"</span><span style="color:var(--code-token-function)"> stroke-width</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"2"</span><span style="color:var(--code-token-function)"> stroke-linecap</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"round"</span><span style="color:var(--code-token-function)"> stroke-linejoin</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"round"</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"size-4"</span><span style="color:var(--code-token-function)"> aria-hidden</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"true"</span><span style="color:var(--code-foreground)">>&#x3C;</span><span style="color:var(--code-token-string-expression)">path</span><span style="color:var(--code-token-function)"> d</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"</span><span style="color:var(--code-foreground)">/>&#x3C;</span><span style="color:var(--code-token-string-expression)">path</span><span style="color:var(--code-token-function)"> d</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"M14 2v4a2 2 0 0 0 2 2h4M10 9H8M16 13H8M16 17H8"</span><span style="color:var(--code-foreground)">/>&#x3C;/</span><span style="color:var(--code-token-string-expression)">svg</span><span style="color:var(--code-foreground)">>&#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">              &#x3C;</span><span style="color:var(--code-token-string-expression)">p</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty-title"</span><span style="color:var(--code-foreground)">>No invoices yet&#x3C;/</span><span style="color:var(--code-token-string-expression)">p</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">              &#x3C;</span><span style="color:var(--code-token-string-expression)">p</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty-description"</span><span style="color:var(--code-foreground)">>Invoices you send show up here.&#x3C;/</span><span style="color:var(--code-token-string-expression)">p</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">            &#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">            &#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty-content"</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">              &#x3C;</span><span style="color:var(--code-token-string-expression)">button</span><span style="color:var(--code-token-function)"> type</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"button"</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"btn btn-primary btn-sm"</span><span style="color:var(--code-token-function)"> hx-get</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"/api/invoices"</span><span style="color:var(--code-token-function)"> hx-target</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"#empty-invoices"</span><span style="color:var(--code-token-function)"> hx-swap</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"innerHTML"</span><span style="color:var(--code-foreground)">>Load invoices&#x3C;/</span><span style="color:var(--code-token-string-expression)">button</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">            &#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">          &#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">        &#x3C;/</span><span style="color:var(--code-token-string-expression)">td</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">      &#x3C;/</span><span style="color:var(--code-token-string-expression)">tr</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">    &#x3C;/</span><span style="color:var(--code-token-string-expression)">tbody</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;/</span><span style="color:var(--code-token-string-expression)">table</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">&#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span></code></pre>
+</div></div></div>  <p>
+    The other way round, have the server return an empty state when a search or a filter finds nothing, and the same
+    swap shows it. An error can return one with a retry button that repeats the request and replaces the whole empty
+    state:
+  </p>
+<div class="code-block not-prose" data-code>
+  <div class="code-block-header">
+    <span class="font-mono">html</span>
+    <button type="button" class="code-copy" data-copy aria-label="Copy code">
+  <span class="code-copy-idle inline-flex items-center gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg><span data-copy-label>Copy</span></span>
+  <span class="code-copied items-center gap-1.5" aria-live="polite"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Copied</span>
+</button>
+  </div>
+  <pre><code data-lang="html"><span class="line"><span style="color:var(--code-foreground)">&#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty empty-outline"</span><span style="color:var(--code-token-function)"> id</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"feed"</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty-header"</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">    &#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty-media empty-media-icon"</span><span style="color:var(--code-foreground)">>…icon…&#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">    &#x3C;</span><span style="color:var(--code-token-string-expression)">h3</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty-title"</span><span style="color:var(--code-foreground)">>Couldn't load the feed&#x3C;/</span><span style="color:var(--code-token-string-expression)">h3</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">    &#x3C;</span><span style="color:var(--code-token-string-expression)">p</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty-description"</span><span style="color:var(--code-foreground)">>Check your connection and try again.&#x3C;/</span><span style="color:var(--code-token-string-expression)">p</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty-content"</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">    &#x3C;</span><span style="color:var(--code-token-string-expression)">button</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"btn btn-outline btn-sm"</span><span style="color:var(--code-token-function)"> hx-get</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"/feed"</span><span style="color:var(--code-token-function)"> hx-target</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"#feed"</span><span style="color:var(--code-token-function)"> hx-swap</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"outerHTML"</span><span style="color:var(--code-foreground)">>Retry&#x3C;/</span><span style="color:var(--code-token-string-expression)">button</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">&#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span></code></pre>
+</div>
+  <h2 id="macro">Macro<a class="heading-anchor" href="#macro" aria-label="Link to this section" data-md-skip>#</a></h2>
+  <p>
+    The <code>empty()</code> macro writes the header for you. Pass the title, and optionally a
+    <code>description</code>, an <code>icon</code> name, a <code>variant</code> (<code>"outline"</code> or
+    <code>"muted"</code>), a <code>size</code> (<code>"sm"</code>), the title element as <code>heading</code>
+    (<code>"h3"</code> by default; use the level that fits the page, or <code>"p"</code>) and extra
+    <code>class</code>es. Call it with a body to fill <code>.empty-content</code>.
+  </p>
+<div class="code-block not-prose" data-code>
+  <div class="code-block-header">
+    <span class="font-mono">html</span>
+    <button type="button" class="code-copy" data-copy aria-label="Copy code">
+  <span class="code-copy-idle inline-flex items-center gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg><span data-copy-label>Copy</span></span>
+  <span class="code-copied items-center gap-1.5" aria-live="polite"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Copied</span>
+</button>
+  </div>
+  <pre><code data-lang="html"><span class="line"><span style="color:var(--code-foreground)">&#123;% from "components/empty/empty.html" import empty %}</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:var(--code-foreground)">&#123;% call empty("No messages", "New messages show up here.", icon="inbox", variant="outline") %}</span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;</span><span style="color:var(--code-token-string-expression)">button</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"btn btn-primary btn-sm"</span><span style="color:var(--code-foreground)">>Compose&#x3C;/</span><span style="color:var(--code-token-string-expression)">button</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">&#123;% endcall %}</span></span></code></pre>
+</div><div class="demo not-prose overflow-hidden rounded-[calc(var(--radius)+4px)] border border-border [&_.code-block]:rounded-none [&_.code-block]:border-0">
+  <div class="flex min-h-40 flex-wrap items-center justify-center gap-3 bg-background p-6 sm:p-10 " data-md-skip><div class="empty empty-outline">
+  <div class="empty-header">
+<div class="empty-media empty-media-icon"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg></div>    <h3 class="empty-title">No messages</h3>
+<p class="empty-description">New messages show up here.</p>  </div>
+<div class="empty-content">      <button type="button" class="btn btn-primary btn-sm"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg> Compose</button>
+</div></div></div>
+<div class="border-t border-border"><div class="code-block not-prose" data-code>
+  <div class="code-block-header">
+    <span class="font-mono">html</span>
+    <button type="button" class="code-copy" data-copy aria-label="Copy code">
+  <span class="code-copy-idle inline-flex items-center gap-1.5"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg><span data-copy-label>Copy</span></span>
+  <span class="code-copied items-center gap-1.5" aria-live="polite"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Copied</span>
+</button>
+  </div>
+  <pre><code data-lang="html"><span class="line"><span style="color:var(--code-foreground)">&#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty empty-outline"</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">  &#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty-header"</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">&#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty-media empty-media-icon"</span><span style="color:var(--code-foreground)">>&#x3C;</span><span style="color:var(--code-token-string-expression)">svg</span><span style="color:var(--code-token-function)"> xmlns</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"http://www.w3.org/2000/svg"</span><span style="color:var(--code-token-function)"> width</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"24"</span><span style="color:var(--code-token-function)"> height</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"24"</span><span style="color:var(--code-token-function)"> viewBox</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"0 0 24 24"</span><span style="color:var(--code-token-function)"> fill</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"none"</span><span style="color:var(--code-token-function)"> stroke</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"currentColor"</span><span style="color:var(--code-token-function)"> stroke-width</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"2"</span><span style="color:var(--code-token-function)"> stroke-linecap</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"round"</span><span style="color:var(--code-token-function)"> stroke-linejoin</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"round"</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"size-4"</span><span style="color:var(--code-token-function)"> aria-hidden</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"true"</span><span style="color:var(--code-foreground)">>&#x3C;</span><span style="color:var(--code-token-string-expression)">polyline</span><span style="color:var(--code-token-function)"> points</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"22 12 16 12 14 15 10 15 8 12 2 12"</span><span style="color:var(--code-foreground)">/>&#x3C;</span><span style="color:var(--code-token-string-expression)">path</span><span style="color:var(--code-token-function)"> d</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"</span><span style="color:var(--code-foreground)">/>&#x3C;/</span><span style="color:var(--code-token-string-expression)">svg</span><span style="color:var(--code-foreground)">>&#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">>    &#x3C;</span><span style="color:var(--code-token-string-expression)">h3</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty-title"</span><span style="color:var(--code-foreground)">>No messages&#x3C;/</span><span style="color:var(--code-token-string-expression)">h3</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">&#x3C;</span><span style="color:var(--code-token-string-expression)">p</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty-description"</span><span style="color:var(--code-foreground)">>New messages show up here.&#x3C;/</span><span style="color:var(--code-token-string-expression)">p</span><span style="color:var(--code-foreground)">>  &#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">&#x3C;</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"empty-content"</span><span style="color:var(--code-foreground)">>      &#x3C;</span><span style="color:var(--code-token-string-expression)">button</span><span style="color:var(--code-token-function)"> type</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"button"</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"btn btn-primary btn-sm"</span><span style="color:var(--code-foreground)">>&#x3C;</span><span style="color:var(--code-token-string-expression)">svg</span><span style="color:var(--code-token-function)"> xmlns</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"http://www.w3.org/2000/svg"</span><span style="color:var(--code-token-function)"> width</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"24"</span><span style="color:var(--code-token-function)"> height</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"24"</span><span style="color:var(--code-token-function)"> viewBox</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"0 0 24 24"</span><span style="color:var(--code-token-function)"> fill</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"none"</span><span style="color:var(--code-token-function)"> stroke</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"currentColor"</span><span style="color:var(--code-token-function)"> stroke-width</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"2"</span><span style="color:var(--code-token-function)"> stroke-linecap</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"round"</span><span style="color:var(--code-token-function)"> stroke-linejoin</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"round"</span><span style="color:var(--code-token-function)"> class</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"size-4"</span><span style="color:var(--code-token-function)"> aria-hidden</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"true"</span><span style="color:var(--code-foreground)">>&#x3C;</span><span style="color:var(--code-token-string-expression)">rect</span><span style="color:var(--code-token-function)"> width</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"20"</span><span style="color:var(--code-token-function)"> height</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"16"</span><span style="color:var(--code-token-function)"> x</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"2"</span><span style="color:var(--code-token-function)"> y</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"4"</span><span style="color:var(--code-token-function)"> rx</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"2"</span><span style="color:var(--code-foreground)">/>&#x3C;</span><span style="color:var(--code-token-string-expression)">path</span><span style="color:var(--code-token-function)"> d</span><span style="color:var(--code-token-keyword)">=</span><span style="color:var(--code-token-string-expression)">"m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"</span><span style="color:var(--code-foreground)">/>&#x3C;/</span><span style="color:var(--code-token-string-expression)">svg</span><span style="color:var(--code-foreground)">> Compose&#x3C;/</span><span style="color:var(--code-token-string-expression)">button</span><span style="color:var(--code-foreground)">></span></span>
+<span class="line"><span style="color:var(--code-foreground)">&#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">>&#x3C;/</span><span style="color:var(--code-token-string-expression)">div</span><span style="color:var(--code-foreground)">></span></span></code></pre>
+</div></div></div>
+  <h2 id="accessibility">Accessibility<a class="heading-anchor" href="#accessibility" aria-label="Link to this section" data-md-skip>#</a></h2>
+  <ul>
+    <li>Make the title a heading at the level that fits where the empty state sits (it stands in for a section's content), or a <code>&lt;p&gt;</code> in small panels and table cells.</li>
+    <li>Media is decorative: the icon is hidden from screen readers, and avatars take <code>aria-hidden="true"</code>. Say everything that matters in the title and description.</li>
+    <li>Write button labels that make sense on their own: &ldquo;Create project&rdquo;, not &ldquo;Get started&rdquo;.</li>
+    <li>When an empty state replaces results that were there a moment ago (after a search), announce it: swap it into a container with <code>aria-live="polite"</code>.</li>
+  </ul>
+
+  <h2 id="reference">Reference<a class="heading-anchor" href="#reference" aria-label="Link to this section" data-md-skip>#</a></h2>
+  <div class="table-wrap not-prose">
+  <table class="table">
+    <thead><tr><th>Class</th><th>Description</th></tr></thead>
+    <tbody>
+      <tr><td class="whitespace-nowrap"><code class="code">.empty</code></td><td class="text-muted-foreground">Centred column with padding (more from md) that grows to fill its container.</td></tr>
+      <tr><td class="whitespace-nowrap"><code class="code">.empty-outline</code></td><td class="text-muted-foreground">Dashed border.</td></tr>
+      <tr><td class="whitespace-nowrap"><code class="code">.empty-muted</code></td><td class="text-muted-foreground">Muted background that fades out towards the bottom.</td></tr>
+      <tr><td class="whitespace-nowrap"><code class="code">.empty-sm</code></td><td class="text-muted-foreground">Compact: less padding, smaller gaps, icon square and title.</td></tr>
+      <tr><td class="whitespace-nowrap"><code class="code">.empty-header</code></td><td class="text-muted-foreground">Media, title and description; at most 24rem wide.</td></tr>
+      <tr><td class="whitespace-nowrap"><code class="code">.empty-media</code></td><td class="text-muted-foreground">Holds an icon, an .avatar (shown at 3rem) or an .avatar-group (large, grey).</td></tr>
+      <tr><td class="whitespace-nowrap"><code class="code">.empty-media-icon</code></td><td class="text-muted-foreground">A muted rounded square around an icon.</td></tr>
+      <tr><td class="whitespace-nowrap"><code class="code">.empty-title</code></td><td class="text-muted-foreground">What is missing.</td></tr>
+      <tr><td class="whitespace-nowrap"><code class="code">.empty-description</code></td><td class="text-muted-foreground">Muted text below the title. Links are underlined.</td></tr>
+      <tr><td class="whitespace-nowrap"><code class="code">.empty-content</code></td><td class="text-muted-foreground">Actions and inputs: a centred column, at most 24rem wide.</td></tr>
+    </tbody>
+  </table>
+</div>
+        </div>
+
+          <nav class="mt-16 grid gap-4 border-t border-border pt-8 sm:grid-cols-2" aria-label="Pagination">
+              <a href="/docs/v0.2/components/badge" class="card card-link p-4">
+                <span class="muted inline-flex items-center gap-1"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-3.5" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg> Previous</span>
+                <span class="mt-1 font-medium">Badge</span>
+              </a>
+              <a href="/docs/v0.2/components/loader" class="card card-link p-4 text-right sm:col-start-2">
+                <span class="muted inline-flex items-center justify-end gap-1">Next <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-3.5" aria-hidden="true"><path d="M5 12h14M12 5l7 7-7 7"/></svg></span>
+                <span class="mt-1 font-medium">Loader</span>
+              </a>
+          </nav>
+      </article>
+    </main>
+  </div>
+<footer class="border-t border-border">
+  <div class="mx-auto flex w-full max-w-7xl flex-col items-center justify-between gap-4 px-4 py-8 text-sm text-muted-foreground sm:flex-row sm:px-6 lg:px-8">
+    <p>© <span data-year></span> HTMX UI. Built with htmx, Tailwind CSS and Bun.</p>
+    <nav class="flex gap-5">
+      <a href="/docs/v0.2" class="hover:text-foreground">Docs</a>
+      <a href="/docs/v0.2/changelog" class="hover:text-foreground">Changelog</a>
+      <a href="/about" class="hover:text-foreground">About</a>
+    </nav>
+  </div>
+</footer>
+  </body>
+</html>

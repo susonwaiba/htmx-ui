@@ -1,0 +1,105 @@
+---
+title: "Separator"
+description: "A line that visually or semantically separates content: horizontal or vertical."
+url: "/docs/v0.2/components/separator"
+section: "Components"
+---
+
+# Separator
+
+A line that visually or semantically separates content: horizontal or vertical.
+
+```html
+<div class="w-full max-w-sm">
+  <div class="space-y-1">
+    <p class="text-sm leading-none font-medium">htmx-ui</p>
+    <p class="text-sm text-muted-foreground">Components for htmx, in plain HTML and CSS.</p>
+  </div>
+  <div class="separator my-4" role="separator"></div>
+  <div class="flex h-5 items-center gap-4 text-sm">
+    <a class="link" href="/docs">Docs</a>
+    <div class="separator" role="separator" aria-orientation="vertical"></div>
+    <a class="link" href="/docs/components">Components</a>
+    <div class="separator" role="separator" aria-orientation="vertical"></div>
+    <a class="link" href="/docs/changelog">Changelog</a>
+  </div>
+</div>
+```
+
+## Markup
+
+- A `.separator` is a one-pixel line in the border colour, as wide as its container. Space it with margin utilities (`my-4`).
+- `role="separator"` marks a real change of section for screen readers. A line that is only decoration takes `role="none"`, so it isn't announced. An `<hr class="separator">` is a separator already.
+- Content changes for many reasons; a separator is for a break between groups, not between every pair of items. Spacing alone is often enough.
+
+## Orientation
+
+`aria-orientation="vertical"` turns the line upright, for a separator between items in a row. It takes the height of its flex row, so the row sets it (`h-5` above); outside a flex row give the separator a height of its own. A decorative vertical line, with `role="none"` and no `aria-orientation`, takes `.separator-vertical` instead.
+
+```html
+<div class="flex items-center gap-3 text-sm">
+  <span>Blog</span>
+  <span class="separator separator-vertical h-4" role="none"></span>
+  <span>Docs</span>
+  <span class="separator separator-vertical h-4" role="none"></span>
+  <span>Source</span>
+</div>
+```
+
+## Between menu items
+
+Vertical separators between items that each carry a description: a separator per gap, stretching to the tallest item.
+
+```html
+<div class="flex items-stretch gap-4 text-sm sm:gap-6">
+  <div class="flex flex-col gap-1">
+    <span class="font-medium">Settings</span>
+    <span class="text-xs text-muted-foreground">Manage preferences</span>
+  </div>
+  <div class="separator" role="separator" aria-orientation="vertical"></div>
+  <div class="flex flex-col gap-1">
+    <span class="font-medium">Account</span>
+    <span class="text-xs text-muted-foreground">Profile and security</span>
+  </div>
+  <div class="separator" role="separator" aria-orientation="vertical"></div>
+  <div class="flex flex-col gap-1">
+    <span class="font-medium">Help</span>
+    <span class="text-xs text-muted-foreground">Support and docs</span>
+  </div>
+</div>
+```
+
+## Between list items
+
+Horizontal separators between the rows of a list. The line is decorative here (the list already groups its items), so it is hidden from screen readers.
+
+```html
+<dl class="w-full max-w-sm text-sm">
+  <div class="flex justify-between py-2">
+    <dt class="text-muted-foreground">Item 1</dt>
+    <dd class="font-medium">Value 1</dd>
+  </div>
+  <div class="separator" role="none"></div>
+  <div class="flex justify-between py-2">
+    <dt class="text-muted-foreground">Item 2</dt>
+    <dd class="font-medium">Value 2</dd>
+  </div>
+  <div class="separator" role="none"></div>
+  <div class="flex justify-between py-2">
+    <dt class="text-muted-foreground">Item 3</dt>
+    <dd class="font-medium">Value 3</dd>
+  </div>
+</dl>
+```
+
+## With text
+
+For a line with a word in it — "Or" between two ways of signing in — use [`.field-separator`](/docs/v0.2/components/field#separator).
+
+## Reference
+
+| Class / attribute | Description |
+| --- | --- |
+| `.separator` | A horizontal line, as wide as its container. |
+| `[aria-orientation="vertical"]` | On a .separator with role="separator": an upright line, as tall as its flex row. |
+| `.separator-vertical` | An upright line without aria-orientation, for decorative separators (role="none"). |
