@@ -1,0 +1,325 @@
+{% extends "layouts/docs.html" %}
+{% from "components/icon/icon.html" import icon %}
+{% from "components/code/code.html" import code %}
+{% from "components/prompt-input/prompt-input.html" import prompt_input %}
+{% from "docs/macros.html" import demo, classes %}
+{% set title = "Prompt input" %}
+{% set description = "The text box of an AI chat: a growing textarea with attachments, tools and a send button that turns into stop, plus @ mentions and / commands." %}
+{% set people = [
+  { value: "ada", label: "Ada Lovelace", description: "Analyst" },
+  { value: "alan", label: "Alan Turing", description: "Cryptography", keywords: "enigma" },
+  { value: "grace", label: "Grace Hopper", description: "Compilers", keywords: "cobol" },
+  { value: "linus", label: "Linus Torvalds", description: "Kernels", keywords: "linux git" }
+] %}
+{% set commands = [
+  { value: "summarize", label: "Summarize", description: "Shorten the text", icon: "align-left" },
+  { value: "translate", label: "Translate", description: "Into another language", icon: "message-square" },
+  { value: "explain", label: "Explain code", description: "Step by step", icon: "code" },
+  { value: "search", label: "Search the web", description: "With sources", icon: "search" }
+] %}
+
+{% block content %}
+  {% call demo("min-h-[28rem] flex-col flex-nowrap items-stretch justify-end") %}
+    <div id="pi-messages" class="message-list" aria-live="polite"></div>
+    <form class="prompt-input" data-prompt-input hx-post="/api/prompt-input/reply" hx-target="#pi-messages" hx-swap="beforeend">
+      <textarea class="prompt-input-textarea" name="prompt" rows="1" data-textarea aria-label="Prompt"
+                placeholder="Ask anything. Type @ to mention someone, / for commands."></textarea>
+      <div class="prompt-input-actions">
+        <div class="prompt-input-tools">
+          <span class="tooltip" data-tooltip>
+            <button type="button" class="btn btn-ghost btn-icon btn-sm" aria-label="Attach files">{{ icon("paperclip") }}</button>
+            <span class="tooltip-content" role="tooltip">Attach files</span>
+          </span>
+          <button type="button" class="btn btn-ghost btn-sm" data-toggle aria-pressed="false">{{ icon("search") }} Search</button>
+          <select class="select input-sm prompt-input-select" name="model" aria-label="Model">
+            <option>GPT-5</option>
+            <option selected>Claude Opus</option>
+            <option>Gemini Pro</option>
+          </select>
+        </div>
+        <button class="btn btn-primary btn-icon btn-sm btn-rounded prompt-input-submit" data-prompt-input-submit aria-label="Send">
+          {{ icon("arrow-up") }}<span class="prompt-input-stop-icon" aria-hidden="true"></span>
+        </button>
+      </div>
+      <div class="prompt-input-menu" data-prompt-input-menu="@" role="listbox" aria-label="People" hidden>
+        {% for p in people %}
+        <div class="prompt-input-option" role="option" data-value="{{ p.value }}"{% if p.keywords %} data-keywords="{{ p.keywords }}"{% endif %}>
+          <span class="avatar avatar-sm" aria-hidden="true"><span class="avatar-fallback">{{ p.label[0] }}</span></span>
+          <span class="prompt-input-option-label">{{ p.label }}</span>
+          <span class="prompt-input-option-description">{{ p.description }}</span>
+        </div>
+        {% endfor %}
+        <p class="prompt-input-empty" data-prompt-input-empty hidden>No one found.</p>
+      </div>
+      <div class="prompt-input-menu" data-prompt-input-menu="/" role="listbox" aria-label="Commands" hidden>
+        {% for c in commands %}
+        <div class="prompt-input-option" role="option" data-value="{{ c.value }}">
+          {{ icon(c.icon) }}
+          <span class="prompt-input-option-label">{{ c.label }}</span>
+          <span class="prompt-input-option-description">{{ c.description }}</span>
+        </div>
+        {% endfor %}
+        <p class="prompt-input-empty" data-prompt-input-empty hidden>No commands found.</p>
+      </div>
+    </form>
+  {% endcall %}
+
+  <p>
+    A prompt input is where the user writes to an AI model. It looks like one big input, but holds a textarea that grows
+    with the text, a toolbar for attachments, tools and the model, and a send button that turns into a stop button while
+    the answer is on its way. Typing <code>@</code> or <code>/</code> opens a list of people, files or commands to insert.
+    The demo posts to a mock endpoint that is part of the dev server, so it only answers on a running site, not on a
+    static host.
+  </p>
+
+  <h2 id="markup">Markup</h2>
+  <ul>
+    <li>The box is a <code>&lt;form class="prompt-input" data-prompt-input&gt;</code>. It shows one focus ring for everything inside it, and a click on its empty space puts the caret in the textarea.</li>
+    <li>The text goes in a <code>&lt;textarea class="prompt-input-textarea"&gt;</code> with a <code>name</code> and an accessible name (<code>aria-label</code>). It grows with its text up to <code>max-h-48</code> (put another <code>max-h-*</code> on it to change that), then scrolls. <code>rows="1"</code> starts it one line tall. Add <code>data-textarea</code> so the <a href="/docs/components/textarea">textarea</a> behaviour grows it in browsers without CSS <code>field-sizing</code>; leave out <code>data-textarea-submit</code>, as the prompt input already handles <kbd class="kbd">Enter</kbd>.</li>
+    <li>Below it, <code>.prompt-input-actions</code> is the toolbar: a <code>.prompt-input-tools</code> group at the start, and the submit button at the end.</li>
+    <li>The submit button has <code>data-prompt-input-submit</code>, an <code>aria-label</code>, the <code>.prompt-input-submit</code> class and two icons: the send arrow, and a <code>.prompt-input-stop-icon</code> square that replaces it while a request runs.</li>
+    <li>Optional: a <code>.prompt-input-attachments</code> row before the textarea, and one <code>.prompt-input-menu</code> per trigger character (see <a href="#mentions-and-commands">Mentions and commands</a>).</li>
+  </ul>
+  {% call code("html", title="Minimal") %}
+<form class="prompt-input" data-prompt-input hx-post="/api/chat" hx-target="#messages" hx-swap="beforeend">
+  <textarea class="prompt-input-textarea" name="prompt" rows="1" data-textarea aria-label="Prompt" placeholder="Ask anything…"></textarea>
+  <div class="prompt-input-actions">
+    <button class="btn btn-primary btn-icon btn-sm btn-rounded prompt-input-submit" data-prompt-input-submit aria-label="Send">
+      <svg>…arrow-up…</svg><span class="prompt-input-stop-icon" aria-hidden="true"></span>
+    </button>
+  </div>
+</form>
+  {% endcall %}
+
+  <h2 id="actions">Actions</h2>
+  <p>
+    Anything can go in <code>.prompt-input-tools</code>: small ghost buttons (<code>btn btn-ghost btn-icon btn-sm</code>),
+    <a href="/docs/components/toggle">toggles</a> with <code>aria-pressed</code> for tools the model may use, a native
+    <code>select.select.input-sm.prompt-input-select</code> for the model (it looks like a ghost button until hovered),
+    <a href="/docs/components/tooltip">tooltips</a> on icon buttons, or a <a href="/docs/components/dropdown">dropdown</a>.
+    Give them <code>type="button"</code> so they don't send the form.
+  </p>
+  <p>
+    The submit button is disabled while the box is empty: no text (spaces don't count) and no
+    <a href="/docs/components/attachment">attachment</a> inside. Put attachments in <code>.prompt-input-attachments</code>,
+    above the text; the button follows as they are added and removed.
+  </p>
+  {% call demo("flex-col flex-nowrap items-stretch") %}
+    <form class="prompt-input" data-prompt-input hx-boost="false" onsubmit="event.preventDefault()">
+      <div class="prompt-input-attachments">
+        <div class="attachment attachment-xs">
+          <div class="attachment-media">{{ icon("file-text") }}</div>
+          <div class="attachment-content"><p class="attachment-title">roadmap.pdf</p></div>
+          <div class="attachment-actions">
+            <button type="button" class="btn btn-ghost btn-icon btn-xs" aria-label="Remove roadmap.pdf" onclick="this.closest('.attachment').remove()">{{ icon("x") }}</button>
+          </div>
+        </div>
+      </div>
+      <textarea class="prompt-input-textarea" name="prompt" rows="1" data-textarea aria-label="Prompt" placeholder="Ask about the attachment…"></textarea>
+      <div class="prompt-input-actions">
+        <div class="prompt-input-tools">
+          <button type="button" class="btn btn-ghost btn-icon btn-sm" aria-label="Add">{{ icon("plus") }}</button>
+          <button type="button" class="btn btn-ghost btn-sm" data-toggle aria-pressed="true">{{ icon("sparkles") }} Think</button>
+        </div>
+        <button class="btn btn-primary btn-icon btn-sm btn-rounded prompt-input-submit" data-prompt-input-submit aria-label="Send">
+          {{ icon("arrow-up") }}<span class="prompt-input-stop-icon" aria-hidden="true"></span>
+        </button>
+      </div>
+    </form>
+  {% endcall %}
+  <p>Remove the attachment and the send button disables itself; type something and it comes back.</p>
+
+  <h2 id="mentions-and-commands">Mentions and commands</h2>
+  <p>
+    A <code>.prompt-input-menu</code> with <code>data-prompt-input-menu="@"</code> and <code>role="listbox"</code> (and an
+    <code>aria-label</code>) holds suggestions for one trigger character. Typing the trigger opens it above the box, and
+    the text typed after the trigger filters it: an option matches on its <code>data-value</code>, its text and its
+    <code>data-keywords</code>, ignoring case and accents. Each option is a <code>.prompt-input-option</code> with
+    <code>role="option"</code> and a <code>data-value</code>; inside, anything goes: an icon or an
+    <a href="/docs/components/avatar">avatar</a>, a <code>.prompt-input-option-label</code> and a
+    <code>.prompt-input-option-description</code>. A <code>.prompt-input-empty</code> with
+    <code>data-prompt-input-empty</code> shows when nothing matches; without one the menu closes instead.
+  </p>
+  <ul>
+    <li><strong>Where a trigger counts.</strong> <code>@</code> (and any other character) opens its menu at the start of the text or after a space, so an email address doesn't. <code>/</code> only counts as the very first character of the text, as in most chat apps, so a URL or a fraction never opens it. Set <code>data-prompt-input-position="start"</code> or <code>"word"</code> on a menu to choose.</li>
+    <li><strong>Picking</strong> replaces the trigger and the query with the trigger, the option's <code>data-value</code> and a space (<code>@grace </code>, <code>/summarize </code>). Give an option <code>data-insert</code> to insert other text.</li>
+    <li><strong>Groups:</strong> wrap options in a <code>.prompt-input-group</code> with <code>role="group"</code>, headed by a <code>.prompt-input-label</code> it names through <code>aria-labelledby</code>. A group with nothing left in it hides.</li>
+    <li>Menus open above the box, as wide as it, or below it when there is no room above. Add <code>.prompt-input-menu-down</code> to always open below.</li>
+  </ul>
+  {% call demo("min-h-[22rem] flex-col flex-nowrap items-stretch justify-end") %}
+    <form class="prompt-input" data-prompt-input hx-boost="false" onsubmit="event.preventDefault()">
+      <textarea class="prompt-input-textarea" name="prompt" rows="1" data-textarea aria-label="Prompt" placeholder="Type @ for files, / for commands"></textarea>
+      <div class="prompt-input-actions">
+        <button class="btn btn-primary btn-icon btn-sm btn-rounded prompt-input-submit" data-prompt-input-submit aria-label="Send">
+          {{ icon("arrow-up") }}<span class="prompt-input-stop-icon" aria-hidden="true"></span>
+        </button>
+      </div>
+      <div class="prompt-input-menu" data-prompt-input-menu="@" role="listbox" aria-label="Files" hidden>
+        <div class="prompt-input-group" role="group" aria-labelledby="pi-files-recent">
+          <div class="prompt-input-label" id="pi-files-recent">Recent</div>
+          <div class="prompt-input-option" role="option" data-value="README.md">{{ icon("file-text") }}<span class="prompt-input-option-label">README.md</span></div>
+          <div class="prompt-input-option" role="option" data-value="package.json">{{ icon("file") }}<span class="prompt-input-option-label">package.json</span></div>
+        </div>
+        <div class="prompt-input-group" role="group" aria-labelledby="pi-files-folders">
+          <div class="prompt-input-label" id="pi-files-folders">Folders</div>
+          <div class="prompt-input-option" role="option" data-value="src/" data-insert="@src/">{{ icon("folder") }}<span class="prompt-input-option-label">src</span><span class="prompt-input-option-description">42 files</span></div>
+          <div class="prompt-input-option" role="option" data-value="docs/" data-insert="@docs/">{{ icon("folder") }}<span class="prompt-input-option-label">docs</span><span class="prompt-input-option-description">17 files</span></div>
+        </div>
+        <p class="prompt-input-empty" data-prompt-input-empty hidden>No files found.</p>
+      </div>
+      <div class="prompt-input-menu" data-prompt-input-menu="/" role="listbox" aria-label="Commands" hidden>
+        {% for c in commands %}
+        <div class="prompt-input-option" role="option" data-value="{{ c.value }}">{{ icon(c.icon) }}<span class="prompt-input-option-label">{{ c.label }}</span><span class="prompt-input-option-description">{{ c.description }}</span></div>
+        {% endfor %}
+      </div>
+    </form>
+  {% endcall %}
+  <p>
+    The folders insert <code>@src/</code> with no space after it (<code>data-insert</code>), ready for a path. The
+    textarea becomes a <code>role="combobox"</code> (still <code>aria-multiline</code>) whose
+    <code>aria-expanded</code>, <code>aria-controls</code> and <code>aria-activedescendant</code> follow the open menu, so
+    screen readers announce the highlighted suggestion while focus stays in the text.
+  </p>
+
+  <h2 id="server">Suggestions from the server</h2>
+  <p>
+    For a list too long to put in the page, add <code>data-prompt-input-src</code> to the menu and leave it empty. As the
+    user types, the behaviour fetches <code>src?q=&lt;query&gt;&amp;trigger=@</code> (debounced: 150 ms, or
+    <code>data-prompt-input-delay</code>; older answers are dropped), and the returned option markup replaces the menu's
+    content. The server does the filtering. Return a <code>.prompt-input-empty</code> with
+    <code>data-prompt-input-empty</code> to say nothing matched, or nothing to close the menu. The request carries
+    <code>HX-Request: true</code>, so a route shared with htmx can return fragments as usual.
+  </p>
+  {% call demo("min-h-[22rem] flex-col flex-nowrap items-stretch justify-end") %}
+    <form class="prompt-input" data-prompt-input hx-boost="false" onsubmit="event.preventDefault()">
+      <textarea class="prompt-input-textarea" name="prompt" rows="1" data-textarea aria-label="Prompt" placeholder="Type @ and a name: Ada, Grace, Tim…"></textarea>
+      <div class="prompt-input-actions">
+        <button class="btn btn-primary btn-icon btn-sm btn-rounded prompt-input-submit" data-prompt-input-submit aria-label="Send">
+          {{ icon("arrow-up") }}<span class="prompt-input-stop-icon" aria-hidden="true"></span>
+        </button>
+      </div>
+      <div class="prompt-input-menu" data-prompt-input-menu="@" data-prompt-input-src="/api/prompt-input/mentions" role="listbox" aria-label="People" hidden></div>
+    </form>
+  {% endcall %}
+  <p>
+    The endpoint answers with plain option markup, the same as inline options:
+    <code>&lt;div class="prompt-input-option" role="option" data-value="ada"&gt;…&lt;/div&gt;</code>. This demo's
+    endpoint is part of the dev server, so it only answers on a running site, not on a static host.
+  </p>
+
+  <h2 id="htmx">With htmx</h2>
+  <p>
+    Put <code>hx-post</code> on the form. <kbd class="kbd">Enter</kbd> sends it with <code>requestSubmit()</code>, so
+    htmx, native validation (<code>required</code>, <code>maxlength</code>) and your own <code>submit</code> listeners all
+    run, and every field in the form goes along: the prompt, the model select, hidden inputs for toggles or attachment ids.
+  </p>
+  <ul>
+    <li>While the form's request runs (from htmx's <code>htmx:before:request</code> to <code>htmx:finally:request</code>), the form has <code>data-state="loading"</code>. <code>htmx:finally:request</code> is used rather than <code>htmx:after:request</code> because htmx 4 also fires it after an error or an abort.</li>
+    <li>In the loading state the submit button shows the stop square, is labelled "Stop" (<code>data-prompt-input-stop-label</code> on the button changes that), and <kbd class="kbd">Enter</kbd> sends nothing.</li>
+    <li>Clicking stop fires <code>prompt-input:stop</code> on the form, then sends htmx an <code>htmx:abort</code>, which cancels the request. Call <code>preventDefault()</code> on the event to stop the answer your own way instead (say, by telling a streaming server to stop).</li>
+    <li>When the response is under 400 the textarea is cleared. An error keeps the text, so the user can try again. Add <code>data-prompt-input-clear="false"</code> to keep it always.</li>
+  </ul>
+  <p>
+    Streaming the answer (server-sent events, or a request that appends as it goes) is the server's business; the prompt
+    input only needs the request's start and end. An app that sends prompts without htmx sets and removes
+    <code>data-state="loading"</code> on the form itself; the button follows, and stop then clears the state after firing
+    its event.
+  </p>
+  {% call code("html", title="A stop that tells the server") %}
+<form class="prompt-input" data-prompt-input hx-post="/chat" hx-target="#messages" hx-swap="beforeend"
+      hx-on:prompt-input:stop="fetch('/chat/stop', { method: 'POST' })">
+  …
+</form>
+  {% endcall %}
+
+  <h2 id="keyboard">Keyboard</h2>
+  <div class="table-wrap not-prose">
+    <table class="table">
+      <thead><tr><th>Key</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr><td><kbd class="kbd">Enter</kbd></td><td class="text-muted-foreground">Send the prompt (nothing while empty or loading)</td></tr>
+        <tr><td><kbd class="kbd">Shift</kbd> <kbd class="kbd">Enter</kbd></td><td class="text-muted-foreground">New line</td></tr>
+        <tr><td><kbd class="kbd">@</kbd>, <kbd class="kbd">/</kbd></td><td class="text-muted-foreground">Open that trigger's menu; the text after it filters the menu</td></tr>
+        <tr><td><kbd class="kbd">↓</kbd> <kbd class="kbd">↑</kbd></td><td class="text-muted-foreground">Menu open: move the highlight (wrapping round)</td></tr>
+        <tr><td><kbd class="kbd">Enter</kbd>, <kbd class="kbd">Tab</kbd></td><td class="text-muted-foreground">Menu open: insert the highlighted suggestion</td></tr>
+        <tr><td><kbd class="kbd">Esc</kbd></td><td class="text-muted-foreground">Close the menu; it stays closed until the next trigger</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>
+    The first suggestion is highlighted as soon as a menu opens, so <kbd class="kbd">Enter</kbd> takes it. While an IME
+    composition is in progress, <kbd class="kbd">Enter</kbd> is left to the IME.
+  </p>
+
+  <h2 id="events">Events</h2>
+  <p>Both events bubble from the form.</p>
+  <ul>
+    <li><code>prompt-input:select</code>, after a suggestion is inserted, with <code>detail</code> <code>&#123; trigger, value, option, query &#125;</code>: the trigger character, the option's value, the option element and the text that was typed after the trigger.</li>
+    <li><code>prompt-input:stop</code>, when the stop button is clicked. Cancelable: <code>preventDefault()</code> keeps the request running and the loading state on.</li>
+  </ul>
+  <p>
+    Picks are inserted as plain text, which the server can read straight from the prompt. To show them as chips instead,
+    or to send the picked ids, listen for <code>prompt-input:select</code>:
+  </p>
+  {% call code("js", title="app.js") %}
+document.addEventListener("prompt-input:select", (e) => {
+  const { trigger, value } = e.detail;
+  if (trigger !== "@") return;
+  // Send the mentioned ids with the prompt, as hidden fields in the form.
+  const input = Object.assign(document.createElement("input"), { type: "hidden", name: "mentions", value });
+  e.target.append(input);
+});
+  {% endcall %}
+
+  <h2 id="macro">Nunjucks macro</h2>
+  <p>
+    The <code>prompt_input</code> macro writes the form, the textarea, the toolbar with its submit button and the menus.
+    The call body goes in the toolbar. <code>mentions</code> and <code>commands</code> take options as
+    <code>&#123;value, label, description, keywords, icon&#125;</code>; <code>mentions_src</code> and
+    <code>commands_src</code> fetch them from the server instead.
+  </p>
+  {% call demo("min-h-80 flex-col flex-nowrap items-stretch justify-end") %}
+    {% call prompt_input(id="pi-macro", placeholder="Send a message", mentions=people, commands=commands, attrs='hx-boost="false" onsubmit="event.preventDefault()"') %}
+      <button type="button" class="btn btn-ghost btn-icon btn-sm" aria-label="Attach files">{{ icon("paperclip") }}</button>
+    {% endcall %}
+  {% endcall %}
+  {% call code("jinja", title="page.html") %}
+    {% raw %}{% from "components/prompt-input/prompt-input.html" import prompt_input %}
+
+{% call prompt_input(action="/chat", target="#messages", swap="beforeend",
+                     mentions=json("data/people.json"), commands_src="/chat/commands") %}
+  <button type="button" class="btn btn-ghost btn-icon btn-sm" aria-label="Attach files">{{ icon("paperclip") }}</button>
+{% endcall %}{% endraw %}
+  {% endcall %}
+  <p>
+    Other options: <code>name</code>, <code>placeholder</code>, <code>label</code>, <code>rows</code>,
+    <code>maxlength</code> and <code>required</code> for the textarea; <code>attachments=true</code> for an empty
+    attachments row (id <code>&lt;id&gt;-attachments</code>); <code>clear=false</code>; <code>submit_label</code> and
+    <code>stop_label</code>; <code>id</code>, <code>class</code> and <code>attrs</code> for the form.
+  </p>
+
+  <h2 id="reference">Reference</h2>
+  {{ classes([
+    [".prompt-input", "The box: a <form> with data-prompt-input. One focus ring for all of it."],
+    [".prompt-input-textarea", "The text. Grows with its content up to max-h-48. Add data-textarea for older browsers."],
+    [".prompt-input-attachments", "A row of attachments above the text; takes no room while empty."],
+    [".prompt-input-actions", "The toolbar under the text."],
+    [".prompt-input-tools", "Buttons, toggles and selects at the start of the toolbar."],
+    [".prompt-input-select", "A native select.select.input-sm that looks like a ghost button (the model)."],
+    [".prompt-input-submit", "The send button, at the end of the toolbar. Add data-prompt-input-submit."],
+    [".prompt-input-stop-icon", "The square shown in the submit button while loading."],
+    [".prompt-input-menu", "A listbox of suggestions for one trigger, above the box. data-prompt-input-menu=\"@\"."],
+    [".prompt-input-menu-down", "Always open the menu below the box (otherwise it flips below on its own when there is no room above: data-side=\"bottom\")."],
+    [".prompt-input-option", "One suggestion (role=\"option\", data-value). data-keywords: extra words to match; data-insert: the text to insert."],
+    [".prompt-input-option-label / -description", "The option's name, and muted text at its end."],
+    [".prompt-input-group / .prompt-input-label", "A group of options (role=\"group\") and its heading."],
+    [".prompt-input-empty", "Shown when nothing matches. Add data-prompt-input-empty."],
+    ["data-state=\"loading\"", "On the form while its request runs: the submit button becomes stop."],
+    ["data-prompt-input-clear=\"false\"", "Keep the text after a successful send."],
+    ["data-prompt-input-stop-label", "On the submit button: its label while loading (default \"Stop\")."],
+    ["data-prompt-input-position", "On a menu: \"start\" (only as the first character; the default for /) or \"word\" (after a space)."],
+    ["data-prompt-input-src / -delay", "On a menu: fetch options from src?q=…&trigger=…, after delay ms (150)."],
+    ["prompt-input:select", "Event with detail { trigger, value, option, query }."],
+    ["prompt-input:stop", "Cancelable event when stop is clicked; then htmx:abort."]
+  ], heading="Class / attribute") }}
+{% endblock %}

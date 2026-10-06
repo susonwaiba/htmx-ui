@@ -1,0 +1,56 @@
+{# Prompt input: the text box of a chat with an AI model (behaviour: prompt-input.ts).
+   {% from "components/prompt-input/prompt-input.html" import prompt_input %}
+   {{ prompt_input(action="/api/chat", target="#messages") }}
+   {% call prompt_input(action="/api/chat", target="#messages", mentions=people, commands=commands) %}
+     <button type="button" class="btn btn-ghost btn-icon btn-sm" aria-label="Attach files">{{ icon("paperclip") }}</button>
+   {% endcall %}
+   The call body goes in the toolbar, before the submit button (attach, tools, a model select).
+   action: hx-post (target → hx-target, swap → hx-swap). name, placeholder, label (accessible name),
+   rows, maxlength, required: on the textarea. mentions / commands: options for the "@" and "/"
+   menus, each {value, label, description?, keywords?, icon?}; mentions_src / commands_src fetch
+   them from the server instead. attachments: an empty .prompt-input-attachments row (id
+   "<id>-attachments") to fill. clear=false keeps the text after a send. submit_label /
+   stop_label: the submit button's names. id: on the form, and the prefix of inner ids.
+   class: on the form. attrs: extra attributes on the form. #}
+
+{% macro _menu(trigger, label, items, src, empty) %}
+{% from "components/icon/icon.html" import icon %}
+<div class="prompt-input-menu" data-prompt-input-menu="{{ trigger }}"{% if src %} data-prompt-input-src="{{ src }}"{% endif %} role="listbox" aria-label="{{ label }}" hidden>
+  {% for o in items or [] %}
+  <div class="prompt-input-option" role="option" data-value="{{ o.value }}"{% if o.keywords %} data-keywords="{{ o.keywords }}"{% endif %}{% if o.disabled %} aria-disabled="true"{% endif %}>
+    {% if o.icon %}{{ icon(o.icon) }}{% endif %}
+    <span class="prompt-input-option-label">{{ o.label or o.value }}</span>
+    {% if o.description %}<span class="prompt-input-option-description">{{ o.description }}</span>{% endif %}
+  </div>
+  {% endfor %}
+  {% if not src %}
+  <p class="prompt-input-empty" data-prompt-input-empty hidden>{{ empty }}</p>
+  {% endif %}
+</div>
+{%- endmacro %}
+
+{% macro prompt_input(name="prompt", placeholder="Ask anything…", label="Prompt", id=none, action=none, target=none, swap=none, mentions=none, commands=none, mentions_src=none, commands_src=none, attachments=false, clear=true, rows=1, maxlength=none, required=false, submit_label="Send", stop_label="Stop", class="", attrs="") %}
+{% from "components/icon/icon.html" import icon %}
+<form class="prompt-input{% if class %} {{ class }}{% endif %}" data-prompt-input{% if id %} id="{{ id }}"{% endif %}{% if action %} hx-post="{{ action }}"{% endif %}{% if target %} hx-target="{{ target }}"{% endif %}{% if swap %} hx-swap="{{ swap }}"{% endif %}{% if not clear %} data-prompt-input-clear="false"{% endif %}{% if attrs %} {{ attrs | safe }}{% endif %}>
+  {% if attachments %}
+  <div class="prompt-input-attachments"{% if id %} id="{{ id }}-attachments"{% endif %}></div>
+  {% endif %}
+  <textarea class="prompt-input-textarea" name="{{ name }}" rows="{{ rows }}" placeholder="{{ placeholder }}" aria-label="{{ label }}" data-textarea{% if id %} id="{{ id }}-textarea"{% endif %}{% if maxlength %} maxlength="{{ maxlength }}"{% endif %}{% if required %} required{% endif %}></textarea>
+  <div class="prompt-input-actions">
+    {% if caller %}
+    <div class="prompt-input-tools">
+      {{ caller() }}
+    </div>
+    {% endif %}
+    <button class="btn btn-primary btn-icon btn-sm btn-rounded prompt-input-submit" data-prompt-input-submit aria-label="{{ submit_label }}" data-prompt-input-stop-label="{{ stop_label }}">
+      {{ icon("arrow-up") }}<span class="prompt-input-stop-icon" aria-hidden="true"></span>
+    </button>
+  </div>
+  {% if mentions or mentions_src %}
+  {{ _menu("@", "Mentions", mentions, mentions_src, "No matches.") }}
+  {% endif %}
+  {% if commands or commands_src %}
+  {{ _menu("/", "Commands", commands, commands_src, "No commands found.") }}
+  {% endif %}
+</form>
+{%- endmacro %}

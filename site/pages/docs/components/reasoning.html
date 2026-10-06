@@ -1,0 +1,186 @@
+{% extends "layouts/docs.html" %}
+{% from "docs/macros.html" import demo, classes %}
+{% from "components/code/code.html" import code %}
+{% from "components/icon/icon.html" import icon %}
+{% set title = "Reasoning" %}
+{% set description = "A collapsible for an AI model's reasoning: open and shimmering while it streams, closed with how long it thought once it's done." %}
+
+{% block content %}
+  {% call demo("block") %}
+    <div class="mx-auto w-full max-w-lg">
+      <details class="reasoning" data-reasoning data-reasoning-duration="4" open>
+        <summary class="reasoning-trigger">{{ icon("sparkles") }}<span class="reasoning-label">Thought for 4 seconds</span></summary>
+        <div class="reasoning-content">
+          <p>The user wants to know why the build is slower since Tuesday.</p>
+          <ol>
+            <li>Compare the two CI runs: the <code>install</code> step went from 20s to 2m.</li>
+            <li>The lockfile changed on Tuesday, so the dependency cache missed.</li>
+            <li>Suggest keying the cache on the lockfile's hash.</li>
+          </ol>
+        </div>
+      </details>
+    </div>
+  {% endcall %}
+
+  <h2 id="markup">Markup</h2>
+  <ul>
+    <li><code>.reasoning</code> goes on a <code>&lt;details&gt;</code>, so it opens and closes with no JavaScript. <code>data-reasoning</code> adds the streaming behaviour.</li>
+    <li>Its <code>&lt;summary class="reasoning-trigger"&gt;</code> holds an optional icon and the <code>.reasoning-label</code>, the text the behaviour rewrites. The chevron is drawn for you and turns while open.</li>
+    <li><code>.reasoning-content</code> holds the reasoning: paragraphs, lists and code are styled, with a line down its side (<code>.reasoning-plain</code> on the <code>&lt;details&gt;</code> drops it).</li>
+    <li>It opens and closes smoothly where the browser can animate to <code>height: auto</code>, and snaps for readers who prefer reduced motion.</li>
+  </ul>
+
+  <h2 id="streaming">Streaming and auto-close</h2>
+  <p>
+    While <code>data-streaming</code> is on the <code>&lt;details&gt;</code> it stays open, is <code>aria-busy</code>, and its label is a
+    <a href="/docs/components/loader">shimmering</a> <span class="whitespace-nowrap">"Thinking…"</span>. When the attribute goes, the label becomes
+    <span class="whitespace-nowrap">"Thought for N seconds"</span>, timed from when it started streaming, and a second later it closes.
+    The attribute is watched, so whatever removes it (a script, an htmx swap) ends the stream.
+  </p>
+  {% call demo("block") %}
+    <div class="mx-auto flex w-full max-w-lg flex-col items-start gap-4">
+      <button type="button" class="btn btn-outline btn-sm" onclick="streamReasoning(this)">{{ icon("play") }} Ask</button>
+      <details class="reasoning" id="reasoning-live" data-reasoning>
+        <summary class="reasoning-trigger">{{ icon("sparkles") }}<span class="reasoning-label">Reasoning</span></summary>
+        <div class="reasoning-content"><p>Press Ask to stream some reasoning.</p></div>
+      </details>
+    </div>
+    <script>
+      function streamReasoning(button) {
+        const reasoning = document.getElementById("reasoning-live");
+        const content = reasoning.querySelector(".reasoning-content");
+        const steps = ["Reading the question.", "Checking the release notes for 0.2.", "Writing a short answer."];
+        button.disabled = true;
+        content.replaceChildren();
+        reasoning.setAttribute("data-streaming", "");
+        steps.forEach((step, i) =>
+          setTimeout(() => content.insertAdjacentHTML("beforeend", `<p>${step}</p>`), 800 * (i + 1)),
+        );
+        setTimeout(() => {
+          reasoning.removeAttribute("data-streaming");
+          button.disabled = false;
+        }, 800 * (steps.length + 1));
+      }
+    </script>
+  {% endcall %}
+  <p>
+    Open or close it by hand while it streams, or click it during the moment before it closes, and it is left as you put it.
+    A reasoning that starts without <code>data-streaming</code> is left as written: the label isn't touched and it doesn't close.
+  </p>
+  {{ classes([
+    ["data-reasoning-close-delay=\"1000\"", "Milliseconds between the end of the stream and closing."],
+    ["data-reasoning-auto-close=\"false\"", "Stay open when the stream ends."],
+    ["data-reasoning-streaming-label=\"Thinking…\"", "The shimmering label while it streams."],
+    ["data-reasoning-done-label=\"Thought for {s} seconds\"", "The label once it's done; {s} is the seconds."],
+    ["data-reasoning-duration=\"4\"", "Seconds it took. Set it from the server to use the model's own timing; the behaviour fills it in otherwise."]
+  ], heading="Attribute") }}
+
+  <h3 id="htmx">From the server with htmx</h3>
+  <p>
+    Poll for the reasoning so far: each response is the whole <code>&lt;details&gt;</code> again, swapped with
+    <code>hx-swap="outerHTML"</code>, still streaming and asking for the next one. Give it an <code>id</code>: the
+    replacement then carries on the first one's timer and whether the reader opened or closed it. The last response
+    leaves out <code>data-streaming</code> and the polling, and the reasoning closes as above.
+  </p>
+  {% call code("html") %}
+    <!-- each response from /chat/7/reasoning while the model thinks -->
+    <details class="reasoning" id="reasoning-7" data-reasoning data-streaming open
+             hx-get="/chat/7/reasoning" hx-trigger="load delay:500ms" hx-swap="outerHTML">
+      <summary class="reasoning-trigger">
+        <span class="reasoning-label"><span class="loader loader-text-shimmer">Thinking…</span></span>
+      </summary>
+      <div class="reasoning-content"><p>The user wants…</p></div>
+    </details>
+
+    <!-- the last one: done, so no data-streaming and no polling -->
+    <details class="reasoning" id="reasoning-7" data-reasoning data-reasoning-duration="6">
+      <summary class="reasoning-trigger"><span class="reasoning-label">Thought for 6 seconds</span></summary>
+      <div class="reasoning-content"><p>The user wants…</p><p>So the answer is…</p></div>
+    </details>
+  {% endcall %}
+  <p>
+    Streaming over SSE or a WebSocket instead, append the text to <code>.reasoning-content</code> as it arrives and
+    remove <code>data-streaming</code> when the reasoning ends.
+  </p>
+
+  <h2 id="manual">Manual control</h2>
+  <p>
+    Leave out <code>data-reasoning</code> (or <code>data-streaming</code>) and it is a plain disclosure: <code>open</code> starts it open,
+    and the reader toggles it. Script it like any <code>&lt;details&gt;</code>, with <code>el.open = true</code> and the
+    <code>toggle</code> event. With the behaviour, <code>reasoning:start</code> and <code>reasoning:end</code> bubble from it,
+    the second with <code>detail.duration</code> in seconds.
+  </p>
+  {% call demo("block") %}
+    <div class="mx-auto flex w-full max-w-lg flex-col gap-4">
+      <details class="reasoning">
+        <summary class="reasoning-trigger"><span class="reasoning-label">Show reasoning</span></summary>
+        <div class="reasoning-content"><p>Closed until the reader opens it.</p></div>
+      </details>
+      <details class="reasoning reasoning-plain" open>
+        <summary class="reasoning-trigger">{{ icon("sparkles") }}<span class="reasoning-label">Explanation</span></summary>
+        <div class="reasoning-content"><p>Open from the start, with no line beside it.</p></div>
+      </details>
+    </div>
+  {% endcall %}
+
+  <h2 id="message">With a message</h2>
+  <p>Put it in a <code>.message-plain</code> body, above the reply, as in the <a href="/docs/components/message#ai">Message</a> component's AI chat.</p>
+  {% call demo("block") %}
+    <div class="message-list mx-auto w-full max-w-lg">
+      <div class="message" data-align="end">
+        <div class="message-body"><div class="message-content">Is 1013 prime?</div></div>
+      </div>
+      <div class="message message-plain">
+        <span class="avatar message-avatar" role="img" aria-label="Assistant"><span class="avatar-fallback" aria-hidden="true">{{ icon("bot") }}</span></span>
+        <div class="message-body">
+          <details class="reasoning" data-reasoning data-reasoning-duration="2">
+            <summary class="reasoning-trigger">{{ icon("sparkles") }}<span class="reasoning-label">Thought for 2 seconds</span></summary>
+            <div class="reasoning-content">
+              <p>√1013 ≈ 31.8, so try the primes up to 31.</p>
+              <p>None of 2, 3, 5, 7, 11, 13, 17, 19, 23, 29 or 31 divides it.</p>
+            </div>
+          </details>
+          <div class="message-content">Yes, 1013 is prime: no prime up to its square root divides it.</div>
+        </div>
+      </div>
+    </div>
+  {% endcall %}
+
+  <h2 id="macro">Macro</h2>
+  <p>
+    <code>reasoning()</code> writes the markup, with the label worked out from <code>duration</code> and the options as data attributes.
+    The call body is the content.
+  </p>
+  {% call code("jinja") %}
+    {% raw %}
+    {% from "components/reasoning/reasoning.html" import reasoning %}
+
+    {% call reasoning(duration=4) %}<p>The user wants…</p>{% endcall %}
+    {% call reasoning(streaming=true, id="reasoning-7") %}<p>The user wants…</p>{% endcall %}
+    {% call reasoning("Explanation", open=true, plain=true, icon=none) %}…{% endcall %}
+    {% endraw %}
+  {% endcall %}
+  {{ classes([
+    ["label=none", "The summary text. Defaults to \"Thought for N seconds\" with a duration, else \"Reasoning\"."],
+    ["streaming=false", "Adds data-streaming: open, with the shimmering streaming_label."],
+    ["open=false", "Start open."],
+    ["duration=none", "Seconds it took (data-reasoning-duration)."],
+    ["streaming_label / done_label", "The labels while streaming and once done ({s} = seconds)."],
+    ["auto_close=true / close_delay=none", "Whether, and after how many ms, it closes when the stream ends."],
+    ["icon=\"sparkles\"", "An icon before the label; none for none."],
+    ["plain=false", "No line beside the content."],
+    ["id / attrs / class", "An id (needed when htmx replaces it mid-stream), more attributes as a dict, more classes."]
+  ], heading="Argument") }}
+
+  <h2 id="reference">Reference</h2>
+  {{ classes([
+    [".reasoning", "On a <details>: the whole component."],
+    ["[data-reasoning]", "Adds the behaviour: open while streaming, label and close at the end."],
+    ["[data-streaming]", "Still streaming: open, aria-busy, shimmering label."],
+    [".reasoning-trigger", "On the <summary>: icon, label and chevron."],
+    [".reasoning-label", "The summary text, rewritten by the behaviour."],
+    [".reasoning-content", "The reasoning, with a line beside it."],
+    [".reasoning-plain", "On .reasoning: no line beside the content."],
+    ["reasoning:start / reasoning:end", "Events, bubbling; reasoning:end has detail.duration (seconds)."]
+  ]) }}
+{% endblock %}

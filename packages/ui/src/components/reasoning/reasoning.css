@@ -1,0 +1,87 @@
+/* AI reasoning, folded away under a summary. Built on <details>/<summary>: works without JavaScript.
+
+   <details class="reasoning" data-reasoning [data-streaming] [open]>
+     <summary class="reasoning-trigger">
+       {{ icon("sparkles") }}                                                   optional
+       <span class="reasoning-label">Thought for 4 seconds</span>               the text the behaviour rewrites
+     </summary>
+     <div class="reasoning-content">…paragraphs, lists, code…</div>
+   </details>
+
+   While streaming the label is a shimmering loader:
+     <span class="reasoning-label"><span class="loader loader-text-shimmer">Thinking…</span></span>
+
+   The behaviour (reasoning.ts) opens it while data-streaming is present and, once that goes, writes
+   "Thought for N seconds" into .reasoning-label and closes it again after a moment (unless the reader
+   toggled it meanwhile). Options on the <details>: data-reasoning-close-delay="1000" (ms),
+   data-reasoning-auto-close="false", data-reasoning-done-label="Thought for {s}s",
+   data-reasoning-streaming-label="Thinking…", data-reasoning-duration="4" (seconds; set by the
+   server, or by the behaviour when the stream ends).
+   The chevron is drawn by the trigger (::after) and turns while open.
+   .reasoning-plain drops the line beside the content. */
+@layer components {
+  .reasoning {
+    @apply w-full text-sm text-muted-foreground;
+  }
+  .reasoning-trigger {
+    @apply inline-flex max-w-full cursor-pointer list-none items-center gap-1.5 rounded-md py-0.5 text-sm
+      text-muted-foreground transition-colors select-none hover:text-foreground focus-visible:outline-2
+      focus-visible:outline-offset-2 focus-visible:outline-ring [&::-webkit-details-marker]:hidden
+      [&>svg]:size-4 [&>svg]:shrink-0;
+  }
+  /* Chevron, drawn from the text colour */
+  .reasoning-trigger::after {
+    @apply size-3.5 shrink-0 bg-current transition-[rotate] duration-200 content-[''] motion-reduce:transition-none;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")
+      center / contain no-repeat;
+  }
+  .reasoning[open] > .reasoning-trigger::after {
+    rotate: 180deg;
+  }
+  .reasoning-label {
+    @apply min-w-0 truncate;
+  }
+
+  /* The text, with a line down its start side. Padding rather than margin, so the open/close
+     animation below measures all of it. */
+  .reasoning-content {
+    @apply relative flex flex-col gap-2 ps-3 pt-2 text-sm leading-relaxed text-muted-foreground
+      [&_:is(ol,ul)]:flex [&_:is(ol,ul)]:flex-col [&_:is(ol,ul)]:gap-1 [&_:is(ol,ul)]:ps-5 [&_ol]:list-decimal
+      [&_ul]:list-disc [&_strong]:font-medium [&_strong]:text-foreground;
+  }
+  .reasoning-content::before {
+    @apply absolute start-0 top-2 bottom-0 w-0.5 rounded-full bg-border content-[''];
+  }
+  .reasoning-content :not(pre) > code {
+    @apply rounded bg-muted px-1 py-0.5 font-mono text-[0.85em] text-foreground;
+  }
+  .reasoning-content pre {
+    @apply overflow-x-auto rounded-[calc(var(--radius)-2px)] bg-muted p-2 font-mono text-xs;
+  }
+  .reasoning-plain .reasoning-content {
+    @apply ps-0 before:hidden;
+  }
+}
+
+/* Smooth open/close where the browser can animate to height: auto (Chromium); elsewhere it
+   just snaps. Outside the layer list so browsers without ::details-content skip only this. */
+@supports selector(::details-content) {
+  .reasoning {
+    interpolate-size: allow-keywords;
+  }
+  .reasoning::details-content {
+    height: 0;
+    overflow: clip;
+    transition:
+      height 200ms ease,
+      content-visibility 200ms allow-discrete;
+  }
+  .reasoning[open]::details-content {
+    height: auto;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .reasoning::details-content {
+      transition: none;
+    }
+  }
+}

@@ -1,0 +1,48 @@
+/* A floating button that jumps to the bottom (or top) of a scroll container or the page. It
+   appears once the user has scrolled away from that edge and fades out near it. The behaviour
+   (scroll-button.ts) sets data-state="visible" | "hidden" (hidden is also inert).
+
+   In a box that scrolls (a chat transcript, a log): lay the button over the box. The box is
+   found as a [data-scroll-container] sibling (or set data-scroll-target="#log"); give it
+   tabindex="0" so keyboard users can scroll it, and it takes focus back from the button.
+   <div class="relative">
+     <div class="h-80 overflow-y-auto" data-scroll-container tabindex="0">…</div>
+     <button type="button" class="btn btn-outline btn-icon scroll-button scroll-button-float"
+       data-scroll-button aria-label="Scroll to bottom">{{ icon("arrow-down") }}</button>
+   </div>
+
+   Back to the top of the page: fixed to the viewport's bottom-right corner.
+   <button type="button" class="btn btn-outline btn-icon scroll-button scroll-button-fixed"
+     data-scroll-button="top" data-scroll-threshold="600" aria-label="Back to top">{{ icon("arrow-up") }}</button>
+
+   Options: data-scroll-button="bottom" (default) | "top"; data-scroll-target="<selector>";
+   data-scroll-threshold="200" (px from the edge before it shows); data-scroll-behavior="smooth"
+   (default, instant under reduced motion) | "instant".
+   Placement: .scroll-button-float (centred at the bottom of the nearest positioned ancestor;
+   with data-scroll-button="top", at its top), .scroll-button-fixed (the viewport's corner), or
+   position it yourself. */
+@layer components {
+  .scroll-button {
+    @apply z-10 rounded-full shadow-md;
+    transition-property: color, background-color, border-color, opacity, scale, translate;
+    transition-duration: var(--motion-duration-normal);
+    transition-timing-function: var(--motion-ease-out);
+  }
+  .scroll-button[data-state="hidden"] {
+    @apply pointer-events-none opacity-0;
+    scale: 0.9;
+  }
+
+  /* Centred over the bottom of a relative wrapper, or its top for a "top" button. */
+  .scroll-button-float {
+    @apply absolute bottom-4 left-1/2 -translate-x-1/2;
+  }
+  .scroll-button-float[data-scroll-button="top"] {
+    @apply top-4 bottom-auto;
+  }
+
+  /* The viewport's bottom-right corner (bottom-left in right-to-left text). */
+  .scroll-button-fixed {
+    @apply fixed end-6 bottom-6 z-40;
+  }
+}

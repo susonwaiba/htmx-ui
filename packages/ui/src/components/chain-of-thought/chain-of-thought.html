@@ -1,0 +1,59 @@
+{# Chain of thought: steps on a line, each folding its details away (pure CSS, <details>).
+   {% from "components/chain-of-thought/chain-of-thought.html" import chain_of_thought, chain_of_thought_step %}
+   {% call chain_of_thought() %}
+     {% call chain_of_thought_step("Searching the docs", status="complete", icon="search", open=true) %}
+       <ul class="chain-of-thought-step-items"><li class="chain-of-thought-step-item">…</li></ul>
+     {% endcall %}
+     {{ chain_of_thought_step("Writing the answer", status="active") }}       no call body: a plain row
+   {% endcall %}
+
+   chain_of_thought(label=none, open=true, icon=none, plain=false, attrs=none, class="")
+     label            a summary that folds the whole chain away (<details class="chain-of-thought">);
+                      none: a plain <div>
+     open=true        with a label: start open
+     icon=none        with a label: an icon before it
+     plain=false      .chain-of-thought-plain: no line between the steps
+   chain_of_thought_step(label, status=none, icon=none, open=false, attrs=none, class="")
+     status           "complete" | "active" | "pending" | "error"
+     icon             an icon name; none picks one from the status: check (complete), a spinner (active),
+                      x-circle (error), else a dot. false: always a dot.
+     open=false       start with its details showing (only with a call body) #}
+{% from "components/icon/icon.html" import icon as icon_svg %}
+{% from "components/spinner/spinner.html" import spinner %}
+
+{% macro _attrs(attrs) %}{% if attrs %}{% for k, v in attrs %} {{ k }}="{{ v }}"{% endfor %}{% endif %}{% endmacro %}
+
+{% macro chain_of_thought(label=none, open=true, icon=none, plain=false, attrs=none, class="") %}
+{% set cls = "chain-of-thought" ~ (" chain-of-thought-plain" if plain else "") ~ ((" " ~ class) if class else "") %}
+{% if label %}
+<details class="{{ cls }}"{% if open %} open{% endif %}{{ _attrs(attrs) }}>
+  <summary class="chain-of-thought-header">{% if icon %}{{ icon_svg(icon) }}{% endif %}<span>{{ label }}</span></summary>
+  <div class="chain-of-thought-content">{{ caller() if caller else "" }}</div>
+</details>
+{%- else %}
+<div class="{{ cls }}"{{ _attrs(attrs) }}>{{ caller() if caller else "" }}</div>
+{%- endif %}
+{%- endmacro %}
+
+{% macro chain_of_thought_step(label, status=none, icon=none, open=false, attrs=none, class="") %}
+{% set tag = "details" if caller else "div" %}
+{% set head = "summary" if caller else "div" %}
+<{{ tag }} class="chain-of-thought-step{% if class %} {{ class }}{% endif %}"
+  {%- if status %} data-status="{{ status }}"{% endif %}
+  {%- if status == "active" %} aria-current="step"{% endif %}
+  {%- if caller and open %} open{% endif %}{{ _attrs(attrs) }}>
+  <{{ head }} class="chain-of-thought-step-header">
+    <span class="chain-of-thought-step-icon">
+      {%- if icon %}{{ icon_svg(icon) }}
+      {%- elif icon == none and status == "complete" %}{{ icon_svg("check") }}
+      {%- elif icon == none and status == "active" %}{{ spinner(label=none) }}
+      {%- elif icon == none and status == "error" %}{{ icon_svg("x-circle") }}
+      {%- endif -%}
+    </span>
+    <span class="chain-of-thought-step-label">{{ label }}</span>
+  </{{ head }}>
+  {% if caller %}
+  <div class="chain-of-thought-step-content">{{ caller() }}</div>
+  {% endif %}
+</{{ tag }}>
+{%- endmacro %}

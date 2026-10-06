@@ -1,0 +1,197 @@
+{% extends "layouts/docs.html" %}
+{% from "docs/macros.html" import demo, classes %}
+{% from "components/code/code.html" import code %}
+{% from "components/icon/icon.html" import icon %}
+{% from "components/spinner/spinner.html" import spinner %}
+{% set title = "Chain of thought" %}
+{% set description = "A sequence of steps on a connecting line, each folding its details away, for reasoning traces, tool calls and process logs." %}
+
+{% block content %}
+  {% call demo("block") %}
+    <div class="chain-of-thought mx-auto max-w-lg">
+      <details class="chain-of-thought-step" data-status="complete" open>
+        <summary class="chain-of-thought-step-header">
+          <span class="chain-of-thought-step-icon">{{ icon("search") }}</span>
+          <span class="chain-of-thought-step-label">Searching for htmx 4 event names</span>
+        </summary>
+        <div class="chain-of-thought-step-content">
+          <ul class="chain-of-thought-step-items">
+            <li class="chain-of-thought-step-item">Events are colon-delimited: <code>htmx:after:swap</code>.</li>
+            <li class="chain-of-thought-step-item"><code>htmx:after:process</code> fires on each new element.</li>
+          </ul>
+          <div class="chain-of-thought-results">
+            <span class="badge badge-secondary">htmx.org</span>
+            <span class="badge badge-secondary">github.com</span>
+          </div>
+        </div>
+      </details>
+      <details class="chain-of-thought-step" data-status="complete">
+        <summary class="chain-of-thought-step-header">
+          <span class="chain-of-thought-step-icon">{{ icon("file-text") }}</span>
+          <span class="chain-of-thought-step-label">Reading the migration guide</span>
+        </summary>
+        <div class="chain-of-thought-step-content"><p>Three renamed events affect the components.</p></div>
+      </details>
+      <div class="chain-of-thought-step" data-status="active" aria-current="step">
+        <div class="chain-of-thought-step-header">
+          <span class="chain-of-thought-step-icon">{{ spinner(label=none) }}</span>
+          <span class="chain-of-thought-step-label">Writing the answer</span>
+        </div>
+      </div>
+    </div>
+  {% endcall %}
+
+  <h2 id="markup">Markup</h2>
+  <ul>
+    <li><code>.chain-of-thought</code> stacks the steps. Pure CSS: each step that has details is a <code>&lt;details class="chain-of-thought-step"&gt;</code>, so it opens with no JavaScript.</li>
+    <li>A step's <code>.chain-of-thought-step-header</code> (its <code>&lt;summary&gt;</code>) holds a <code>.chain-of-thought-step-icon</code> and a <code>.chain-of-thought-step-label</code>; the chevron is drawn for you. An empty icon is a dot.</li>
+    <li><code>.chain-of-thought-step-content</code> holds the details: a <code>.chain-of-thought-step-items</code> list of <code>.chain-of-thought-step-item</code>s, <code>.chain-of-thought-results</code> (a row of <a href="/docs/components/badge">badges</a>), a <code>.chain-of-thought-image</code>, or any text.</li>
+    <li>A step without details is a plain <code>&lt;div class="chain-of-thought-step"&gt;</code> with a <code>&lt;div class="chain-of-thought-step-header"&gt;</code>: a row that doesn't open.</li>
+    <li>A line runs from each step's icon, past its details, to the next step.</li>
+  </ul>
+
+  <h2 id="status">Steps and status</h2>
+  <p>
+    <code>data-status</code> on a step: <code>complete</code> (or none) is muted, <code>active</code> is in the text colour with a pulsing dot
+    (or put a <a href="/docs/components/spinner">spinner</a> in its icon), <code>pending</code> is faded and <code>error</code> is in the danger colour.
+    Mark the active step <code>aria-current="step"</code>. To update a running chain, swap the steps from the server with htmx as they change.
+  </p>
+  {% call demo("block") %}
+    <div class="chain-of-thought mx-auto max-w-lg">
+      <div class="chain-of-thought-step" data-status="complete">
+        <div class="chain-of-thought-step-header"><span class="chain-of-thought-step-icon">{{ icon("check") }}</span><span class="chain-of-thought-step-label">Fetched the invoices</span></div>
+      </div>
+      <div class="chain-of-thought-step" data-status="error">
+        <div class="chain-of-thought-step-header"><span class="chain-of-thought-step-icon">{{ icon("x-circle") }}</span><span class="chain-of-thought-step-label">Couldn't reach the payments API</span></div>
+      </div>
+      <div class="chain-of-thought-step" data-status="active" aria-current="step">
+        <div class="chain-of-thought-step-header"><span class="chain-of-thought-step-icon"></span><span class="chain-of-thought-step-label">Retrying with the backup endpoint</span></div>
+      </div>
+      <div class="chain-of-thought-step" data-status="pending">
+        <div class="chain-of-thought-step-header"><span class="chain-of-thought-step-icon"></span><span class="chain-of-thought-step-label">Reconcile the totals</span></div>
+      </div>
+    </div>
+  {% endcall %}
+
+  <h2 id="plain">Without the line</h2>
+  <p><code>.chain-of-thought-plain</code> on the chain leaves out the line between the steps.</p>
+  {% call demo("block") %}
+    <div class="chain-of-thought chain-of-thought-plain mx-auto max-w-lg">
+      <div class="chain-of-thought-step"><div class="chain-of-thought-step-header"><span class="chain-of-thought-step-icon"></span><span class="chain-of-thought-step-label">Parsed the request</span></div></div>
+      <div class="chain-of-thought-step"><div class="chain-of-thought-step-header"><span class="chain-of-thought-step-icon"></span><span class="chain-of-thought-step-label">Looked up the account</span></div></div>
+      <div class="chain-of-thought-step"><div class="chain-of-thought-step-header"><span class="chain-of-thought-step-icon"></span><span class="chain-of-thought-step-label">Drafted the reply</span></div></div>
+    </div>
+  {% endcall %}
+
+  <h2 id="collapsible">Collapsible chain</h2>
+  <p>
+    The whole chain can fold away under one line: make it a <code>&lt;details class="chain-of-thought"&gt;</code> with a
+    <code>&lt;summary class="chain-of-thought-header"&gt;</code>, and put the steps in a <code>.chain-of-thought-content</code>.
+  </p>
+  {% call demo("block") %}
+    <details class="chain-of-thought mx-auto max-w-lg">
+      <summary class="chain-of-thought-header">{{ icon("sparkles") }}<span>Worked for 12 seconds</span></summary>
+      <div class="chain-of-thought-content">
+        <div class="chain-of-thought-step"><div class="chain-of-thought-step-header"><span class="chain-of-thought-step-icon">{{ icon("search") }}</span><span class="chain-of-thought-step-label">Searched 4 sources</span></div></div>
+        <div class="chain-of-thought-step"><div class="chain-of-thought-step-header"><span class="chain-of-thought-step-icon">{{ icon("terminal") }}</span><span class="chain-of-thought-step-label">Ran the test suite</span></div></div>
+        <div class="chain-of-thought-step"><div class="chain-of-thought-step-header"><span class="chain-of-thought-step-icon">{{ icon("check") }}</span><span class="chain-of-thought-step-label">All 212 tests pass</span></div></div>
+      </div>
+    </details>
+  {% endcall %}
+
+  <h2 id="tools">With tool calls and search results</h2>
+  <p>A step's details can hold anything: the sources a search found, a tool's input and output, or an image it looked at.</p>
+  {% call demo("block") %}
+    <div class="chain-of-thought mx-auto max-w-lg">
+      <details class="chain-of-thought-step" data-status="complete" open>
+        <summary class="chain-of-thought-step-header">
+          <span class="chain-of-thought-step-icon">{{ icon("search") }}</span>
+          <span class="chain-of-thought-step-label">Searched "Sydney weather this weekend"</span>
+        </summary>
+        <div class="chain-of-thought-step-content">
+          <div class="chain-of-thought-results">
+            <a class="badge badge-outline" href="https://www.bom.gov.au">{{ icon("external-link") }} bom.gov.au</a>
+            <a class="badge badge-outline" href="https://www.weatherzone.com.au">{{ icon("external-link") }} weatherzone.com.au</a>
+          </div>
+        </div>
+      </details>
+      <details class="chain-of-thought-step" data-status="complete" open>
+        <summary class="chain-of-thought-step-header">
+          <span class="chain-of-thought-step-icon">{{ icon("cloud") }}</span>
+          <span class="chain-of-thought-step-label">Called get_forecast</span>
+        </summary>
+        <div class="chain-of-thought-step-content">
+          <pre class="overflow-x-auto rounded-(--radius) bg-muted p-2 font-mono text-xs">{"city": "Sydney", "days": 2} → {"sat": 24, "sun": 21}</pre>
+        </div>
+      </details>
+      <div class="chain-of-thought-step" data-status="complete">
+        <div class="chain-of-thought-step-header"><span class="chain-of-thought-step-icon">{{ icon("check") }}</span><span class="chain-of-thought-step-label">Summarised the forecast</span></div>
+      </div>
+    </div>
+  {% endcall %}
+
+  <h2 id="message">In a message</h2>
+  <p>Above an assistant's reply in a <code>.message-plain</code> body, folded away once the work is done.</p>
+  {% call demo("block") %}
+    <div class="message-list mx-auto w-full max-w-lg">
+      <div class="message" data-align="end">
+        <div class="message-body"><div class="message-content">Why did last night's deploy fail?</div></div>
+      </div>
+      <div class="message message-plain">
+        <span class="avatar message-avatar" role="img" aria-label="Assistant"><span class="avatar-fallback" aria-hidden="true">{{ icon("bot") }}</span></span>
+        <div class="message-body">
+          <details class="chain-of-thought">
+            <summary class="chain-of-thought-header"><span>3 steps</span></summary>
+            <div class="chain-of-thought-content">
+              <div class="chain-of-thought-step"><div class="chain-of-thought-step-header"><span class="chain-of-thought-step-icon">{{ icon("terminal") }}</span><span class="chain-of-thought-step-label">Read the deploy log</span></div></div>
+              <div class="chain-of-thought-step"><div class="chain-of-thought-step-header"><span class="chain-of-thought-step-icon">{{ icon("search") }}</span><span class="chain-of-thought-step-label">Found "DATABASE_URL is not set"</span></div></div>
+              <div class="chain-of-thought-step"><div class="chain-of-thought-step-header"><span class="chain-of-thought-step-icon">{{ icon("settings") }}</span><span class="chain-of-thought-step-label">Checked the environment config</span></div></div>
+            </div>
+          </details>
+          <div class="message-content">The deploy failed because <code>DATABASE_URL</code> isn't set in production. Add it to the environment and redeploy.</div>
+        </div>
+      </div>
+    </div>
+  {% endcall %}
+
+  <h2 id="macro">Macro</h2>
+  <p>
+    <code>chain_of_thought()</code> writes the chain (a <code>&lt;details&gt;</code> when it has a label) and <code>chain_of_thought_step()</code> a step:
+    a <code>&lt;details&gt;</code> when it has a call body, else a plain row. Without an <code>icon</code>, a step's status picks one:
+    a check (complete), a spinner (active), a cross (error), else a dot; <code>icon=false</code> always gives the dot.
+  </p>
+  {% call code("jinja") %}
+    {% raw %}
+    {% from "components/chain-of-thought/chain-of-thought.html" import chain_of_thought, chain_of_thought_step %}
+
+    {% call chain_of_thought() %}
+      {% call chain_of_thought_step("Searching the docs", status="complete", icon="search", open=true) %}
+        <ul class="chain-of-thought-step-items"><li class="chain-of-thought-step-item">Found 3 pages</li></ul>
+      {% endcall %}
+      {{ chain_of_thought_step("Writing the answer", status="active") }}
+    {% endcall %}
+
+    {% call chain_of_thought("Worked for 12 seconds", open=false, plain=true) %}…{% endcall %}
+    {% endraw %}
+  {% endcall %}
+  {{ classes([
+    ["chain_of_thought(label=none, open=true, icon=none, plain=false, attrs=none, class=\"\")", "label folds the chain under a summary; plain drops the line."],
+    ["chain_of_thought_step(label, status=none, icon=none, open=false, attrs=none, class=\"\")", "status: complete | active | pending | error; open only with a call body."]
+  ], heading="Macro") }}
+
+  <h2 id="reference">Reference</h2>
+  {{ classes([
+    [".chain-of-thought", "The steps, stacked. A <div>, or a <details> to fold them away."],
+    [".chain-of-thought-header / -content", "A folding chain's <summary>, and the steps under it."],
+    [".chain-of-thought-plain", "On the chain: no line between the steps."],
+    [".chain-of-thought-step", "One step: a <details> with details, else a <div>."],
+    ["[data-status]", "On a step: complete | active | pending | error."],
+    [".chain-of-thought-step-header", "The step's <summary> (or <div>): icon, label, chevron."],
+    [".chain-of-thought-step-icon", "An icon, a spinner, or empty for a dot."],
+    [".chain-of-thought-step-label", "The step's text."],
+    [".chain-of-thought-step-content", "The step's details, indented under its label."],
+    [".chain-of-thought-step-items / -item", "A list of findings."],
+    [".chain-of-thought-results", "A wrapping row of badges, e.g. search results."],
+    [".chain-of-thought-image", "An image in a step."]
+  ]) }}
+{% endblock %}

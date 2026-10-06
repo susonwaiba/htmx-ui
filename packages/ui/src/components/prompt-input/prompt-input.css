@@ -1,0 +1,136 @@
+/* The text box of a chat with an AI model: one bordered box holding attachments, a textarea that
+   grows with its text, and a toolbar with tools on the left and the submit button on the right.
+
+   <form class="prompt-input" data-prompt-input hx-post="/api/chat" hx-target="#messages" hx-swap="beforeend">
+     <div class="prompt-input-attachments">….attachment.attachment-xs…</div>                 optional
+     <textarea class="prompt-input-textarea" name="prompt" data-textarea aria-label="Prompt"
+               placeholder="Ask anything…"></textarea>
+     <div class="prompt-input-actions">
+       <div class="prompt-input-tools">
+         <button type="button" class="btn btn-ghost btn-icon btn-sm" aria-label="Attach files">{{ icon("paperclip") }}</button>
+         <select class="select input-sm prompt-input-select" name="model" aria-label="Model">…</select>
+       </div>
+       <button class="btn btn-primary btn-icon btn-sm btn-rounded prompt-input-submit" data-prompt-input-submit aria-label="Send">
+         {{ icon("arrow-up") }}<span class="prompt-input-stop-icon"></span>
+       </button>
+     </div>
+     <div class="prompt-input-menu" data-prompt-input-menu="@" role="listbox" aria-label="People" hidden>
+       <div class="prompt-input-option" role="option" data-value="ada">
+         <span class="prompt-input-option-label">Ada Lovelace</span>
+         <span class="prompt-input-option-description">@ada</span>
+       </div>
+       <p class="prompt-input-empty" data-prompt-input-empty hidden>No one found.</p>
+     </div>
+   </form>
+
+   The box shows one focus ring for everything inside it (:focus-within). data-state="loading" on
+   the form (set by the behaviour from htmx's request events) swaps the submit icon for a stop
+   square. Menus open above the box, or below it when there is no room above (data-side="bottom");
+   .prompt-input-menu-down always opens one below. Options may be
+   grouped: <div class="prompt-input-group" role="group" aria-labelledby="…"><div class="prompt-input-label" id="…">…</div>…</div>.
+   Behaviour: prompt-input.ts (keys, menus, submit state). Macro: prompt-input.html. */
+@layer components {
+  .prompt-input {
+    @apply relative flex w-full cursor-text flex-col gap-1 rounded-[calc(var(--radius)+4px)] border border-border
+      bg-surface p-2 text-foreground shadow-xs transition-[color,box-shadow,border-color];
+  }
+  /* One ring for the whole box. One color-mix() per rule (see alert.css). */
+  .prompt-input:focus-within {
+    @apply border-ring ring-3;
+  }
+  .prompt-input:focus-within:not(:has([aria-invalid="true"])) {
+    @apply ring-ring/30;
+  }
+  .prompt-input:has(.prompt-input-textarea[aria-invalid="true"]) {
+    @apply border-danger;
+  }
+  .prompt-input:has(.prompt-input-textarea[aria-invalid="true"]):focus-within {
+    @apply ring-danger/20;
+  }
+  .prompt-input:has(.prompt-input-textarea:disabled) {
+    @apply cursor-not-allowed opacity-50;
+  }
+
+  /* The textarea drops its own frame. It grows with its text up to max-h-48 (another max-h-*
+     utility on it changes that), then scrolls. */
+  .prompt-input-textarea {
+    @apply field-sizing-content block max-h-48 min-h-10 w-full min-w-0 resize-none border-0 bg-transparent px-2 py-1.5
+      text-base text-foreground outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed sm:text-sm;
+  }
+
+  /* Attachments above the text. Empty: takes no room. */
+  .prompt-input-attachments {
+    @apply flex flex-wrap gap-2 px-1 pt-1;
+  }
+  .prompt-input-attachments:empty {
+    @apply hidden;
+  }
+
+  /* The toolbar: tools at the start, submit at the end. */
+  .prompt-input-actions {
+    @apply flex items-center gap-1;
+  }
+  .prompt-input-tools {
+    @apply flex min-w-0 flex-1 flex-wrap items-center gap-1;
+  }
+  .prompt-input-tools > .btn:not(.btn-icon) {
+    @apply px-2.5;
+  }
+  /* A native select for the model, as quiet as a ghost button */
+  select.select.prompt-input-select {
+    @apply w-auto border-transparent bg-transparent shadow-none hover:bg-accent hover:text-accent-foreground;
+  }
+  .prompt-input-submit {
+    @apply ms-auto;
+  }
+
+  /* Loading: the submit button is a stop button. The square is drawn from the text colour. */
+  .prompt-input-stop-icon {
+    @apply hidden;
+  }
+  .prompt-input[data-state="loading"] .prompt-input-submit > svg {
+    @apply hidden;
+  }
+  .prompt-input[data-state="loading"] .prompt-input-stop-icon {
+    @apply block size-2.5 rounded-[2px] bg-current;
+  }
+
+  /* Suggestions for @ mentions and / commands, above the box, as wide as it. */
+  .prompt-input-menu {
+    @apply absolute inset-x-0 bottom-full z-50 mb-2 max-h-64 scroll-py-1 overflow-y-auto overscroll-contain
+      rounded-(--radius) border border-border bg-surface p-1 text-sm text-foreground shadow-lg;
+  }
+  .prompt-input-menu-down,
+  .prompt-input-menu[data-side="bottom"] {
+    @apply top-full bottom-auto mt-2 mb-0;
+  }
+  .prompt-input-menu[aria-busy="true"] {
+    @apply opacity-70;
+  }
+  /* The highlight follows the keyboard and the pointer alike (data-highlighted, set by the
+     behaviour), so there is only ever one. */
+  .prompt-input-option {
+    @apply flex w-full cursor-pointer items-center gap-2 rounded-[calc(var(--radius)-2px)] px-2 py-1.5 text-left
+      leading-normal outline-none select-none aria-disabled:pointer-events-none aria-disabled:opacity-50
+      data-highlighted:bg-accent data-highlighted:text-accent-foreground [&>svg]:size-4 [&>svg]:shrink-0
+      [&>svg]:text-muted-foreground;
+  }
+  .prompt-input-option-label {
+    @apply min-w-0 truncate font-medium;
+  }
+  .prompt-input-option-description {
+    @apply ms-auto min-w-0 truncate text-xs text-muted-foreground;
+  }
+  .prompt-input-group {
+    @apply flex flex-col;
+  }
+  .prompt-input-group + .prompt-input-group {
+    @apply mt-1;
+  }
+  .prompt-input-label {
+    @apply px-2 py-1.5 text-xs font-medium text-muted-foreground;
+  }
+  .prompt-input-empty {
+    @apply px-2 py-4 text-center text-sm text-muted-foreground;
+  }
+}

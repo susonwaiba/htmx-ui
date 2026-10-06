@@ -1,0 +1,133 @@
+{% extends "layouts/docs.html" %}
+{% from "docs/macros.html" import demo, classes %}
+{% from "components/code/code.html" import code %}
+{% from "components/icon/icon.html" import icon %}
+{% set title = "Scroll button" %}
+{% set description = "A floating button that appears once the reader scrolls away from an edge and jumps back to the bottom or the top, of a scroll container or the whole page." %}
+
+{% block content %}
+  {% call demo() %}
+    <div class="relative w-full">
+      <div class="h-72 overflow-y-auto rounded-(--radius) border border-border bg-surface p-4 text-sm" data-scroll-container tabindex="0" aria-label="Activity log">
+        <ol class="space-y-2">
+          {% for i in range(1, 41) %}
+          <li class="flex justify-between gap-4"><span>Event {{ i }}: build step finished</span><span class="text-muted-foreground tabular-nums">12:{{ ("0" ~ i) if i < 10 else i }}</span></li>
+          {% endfor %}
+        </ol>
+      </div>
+      <button type="button" class="btn btn-outline btn-icon scroll-button scroll-button-float" data-scroll-button="top" aria-label="Scroll to top">{{ icon("arrow-up") }}</button>
+      <button type="button" class="btn btn-outline btn-icon scroll-button scroll-button-float" data-scroll-button="bottom" aria-label="Scroll to bottom">{{ icon("arrow-down") }}</button>
+    </div>
+  {% endcall %}
+
+  <h2 id="markup">Markup</h2>
+  <ul>
+    <li>The button is an ordinary icon <a href="/docs/components/button"><code>.btn</code></a> plus <code>.scroll-button</code>. Give it <code>type="button"</code> and an <code>aria-label</code> such as "Scroll to bottom".</li>
+    <li><code>data-scroll-button</code> adds the behaviour. Its value is the edge it jumps to: <code>bottom</code> (the default) or <code>top</code>.</li>
+    <li>While its scroll target is near that edge the button is hidden: <code>data-state="hidden"</code> fades and shrinks it, and <code>inert</code> takes it out of the tab order and the accessibility tree. Once the reader scrolls away it turns <code>data-state="visible"</code>. It stays in the DOM throughout.</li>
+    <li>It follows the content too: when messages are appended or grow, the button appears without a scroll event, so a chat's "jump to bottom" shows up as replies stream in.</li>
+  </ul>
+
+  <h2 id="container">In a scroll container</h2>
+  <p>
+    Lay the button over the box it scrolls: wrap both in a <code>relative</code> element, mark the box
+    <code>data-scroll-container</code> and add <code>.scroll-button-float</code>, which centres the button at the
+    bottom of the wrapper (at the top for a <code>top</code> button). Give the box <code>tabindex="0"</code> so
+    keyboard users can scroll it; when the button hides under the focus, focus moves back to the box.
+  </p>
+  {% call demo() %}
+    <div class="relative mx-auto w-full max-w-md">
+      <div class="flex h-80 flex-col gap-3 overflow-y-auto rounded-(--radius) border border-border bg-surface p-4 text-sm" data-scroll-container tabindex="0" aria-label="Conversation">
+        {% for i in range(1, 13) %}
+        <p class="max-w-[80%] rounded-(--radius) px-3 py-2 {{ 'self-end bg-primary text-primary-foreground' if i % 2 else 'self-start bg-muted' }}">
+          {{ "Can you summarise the release notes?" if i % 2 else "Sure: the release adds a loader, a scroll button and a faster build, and fixes three bugs in the docs search." }}
+        </p>
+        {% endfor %}
+      </div>
+      <button type="button" class="btn btn-outline btn-icon scroll-button scroll-button-float" data-scroll-button aria-label="Scroll to bottom">{{ icon("arrow-down") }}</button>
+    </div>
+  {% endcall %}
+  <p>
+    The button finds its target in this order: <code>data-scroll-target</code>; the closest
+    <code>[data-scroll-container]</code> around it; a <code>[data-scroll-container]</code> beside it; the nearest
+    ancestor with <code>overflow-y: auto</code> or <code>scroll</code>; otherwise the page. Point it anywhere with a
+    selector:
+  </p>
+  {% call code("html") %}
+    <div id="log" class="h-80 overflow-y-auto" tabindex="0">…</div>
+    <button type="button" class="btn btn-outline btn-sm scroll-button" data-scroll-button data-scroll-target="#log">
+      Jump to latest
+    </button>
+  {% endcall %}
+
+  <h2 id="page">Back to top of the page</h2>
+  <p>
+    Without a container around it, the button scrolls the page. <code>.scroll-button-fixed</code> pins it to the
+    bottom-right corner of the viewport (bottom-left in right-to-left text). This page has one: scroll down and it
+    appears in the corner.
+  </p>
+  {% call code("html") %}
+    <button type="button" class="btn btn-outline btn-icon scroll-button scroll-button-fixed"
+      data-scroll-button="top" data-scroll-threshold="600" aria-label="Back to top">
+      <svg>…arrow-up…</svg>
+    </button>
+  {% endcall %}
+  <div class="not-prose" data-md-skip>
+    <button type="button" class="btn btn-outline btn-icon scroll-button scroll-button-fixed" data-scroll-button="top" data-scroll-threshold="600" aria-label="Back to top">{{ icon("arrow-up") }}</button>
+  </div>
+
+  <h2 id="options">Options</h2>
+  <ul>
+    <li><code>data-scroll-button="bottom" | "top"</code>: the edge to jump to (default <code>bottom</code>).</li>
+    <li><code>data-scroll-target="#selector"</code>: the element to scroll, when it isn't found from the markup.</li>
+    <li><code>data-scroll-threshold="200"</code>: how far from the edge, in pixels, the reader must scroll before the button shows (default 200).</li>
+    <li><code>data-scroll-behavior="smooth" | "instant"</code>: how it scrolls (default <code>smooth</code>; always instant when the reader prefers reduced motion).</li>
+  </ul>
+  <p>A text button works as well as an icon one: anything with <code>.scroll-button</code> fades in and out.</p>
+  {% call demo() %}
+    <div class="relative mx-auto w-full max-w-md">
+      <div class="h-56 overflow-y-auto rounded-(--radius) border border-border bg-surface p-4 text-sm" data-scroll-container tabindex="0" aria-label="Build output">
+        {% for i in range(1, 25) %}<p class="py-1">Line {{ i }} of the build output</p>{% endfor %}
+      </div>
+      <button type="button" class="btn btn-secondary btn-sm scroll-button scroll-button-float" data-scroll-button data-scroll-threshold="40" data-scroll-behavior="instant">
+        {{ icon("arrow-down") }} Latest
+      </button>
+    </div>
+  {% endcall %}
+
+  <h2 id="javascript">JavaScript</h2>
+  <p>
+    <code>initScrollButton(root)</code> runs with the other components, on load and on content htmx inserts. The
+    helpers it uses are exported from its module too, for a "scroll to bottom" after your own updates:
+  </p>
+  {% call code("ts") %}
+    import { distanceFromEdge, scrollToEdge } from "htmx-ui";
+
+    const log = document.querySelector<HTMLElement>("#log")!;
+    // Keep following new lines, unless the reader has scrolled up to read.
+    const following = distanceFromEdge(log, "bottom") < 40;
+    log.insertAdjacentHTML("beforeend", "<p>New line</p>");
+    if (following) scrollToEdge(log, "bottom", "instant");
+
+    scrollToEdge(null, "top"); // null is the page: smooth, or instant under reduced motion
+  {% endcall %}
+
+  <h2 id="reference">Reference</h2>
+  {{ classes([
+    [".scroll-button", "Fades and shrinks out while data-state=\"hidden\", back in when visible."],
+    [".scroll-button-float", "Absolutely centred at the bottom of the nearest positioned ancestor (top for a top button)."],
+    [".scroll-button-fixed", "Fixed to the viewport's bottom-right corner."],
+    ["[data-scroll-button=\"bottom\" | \"top\"]", "Behaviour: shows away from that edge, scrolls to it on click."],
+    ["[data-scroll-container]", "Marks the element a nearby scroll button scrolls."],
+    ["[data-scroll-target]", "A selector for the element to scroll."],
+    ["[data-scroll-threshold]", "Distance from the edge, in px, before the button shows (200)."],
+    ["[data-scroll-behavior]", "smooth (default) or instant."],
+    ["[data-state=\"visible\" | \"hidden\"]", "Set by the behaviour; hidden is also inert."]
+  ]) }}
+  {{ classes([
+    ["initScrollButton(root = document)", "Initialises every [data-scroll-button] under root (idempotent)."],
+    ["scrollToEdge(target, edge = \"bottom\", behavior?)", "Scrolls an element, or the page for null, to its top or bottom."],
+    ["distanceFromEdge(target, edge)", "How far, in px, the element (or the page) is from that edge."],
+    ["scrollTargetOf(button)", "The element a scroll button scrolls, or null for the page."]
+  ], heading="Function") }}
+{% endblock %}

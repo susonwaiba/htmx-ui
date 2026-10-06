@@ -1,0 +1,250 @@
+{% extends "layouts/docs.html" %}
+{% from "docs/macros.html" import demo, classes %}
+{% from "components/icon/icon.html" import icon %}
+{% set title = "Message" %}
+{% set description = "A message in a conversation, with an avatar, a header, a footer, attachments and start or end alignment; groups for consecutive messages, and reasoning, tool calls and typing for AI chat." %}
+
+{% macro avatar(initials, label) %}
+<span class="avatar message-avatar" role="img" aria-label="{{ label }}"><span class="avatar-fallback" aria-hidden="true">{{ initials }}</span></span>
+{%- endmacro %}
+
+{% block content %}
+  {% call demo("block") %}
+    <div class="message-list mx-auto w-full max-w-lg">
+      <div class="message">
+        {{ avatar("AL", "Ada") }}
+        <div class="message-body">
+          <div class="message-header"><span class="message-author">Ada</span><time class="message-time" datetime="09:41">09:41</time></div>
+          <div class="message-content">Is the release still on for Friday?</div>
+        </div>
+      </div>
+      <div class="message" data-align="end">
+        <div class="message-body">
+          <div class="message-content">Yes! Docs are done, just waiting on the last review.</div>
+          <div class="message-footer"><span class="message-status">{{ icon("check") }} Read 09:42</span></div>
+        </div>
+      </div>
+    </div>
+  {% endcall %}
+
+  <h2 id="markup">Markup</h2>
+  <ul>
+    <li><code>.message</code> lays out one message: an optional <code>.message-avatar</code> (any <a href="/docs/components/avatar">avatar</a>) beside a <code>.message-body</code>.</li>
+    <li>The body stacks a <code>.message-header</code> (<code>.message-author</code>, <code>.message-time</code>), the <code>.message-content</code> itself, <code>.message-attachments</code> and a <code>.message-footer</code>. Every part but the content is optional.</li>
+    <li>Pure CSS. Wrap a conversation in <code>.message-list</code> to space it; give it <code>role="log"</code> and <code>aria-live="polite"</code> when new messages arrive while it's on screen.</li>
+  </ul>
+
+  <h2 id="alignment">Alignment</h2>
+  <p><code>data-align="end"</code> puts a message on the right, for the reader's own: the avatar, header, attachments and footer all move to that side, and the default bubble turns primary. <code>data-align="start"</code> (or nothing) is everyone else.</p>
+  {% call demo("block") %}
+    <div class="message-list mx-auto w-full max-w-lg">
+      <div class="message">
+        {{ avatar("JC", "Jane") }}
+        <div class="message-body">
+          <div class="message-header"><span class="message-author">Jane</span><time class="message-time">10:02</time></div>
+          <div class="message-content">Lunch at 12:30?</div>
+        </div>
+      </div>
+      <div class="message" data-align="end">
+        {{ avatar("ME", "You") }}
+        <div class="message-body">
+          <div class="message-header"><span class="message-author">You</span><time class="message-time">10:03</time></div>
+          <div class="message-content">Perfect, see you at the usual place.</div>
+        </div>
+      </div>
+    </div>
+  {% endcall %}
+
+  <h2 id="variants">Variants</h2>
+  <p>On <code>.message</code>: the default filled bubble, <code>.message-secondary</code>, <code>.message-outline</code>, <code>.message-soft</code> (tinted primary) and <code>.message-plain</code> (no bubble, full width: for assistant replies and long text).</p>
+  {% call demo("block") %}
+    <div class="message-list mx-auto w-full max-w-lg">
+      {% for variant in ["", "message-secondary", "message-outline", "message-soft"] %}
+        <div class="message{% if variant %} {{ variant }}{% endif %}" data-align="{{ 'end' if loop.index is even else 'start' }}">
+          <div class="message-body">
+            <div class="message-content">{{ variant or "default" }}: {{ "the reader's side" if loop.index is even else "the other side" }}.</div>
+          </div>
+        </div>
+      {% endfor %}
+      <div class="message message-plain">
+        <span class="avatar message-avatar" role="img" aria-label="Assistant"><span class="avatar-fallback" aria-hidden="true">{{ icon("bot") }}</span></span>
+        <div class="message-body">
+          <div class="message-content">
+            <p>message-plain: no bubble, the full width of the row. Suits assistant replies that run to paragraphs, lists and code.</p>
+            <p>Put <code class="code">.prose</code> inside for long-form formatting.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endcall %}
+
+  <h2 id="header-footer">Header and footer</h2>
+  <p>
+    The header carries the sender's name and the time; the footer a status and <code>.message-actions</code>. Both follow the message's side,
+    and on an <code>data-align="end"</code> row the actions stay at the end. <code>.message-actions-hover</code> shows them only on hover or focus (always on touch screens).
+  </p>
+  {% call demo("block") %}
+    <div class="message-list mx-auto w-full max-w-lg">
+      <div class="message">
+        {{ avatar("AL", "Ada") }}
+        <div class="message-body">
+          <div class="message-header"><span class="message-author">Ada Lovelace</span><span class="badge badge-secondary">Admin</span><time class="message-time">Yesterday</time></div>
+          <div class="message-content">I've pushed the fix for the flaky test.</div>
+          <div class="message-footer">
+            <span class="message-status">Edited</span>
+            <div class="message-actions message-actions-hover">
+              <button type="button" class="btn btn-ghost btn-icon" aria-label="Reply">{{ icon("corner-down-left") }}</button>
+              <button type="button" class="btn btn-ghost btn-icon" aria-label="Copy" data-toast="Copied">{{ icon("copy") }}</button>
+              <button type="button" class="btn btn-ghost btn-icon" aria-label="More">{{ icon("ellipsis") }}</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="message" data-align="end">
+        <div class="message-body">
+          <div class="message-content">Thanks, merging now.</div>
+          <div class="message-footer">
+            <span class="message-status">{{ icon("check") }} Delivered</span>
+            <div class="message-actions">
+              <button type="button" class="btn btn-ghost btn-icon" aria-label="Edit">{{ icon("file-text") }}</button>
+              <button type="button" class="btn btn-ghost btn-icon" aria-label="Delete">{{ icon("trash") }}</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endcall %}
+
+  <h2 id="group">Group</h2>
+  <p><code>.message-group</code> stacks consecutive messages from one sender close together: the avatar and header show on the first only (the avatar keeps its space), and the bubbles tuck together on the sender's side.</p>
+  {% call demo("block") %}
+    <div class="message-list mx-auto w-full max-w-lg">
+      <div class="message-group">
+        <div class="message">
+          {{ avatar("JC", "Jane") }}
+          <div class="message-body">
+            <div class="message-header"><span class="message-author">Jane</span><time class="message-time">14:10</time></div>
+            <div class="message-content">Heads up: the staging deploy is red.</div>
+          </div>
+        </div>
+        <div class="message">
+          {{ avatar("JC", "Jane") }}
+          <div class="message-body"><div class="message-content">Looks like a missing env var.</div></div>
+        </div>
+        <div class="message">
+          {{ avatar("JC", "Jane") }}
+          <div class="message-body"><div class="message-content">I'll add it to the config.</div></div>
+        </div>
+      </div>
+      <div class="message-group">
+        <div class="message" data-align="end"><div class="message-body"><div class="message-content">Good catch.</div></div></div>
+        <div class="message" data-align="end"><div class="message-body"><div class="message-content">Ping me when it's green.</div></div></div>
+      </div>
+    </div>
+  {% endcall %}
+
+  <h2 id="attachments">Attachments</h2>
+  <p><code>.message-attachments</code> holds <a href="/docs/components/attachment">attachments</a> and lines them up on the message's side. A lone picture can be a <code>.message-image</code>.</p>
+  {% call demo("block") %}
+    <div class="message-list mx-auto w-full max-w-lg">
+      <div class="message" data-align="end">
+        <div class="message-body">
+          <div class="message-attachments">
+            <div class="attachment attachment-sm">
+              <div class="attachment-media">{{ icon("file-text") }}</div>
+              <div class="attachment-content"><p class="attachment-title">q3-report.pdf</p><p class="attachment-description">PDF · 2.4 MB</p></div>
+            </div>
+            <div class="attachment attachment-sm" data-state="uploading">
+              <div class="attachment-media">{{ icon("image") }}</div>
+              <div class="attachment-content"><p class="attachment-title">chart.png</p><p class="attachment-description">Uploading · 60%</p></div>
+              <progress class="attachment-progress" value="60" max="100" aria-label="Upload progress"></progress>
+            </div>
+          </div>
+          <div class="message-content">Here's the report and the chart for the slides.</div>
+        </div>
+      </div>
+    </div>
+  {% endcall %}
+
+  <h2 id="ai">AI chat</h2>
+  <p>
+    For assistants: <code>.message-reasoning</code> is a <code>&lt;details&gt;</code> of thinking steps (add <code>data-state="streaming"</code> to shimmer its summary while it runs),
+    <code>.message-tool</code> a tool call with its input and output, its state in <code>data-state</code> (<code>running</code>, <code>done</code>, <code>error</code>),
+    and <code>.message-typing</code> three dots for a reply on its way. Stream them in with htmx, swapping or appending to the conversation.
+  </p>
+  <p>
+    For more, use the standalone components: <a href="/docs/components/reasoning">Reasoning</a> opens while the reasoning streams and closes with how long it took,
+    and <a href="/docs/components/chain-of-thought">Chain of thought</a> shows a model's steps, searches and tool calls on a line.
+  </p>
+  {% call demo("block") %}
+    <div class="message-list mx-auto w-full max-w-lg" role="log" aria-live="polite" aria-label="Conversation">
+      <div class="message" data-align="end">
+        <div class="message-body"><div class="message-content">What's the weather in Sydney tomorrow?</div></div>
+      </div>
+      <div class="message message-plain">
+        <span class="avatar message-avatar" role="img" aria-label="Assistant"><span class="avatar-fallback" aria-hidden="true">{{ icon("bot") }}</span></span>
+        <div class="message-body">
+          <details class="message-reasoning">
+            <summary>{{ icon("sparkles") }} Thought for 3 seconds</summary>
+            <ol>
+              <li>The user wants tomorrow's forecast for Sydney, Australia.</li>
+              <li>Call the weather tool with the city and date.</li>
+            </ol>
+          </details>
+          <details class="message-tool" data-state="done">
+            <summary class="message-tool-header">{{ icon("cloud") }} get_weather <span class="message-tool-status">{{ icon("check-circle") }} Done</span></summary>
+            <div class="message-tool-content">
+              <span class="message-tool-label">Input</span>
+              <pre>{"city": "Sydney", "date": "tomorrow"}</pre>
+              <span class="message-tool-label">Output</span>
+              <pre>{"high": 24, "low": 17, "sky": "partly cloudy"}</pre>
+            </div>
+          </details>
+          <div class="message-content">Tomorrow in Sydney: partly cloudy, a high of 24°C and a low of 17°C.</div>
+          <div class="message-footer">
+            <div class="message-actions">
+              <button type="button" class="btn btn-ghost btn-icon" aria-label="Copy" data-toast="Copied to clipboard">{{ icon("copy") }}</button>
+              <button type="button" class="btn btn-ghost btn-icon" aria-label="Regenerate">{{ icon("refresh-cw") }}</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="message" data-align="end">
+        <div class="message-body"><div class="message-content">And the weekend?</div></div>
+      </div>
+      <div class="message message-plain">
+        <span class="avatar message-avatar" role="img" aria-label="Assistant"><span class="avatar-fallback" aria-hidden="true">{{ icon("bot") }}</span></span>
+        <div class="message-body">
+          <details class="message-reasoning" data-state="streaming">
+            <summary>{{ icon("sparkles") }} Thinking…</summary>
+            <p>Looking up Saturday and Sunday.</p>
+          </details>
+          <details class="message-tool" data-state="running" open>
+            <summary class="message-tool-header">{{ icon("cloud") }} get_weather <span class="message-tool-status">{{ icon("loader") }} Running</span></summary>
+            <div class="message-tool-content"><span class="message-tool-label">Input</span><pre>{"city": "Sydney", "date": "weekend"}</pre></div>
+          </details>
+          <div class="message-content text-muted-foreground"><span class="message-typing" role="status" aria-label="Assistant is typing"><span></span><span></span><span></span></span></div>
+        </div>
+      </div>
+    </div>
+  {% endcall %}
+
+  <h2 id="reference">Reference</h2>
+  {{ classes([
+    [".message", "One message: avatar and body, start-aligned."],
+    ["[data-align=\"end\"]", "The reader's own message, on the right; everything follows."],
+    [".message-avatar", "On an .avatar beside the body."],
+    [".message-body", "Header, content, attachments and footer, stacked."],
+    [".message-header / .message-author / .message-time", "Name and time above the message."],
+    [".message-content", "The message: a bubble (default) or plain text."],
+    [".message-secondary / -outline / -soft / -plain", "Variants, on .message."],
+    [".message-attachments / .message-image", "Attachments, or a single picture."],
+    [".message-footer / .message-status", "Status line under the message."],
+    [".message-actions / .message-actions-hover", "Small icon buttons; the second shows on hover or focus."],
+    [".message-group", "Consecutive messages from one sender."],
+    [".message-list", "A conversation's spacing."],
+    [".message-reasoning", "On a <details>: thinking steps; data-state=\"streaming\" shimmers."],
+    [".message-tool (-header, -status, -content, -label)", "On a <details>: a tool call; data-state running | done | error."],
+    [".message-typing", "Three animated dots (three empty spans inside)."]
+  ]) }}
+{% endblock %}

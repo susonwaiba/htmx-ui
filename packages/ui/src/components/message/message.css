@@ -1,0 +1,269 @@
+/* One message in a conversation: an avatar, a header, the message itself, attachments and a footer.
+
+   <div class="message" data-align="start">                       data-align="end": the user's own, on the right
+     <span class="avatar message-avatar" role="img" aria-label="Ada">…</span>   optional
+     <div class="message-body">
+       <div class="message-header">
+         <span class="message-author">Ada</span> <time class="message-time" datetime="…">09:41</time>
+       </div>
+       <div class="message-content">Hi! Is the release still on for Friday?</div>
+       <div class="message-attachments">….attachment…</div>                       optional
+       <div class="message-footer">
+         <span class="message-status">Read</span>
+         <div class="message-actions">…ghost icon buttons…</div>
+       </div>
+     </div>
+   </div>
+
+   Variants on .message: (default) a filled bubble, muted on the start side and primary on the end;
+   .message-secondary, .message-outline, .message-soft (tinted primary), and .message-plain (no
+   bubble: assistant replies and long text). The header, footer and attachments follow the
+   message's side, and so do the footer's actions on data-align="end" rows.
+   .message-group stacks consecutive messages from one sender: the avatar and header show once.
+   .message-list spaces a conversation. For AI apps: .message-reasoning (a <details> of thinking
+   steps), .message-tool (a tool call with its state) and .message-typing (three dots). */
+@layer components {
+  .message-list {
+    @apply flex flex-col gap-6;
+  }
+
+  .message {
+    @apply flex w-full min-w-0 items-start gap-3 text-sm;
+  }
+  .message[data-align="end"] {
+    @apply flex-row-reverse;
+  }
+  .message-avatar {
+    @apply shrink-0;
+  }
+  .message-body {
+    @apply flex max-w-[min(80%,42rem)] min-w-0 flex-col items-start gap-1.5;
+  }
+  .message[data-align="end"] .message-body {
+    @apply items-end;
+  }
+  .message-header {
+    @apply flex items-baseline gap-2 px-1 text-xs text-muted-foreground;
+  }
+  .message[data-align="end"] .message-header {
+    @apply flex-row-reverse;
+  }
+  .message-author {
+    @apply font-medium text-foreground;
+  }
+  .message-time {
+    @apply tabular-nums;
+  }
+
+  /* The message itself: a bubble, its corner on the sender's side tucked in */
+  .message-content {
+    @apply max-w-full min-w-0 rounded-2xl rounded-ss-md bg-muted px-3.5 py-2 leading-relaxed text-foreground
+      break-words [&_a]:underline [&_a]:underline-offset-2 [&>p+p]:mt-2;
+  }
+  .message[data-align="end"] .message-content {
+    @apply rounded-ss-2xl rounded-se-md bg-primary text-primary-foreground;
+  }
+  .message-secondary .message-content,
+  .message-secondary[data-align="end"] .message-content {
+    @apply bg-secondary text-secondary-foreground;
+  }
+  .message-outline .message-content,
+  .message-outline[data-align="end"] .message-content {
+    @apply border border-border bg-transparent text-foreground;
+  }
+  /* One color-mix() per rule (see components/alert). */
+  .message-soft .message-content,
+  .message-soft[data-align="end"] .message-content {
+    @apply bg-primary/10 text-foreground;
+  }
+  .message-plain .message-content,
+  .message-plain[data-align="end"] .message-content {
+    @apply rounded-none bg-transparent px-0 py-0 text-foreground;
+  }
+  .message-plain .message-body {
+    @apply max-w-full flex-1;
+  }
+  .message-plain .message-header {
+    @apply px-0;
+  }
+
+  .message-attachments {
+    @apply flex max-w-full flex-wrap gap-2;
+  }
+  .message[data-align="end"] .message-attachments {
+    @apply justify-end;
+  }
+  /* An image sent on its own */
+  .message-image {
+    @apply max-h-72 max-w-full rounded-2xl border border-border object-cover;
+  }
+
+  .message-footer {
+    @apply flex min-h-6 items-center gap-2 px-1 text-xs text-muted-foreground [&_svg]:size-3.5;
+  }
+  .message[data-align="end"] .message-footer {
+    @apply flex-row-reverse;
+  }
+  .message-plain .message-footer {
+    @apply px-0;
+  }
+  .message-status {
+    @apply inline-flex items-center gap-1;
+  }
+  .message-actions {
+    @apply flex items-center gap-0.5;
+  }
+  .message-actions .btn {
+    @apply size-7 text-muted-foreground hover:text-foreground [&_svg]:size-3.5!;
+  }
+  /* Actions that show on hover or focus (always on touch screens) */
+  .message-actions-hover {
+    @apply opacity-0 transition-opacity;
+  }
+  .message:is(:hover, :focus-within) .message-actions-hover {
+    @apply opacity-100;
+  }
+  @media (hover: none) {
+    .message-actions-hover {
+      @apply opacity-100;
+    }
+  }
+
+  /* Consecutive messages from one sender: avatar and header once, on the first; the bubbles
+     tucked together on the sender's side. */
+  .message-group {
+    @apply flex flex-col gap-1;
+  }
+  .message-group > .message:not(:first-child) .message-avatar {
+    @apply invisible;
+  }
+  .message-group > .message:not(:first-child) .message-header {
+    @apply hidden;
+  }
+  .message-group > .message:not(:first-child) .message-content {
+    @apply rounded-ss-md;
+  }
+  .message-group > .message:not(:last-child) .message-content {
+    @apply rounded-es-md;
+  }
+  .message-group > .message[data-align="end"]:not(:first-child) .message-content {
+    @apply rounded-ss-2xl rounded-se-md;
+  }
+  .message-group > .message[data-align="end"]:not(:last-child) .message-content {
+    @apply rounded-es-2xl rounded-ee-md;
+  }
+  .message-group > .message:not(:last-child) .message-footer:not(:has(*)) {
+    @apply hidden;
+  }
+
+  /* AI: reasoning steps, folded away under a summary */
+  .message-reasoning {
+    @apply text-muted-foreground;
+  }
+  .message-reasoning > summary {
+    @apply inline-flex cursor-pointer list-none items-center gap-1.5 rounded-md py-0.5 text-sm transition-colors
+      select-none hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring [&::-webkit-details-marker]:hidden
+      [&_svg]:size-4;
+  }
+  .message-reasoning > summary::after {
+    @apply size-3.5 bg-current transition-transform content-[''];
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")
+      center / contain no-repeat;
+  }
+  .message-reasoning[open] > summary::after {
+    @apply rotate-180;
+  }
+  .message-reasoning > :not(summary) {
+    @apply mt-2 border-s-2 border-border ps-3 text-sm leading-relaxed;
+  }
+  .message-reasoning ol,
+  .message-reasoning ul {
+    @apply flex flex-col gap-1.5;
+  }
+  /* Still thinking: the summary shimmers (as an uploading .attachment's title does). */
+  .message-reasoning[data-state="streaming"] > summary {
+    background: linear-gradient(90deg, var(--muted-foreground) 35%, var(--foreground) 50%, var(--muted-foreground) 65%) 0 0 / 250% 100%;
+    background-clip: text;
+    color: transparent;
+    animation: message-shimmer 1.6s linear infinite;
+  }
+  .message-reasoning[data-state="streaming"] > summary::after {
+    @apply bg-muted-foreground;
+  }
+  .message-reasoning[data-state="streaming"] > summary svg {
+    @apply text-muted-foreground;
+  }
+
+  /* AI: a tool call, its state in data-state="running" | "done" | "error" */
+  .message-tool {
+    @apply w-full max-w-md overflow-hidden rounded-(--radius) border border-border bg-surface text-sm;
+  }
+  .message-tool-header {
+    @apply flex w-full cursor-pointer list-none items-center gap-2 px-3 py-2 font-medium select-none
+      [&::-webkit-details-marker]:hidden [&>svg]:size-4 [&>svg]:shrink-0 [&>svg]:text-muted-foreground;
+  }
+  .message-tool-status {
+    @apply ms-auto inline-flex items-center gap-1 text-xs font-normal text-muted-foreground [&_svg]:size-3.5;
+  }
+  .message-tool[data-state="running"] .message-tool-status svg {
+    @apply animate-spin;
+  }
+  .message-tool[data-state="done"] .message-tool-status {
+    @apply text-success;
+  }
+  .message-tool[data-state="error"] .message-tool-status {
+    @apply text-danger;
+  }
+  .message-tool-content {
+    @apply flex flex-col gap-2 border-t border-border bg-muted/40 p-3;
+  }
+  .message-tool-label {
+    @apply text-xs font-medium text-muted-foreground uppercase;
+  }
+  .message-tool-content pre {
+    @apply overflow-x-auto rounded-[calc(var(--radius)-2px)] bg-background p-2 font-mono text-xs leading-relaxed;
+  }
+
+  /* Typing: three dots that rise in turn */
+  .message-typing {
+    @apply inline-flex h-5 items-center gap-1;
+  }
+  .message-typing > span {
+    @apply size-1.5 rounded-full bg-current opacity-60;
+    animation: message-typing 1.2s ease-in-out infinite;
+  }
+  .message-typing > span:nth-child(2) {
+    animation-delay: 0.15s;
+  }
+  .message-typing > span:nth-child(3) {
+    animation-delay: 0.3s;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .message-typing > span,
+    .message-reasoning[data-state="streaming"] > summary {
+      animation: none;
+    }
+  }
+}
+
+@keyframes message-typing {
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.4;
+  }
+  30% {
+    transform: translateY(-3px);
+    opacity: 1;
+  }
+}
+
+@keyframes message-shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: 0 0;
+  }
+}

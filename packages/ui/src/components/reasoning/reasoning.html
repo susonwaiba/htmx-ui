@@ -1,0 +1,46 @@
+{# Reasoning: AI reasoning in a <details>, open while it streams (behaviour: reasoning.ts).
+   {% from "components/reasoning/reasoning.html" import reasoning %}
+   {% call reasoning(duration=4) %}<p>The user wants…</p>{% endcall %}          "Thought for 4 seconds", closed
+   {% call reasoning(streaming=true, id="r-42") %}…{% endcall %}               open, "Thinking…" shimmering
+   label=none            the summary text; defaults to "Thought for N seconds" with a duration, else "Reasoning"
+   streaming=false       data-streaming: open, with a shimmering streaming_label
+   open=false            start open (a streaming one always is)
+   duration=none         seconds it took (data-reasoning-duration)
+   streaming_label="Thinking…"
+   done_label=none       the label once it's done, {s} = seconds ("Thought for {s}s")
+   auto_close=true       false: stay open when the stream ends
+   close_delay=none      ms before it closes once the stream ends (default 1000)
+   icon="sparkles"       an icon before the label; none for no icon
+   plain=false           .reasoning-plain: no line beside the content
+   id=none               give one when htmx replaces it (outerHTML) while it streams
+   attrs=none            more attributes, as a dict: {"hx-get": "/chat/7/reasoning", …}
+   class=""              more classes on the <details> #}
+{% from "components/icon/icon.html" import icon as icon_svg %}
+
+{% macro reasoning(label=none, streaming=false, open=false, duration=none, streaming_label="Thinking…", done_label=none, auto_close=true, close_delay=none, icon="sparkles", plain=false, id=none, attrs=none, class="") %}
+{% if label %}
+  {% set text = label %}
+{% elif duration != none %}
+  {% set text = done_label | replace("{s}", duration) if done_label else ("Thought for 1 second" if duration == 1 else "Thought for " ~ duration ~ " seconds") %}
+{% else %}
+  {% set text = "Reasoning" %}
+{% endif %}
+<details class="reasoning{% if plain %} reasoning-plain{% endif %}{% if class %} {{ class }}{% endif %}" data-reasoning
+  {%- if id %} id="{{ id }}"{% endif %}
+  {%- if streaming %} data-streaming aria-busy="true"{% endif %}
+  {%- if open or streaming %} open{% endif %}
+  {%- if duration != none %} data-reasoning-duration="{{ duration }}"{% endif %}
+  {%- if streaming_label != "Thinking…" %} data-reasoning-streaming-label="{{ streaming_label }}"{% endif %}
+  {%- if done_label %} data-reasoning-done-label="{{ done_label }}"{% endif %}
+  {%- if not auto_close %} data-reasoning-auto-close="false"{% endif %}
+  {%- if close_delay != none %} data-reasoning-close-delay="{{ close_delay }}"{% endif %}
+  {%- if attrs %}{% for k, v in attrs %} {{ k }}="{{ v }}"{% endfor %}{% endif %}>
+  <summary class="reasoning-trigger">
+    {%- if icon %}{{ icon_svg(icon) }}{% endif -%}
+    <span class="reasoning-label">
+      {%- if streaming %}<span class="loader loader-text-shimmer">{{ streaming_label }}</span>{% else %}{{ text }}{% endif -%}
+    </span>
+  </summary>
+  <div class="reasoning-content">{{ caller() if caller else "" }}</div>
+</details>
+{%- endmacro %}
