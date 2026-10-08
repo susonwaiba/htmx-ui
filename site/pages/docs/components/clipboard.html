@@ -1,0 +1,202 @@
+{% extends "layouts/docs.html" %}
+{% from "components/icon/icon.html" import icon %}
+{% from "components/code/code.html" import code %}
+{% from "components/clipboard/clipboard.html" import clipboard, clipboard_tag %}
+{% from "docs/macros.html" import demo, classes %}
+{% set title = "Clipboard" %}
+{% set description = "Copy buttons and copy tags: copy text, an input's value or an element's text, and show a green tick for a moment, on every browser." %}
+
+{% block content %}
+  {% call demo("gap-4") %}
+    <button type="button" class="btn btn-outline clipboard" data-clipboard data-clipboard-text="npm i htmx-ui">
+      <span class="clipboard-idle">{{ icon("copy") }} Copy</span>
+      <span class="clipboard-done">{{ icon("check") }} Copied</span>
+    </button>
+    <button type="button" class="btn btn-outline btn-icon clipboard" data-clipboard data-clipboard-text="npm i htmx-ui" aria-label="Copy">
+      <span class="clipboard-idle">{{ icon("copy") }}</span>
+      <span class="clipboard-done">{{ icon("check") }}</span>
+    </button>
+    <button type="button" class="clipboard-tag" data-clipboard aria-label="Copy npm i htmx-ui">
+      <code data-clipboard-content>npm i htmx-ui</code>
+      <span class="clipboard" aria-hidden="true"><span class="clipboard-idle">{{ icon("copy") }}</span><span class="clipboard-done">{{ icon("check") }}</span></span>
+    </button>
+  {% endcall %}
+
+  <h2 id="markup">Markup</h2>
+  <ul>
+    <li>Any <a href="/docs/components/button">button</a> with <code>data-clipboard</code> copies when clicked. Say what with <code>data-clipboard-text</code> (see <a href="#source">What it copies</a>).</li>
+    <li>Add <code>.clipboard</code> and put both of its looks inside: <code>.clipboard-idle</code> (a copy icon, a label or both) and <code>.clipboard-done</code> (a tick, "Copied").</li>
+    <li>After a copy the button gets <code>data-copied</code> for two seconds, which shows <code>.clipboard-done</code> with a green tick. The two looks share one space, so the button keeps its width when "Copy" becomes "Copied".</li>
+    <li>An icon-only button needs <code>aria-label="Copy"</code> (or "Copy link", "Copy API key"…).</li>
+  </ul>
+  <p>
+    Screen readers hear "Copied" (or "Copy failed") through a polite live region, because a button's changed text isn't
+    read out by itself. Set <code>data-clipboard-announce</code> to say something else, and
+    <code>data-clipboard-timeout</code> (ms) to keep the tick longer.
+  </p>
+
+  <h2 id="labels">Icon, label or both</h2>
+  <p>Leave out what you don't need: the icons, the labels, or one of each.</p>
+  {% call demo("gap-4") %}
+    {{ clipboard(text="Icon and label") }}
+    {{ clipboard(text="Icon only", icon_only=true) }}
+    {{ clipboard(text="Label only", icon=false, copied_icon=false) }}
+    {{ clipboard(text="Custom labels", label="Copy link", copied="Link copied") }}
+  {% endcall %}
+
+  <h2 id="variants">Variants</h2>
+  <p>
+    Every <a href="/docs/components/button">button variant</a> works. The tick is green on outline, ghost, secondary and link
+    buttons; on a filled primary or danger button it keeps the button's text colour, so it stays readable.
+  </p>
+  {% call demo("gap-4") %}
+    {{ clipboard(text="Outline", variant="outline") }}
+    {{ clipboard(text="Secondary", variant="secondary") }}
+    {{ clipboard(text="Ghost", variant="ghost") }}
+    {{ clipboard(text="Primary", variant="primary") }}
+    {{ clipboard(text="Link", variant="link") }}
+  {% endcall %}
+  {% call demo("gap-4") %}
+    {{ clipboard(text="Outline", variant="outline", icon_only=true) }}
+    {{ clipboard(text="Secondary", variant="secondary", icon_only=true) }}
+    {{ clipboard(text="Ghost", variant="ghost", icon_only=true) }}
+    {{ clipboard(text="Primary", variant="primary", icon_only=true) }}
+    {{ clipboard(text="Rounded", variant="outline", icon_only=true, rounded=true) }}
+  {% endcall %}
+
+  <h2 id="sizes">Sizes</h2>
+  <p>The button sizes: <code>.btn-xs</code>, <code>.btn-sm</code>, default and <code>.btn-lg</code>, with or without <code>.btn-icon</code>.</p>
+  {% call demo("flex-col gap-4") %}
+    <div class="flex items-center gap-3">
+      {{ clipboard(text="xs", size="xs") }}
+      {{ clipboard(text="sm", size="sm") }}
+      {{ clipboard(text="default") }}
+      {{ clipboard(text="lg", size="lg") }}
+    </div>
+    <div class="flex items-center gap-3">
+      {{ clipboard(text="xs", size="xs", icon_only=true) }}
+      {{ clipboard(text="sm", size="sm", icon_only=true) }}
+      {{ clipboard(text="default", icon_only=true) }}
+      {{ clipboard(text="lg", size="lg", icon_only=true) }}
+    </div>
+  {% endcall %}
+
+  <h2 id="tag">Copy tag</h2>
+  <p>
+    A <code>.clipboard-tag</code> is a monospace chip that copies the text it shows: an install command, an id, a coupon
+    code. The whole chip is the button. Put the text in a <code>data-clipboard-content</code> element and the two icons in a
+    <code>.clipboard</code> span; give the button an <code>aria-label</code>. Long text is cut short with an ellipsis, but
+    the whole of it is copied.
+  </p>
+  {% call demo("flex-col gap-4") %}
+    <div class="flex flex-wrap items-center justify-center gap-3">
+      {{ clipboard_tag("bun add htmx-ui", size="sm") }}
+      {{ clipboard_tag("bun add htmx-ui") }}
+      {{ clipboard_tag("bun add htmx-ui", size="lg") }}
+    </div>
+    <div class="flex flex-wrap items-center justify-center gap-3">
+      {{ clipboard_tag("WELCOME20", variant="outline") }}
+      {{ clipboard_tag("ord_8f2a91c4e7d0", variant="outline", size="sm", label="Copy order id") }}
+      {{ clipboard_tag("hx_secret_••••3f9a", copy="hx_secret_example_0c9e3f9a", variant="outline", label="Copy secret key") }}
+    </div>
+  {% endcall %}
+  <p>
+    The last one shows a shortened key but copies the whole of it: <code>copy=</code> in the macro, which writes
+    <code>data-clipboard-text</code>. <code>.clipboard-tag-sm</code> / <code>.clipboard-tag-lg</code> size it and
+    <code>.clipboard-tag-outline</code> gives it a border instead of a fill.
+  </p>
+
+  <h2 id="source">What it copies</h2>
+  <p>The first of these that is set:</p>
+  <div class="table-wrap not-prose">
+    <table class="table">
+      <thead><tr><th>Attribute</th><th>Copies</th></tr></thead>
+      <tbody>
+        <tr><td><code class="code">data-clipboard-text="…"</code></td><td class="text-muted-foreground">That text.</td></tr>
+        <tr><td><code class="code">data-clipboard-url="/page.md"</code></td><td class="text-muted-foreground">The text of that URL, fetched when clicked. The docs' "Copy Markdown" button works this way.</td></tr>
+        <tr><td><code class="code">data-clipboard-target="selector"</code></td><td class="text-muted-foreground">The nearest element matching the selector, looking outward from the button: its own block first, then further out, so <code class="code">#id</code> works and so does a class shared by many blocks (<code class="code">.message-content</code>, or <code class="code">pre:not([hidden]) code</code> in code blocks). For an input, textarea or select, its value, read when clicked (so it copies what the user typed); for any other element, its text.</td></tr>
+        <tr><td><code class="code">data-clipboard-content</code></td><td class="text-muted-foreground">The text of that element inside the button (a copy tag).</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>An input with a copy button: a read-only API key in an <a href="/docs/components/input-group">input group</a>, and a share link the user can edit before copying.</p>
+  {% call demo("flex-col") %}
+    <div class="field w-full max-w-sm">
+      <label class="label" for="clip-key">API key</label>
+      <div class="input-group">
+        <input class="input font-mono" id="clip-key" value="hx_live_7d2f9a41c0b8e6" readonly />
+        <span class="input-group-addon input-group-addon-inline-end">
+          {{ clipboard(target="#clip-key", icon_only=true, variant="ghost", label="Copy API key") }}
+        </span>
+      </div>
+    </div>
+    <div class="field w-full max-w-sm">
+      <label class="label" for="clip-link">Share link</label>
+      <div class="flex gap-2">
+        <input class="input" id="clip-link" value="https://example.com/invite/a8f3" />
+        {{ clipboard(target="#clip-link", label="Copy link") }}
+      </div>
+    </div>
+  {% endcall %}
+  <p>An element's text, such as an address:</p>
+  {% call demo() %}
+    <div class="flex w-full max-w-sm items-start justify-between gap-4 rounded-(--radius) border border-border p-4">
+      <address class="text-sm not-italic" id="clip-address">
+        Ada Lovelace<br />12 Analytical Way<br />London NW1 6XE
+      </address>
+      {{ clipboard(target="#clip-address", icon_only=true, variant="ghost", size="sm", label="Copy address") }}
+    </div>
+  {% endcall %}
+
+  <h2 id="browsers">Browsers and platforms</h2>
+  <ul>
+    <li><strong>Secure pages</strong> (https, and localhost while developing) copy with the asynchronous Clipboard API, supported by every current browser on desktop, Android and iOS.</li>
+    <li><strong>Plain http, older browsers and iframes</strong> without the <code>clipboard-write</code> permission fall back to <code>document.execCommand("copy")</code> on a hidden, read-only textarea. It is selected the way iOS Safari needs, doesn't open the phone keyboard or zoom the page, and focus goes back where it was.</li>
+    <li>If both fail (a browser that blocks clipboard access), the button gets <code>data-copy-failed</code> for the same two seconds, its icon turns red, "Copy failed" is announced and <code>clipboard:error</code> fires.</li>
+    <li>Browsers only allow copying in response to the user, so call it from a click, not on page load. With <code>data-clipboard-url</code>, the fetch is handed to the clipboard as a promise where the browser accepts one (Safari, Chrome), so the click still counts once the text arrives.</li>
+  </ul>
+
+  <h2 id="events">Events and htmx</h2>
+  <p>
+    A copy fires a bubbling <code>clipboard:copy</code> with <code>detail.text</code> (or <code>clipboard:error</code>). Use
+    it as an htmx trigger to record the copy, or add a <a href="/docs/components/toast">toast</a> with
+    <code>data-toast</code> on the same button:
+  </p>
+  {% call demo("gap-4") %}
+    {{ clipboard(text="https://example.com/r/8f2a", label="Copy referral link", attrs={"data-toast": "Link copied", "data-toast-type": "success"}) }}
+  {% endcall %}
+  {% call code("html", title="Count copies on the server") %}
+    {% raw %}<button type="button" class="btn btn-outline clipboard" data-clipboard data-clipboard-text="WELCOME20"
+        hx-post="/coupons/WELCOME20/copied" hx-trigger="clipboard:copy" hx-swap="none">…</button>{% endraw %}
+  {% endcall %}
+  <p>Copy buttons htmx swaps in work at once: the behaviour runs again on new content.</p>
+
+  <h2 id="macro">Nunjucks macros</h2>
+  <p><code>clipboard()</code> writes a copy button, <code>clipboard_tag()</code> a copy tag.</p>
+  {% call code("jinja", title="page.html") %}
+    {% raw %}{% from "components/clipboard/clipboard.html" import clipboard, clipboard_tag %}
+
+{{ clipboard(text="npm i htmx-ui") }}
+{{ clipboard(target="#api-key", icon_only=true, variant="ghost", size="sm", label="Copy API key") }}
+{{ clipboard(text=url, label="Copy link", copied="Link copied", variant="secondary", timeout=3000) }}
+{{ clipboard(text=code, icon=false, copied_icon=false) }}
+{{ clipboard_tag("npm i htmx-ui") }}
+{{ clipboard_tag("hx_secret_••••3f9a", copy=key, variant="outline", size="sm", label="Copy secret key") }}{% endraw %}
+  {% endcall %}
+
+  <h2 id="reference">Reference</h2>
+  {{ classes([
+    ["data-clipboard", "Copy when clicked. On a button or a .clipboard-tag."],
+    [".clipboard", "Stacks .clipboard-idle and .clipboard-done in one space. On the button, or a span inside a tag."],
+    [".clipboard-idle / .clipboard-done", "The look before / after copying (shown while data-copied is set)."],
+    [".clipboard-tag", "A monospace chip that copies its text. Sizes: .clipboard-tag-sm / -lg. .clipboard-tag-outline."],
+    ["data-clipboard-text", "The text to copy."],
+    ["data-clipboard-target", "A selector: copy the nearest match's value or text."],
+    ["data-clipboard-url", "Copy the text of this URL, fetched when clicked."],
+    ["data-clipboard-content", "Inside the button: copy this element's text."],
+    ["data-clipboard-timeout", "How long data-copied stays, in ms (2000)."],
+    ["data-clipboard-announce", "What screen readers hear (\"Copied\")."],
+    ["data-copied / data-copy-failed", "Set for the timeout after a copy / a failed copy."],
+    ["clipboard:copy / clipboard:error", "Events with detail { text }."]
+  ], heading="Class / attribute") }}
+{% endblock %}

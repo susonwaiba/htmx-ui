@@ -18,25 +18,21 @@
   .code-block > .code-copy {
     @apply absolute top-2 right-2;
   }
+  /* The copy button: an icon-only clipboard (clipboard.css), muted until hovered.
+     <button type="button" class="btn btn-ghost btn-xs btn-icon clipboard code-copy" data-clipboard
+             data-clipboard-target="pre:not([hidden]) code" aria-label="Copy code">…idle / done icons…</button> */
   .code-copy {
-    @apply inline-flex h-7 shrink-0 cursor-pointer items-center gap-1.5 rounded-md px-2 text-xs text-muted-foreground
-      hover:bg-accent hover:text-foreground [&_svg]:size-3.5;
-  }
-  .code-copy .code-copied,
-  .code-copy[data-copied] .code-copy-idle {
-    @apply hidden;
-  }
-  .code-copy[data-copied] .code-copied {
-    @apply inline-flex text-success;
+    @apply text-muted-foreground hover:text-foreground;
   }
 
-  /* Tabs inside a code block header (package managers, files) */
-  .code-tabs {
-    @apply -mb-px flex h-10 items-stretch self-stretch overflow-x-auto;
+  /* Tabs inside a code block header (package managers, files): underlined tabs (.tabs-list.tabs-line
+     with .tabs-trigger buttons, tabs.css) fitted to the header: full height, no border of their own
+     (the header has one), monospace, the focus outline inset so the scrolling strip doesn't clip it.
+     .tabs-line in the selector outweighs tabs.css, which is imported after this file. */
+  .code-tabs.tabs-line {
+    @apply -mb-px h-10 items-stretch gap-0 self-stretch overflow-x-auto border-b-0;
   }
-  .code-tab {
-    @apply cursor-pointer border-b-2 border-transparent px-3 font-mono text-xs text-muted-foreground transition-colors
-      hover:text-foreground focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring
-      aria-selected:border-primary aria-selected:text-foreground;
+  .code-tabs.tabs-line .tabs-trigger {
+    @apply mb-0 h-auto px-3 font-mono text-xs font-normal focus-visible:-outline-offset-2;
   }
 }

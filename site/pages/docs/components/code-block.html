@@ -1,4 +1,5 @@
 {% extends "layouts/docs.html" %}
+{% from "components/icon/icon.html" import icon %}
 {% from "components/code/code.html" import code, code_block, code_tabs, cli %}
 {% from "docs/macros.html" import demo, classes %}
 {% set title = "Code block" %}
@@ -76,16 +77,18 @@ add-dev tailwindcss") }}
 
   <h2 id="markup">Markup</h2>
   <p>
-    Add <code>data-code</code> to the block and <code>data-copy</code> to a button inside it. Clicking
-    the button copies the text of the visible <code>&lt;code&gt;</code>. Inside the button,
-    <code>.code-copy-idle</code> shows normally and <code>.code-copied</code> shows for 1.5 seconds after copying.
+    The copy button is an icon-only <a href="/docs/components/clipboard">clipboard</a> button with
+    <code>data-clipboard-target="pre:not([hidden]) code"</code>: the clipboard copies the nearest match, which is the
+    visible <code>&lt;code&gt;</code> in its own block, and shows a green tick for two seconds. <code>.code-copy</code>
+    mutes it until hovered; without a header it floats over the top-right corner of the code.
   </p>
   {% call demo("block p-4 sm:p-6") %}
     <div class="code-block" data-code>
       <div class="code-block-header">
         <span class="font-mono">app.ts</span>
-        <button type="button" class="code-copy" data-copy>
-          <span class="code-copy-idle">Copy</span><span class="code-copied">Copied</span>
+        <button type="button" class="btn btn-ghost btn-xs btn-icon clipboard code-copy" data-clipboard data-clipboard-target="pre:not([hidden]) code" aria-label="Copy code">
+          <span class="clipboard-idle">{{ icon("copy") }}</span>
+          <span class="clipboard-done">{{ icon("check") }}</span>
         </button>
       </div>
       <pre><code>initComponents(document);</code></pre>
@@ -93,7 +96,8 @@ add-dev tailwindcss") }}
   {% endcall %}
   <p>
     For tabs, put <code>data-tabs</code> on the block (plus <code>data-tabs-sync="key"</code> to sync),
-    <code>.code-tab</code> buttons with <code>data-tab</code> in the header, and one
+    <code>.tabs-trigger</code> buttons with <code>data-tab</code> in a <code>.tabs-list.tabs-line.code-tabs</code> strip in the
+    header (underlined tabs, fitted to it), and one
     <code>&lt;pre data-tab-panel&gt;</code> per tab. See <a href="/docs/components/tabs">Tabs</a>.
   </p>
 
@@ -114,9 +118,9 @@ add-dev tailwindcss") }}
   {{ classes([
     [".code-block", "Container: border, code background and the <pre> inside."],
     [".code-block-header", "Top bar for a file name, tabs and the copy button."],
-    [".code-copy", "Small copy button. Children .code-copy-idle / .code-copied swap after copying."],
-    [".code-tabs / .code-tab", "Tab strip inside the header."],
-    ["[data-code] + [data-copy]", "Behaviour: copies the visible <code> text."],
+    [".code-copy", "On the copy button (an icon-only .clipboard): muted until hovered."],
+    [".code-tabs", "On a .tabs-list.tabs-line of .tabs-trigger buttons: the tab strip, fitted to the header."],
+    ["data-clipboard-target=\"pre:not([hidden]) code\"", "On the copy button: copies the visible <code> of its block."],
     ["--code-background / --code-foreground / --code-token-*", "Highlighting colours (CSS variables)."]
   ]) }}
 {% endblock %}

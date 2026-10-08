@@ -5,7 +5,7 @@ import { initAvatar } from "./avatar/avatar";
 import { initBreadcrumb } from "./breadcrumb/breadcrumb";
 import { initCarousel } from "./carousel/carousel";
 import { initCheckbox } from "./checkbox/checkbox";
-import { initCode } from "./code/code";
+import { initClipboard } from "./clipboard/clipboard";
 import { initCollapsible } from "./collapsible/collapsible";
 import { initCombobox } from "./combobox/combobox";
 import { initCommand } from "./command/command";
@@ -37,7 +37,6 @@ export function initComponents(root: ParentNode = document) {
   initAccordion(root);
   initAvatar(root);
   initCheckbox(root);
-  initCode(root);
   initDismissible(root);
   initDropdown(root);
   initPopover(root);
@@ -64,4 +63,5 @@ export function initComponents(root: ParentNode = document) {
   initReasoning(root);
   initPromptInput(root);
   initMessageScroller(root);
+  initClipboard(root);
 }

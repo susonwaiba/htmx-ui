@@ -1,0 +1,72 @@
+/* A copy button: any .btn with data-clipboard, holding both of its looks.
+   <button type="button" class="btn btn-outline btn-sm clipboard" data-clipboard data-clipboard-text="npm i htmx-ui">
+     <span class="clipboard-idle">{{ icon("copy") }} Copy</span>
+     <span class="clipboard-done">{{ icon("check") }} Copied</span>
+   </button>
+   .clipboard stacks the two in one cell, so the button keeps its width when the label changes;
+   the behaviour (clipboard.ts) sets data-copied for two seconds, which shows .clipboard-done
+   with a green tick. Icon only: leave the labels out, add aria-label="Copy" and .btn-icon.
+   A copy tag, the whole chip clickable:
+   <button type="button" class="clipboard-tag" data-clipboard>
+     <code data-clipboard-content>npm i htmx-ui</code>
+     <span class="clipboard">…idle / done icons…</span>
+   </button>
+   Tag sizes .clipboard-tag-sm / -lg; .clipboard-tag-outline. Or the clipboard() macro (clipboard.html). */
+@layer components {
+  .clipboard {
+    @apply inline-grid place-items-center;
+  }
+  .clipboard > .clipboard-idle,
+  .clipboard > .clipboard-done {
+    @apply col-start-1 row-start-1 inline-flex items-center justify-center;
+    gap: inherit;
+  }
+  .clipboard-done,
+  [data-copied] .clipboard-idle {
+    @apply invisible;
+  }
+  [data-copied] .clipboard-done {
+    @apply visible;
+    animation: clipboard-pop var(--motion-duration-moderate) var(--motion-ease-out);
+  }
+  /* The green tick. On a filled button it keeps the button's text colour, for contrast. */
+  .clipboard-done svg {
+    @apply text-success;
+  }
+  :is(.btn-primary, .btn-danger) .clipboard-done svg {
+    @apply text-current;
+  }
+  [data-copy-failed] .clipboard-idle svg {
+    @apply text-danger;
+  }
+
+  /* Copy tag: a monospace chip that copies the text it shows. */
+  .clipboard-tag {
+    @apply inline-flex h-8 max-w-full min-w-0 cursor-pointer items-center gap-2 rounded-(--radius) border border-transparent
+      bg-muted px-3 font-mono text-xs text-foreground transition-colors select-none focus-outline hover:bg-accent
+      active:translate-y-px [&_svg]:size-3.5! [&_svg]:shrink-0;
+  }
+  .clipboard-tag > code,
+  .clipboard-tag > [data-clipboard-content] {
+    @apply min-w-0 truncate;
+  }
+  .clipboard-tag > .clipboard {
+    @apply shrink-0 text-muted-foreground;
+  }
+  .clipboard-tag-outline {
+    @apply border-border bg-transparent shadow-xs;
+  }
+  .clipboard-tag-sm {
+    @apply h-6 gap-1.5 rounded-[calc(var(--radius)-2px)] px-2 text-[11px] [&_svg]:size-3!;
+  }
+  .clipboard-tag-lg {
+    @apply h-10 gap-2.5 px-4 text-sm [&_svg]:size-4!;
+  }
+}
+
+@keyframes clipboard-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+}

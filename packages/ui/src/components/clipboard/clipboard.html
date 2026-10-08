@@ -1,0 +1,33 @@
+{# Clipboard: copy buttons and copy tags (behaviour: clipboard.ts).
+   {% from "components/clipboard/clipboard.html" import clipboard, clipboard_tag %}
+   {{ clipboard(text="npm i htmx-ui") }}                        outline button: copy icon + "Copy"
+   {{ clipboard(target="#api-key", icon_only=true, variant="ghost", size="sm") }}
+   {{ clipboard(text=url, label="Copy link", copied="Link copied", variant="secondary") }}
+   {{ clipboard_tag("npm i htmx-ui") }}                         a chip that copies the text it shows
+   {{ clipboard_tag("hx_secret_…", copy=key, variant="outline", size="sm") }}
+   clipboard(): text or target (a selector: its value or text) says what to copy. label / copied:
+   the two labels (with icon_only, label is the aria-label). icon / copied_icon: false for text
+   only. variant: a .btn-<variant> (outline, ghost, secondary, primary…). size: xs / sm / lg.
+   rounded: .btn-rounded. timeout: ms the tick shows (2000). announce: what screen readers hear.
+   clipboard_tag(): text shown (and copied, unless copy is set); size sm / lg; variant "outline".
+   class: more classes; attrs: more attributes, as a dict. #}
+{% from "components/icon/icon.html" import icon as svg_icon %}
+{% from "macros/attrs.html" import attrs as html_attrs %}
+
+{% macro _data(text, target, timeout, announce) -%}
+  data-clipboard{% if text !== none %} data-clipboard-text="{{ text }}"{% endif %}{% if target %} data-clipboard-target="{{ target }}"{% endif %}{% if timeout %} data-clipboard-timeout="{{ timeout }}"{% endif %}{% if announce %} data-clipboard-announce="{{ announce }}"{% endif %}
+{%- endmacro %}
+
+{% macro clipboard(text=none, target=none, label="Copy", copied="Copied", icon_only=false, icon=true, copied_icon=true, variant="outline", size=none, rounded=false, timeout=none, announce=none, class="", attrs=none) %}
+<button type="button" class="btn btn-{{ variant }}{% if size %} btn-{{ size }}{% endif %}{% if icon_only %} btn-icon{% endif %}{% if rounded %} btn-rounded{% endif %} clipboard{% if class %} {{ class }}{% endif %}" {{ _data(text, target, timeout, announce) }}{% if icon_only %} aria-label="{{ label }}"{% endif %}{{ html_attrs(attrs) }}>
+  <span class="clipboard-idle">{% if icon or icon_only %}{{ svg_icon("copy") }}{% endif %}{% if not icon_only %}{{ label }}{% endif %}</span>
+  <span class="clipboard-done">{% if copied_icon or icon_only %}{{ svg_icon("check") }}{% endif %}{% if not icon_only %}{{ copied }}{% endif %}</span>
+</button>
+{%- endmacro %}
+
+{% macro clipboard_tag(text, copy=none, label=none, size=none, variant=none, timeout=none, announce=none, class="", attrs=none) %}
+<button type="button" class="clipboard-tag{% if size %} clipboard-tag-{{ size }}{% endif %}{% if variant %} clipboard-tag-{{ variant }}{% endif %}{% if class %} {{ class }}{% endif %}" {{ _data(copy, none, timeout, announce) }} aria-label="{{ label or ('Copy ' + text) }}"{{ html_attrs(attrs) }}>
+  <code data-clipboard-content>{{ text }}</code>
+  <span class="clipboard" aria-hidden="true"><span class="clipboard-idle">{{ svg_icon("copy") }}</span><span class="clipboard-done">{{ svg_icon("check") }}</span></span>
+</button>
+{%- endmacro %}
