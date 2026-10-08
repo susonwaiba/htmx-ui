@@ -8,7 +8,7 @@
       <a href="{{ item.href }}" class="{{ 'text-foreground' if url == item.href else 'text-muted-foreground hover:text-foreground' }}"{% if url == item.href %} aria-current="page"{% endif %}>{{ item.title }}</a>
       {% endfor %}
     </nav>
-    <button type="button" class="btn btn-ghost btn-icon ml-auto" data-theme-toggle aria-pressed="false" title="Toggle light and dark theme">
+    <button type="button" id="site-main-theme-switcher" class="btn btn-ghost btn-icon ml-auto" data-theme-toggle aria-pressed="false" title="Toggle light and dark theme" hx-preserve="true">
       <span class="dark:hidden">{{ icon("sun") }}</span>
       <span class="hidden dark:inline">{{ icon("moon") }}</span>
       <span class="sr-only">Theme: <span data-theme-label>light</span></span>

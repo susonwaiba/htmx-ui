@@ -14,11 +14,13 @@
       <span class="grid size-7 place-items-center rounded-md bg-primary text-primary-foreground">{{ icon("layers", "size-4") }}</span>
       HTMX UI
     </a>
-    <nav class="hidden items-center gap-1 text-sm sm:flex">
-      {% for link in links %}
-        {% set active = url == link.href or (link.href != "/docs" and url.startsWith(link.href)) or (link.href == "/docs" and url.startsWith("/docs") and not url.startsWith("/docs/components") and not url.startsWith("/docs/changelog")) %}
-        <a href="{{ link.href }}" class="rounded-md px-3 py-1.5 transition-colors hover:text-foreground {{ 'text-foreground font-medium' if active else 'text-muted-foreground' }}"{% if active %} aria-current="page"{% endif %}>{{ link.title }}</a>
-      {% endfor %}
+    <nav class="navigation-menu hidden sm:flex" aria-label="Main">
+      <ul class="navigation-menu-list">
+        {% for link in links %}
+          {% set active = url == link.href or (link.href != "/docs" and url.startsWith(link.href)) or (link.href == "/docs" and url.startsWith("/docs") and not url.startsWith("/docs/components") and not url.startsWith("/docs/changelog")) %}
+          <li class="navigation-menu-item"><a href="{{ link.href }}" class="navigation-menu-link px-3"{% if active %} aria-current="page"{% endif %}>{{ link.title }}</a></li>
+        {% endfor %}
+      </ul>
     </nav>
     <div id="site-main-header-actions" class="ml-auto flex items-center gap-1" hx-preserve="true">
       {{ search() }}
