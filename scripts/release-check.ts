@@ -1,10 +1,11 @@
-// Everything that must pass before publishing htmx-ui, htmx-ui-engine and create-htmx-ui.
+// Everything that must pass before publishing htmx-ui, htmx-ui-engine, the plugins, create-htmx-ui and htmx-ui-upgrade.
 //
 //   bun run release:check
 //
 // 1. Typecheck, tests, docs-site build, package builds (packages/*/lib).
 // 2. Repo rules: no template syntax in built pages; the UI package never imports the
-//    site, the scripts or the engine; one version across the packages, in the changelog.
+//    site, the scripts or the engine; one version across the packages, in the changelog;
+//    a release with breaking changes has an htmx-ui-upgrade migration.
 // 3. Pack each package's real tarball and check what's in it.
 // 4. Smoke tests against the tarballs (need network access to install from npm):
 //    - the UI package alone in a Bun.build project, and its compiled lib/ on Node;
@@ -20,7 +21,8 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { NEXT_VERSION } from "../packages/plugin-versions/src/versions";
-import { CREATE, DIST, ENGINE, PACKAGES, PLUGINS, ROOT, SRC, UI } from "./paths";
+import { MIGRATIONS } from "../packages/upgrade/src/migrations";
+import { CREATE, DIST, ENGINE, PACKAGES, PLUGINS, ROOT, SRC, UI, UPGRADE } from "./paths";
 
 let failed = false;
 
@@ -77,6 +79,19 @@ await step(`every package is ${version}, and ${version} is in CHANGELOG.md and s
   if (!(versions.versions as { id: string }[]).some((v) => v.id === minor)) throw new Error(`no docs version ${minor}`);
 });
 
+await step(`htmx-ui-upgrade has a migration for ${version} if it has breaking changes`, async () => {
+  const changelog = await Bun.file(join(ROOT, "CHANGELOG.md")).text();
+  const section = changelog.split(/^## /m).find((s) => s.startsWith(`${version} `) || s.startsWith(`${version}\n`)) ?? "";
+  const migration = join(UPGRADE, `src/migrations/${version}.ts`);
+  if (/^### Breaking/m.test(section) && !(await Bun.file(migration).exists())) {
+    throw new Error(`CHANGELOG.md lists breaking changes for ${version} but packages/upgrade/src/migrations/${version}.ts doesn't exist (see AGENTS.md, Releasing a Version)`);
+  }
+  const listed = MIGRATIONS.map((m) => m.version);
+  for await (const f of new Bun.Glob("*.ts").scan(join(UPGRADE, "src/migrations"))) {
+    if (f !== "index.ts" && !listed.includes(f.slice(0, -3))) throw new Error(`packages/upgrade/src/migrations/${f} is not listed in src/migrations/index.ts`);
+  }
+});
+
 const work = await mkdtemp(join(tmpdir(), "htmx-ui-release-"));
 const tarballs: Record<string, string> = {};
 
@@ -119,6 +134,8 @@ for (const dir of PLUGINS) {
 await step("pack create-htmx-ui", () =>
   pack(CREATE, ["package.json", "README.md", "LICENSE", "index.js", "template/_gitignore", "template/htmx-ui.config.ts", "template/pages/index.html"]),
 );
+
+await step("pack htmx-ui-upgrade", () => pack(UPGRADE, ["package.json", "README.md", "LICENSE", "bin/htmx-ui-upgrade.js", "lib/index.js", "lib/index.d.ts", "lib/cli.js", "src/index.ts", "src/migrations/index.ts"]));
 
 const failIfNot = (r: { exitCode: number; stdout: Buffer; stderr: Buffer }, what: string) => {
   if (r.exitCode !== 0) throw new Error(`${what} failed:\n${r.stdout}${r.stderr}`.slice(0, 4000));
@@ -295,6 +312,18 @@ async function withPlugins(pm: "bun" | "npm" | "pnpm" | "yarn") {
   if (!frozen.includes('href="/docs/v0.1"') || !frozen.includes("You're viewing the docs for v0.1.")) throw new Error(`${pm}: archive/v0.1/guide.html was not frozen`);
   if (JSON.parse(await read("data/versions.json")).latest !== "next") throw new Error(`${pm}: versions:archive did not start a new next`);
 }
+
+await step("smoke test: the packed htmx-ui-upgrade on Node upgrades a 0.1 project", async () => {
+  const tool = join(work, "upgrade");
+  const app = join(work, "upgrade-app");
+  await quiet($`mkdir -p ${tool} && tar -xzf ${tarballs["htmx-ui-upgrade"]!} -C ${tool}`);
+  await Bun.write(join(app, "package.json"), JSON.stringify({ dependencies: { "htmx-ui": "^0.1.0" } }, null, 2));
+  await Bun.write(join(app, "layouts/base.html"), `<a class="sidebar-link" href="/">Home</a>\n`);
+  failIfNot(await $`node ${join(tool, "package/bin/htmx-ui-upgrade.js")} ${app} --to ${version} --force`.quiet().nothrow(), "htmx-ui-upgrade");
+  if (!(await Bun.file(join(app, "layouts/base.html")).text()).includes('class="sidebar-menu-button"')) throw new Error("layouts/base.html was not upgraded");
+  const range = (await Bun.file(join(app, "package.json")).json()).dependencies["htmx-ui"];
+  if (range !== `^${version}`) throw new Error(`package.json has htmx-ui ${range}, expected ^${version}`);
+});
 
 for (const pm of ["bun", "npm", "pnpm", "yarn"] as const) {
   if (!Bun.which(pm)) {

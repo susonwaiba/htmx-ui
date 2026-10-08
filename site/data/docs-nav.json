@@ -119,6 +119,7 @@
     {
       "title": "Project",
       "items": [
+        { "title": "Upgrading", "href": "/docs/upgrading", "description": "Move a project to a newer htmx-ui with htmx-ui-upgrade." },
         { "title": "Changelog", "href": "/docs/changelog", "description": "What changed in each release." },
         { "title": "Versions", "href": "/docs/versions", "description": "Docs for older releases and the versioning policy." }
       ]

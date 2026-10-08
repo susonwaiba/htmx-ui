@@ -11,7 +11,7 @@
     "dev": "bun run --cwd site dev",
     "build": "bun run --cwd site build",
     "preview": "bun run --cwd site preview",
-    "build:lib": "bun run --filter 'htmx-ui' --filter 'htmx-ui-engine' build && bun run --filter 'htmx-ui-plugin-*' build",
+    "build:lib": "bun run --filter 'htmx-ui' --filter 'htmx-ui-engine' --filter 'htmx-ui-upgrade' build && bun run --filter 'htmx-ui-plugin-*' build",
     "typecheck": "tsc --noEmit",
     "docs:archive": "bun run --cwd site htmx-ui versions:archive",
     "version:set": "bun run scripts/version.ts",

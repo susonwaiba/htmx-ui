@@ -19,6 +19,11 @@ The docs site has a fuller page per release (`/docs/changelog`).
 
 ### Added
 
+- **htmx-ui-upgrade:** a new package, run as `npx htmx-ui-upgrade@latest` (or `bunx`, `pnpm dlx`, `yarn dlx`) in a
+  project. It reads the htmx-ui version from `package.json` and applies every release's migration since: class and
+  attribute renames, markup that changed shape, removed APIs, config keys, and the new versions in `package.json`. It
+  lists, as `file:line`, what it couldn't change safely. It knows the 0.2.0 and 0.3.0 breaking changes. See
+  `/docs/upgrading`.
 - **Password input:** a show / hide toggle on an input group: eye icon or Show / Hide text, or a checkbox for several
   fields; keeps the caret, hides the password again on submit so password managers save it, hides Edge's own reveal
   button, an optional Caps Lock warning, and a `password_input()` macro.

@@ -150,6 +150,7 @@ All of them release together, one version.
 | [`htmx-ui-plugin-versions`](https://www.npmjs.com/package/htmx-ui-plugin-versions) ([source](packages/plugin-versions)) | Optional engine plugin: older releases' docs as frozen builds, a version switcher, `versions:name` / `versions:archive` |
 | [`htmx-ui-plugin-search`](https://www.npmjs.com/package/htmx-ui-plugin-search) ([source](packages/plugin-search)) | Optional engine plugin: a Ctrl/⌘K command palette over every page and section |
 | [`create-htmx-ui`](https://www.npmjs.com/package/create-htmx-ui) ([source](packages/create-htmx-ui)) | The scaffolder behind `create htmx-ui` |
+| [`htmx-ui-upgrade`](https://www.npmjs.com/package/htmx-ui-upgrade) ([source](packages/upgrade)) | `npx htmx-ui-upgrade@latest`: moves a project's code to a newer htmx-ui (renames, markup changes), and lists what to finish by hand |
 
 Plugins are listed in `htmx-ui.config.ts` (`plugins: [docs(), search()]`); a site that doesn't need one doesn't
 install it. The docs site (`/docs/plugins`) covers using them and writing your own.

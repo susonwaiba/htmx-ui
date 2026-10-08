@@ -125,6 +125,16 @@
         "tailwindcss": "^4.0.0",
       },
     },
+    "packages/upgrade": {
+      "name": "htmx-ui-upgrade",
+      "version": "0.2.0",
+      "bin": {
+        "htmx-ui-upgrade": "./bin/htmx-ui-upgrade.js",
+      },
+      "devDependencies": {
+        "@types/node": "^24",
+      },
+    },
     "site": {
       "name": "htmx-ui-site",
       "dependencies": {
@@ -498,6 +508,8 @@
     "htmx-ui-plugin-versions": ["htmx-ui-plugin-versions@workspace:packages/plugin-versions"],
 
     "htmx-ui-site": ["htmx-ui-site@workspace:site"],
+
+    "htmx-ui-upgrade": ["htmx-ui-upgrade@workspace:packages/upgrade"],
 
     "htmx.org": ["htmx.org@4.0.0", "", { "bin": { "upgrade-check": "dist/scripts/upgrade-check.js" } }, "sha512-T/171FUY93Kdfp8t+DnHdk45QvKRiBhVhhrwSzrXgUi4pHKvhp77dUA/qg8FAjsFWPIHNbmUuIdCrcVHuiZWng=="],
 

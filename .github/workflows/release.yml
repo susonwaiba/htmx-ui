@@ -1,5 +1,5 @@
 # Publishes htmx-ui, htmx-ui-engine, the official plugins (htmx-ui-plugin-docs,
-# -versions, -search) and create-htmx-ui to npm when a version tag is pushed:
+# -versions, -search), create-htmx-ui and htmx-ui-upgrade to npm when a version tag is pushed:
 #   git tag v0.1.0 && git push --tags
 # The packages share one version (release:check enforces it).
 # Needs an NPM_TOKEN repository secret (an npm automation token).
@@ -48,5 +48,9 @@ jobs:
           NPM_CONFIG_TOKEN: ${{ secrets.NPM_TOKEN }}
       - run: bun publish --access public --ignore-scripts
         working-directory: packages/create-htmx-ui
+        env:
+          NPM_CONFIG_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - run: bun publish --access public --ignore-scripts
+        working-directory: packages/upgrade
         env:
           NPM_CONFIG_TOKEN: ${{ secrets.NPM_TOKEN }}

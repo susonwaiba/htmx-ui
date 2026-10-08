@@ -1,0 +1,17 @@
+{
+  // Type declarations for the Node build (bun run build -> lib/**/*.d.ts).
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "allowImportingTsExtensions": false,
+    "customConditions": [],
+    "paths": {},
+    "rootDir": "./src",
+    "outDir": "./lib",
+    "types": ["node"]
+  },
+  "include": ["src/index.ts", "src/cli.ts"],
+  "exclude": ["src/**/*.test.ts"]
+}

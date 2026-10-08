@@ -1,0 +1,74 @@
+{% extends "layouts/docs.html" %}
+{% from "components/code/code.html" import code, cli %}
+{% set title = "Upgrading" %}
+{% set description = "Move a project to a newer htmx-ui with one command: htmx-ui-upgrade rewrites what changed and lists what it couldn't." %}
+
+{% block content %}
+  <p>
+    Before 1.0, a minor release can rename a class or change a component's markup; every one is listed under
+    <em>Breaking changes</em> in the <a href="/docs/changelog">changelog</a>. <code>htmx-ui-upgrade</code> makes those
+    edits for you. Run it in your project, with your work committed:
+  </p>
+  {{ cli("exec htmx-ui-upgrade@latest") }}
+  <p>
+    Then install the new versions and build the site. Always run <code>@latest</code>: each release of htmx-ui ships
+    an htmx-ui-upgrade of the same version that knows every migration up to it, so a project several releases behind
+    upgrades in one go.
+  </p>
+
+  <h2 id="what-it-does">What it does</h2>
+  <ol>
+    <li>
+      Reads the version your code is on from <code>package.json</code> (<code>htmx-ui</code>, else
+      <code>htmx-ui-engine</code>, else a plugin). <code>--from</code> sets it instead.
+    </li>
+    <li>
+      Runs each release's migration after that version, oldest first, over your templates, scripts, stylesheets and
+      <code>htmx-ui.config.*</code>: renamed classes and attributes in <code>class="…"</code> values, selectors and
+      strings; markup that changed shape; classes that became required; removed functions; renamed config keys.
+    </li>
+    <li>Sets <code>htmx-ui</code>, <code>htmx-ui-engine</code> and the plugins in <code>package.json</code> to the new version.</li>
+    <li>
+      Prints what it changed, file by file, and every place it left for you as <code>file:line</code>: markup it
+      doesn't recognise, classes with no one-to-one replacement, old names in prose or comments.
+    </li>
+  </ol>
+  {% call code("text") %}
+    Upgrading 0.2.0 → 0.3.0 (htmx-ui ^0.2.0)
+    Migrations: 0.3.0
+
+    Changed 3 files:
+      layouts/docs.html
+        .code-tab → .tabs-trigger
+        .dialog-close gets .btn .btn-ghost .btn-icon .btn-sm (2)
+      app.ts
+        initCode() call removed (initComponents() runs the clipboard)
+      package.json
+        htmx-ui ^0.2.0 → ^0.3.0
+
+    Check by hand (1):
+      partials/chat.html:14  .message-typing is gone: use loader("typing") (/docs/components/loader)
+  {% endcall %}
+  <p>
+    It never touches <code>node_modules</code>, <code>dist</code>, <code>build</code>, <code>lib</code>,
+    <code>archive</code> (frozen <a href="/docs/plugins/versions">docs versions</a>) or dot-directories, and it
+    refuses to run on a git working tree with uncommitted changes, so the upgrade is one diff to review, or undo.
+  </p>
+
+  <h2 id="options">Options</h2>
+  <div class="table-wrap not-prose">
+    <table class="table">
+      <thead><tr><th>Option</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td class="font-mono">[directory]</td><td>The project to upgrade. Default: the current directory.</td></tr>
+        <tr><td class="font-mono">--from &lt;version&gt;</td><td>The version the code is written for. Default: read from <code>package.json</code>.</td></tr>
+        <tr><td class="font-mono">--to &lt;version&gt;</td><td>Upgrade to this version. Default: the newest this release knows.</td></tr>
+        <tr><td class="font-mono">--dry-run</td><td>Show what would change and write nothing.</td></tr>
+        <tr><td class="font-mono">--force</td><td>Run even though there are uncommitted changes.</td></tr>
+        <tr><td class="font-mono">--list</td><td>List every migration and what it does.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  {{ cli("exec htmx-ui-upgrade@latest ./my-site --dry-run
+exec htmx-ui-upgrade@latest --from 0.1.0 --to 0.2.0") }}
+{% endblock %}

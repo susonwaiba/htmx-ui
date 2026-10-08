@@ -7,7 +7,7 @@ This document serves as the single source of truth for AI agents and human contr
 ## 1. Project Overview & Tech Stack
 
 This project is a high-performance, multi-page static and server-driven web application built with:
-- **Runtime & Toolchain:** [Bun](https://bun.sh) (strictly used for execution, bundling, serving, testing, and package management in this repo). A Bun workspace of six published packages (the library, the engine, three official plugins, the scaffolder) plus the docs site.
+- **Runtime & Toolchain:** [Bun](https://bun.sh) (strictly used for execution, bundling, serving, testing, and package management in this repo). A Bun workspace of seven published packages (the library, the engine, three official plugins, the scaffolder, the upgrade tool) plus the docs site.
 - **Engine runtimes:** `htmx-ui-engine` runs users' sites on Bun (Bun.serve + Bun.build) **or Node (Vite)**. Vite exists only inside the engine's Node adapter, as an optional peer dependency; this repo's own site, scripts and tests run on Bun.
 - **Frontend Interaction:** [htmx 4.x](https://htmx.org) (`htmx.org`) for server-driven UI updates and fragment swapping
 - **Styling:** [Tailwind CSS v4](https://tailwindcss.com) via `bun-plugin-tailwind` (Bun) or `@tailwindcss/vite` (the engine's Node adapter)
@@ -80,9 +80,17 @@ A Bun workspace (`package.json` `workspaces`). One rule: **`packages/ui/src/` is
 │   ├── plugin-versions/            # htmx-ui-plugin-versions (published): archived versions, switcher, versions:name/archive commands
 │   ├── plugin-search/              # htmx-ui-plugin-search (published): the Ctrl/⌘K palette over sitemap.json
 │   │   └── (each)                  # src/index.ts (engine plugin), src/client.ts (browser), src/styles.css, src/templates/<name>/
-│   └── create-htmx-ui/             # create-htmx-ui: the scaffolder (published; plain JS, no build)
-│       ├── index.js                # bun/npm/pnpm/yarn create htmx-ui
-│       └── template/               # The starter site (_gitignore becomes .gitignore)
+│   ├── create-htmx-ui/             # create-htmx-ui: the scaffolder (published; plain JS, no build)
+│   │   ├── index.js                # bun/npm/pnpm/yarn create htmx-ui
+│   │   └── template/               # The starter site (_gitignore becomes .gitignore)
+│   └── upgrade/                    # htmx-ui-upgrade: migrates a project's code between versions (published)
+│       ├── bin/htmx-ui-upgrade.js  # Launcher: src/cli.ts on Bun, lib/cli.js on Node
+│       ├── build.ts                # bun run build (in build:lib): src/ -> lib/ (ESM + .d.ts)
+│       └── src/
+│           ├── index.ts            # upgrade(dir): detect the version, run migrations, bump package.json, report
+│           ├── cli.ts              # npx htmx-ui-upgrade@latest [dir] [--dry-run --from --to --force --list]
+│           ├── transforms.ts       # Migration helpers: renameClass, renameAttribute, addClasses, replace, warn
+│           └── migrations/         # <version>.ts per release with breaking changes, listed oldest first in index.ts
 ├── site/                           # THE WEBSITE: marketing pages + docs, built with the engine. Not published.
 │   ├── package.json                # htmx-ui-site: dev/build/preview = htmx-ui dev/build/preview
 │   ├── htmx-ui.config.ts           # Engine config: the docs/versions/search plugins, mock API routes, icons (route + build hook)
@@ -97,7 +105,7 @@ A Bun workspace (`package.json` `workspaces`). One rule: **`packages/ui/src/` is
 │   ├── lib/                        # paths.ts; engine.ts (the resolved site config, for tests); *.test.ts (pages, outputs)
 │   └── archive/                    # Frozen builds of older docs versions (created by docs:archive = htmx-ui versions:archive)
 ├── scripts/                        # Repo scripts: release-check, new-component, version, build-plugin, dom-setup, paths
-├── .github/workflows/              # ci.yml (checks on push/PR), release.yml (publish all six on v* tag)
+├── .github/workflows/              # ci.yml (checks on push/PR), release.yml (publish all seven on v* tag)
 ├── dist/                           # The site's build output (gitignored)
 ├── bunfig.toml                     # Test preload only (the engine generates the dev server's bunfig)
 ├── package.json                    # Private workspace root: scripts proxy to site/ and packages/
@@ -323,13 +331,23 @@ Run `bun run component:new <name>` (add `--behaviour` for a TypeScript behaviour
 5. Document it: create `site/pages/docs/components/<name>.html` (extend `layouts/docs.html`; use `demo()` and `classes()` from `docs/macros.html`, the docs plugin's) and add an entry with `component: true` and a `category` (an id from `site/data/component-categories.json`: forms, actions, navigation, overlays, feedback, layout, data, content, chat) to `site/data/docs-nav.json`. Components are listed in that file grouped by category (in the categories file's order, A–Z within one), and the sidebar, prev/next, `llms.txt` and the components index all follow it, each group under its label; `site/lib/component-categories.test.ts` fails on a missing or unknown category or an entry out of order. The scaffolder inserts in the right place.
 
 ### Releasing a Version
-The six packages (`htmx-ui`, `htmx-ui-engine`, `htmx-ui-plugin-docs`, `htmx-ui-plugin-versions`, `htmx-ui-plugin-search`, `create-htmx-ui`) release together with **one version**.
+The seven packages (`htmx-ui`, `htmx-ui-engine`, `htmx-ui-plugin-docs`, `htmx-ui-plugin-versions`, `htmx-ui-plugin-search`, `create-htmx-ui`, `htmx-ui-upgrade`) release together with **one version**.
+0. Every breaking change in the release has a migration in `packages/upgrade/src/migrations/<version>.ts` (see "Writing an Upgrade Migration"); write it in the same commit as the change.
 1. Run `bun run version:set <x.y.z>`: it names the `next` docs version (`<major>.<minor>`, or `<major>` from 1.0), dates it today, sets `version` in every `packages/*/package.json`, and refreshes `bun.lock` — it records every workspace package's version, and `bun pm pack` reads it to rewrite `workspace:` ranges, so a stale lock packs peer ranges for the previous version (npm then fails the plugin smoke test with ERESOLVE). The plugins' `workspace:^` peer ranges follow on pack. `create-htmx-ui` writes `^<its version>` for htmx-ui and the engine into new projects, so they must match.
 2. Add a `## <version> — <date>` section to `CHANGELOG.md` (covers every package).
 3. Add the release to the top of `releases` in `site/data/changelog.json`, and create `site/pages/docs/changelog/<version>.html` (copy the previous one) with the Added / Changed / Fixed notes.
 4. Run `bun run release:check`: typecheck, tests, the site and package builds, repo rules, one version everywhere, tarball contents, and smoke tests against the packed tarballs: htmx-ui alone in a Bun.build project (and its `lib/` imported on Node), then a site scaffolded by the packed create-htmx-ui, installed, built and typechecked with bun (Bun runtime) and with npm, pnpm and yarn (Node + Vite) where they are on PATH, and the same site with the three packed plugins: built, a docs version named and archived with their commands. npm is required.
-5. Commit, then `git tag v<version> && git push --tags`. `.github/workflows/release.yml` checks the tag matches the packages, reruns the release check and runs `bun publish` in `packages/ui`, `packages/engine`, the three `packages/plugin-*`, `packages/create-htmx-ui`, in that order (needs the `NPM_TOKEN` secret).
+5. Commit, then `git tag v<version> && git push --tags`. `.github/workflows/release.yml` checks the tag matches the packages, reruns the release check and runs `bun publish` in `packages/ui`, `packages/engine`, the three `packages/plugin-*`, `packages/create-htmx-ui`, `packages/upgrade`, in that order (needs the `NPM_TOKEN` secret).
 6. When work starts on the next version's docs, freeze the released ones first: `bun run docs:archive`, then commit `site/archive/` and `site/data/versions.json`.
+
+### Writing an Upgrade Migration
+`htmx-ui-upgrade` (`packages/upgrade/`) carries users' code across releases, so each breaking change ships with its migration.
+1. Add the change to `packages/upgrade/src/migrations/<version>.ts` (`export default defineMigration({ version, changes, notes })`; create it from the previous one and list it, oldest first, in `src/migrations/index.ts`). `<version>` is the release the change lands in, e.g. `0.4.0` while `next` is being worked on.
+2. Build it from `src/transforms.ts`: `renameClass(from, to)` (class values, selectors, strings), `renameAttribute(from, to)` (start tags, selectors, `dataset`), `addClasses(on, classes)` (classes that became required), `replace(description, files, regex, fn)` for anything else, and `warn(regex, message)` for what can't be rewritten safely. Rewrites must be unambiguous; prose, comments and unrecognised markup are reported as `file:line`, not edited. Put manual steps with no pattern in `notes`.
+3. Test it in `packages/upgrade/src/index.test.ts` with before/after text, including what it must leave alone.
+4. Try it on a real project: `git archive v<previous> site | tar -x -C <tmp>`, then `bun packages/upgrade/bin/htmx-ui-upgrade.js <tmp>/site --from <previous> --dry-run` (Bun runs the source; no build needed).
+
+`release:check` fails when `CHANGELOG.md` has a `### Breaking` section for the version and no migration file, and packs and runs the tool on Node.
 
 ### Adding an API Fragment Route
 1. Open `site/server/api.ts` (it is spread into `routes` in `site/htmx-ui.config.ts`).

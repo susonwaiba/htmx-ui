@@ -1,0 +1,49 @@
+{
+  "name": "htmx-ui-upgrade",
+  "version": "0.2.0",
+  "description": "Upgrade an htmx-ui project's code to a newer htmx-ui: npx htmx-ui-upgrade@latest, bunx htmx-ui-upgrade@latest.",
+  "keywords": [
+    "htmx",
+    "htmx-ui",
+    "upgrade",
+    "migrate",
+    "codemod"
+  ],
+  "license": "MIT",
+  "author": "Suson Waiba",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/susonwaiba/htmx-ui.git",
+    "directory": "packages/upgrade"
+  },
+  "bugs": "https://github.com/susonwaiba/htmx-ui/issues",
+  "homepage": "https://github.com/susonwaiba/htmx-ui#readme",
+  "type": "module",
+  "bin": {
+    "htmx-ui-upgrade": "./bin/htmx-ui-upgrade.js"
+  },
+  "exports": {
+    ".": {
+      "bun": "./src/index.ts",
+      "types": "./lib/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "bin",
+    "lib",
+    "src",
+    "!src/**/*.test.ts"
+  ],
+  "engines": {
+    "node": ">=18.3"
+  },
+  "scripts": {
+    "build": "bun run build.ts",
+    "prepublishOnly": "bun run --cwd ../.. release:check"
+  },
+  "devDependencies": {
+    "@types/node": "^24"
+  }
+}
