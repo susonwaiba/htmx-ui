@@ -265,6 +265,7 @@
 @import "./components/message/message.css";
 @import "./components/navigation-menu/navigation-menu.css";
 @import "./components/pagination/pagination.css";
+@import "./components/password-input/password-input.css";
 @import "./components/popover/popover.css";
 @import "./components/progress/progress.css";
 @import "./components/prompt-input/prompt-input.css";

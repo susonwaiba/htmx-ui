@@ -18,6 +18,7 @@ import { initInputOtp } from "./input-otp/input-otp";
 import { initMenubar } from "./menubar/menubar";
 import { initMessageScroller } from "./message-scroller/message-scroller";
 import { initNavigationMenu } from "./navigation-menu/navigation-menu";
+import { initPasswordInput } from "./password-input/password-input";
 import { initPopover } from "./popover/popover";
 import { initPromptInput } from "./prompt-input/prompt-input";
 import { initReasoning } from "./reasoning/reasoning";
@@ -63,5 +64,6 @@ export function initComponents(root: ParentNode = document) {
   initReasoning(root);
   initPromptInput(root);
   initMessageScroller(root);
+  initPasswordInput(root);
   initClipboard(root);
 }
