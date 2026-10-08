@@ -14,8 +14,16 @@ test("every custom property and color-mix() in src/ survives the minified build"
   const dir = join(import.meta.dir, "node_modules/.cache/css-test");
   await mkdir(dir, { recursive: true });
   const entry = join(dir, "entry.css");
+  // Built-in themes (src/themes/) are opt-in imports, not part of styles.css, so import them
+  // here too: their custom properties must survive the build as well.
+  const themes = [...new Bun.Glob("themes/*.css").scanSync(SRC)]
+    .map((file) => `@import "${join(SRC, file)}";`)
+    .join("\n");
   // @source inline: generate utilities defined in src/ (e.g. .prose) with no markup to scan
-  await Bun.write(entry, `@import "tailwindcss";\n@import "${join(SRC, "styles.css")}";\n@source inline("prose");\n`);
+  await Bun.write(
+    entry,
+    `@import "tailwindcss";\n@import "${join(SRC, "styles.css")}";\n${themes}\n@source inline("prose");\n`,
+  );
   const result = await Bun.build({ entrypoints: [entry], outdir: join(dir, "out"), minify: true, plugins: [tailwind] });
   expect(result.success).toBe(true);
   const css = await result.outputs[0]!.text();

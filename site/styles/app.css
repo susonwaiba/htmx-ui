@@ -7,6 +7,15 @@
 @source "../";
 
 @import "htmx-ui/styles.css";
+/* Built-in themes (packages/ui/src/themes). The site applies aurora only — base.html puts
+   data-theme="aurora" on <html>. The other five are imported so the /docs/theming previews can
+   show them; nothing else sets their attribute, so they style nothing here. */
+@import "htmx-ui/themes/aurora.css";
+@import "htmx-ui/themes/ember.css";
+@import "htmx-ui/themes/lagoon.css";
+@import "htmx-ui/themes/dusk.css";
+@import "htmx-ui/themes/onyx.css";
+@import "htmx-ui/themes/jade.css";
 /* The docs plugins' styles (htmx-ui.config.ts plugins) */
 @import "htmx-ui-plugin-docs/styles.css";
 @import "htmx-ui-plugin-versions/styles.css";
@@ -20,30 +29,15 @@
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
-/* Brand. Unlayered, so these win over the tokens htmx-ui sets in @layer base.
-   One palette across marketing and docs: every demo renders in it too. */
+/* Brand tokens — --radius, --primary, --ring, --brand-gradient and the deep dark palette —
+   come from the aurora theme imported above, applied by data-theme="aurora" on <html>
+   (see base.html). Unlayered like the site's own additions, they beat htmx-ui's @layer base. */
 :root {
-  --radius: 0.75rem;
-  --primary: var(--color-violet-600);
-  --primary-foreground: var(--color-white);
-  --ring: var(--color-violet-500);
-  --brand-gradient: linear-gradient(100deg, var(--color-violet-600), var(--color-indigo-600) 45%, var(--color-cyan-600));
   /* 16% of the brand colour, used by the pointer glow (.spotlight). Kept on a
-     custom property so bundlers lower color-mix to a declaration-level
+     custom property so bundlers lower color-mix() to a declaration-level
      @supports (which Chromium honours) rather than a nested `& { … }` rule
      (which it drops, leaving the full-strength fallback that looks hard). */
   --spotlight-soft: color-mix(in oklab, var(--primary) 16%, transparent);
-}
-
-:root.dark {
-  --primary: var(--color-violet-500);
-  --primary-foreground: var(--color-white);
-  --ring: var(--color-violet-400);
-  --brand-gradient: linear-gradient(100deg, var(--color-violet-300), var(--color-indigo-300) 45%, var(--color-cyan-300));
-
-  --background: #0a0a0f;
-  --surface: #12121b;
-  --border: #262633;
 }
 
 @layer components {

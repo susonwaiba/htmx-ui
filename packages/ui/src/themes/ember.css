@@ -1,0 +1,40 @@
+/* Built-in theme: ember — amber → orange → rose, warm paper in light, ember-lit near-black in dark.
+   Opt-in, in two steps:
+     1. import it after the library:  @import "htmx-ui/themes/ember.css";
+     2. set the attribute:            <html data-theme="ember">      the whole page
+                                      <section data-theme="ember">   one section
+   Importing without the attribute ships nothing styled, and not importing ships no CSS at all,
+   so the theme costs projects that don't use it nothing.
+
+   Same shape as the library's own tokens: light values first, dark values on selectors that
+   also match `.dark` (the class theme.ts puts on <html>), all unlayered so they beat the
+   tokens in @layer base whatever the import order. */
+
+[data-theme="ember"] {
+  --radius: 0.625rem;
+
+  --primary: var(--color-orange-600);
+  --primary-foreground: var(--color-white);
+  --ring: var(--color-orange-500);
+
+  /* Amber → orange → rose, for gradient headlines and accents in your own markup:
+     background-image: var(--brand-gradient). */
+  --brand-gradient: linear-gradient(100deg, var(--color-amber-600), var(--color-orange-600) 45%, var(--color-rose-600));
+
+  /* Warm paper behind the page; cards stay white on it. */
+  --background: #fffbf7;
+}
+
+[data-theme="ember"].dark,
+.dark [data-theme="ember"] {
+  /* The accent glows in the dark, so the label on it goes dark too. */
+  --primary: var(--color-orange-400);
+  --primary-foreground: #20120a;
+  --ring: var(--color-orange-300);
+  --brand-gradient: linear-gradient(100deg, var(--color-amber-300), var(--color-orange-300) 45%, var(--color-rose-300));
+
+  /* Coals in the dark: a warm near-black nothing like the library's zinc. */
+  --background: #150e0a;
+  --surface: #1f1510;
+  --border: #382a21;
+}

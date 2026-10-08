@@ -138,6 +138,23 @@ Override the tokens; every component follows.
 :root.dark { --primary: oklch(0.7 0.17 30); }
 ```
 
+Or import a built-in theme — `aurora`, `ember`, `lagoon`, `dusk`, `jade` or `onyx` — and switch it on with an
+attribute:
+
+```css
+@import "htmx-ui/styles.css";
+@import "htmx-ui/themes/aurora.css";
+```
+
+```html
+<html lang="en" data-theme="aurora">
+```
+
+Visitors can switch between the ones you import at runtime: buttons carrying `data-theme-palette`
+apply their palette and remember the choice — `initTheme()` wires them, `getPalette()` /
+`setPalette()` are exported, and `theme-swatch` draws the little gradient dot (see the
+[themes](site/pages/docs/themes.html) and [theming](site/pages/docs/theming.html) docs).
+
 ## Packages
 
 All of them release together, one version.

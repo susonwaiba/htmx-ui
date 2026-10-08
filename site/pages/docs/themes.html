@@ -1,0 +1,347 @@
+{% extends "layouts/docs.html" %}
+{% from "components/code/code.html" import code %}
+{% from "docs/macros.html" import demo %}
+{% set title = "Themes" %}
+{% set description = "The six built-in themes of HTMX UI — aurora, ember, lagoon, dusk, jade and onyx — with live previews, the exact values each file sets and a one-click apply for this site." %}
+
+{% block content %}
+  <p>
+    Six ready-made themes ship under <code>htmx-ui/themes/</code>. Using one takes the same two
+    steps as <a href="/docs/theming#built-in-themes">on the Theming page</a> — import the file,
+    set <code>data-theme</code> — so this page is the catalogue instead: what each one looks like,
+    every value it sets, and a button that puts it on this site.
+  </p>
+  {% call code("css", title="src/styles.css") %}
+    @import "tailwindcss";
+    @import "htmx-ui/styles.css";
+
+    /* One, or several — an attribute picks which applies where. */
+    @import "htmx-ui/themes/aurora.css";
+    @import "htmx-ui/themes/onyx.css";
+  {% endcall %}
+  {% call code("html") %}
+    <!-- Whole site -->
+    <html lang="en" data-theme="aurora">
+
+    <!-- Or one section -->
+    <section data-theme="dusk">…</section>
+  {% endcall %}
+  <p>
+    Applying one is live: the buttons below — and the picker in this site's header — are plain
+    <code>data-theme-palette</code> buttons wired by <code>initTheme()</code>
+    (<a href="/docs/theming#switching-themes">Switching themes</a>). Each writes the site-wide
+    <code>data-theme</code> and remembers the choice. Dark mode is independent, so flip that too
+    and every theme shows its dark side.
+  </p>
+  <div class="flex flex-wrap gap-2 not-prose" data-md-skip>
+    <button type="button" class="btn btn-outline btn-sm" data-theme-palette="aurora" aria-pressed="false"><span class="theme-swatch" data-theme="aurora" aria-hidden="true"></span>Aurora</button>
+    <button type="button" class="btn btn-outline btn-sm" data-theme-palette="ember" aria-pressed="false"><span class="theme-swatch" data-theme="ember" aria-hidden="true"></span>Ember</button>
+    <button type="button" class="btn btn-outline btn-sm" data-theme-palette="lagoon" aria-pressed="false"><span class="theme-swatch" data-theme="lagoon" aria-hidden="true"></span>Lagoon</button>
+    <button type="button" class="btn btn-outline btn-sm" data-theme-palette="dusk" aria-pressed="false"><span class="theme-swatch" data-theme="dusk" aria-hidden="true"></span>Dusk</button>
+    <button type="button" class="btn btn-outline btn-sm" data-theme-palette="jade" aria-pressed="false"><span class="theme-swatch" data-theme="jade" aria-hidden="true"></span>Jade</button>
+    <button type="button" class="btn btn-outline btn-sm" data-theme-palette="onyx" aria-pressed="false"><span class="theme-swatch" data-theme="onyx" aria-hidden="true"></span>Onyx</button>
+  </div>
+
+  <h2 id="aurora">aurora</h2>
+  <p>
+    Violet → indigo → cyan on a cool, blue-black dark — and the theme this site itself runs on.
+    0.75rem corners.
+  </p>
+  {% call demo() %}
+    <div data-theme="aurora" class="w-full max-w-xl rounded-[calc(var(--radius)+4px)] bg-background p-4">
+      <div class="card">
+        <div class="card-header">
+          <div class="flex items-center justify-between gap-2">
+            <h3 class="card-title capitalize">aurora</h3>
+            <span class="badge badge-primary">Pro</span>
+          </div>
+          <p class="card-description">
+            Violet buttons and <code class="text-gradient font-semibold">gradient headlines</code>
+            on the library's plain white; near-black dark with a violet glow.
+          </p>
+        </div>
+        <div class="card-footer pt-6">
+          <button type="button" class="btn btn-primary btn-sm" data-theme-palette="aurora" aria-pressed="false">Apply aurora</button>
+        </div>
+      </div>
+    </div>
+  {% endcall %}
+  <div class="table-wrap not-prose">
+    <table class="table">
+      <thead><tr><th>Token</th><th>Light</th><th>Dark</th></tr></thead>
+      <tbody>
+        <tr><td><code class="code">--primary</code></td><td class="whitespace-nowrap">violet-600</td><td class="whitespace-nowrap">violet-500</td></tr>
+        <tr><td><code class="code">--primary-foreground</code></td><td class="whitespace-nowrap">white</td><td class="whitespace-nowrap">white</td></tr>
+        <tr><td><code class="code">--ring</code></td><td class="whitespace-nowrap">violet-500</td><td class="whitespace-nowrap">violet-400</td></tr>
+        <tr>
+          <td><code class="code">--brand-gradient</code></td>
+          <td><span class="inline-flex items-center gap-2"><span class="dark:hidden"><span class="theme-swatch" data-theme="aurora" aria-hidden="true"></span></span>violet-600 → indigo-600 45% → cyan-600</span></td>
+          <td><span class="inline-flex items-center gap-2"><span class="theme-swatch dark" data-theme="aurora" aria-hidden="true"></span>violet-300 → indigo-300 45% → cyan-300</span></td>
+        </tr>
+        <tr><td><code class="code">--background</code></td><td>white (default)</td><td class="whitespace-nowrap">#0a0a0f</td></tr>
+        <tr><td><code class="code">--surface</code></td><td>white (default)</td><td class="whitespace-nowrap">#12121b</td></tr>
+        <tr><td><code class="code">--border</code></td><td>zinc-200 (default)</td><td class="whitespace-nowrap">#262633</td></tr>
+        <tr><td><code class="code">--radius</code></td><td class="whitespace-nowrap">0.75rem</td><td class="whitespace-nowrap">0.75rem</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="text-sm text-muted-foreground">
+    Ships as <code>@import "htmx-ui/themes/aurora.css";</code>, applied by
+    <code>data-theme="aurora"</code>; tokens not listed keep their
+    <a href="/docs/theming#tokens">library value</a>.
+  </p>
+
+  <h2 id="ember">ember</h2>
+  <p>
+    Amber → orange → rose on warm paper, ember-lit near-black when the lights go out.
+    0.625rem corners.
+  </p>
+  {% call demo() %}
+    <div data-theme="ember" class="w-full max-w-xl rounded-[calc(var(--radius)+4px)] bg-background p-4">
+      <div class="card">
+        <div class="card-header">
+          <div class="flex items-center justify-between gap-2">
+            <h3 class="card-title capitalize">ember</h3>
+            <span class="badge badge-primary">Pro</span>
+          </div>
+          <p class="card-description">
+            Orange buttons on warm paper (#fffbf7), <code class="text-gradient font-semibold">gradient headlines</code>,
+            0.625rem corners; coals in the dark.
+          </p>
+        </div>
+        <div class="card-footer pt-6">
+          <button type="button" class="btn btn-primary btn-sm" data-theme-palette="ember" aria-pressed="false">Apply ember</button>
+        </div>
+      </div>
+    </div>
+  {% endcall %}
+  <div class="table-wrap not-prose">
+    <table class="table">
+      <thead><tr><th>Token</th><th>Light</th><th>Dark</th></tr></thead>
+      <tbody>
+        <tr><td><code class="code">--primary</code></td><td class="whitespace-nowrap">orange-600</td><td class="whitespace-nowrap">orange-400</td></tr>
+        <tr><td><code class="code">--primary-foreground</code></td><td class="whitespace-nowrap">white</td><td class="whitespace-nowrap">#20120a</td></tr>
+        <tr><td><code class="code">--ring</code></td><td class="whitespace-nowrap">orange-500</td><td class="whitespace-nowrap">orange-300</td></tr>
+        <tr>
+          <td><code class="code">--brand-gradient</code></td>
+          <td><span class="inline-flex items-center gap-2"><span class="dark:hidden"><span class="theme-swatch" data-theme="ember" aria-hidden="true"></span></span>amber-600 → orange-600 45% → rose-600</span></td>
+          <td><span class="inline-flex items-center gap-2"><span class="theme-swatch dark" data-theme="ember" aria-hidden="true"></span>amber-300 → orange-300 45% → rose-300</span></td>
+        </tr>
+        <tr><td><code class="code">--background</code></td><td class="whitespace-nowrap">#fffbf7</td><td class="whitespace-nowrap">#150e0a</td></tr>
+        <tr><td><code class="code">--surface</code></td><td>white (default)</td><td class="whitespace-nowrap">#1f1510</td></tr>
+        <tr><td><code class="code">--border</code></td><td>zinc-200 (default)</td><td class="whitespace-nowrap">#382a21</td></tr>
+        <tr><td><code class="code">--radius</code></td><td class="whitespace-nowrap">0.625rem</td><td class="whitespace-nowrap">0.625rem</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="text-sm text-muted-foreground">
+    Ships as <code>@import "htmx-ui/themes/ember.css";</code>, applied by
+    <code>data-theme="ember"</code>; tokens not listed keep their
+    <a href="/docs/theming#tokens">library value</a>.
+  </p>
+
+  <h2 id="lagoon">lagoon</h2>
+  <p>
+    Teal → cyan → sky on ice-clear light, deep-sea dark for the other side.
+    The roundest-at-1rem corner of the set.
+  </p>
+  {% call demo() %}
+    <div data-theme="lagoon" class="w-full max-w-xl rounded-[calc(var(--radius)+4px)] bg-background p-4">
+      <div class="card">
+        <div class="card-header">
+          <div class="flex items-center justify-between gap-2">
+            <h3 class="card-title capitalize">lagoon</h3>
+            <span class="badge badge-primary">Pro</span>
+          </div>
+          <p class="card-description">
+            Teal buttons on ice-clear light (#f7fdfd), <code class="text-gradient font-semibold">gradient headlines</code>,
+            1rem corners; underwater dark.
+          </p>
+        </div>
+        <div class="card-footer pt-6">
+          <button type="button" class="btn btn-primary btn-sm" data-theme-palette="lagoon" aria-pressed="false">Apply lagoon</button>
+        </div>
+      </div>
+    </div>
+  {% endcall %}
+  <div class="table-wrap not-prose">
+    <table class="table">
+      <thead><tr><th>Token</th><th>Light</th><th>Dark</th></tr></thead>
+      <tbody>
+        <tr><td><code class="code">--primary</code></td><td class="whitespace-nowrap">teal-600</td><td class="whitespace-nowrap">teal-400</td></tr>
+        <tr><td><code class="code">--primary-foreground</code></td><td class="whitespace-nowrap">white</td><td class="whitespace-nowrap">#04191c</td></tr>
+        <tr><td><code class="code">--ring</code></td><td class="whitespace-nowrap">cyan-500</td><td class="whitespace-nowrap">cyan-400</td></tr>
+        <tr>
+          <td><code class="code">--brand-gradient</code></td>
+          <td><span class="inline-flex items-center gap-2"><span class="dark:hidden"><span class="theme-swatch" data-theme="lagoon" aria-hidden="true"></span></span>teal-600 → cyan-600 45% → sky-600</span></td>
+          <td><span class="inline-flex items-center gap-2"><span class="theme-swatch dark" data-theme="lagoon" aria-hidden="true"></span>teal-300 → cyan-300 45% → sky-300</span></td>
+        </tr>
+        <tr><td><code class="code">--background</code></td><td class="whitespace-nowrap">#f7fdfd</td><td class="whitespace-nowrap">#04141a</td></tr>
+        <tr><td><code class="code">--surface</code></td><td>white (default)</td><td class="whitespace-nowrap">#0a222b</td></tr>
+        <tr><td><code class="code">--border</code></td><td>zinc-200 (default)</td><td class="whitespace-nowrap">#1c3d48</td></tr>
+        <tr><td><code class="code">--radius</code></td><td class="whitespace-nowrap">1rem</td><td class="whitespace-nowrap">1rem</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="text-sm text-muted-foreground">
+    Ships as <code>@import "htmx-ui/themes/lagoon.css";</code>, applied by
+    <code>data-theme="lagoon"</code>; tokens not listed keep their
+    <a href="/docs/theming#tokens">library value</a>.
+  </p>
+
+  <h2 id="dusk">dusk</h2>
+  <p>
+    Pink → fuchsia → purple twilight, with the roundest corners in the set (1.25rem).
+  </p>
+  {% call demo() %}
+    <div data-theme="dusk" class="w-full max-w-xl rounded-[calc(var(--radius)+4px)] bg-background p-4">
+      <div class="card">
+        <div class="card-header">
+          <div class="flex items-center justify-between gap-2">
+            <h3 class="card-title capitalize">dusk</h3>
+            <span class="badge badge-primary">Pro</span>
+          </div>
+          <p class="card-description">
+            Fuchsia buttons on a lilac haze (#fdf9ff), <code class="text-gradient font-semibold">gradient headlines</code>,
+            extra-round corners; nightfall dark.
+          </p>
+        </div>
+        <div class="card-footer pt-6">
+          <button type="button" class="btn btn-primary btn-sm" data-theme-palette="dusk" aria-pressed="false">Apply dusk</button>
+        </div>
+      </div>
+    </div>
+  {% endcall %}
+  <div class="table-wrap not-prose">
+    <table class="table">
+      <thead><tr><th>Token</th><th>Light</th><th>Dark</th></tr></thead>
+      <tbody>
+        <tr><td><code class="code">--primary</code></td><td class="whitespace-nowrap">fuchsia-600</td><td class="whitespace-nowrap">fuchsia-400</td></tr>
+        <tr><td><code class="code">--primary-foreground</code></td><td class="whitespace-nowrap">white</td><td class="whitespace-nowrap">#22082a</td></tr>
+        <tr><td><code class="code">--ring</code></td><td class="whitespace-nowrap">fuchsia-500</td><td class="whitespace-nowrap">fuchsia-300</td></tr>
+        <tr>
+          <td><code class="code">--brand-gradient</code></td>
+          <td><span class="inline-flex items-center gap-2"><span class="dark:hidden"><span class="theme-swatch" data-theme="dusk" aria-hidden="true"></span></span>pink-600 → fuchsia-600 45% → purple-600</span></td>
+          <td><span class="inline-flex items-center gap-2"><span class="theme-swatch dark" data-theme="dusk" aria-hidden="true"></span>pink-300 → fuchsia-300 45% → purple-300</span></td>
+        </tr>
+        <tr><td><code class="code">--background</code></td><td class="whitespace-nowrap">#fdf9ff</td><td class="whitespace-nowrap">#120a16</td></tr>
+        <tr><td><code class="code">--surface</code></td><td>white (default)</td><td class="whitespace-nowrap">#1c1122</td></tr>
+        <tr><td><code class="code">--border</code></td><td>zinc-200 (default)</td><td class="whitespace-nowrap">#332340</td></tr>
+        <tr><td><code class="code">--radius</code></td><td class="whitespace-nowrap">1.25rem</td><td class="whitespace-nowrap">1.25rem</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="text-sm text-muted-foreground">
+    Ships as <code>@import "htmx-ui/themes/dusk.css";</code>, applied by
+    <code>data-theme="dusk"</code>; tokens not listed keep their
+    <a href="/docs/theming#tokens">library value</a>.
+  </p>
+
+  <h2 id="jade">jade</h2>
+  <p>
+    Emerald → teal → lime: fresh mint in light, deep moss after rain in dark.
+    The tightest colour corners at 0.5rem.
+  </p>
+  {% call demo() %}
+    <div data-theme="jade" class="w-full max-w-xl rounded-[calc(var(--radius)+4px)] bg-background p-4">
+      <div class="card">
+        <div class="card-header">
+          <div class="flex items-center justify-between gap-2">
+            <h3 class="card-title capitalize">jade</h3>
+            <span class="badge badge-primary">Pro</span>
+          </div>
+          <p class="card-description">
+            Emerald buttons on barely-there mint (#f7fdf9), <code class="text-gradient font-semibold">gradient headlines</code>,
+            0.5rem corners; moss-dark.
+          </p>
+        </div>
+        <div class="card-footer pt-6">
+          <button type="button" class="btn btn-primary btn-sm" data-theme-palette="jade" aria-pressed="false">Apply jade</button>
+        </div>
+      </div>
+    </div>
+  {% endcall %}
+  <div class="table-wrap not-prose">
+    <table class="table">
+      <thead><tr><th>Token</th><th>Light</th><th>Dark</th></tr></thead>
+      <tbody>
+        <tr><td><code class="code">--primary</code></td><td class="whitespace-nowrap">emerald-600</td><td class="whitespace-nowrap">emerald-400</td></tr>
+        <tr><td><code class="code">--primary-foreground</code></td><td class="whitespace-nowrap">white</td><td class="whitespace-nowrap">#06251a</td></tr>
+        <tr><td><code class="code">--ring</code></td><td class="whitespace-nowrap">emerald-500</td><td class="whitespace-nowrap">emerald-300</td></tr>
+        <tr>
+          <td><code class="code">--brand-gradient</code></td>
+          <td><span class="inline-flex items-center gap-2"><span class="dark:hidden"><span class="theme-swatch" data-theme="jade" aria-hidden="true"></span></span>emerald-600 → teal-600 45% → lime-600</span></td>
+          <td><span class="inline-flex items-center gap-2"><span class="theme-swatch dark" data-theme="jade" aria-hidden="true"></span>emerald-300 → teal-300 45% → lime-400</span></td>
+        </tr>
+        <tr><td><code class="code">--background</code></td><td class="whitespace-nowrap">#f7fdf9</td><td class="whitespace-nowrap">#07140f</td></tr>
+        <tr><td><code class="code">--surface</code></td><td>white (default)</td><td class="whitespace-nowrap">#0d211a</td></tr>
+        <tr><td><code class="code">--border</code></td><td>zinc-200 (default)</td><td class="whitespace-nowrap">#1e3a2e</td></tr>
+        <tr><td><code class="code">--radius</code></td><td class="whitespace-nowrap">0.5rem</td><td class="whitespace-nowrap">0.5rem</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="text-sm text-muted-foreground">
+    Ships as <code>@import "htmx-ui/themes/jade.css";</code>, applied by
+    <code>data-theme="jade"</code>; tokens not listed keep their
+    <a href="/docs/theming#tokens">library value</a>.
+  </p>
+
+  <h2 id="onyx">onyx</h2>
+  <p>
+    Graphite on paper, silver on true black — the monochrome counterpoint to the colourful five,
+    with crisp 0.375rem corners.
+  </p>
+  {% call demo() %}
+    <div data-theme="onyx" class="w-full max-w-xl rounded-[calc(var(--radius)+4px)] bg-background p-4">
+      <div class="card">
+        <div class="card-header">
+          <div class="flex items-center justify-between gap-2">
+            <h3 class="card-title capitalize">onyx</h3>
+            <span class="badge badge-primary">Pro</span>
+          </div>
+          <p class="card-description">
+            Near-black buttons on graphite white (#fafafa), <code class="text-gradient font-semibold">gradient headlines</code>,
+            crisp corners; true-black dark with a silver button.
+          </p>
+        </div>
+        <div class="card-footer pt-6">
+          <button type="button" class="btn btn-primary btn-sm" data-theme-palette="onyx" aria-pressed="false">Apply onyx</button>
+        </div>
+      </div>
+    </div>
+  {% endcall %}
+  <div class="table-wrap not-prose">
+    <table class="table">
+      <thead><tr><th>Token</th><th>Light</th><th>Dark</th></tr></thead>
+      <tbody>
+        <tr><td><code class="code">--primary</code></td><td class="whitespace-nowrap">zinc-950</td><td class="whitespace-nowrap">zinc-100</td></tr>
+        <tr><td><code class="code">--primary-foreground</code></td><td class="whitespace-nowrap">white</td><td class="whitespace-nowrap">zinc-950</td></tr>
+        <tr><td><code class="code">--ring</code></td><td class="whitespace-nowrap">zinc-700</td><td class="whitespace-nowrap">zinc-400</td></tr>
+        <tr>
+          <td><code class="code">--brand-gradient</code></td>
+          <td><span class="inline-flex items-center gap-2"><span class="dark:hidden"><span class="theme-swatch" data-theme="onyx" aria-hidden="true"></span></span>zinc-600 → zinc-950 45% → zinc-700</span></td>
+          <td><span class="inline-flex items-center gap-2"><span class="theme-swatch dark" data-theme="onyx" aria-hidden="true"></span>zinc-400 → zinc-100 45% → zinc-300</span></td>
+        </tr>
+        <tr><td><code class="code">--background</code></td><td class="whitespace-nowrap">#fafafa</td><td class="whitespace-nowrap">#0a0a0a</td></tr>
+        <tr><td><code class="code">--surface</code></td><td>white (default)</td><td class="whitespace-nowrap">#141414</td></tr>
+        <tr><td><code class="code">--border</code></td><td>zinc-200 (default)</td><td class="whitespace-nowrap">#2a2a2a</td></tr>
+        <tr><td><code class="code">--radius</code></td><td class="whitespace-nowrap">0.375rem</td><td class="whitespace-nowrap">0.375rem</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="text-sm text-muted-foreground">
+    Ships as <code>@import "htmx-ui/themes/onyx.css";</code>, applied by
+    <code>data-theme="onyx"</code>; tokens not listed keep their
+    <a href="/docs/theming#tokens">library value</a>.
+  </p>
+
+  <p>
+    All six redefine the same small set — <code>--radius</code>, <code>--primary</code>,
+    <code>--primary-foreground</code>, <code>--ring</code> and <code>--brand-gradient</code> — plus a
+    tinted light <code>--background</code> where it suits, and in dark mode a brighter
+    <code>--primary</code>, a new <code>--brand-gradient</code> and the
+    <code>--background</code> / <code>--surface</code> / <code>--border</code> trio. Every other
+    token keeps the library's value, so components never shift. Each file is a few hundred bytes:
+    import all the ones you might switch between and the picker will offer exactly those.
+  </p>
+{% endblock %}

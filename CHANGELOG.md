@@ -19,6 +19,18 @@ The docs site has a fuller page per release (`/docs/changelog`).
 
 ### Added
 
+- **Six built-in themes:** `aurora` (violet→indigo→cyan — the one this site runs on), `ember` (amber→orange→rose on
+  warm paper), `lagoon` (teal→cyan→sky), `dusk` (pink→fuchsia→purple), `jade` (emerald→teal→lime) and `onyx`
+  (monochrome graphite and silver), shipped as `htmx-ui/themes/<name>.css`. Each redefines `--radius`, `--primary`,
+  `--primary-foreground`, `--ring` and `--brand-gradient`, a light `--background` tint where it suits, and dark
+  `--primary`, `--background`, `--surface` and `--border`. Opt-in in both steps: import the file (projects that don't
+  ship none of its CSS), then set `data-theme="<name>"` on `<html>` for the whole site or on any element for one
+  section (importing without the attribute styles nothing). A switcher goes with them: buttons
+  carrying `data-theme-palette` apply their palette (`initTheme()` wires the clicks; `getPalette()` and `setPalette()`
+  are exported), remember the choice in `localStorage` under `palette`, and draw themselves with the new
+  `theme-swatch` utility — this site's header picker runs on it. See `/docs/theming` for the
+  mechanism and `/docs/themes` for the catalogue: every theme previewed, its exact palette, and a
+  one-click apply.
 - **htmx-ui-upgrade:** a new package, run as `npx htmx-ui-upgrade@latest` (or `bunx`, `pnpm dlx`, `yarn dlx`) in a
   project. It reads the htmx-ui version from `package.json` and applies every release's migration since: class and
   attribute renames, markup that changed shape, removed APIs, config keys, and the new versions in `package.json`. It

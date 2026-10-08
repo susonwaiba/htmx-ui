@@ -79,6 +79,14 @@
     center / contain no-repeat;
 }
 
+/* The round gradient dot of a palette picker: painted from the palette in effect, so a picker's
+   own trigger repaints itself on a switch. Give a swatch its own data-theme to show one specific
+   palette instead (themes/*.css is what supplies the gradient). */
+@utility theme-swatch {
+  @apply block size-4 shrink-0 rounded-full ring-1 ring-border/60;
+  background-image: var(--brand-gradient);
+}
+
 /* A quiet <summary> that folds its <details> away: reasoning, chain of thought */
 @utility summary-trigger {
   @apply inline-flex max-w-full cursor-pointer list-none items-center gap-1.5 rounded-md py-0.5 text-sm

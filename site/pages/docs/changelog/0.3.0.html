@@ -107,6 +107,24 @@
     </li>
     <li>Copying from a code block now works over plain http too.</li>
   </ul>
+  <h3>Themes</h3>
+  <ul>
+    <li>
+      <strong>Six built-in themes</strong> as <code>htmx-ui/themes/&lt;name&gt;.css</code>: <strong>aurora</strong>
+      (violet→indigo→cyan — the one this site runs on), <strong>ember</strong> (amber→orange→rose on warm paper),
+      <strong>lagoon</strong> (teal→cyan→sky), <strong>dusk</strong> (pink→fuchsia→purple), <strong>jade</strong>
+      (emerald→teal→lime) and <strong>onyx</strong> (monochrome graphite and silver). Each redefines the brand
+      tokens — <code>--radius</code>, <code>--primary</code>, <code>--ring</code>, <code>--brand-gradient</code> —
+      plus dark <code>--background</code>, <code>--surface</code> and <code>--border</code>. Opt-in both ways: no
+      import, no CSS; no attribute, no styles. A switcher ships with them — buttons carrying
+      <code>data-theme-palette</code> apply their palette and remember the choice
+      (<code>initTheme()</code> wires them; <code>getPalette()</code>/<code>setPalette()</code> are exported) and the
+      <code>theme-swatch</code> dot draws the current one. See
+      <a href="/docs/theming#built-in-themes">Theming</a> for the mechanism and
+      <a href="/docs/themes">Themes</a> for the catalogue — every theme previewed, its exact
+      palette, a one-click apply.
+    </li>
+  </ul>
   <h3>Docs</h3>
   <ul>
     <li>

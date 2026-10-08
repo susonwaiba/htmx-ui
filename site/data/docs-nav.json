@@ -11,7 +11,8 @@
     {
       "title": "Customization",
       "items": [
-        { "title": "Theming", "href": "/docs/theming", "description": "Design tokens, overrides and custom themes." },
+        { "title": "Theming", "href": "/docs/theming", "description": "Design tokens, overrides, custom themes and live theme switching." },
+        { "title": "Themes", "href": "/docs/themes", "description": "The six built-in themes: previews, exact palettes and one-click apply." },
         { "title": "Dark mode", "href": "/docs/dark-mode", "description": "How light and dark work, and the theme switcher." }
       ]
     },

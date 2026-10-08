@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="aurora">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -42,15 +42,18 @@
       </script>
     {% endif %}
     <script>
-      // Apply the stored theme before first paint to avoid a flash of the wrong
-      // colors. Kept inline and tiny on purpose; htmx-ui/theme takes over
-      // once app.ts loads. The `js` class gates the scroll-in reveals (styles/app.css),
-      // so they only hide content that JavaScript is about to reveal.
+      // Apply the stored mode and colour palette before first paint to avoid a flash of the
+      // wrong colors. Kept inline and tiny on purpose; htmx-ui/theme takes over once app.ts
+      // loads — it reads the same two localStorage keys, so keep the two in sync.
+      // The `js` class gates the scroll-in reveals (styles/app.css), so they only hide
+      // content that JavaScript is about to reveal.
       (() => {
         document.documentElement.classList.add("js");
         const stored = localStorage.getItem("theme");
         const dark = stored ? stored === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
         document.documentElement.classList.toggle("dark", dark);
+        const palette = localStorage.getItem("palette");
+        if (palette) document.documentElement.dataset.theme = palette;
       })();
     </script>
     <script type="module" src="{{ asset('app.ts') }}"></script>

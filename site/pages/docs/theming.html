@@ -1,8 +1,9 @@
 {% extends "layouts/docs.html" %}
 {% from "components/code/code.html" import code %}
 {% from "components/alert/alert.html" import alert %}
+{% from "docs/macros.html" import demo %}
 {% set title = "Theming" %}
-{% set description = "Every colour and corner in HTMX UI comes from a CSS variable. Override the variables to restyle the whole library; scope them to restyle part of a page." %}
+{% set description = "Every colour and corner in HTMX UI comes from a CSS variable. Built-in themes restyle the library in one import; override the variables to go further, and scope them to restyle part of a page." %}
 
 {% set tokens = [
   ["--background", "bg-background", "Page background", "white", "zinc-950"],
@@ -126,29 +127,102 @@
     Unlayered CSS beats layered CSS, so overrides written outside any layer (as above) always win, whatever the import order.
   {% endcall %}
 
+  <h2 id="built-in-themes">Built-in themes</h2>
+  <p>
+    The package ships six ready-made themes under <code>htmx-ui/themes/</code>:
+    <strong>aurora</strong>, <strong>ember</strong>, <strong>lagoon</strong>, <strong>dusk</strong>,
+    <strong>jade</strong> and <strong>onyx</strong>. They are opt-in and take two steps: import the
+    files you want, then set <code>data-theme</code> on <code>&lt;html&gt;</code> for the whole site
+    or on any element for one part of a page. Projects that don't import a theme ship none of its
+    CSS, and importing without the attribute styles nothing — so only what you use ships, and only
+    where you ask for it. Each one in detail — preview, exact palette, a button that applies it to
+    this site — is on the <a href="/docs/themes">Themes</a> page.
+  </p>
+  {% call code("css", title="src/styles.css") %}
+    @import "tailwindcss";
+    @import "htmx-ui/styles.css";
+
+    /* One, or several — an attribute picks which applies where. */
+    @import "htmx-ui/themes/aurora.css";
+    @import "htmx-ui/themes/onyx.css";
+  {% endcall %}
+  {% call code("html") %}
+    <!-- Whole site -->
+    <html lang="en" data-theme="aurora">
+
+    <!-- Or one section -->
+    <section data-theme="dusk">…</section>
+  {% endcall %}
+
+  <h3 id="switching-themes">Switching themes</h3>
+  <p>
+    The options are buttons carrying <code>data-theme-palette</code> — this site's header is one,
+    built on a dropdown so it works from the keyboard. <code>initTheme()</code> (already running
+    if you followed the install guide) wires the clicks: the chosen palette lands on
+    <code>&lt;html&gt;</code> as <code>data-theme</code>, the option marks itself checked, and the
+    choice is remembered in <code>localStorage</code> under <code>palette</code>.
+    <code>getPalette()</code> and <code>setPalette(name)</code> are exported for switching from
+    your own code. The <code>theme-swatch</code> dot paints itself with the palette in effect —
+    give a swatch its own <code>data-theme</code> to show one specific palette instead.
+  </p>
+  {% call code("html") %}
+    <div class="dropdown" data-dropdown>
+      <button type="button" class="btn btn-ghost btn-icon" data-dropdown-trigger aria-haspopup="menu" aria-expanded="false" aria-label="Switch color theme">
+        <span class="theme-swatch" aria-hidden="true"></span>
+      </button>
+      <div class="dropdown-menu w-44" role="menu" hidden>
+        <p class="dropdown-label">Color theme</p>
+        <button type="button" class="dropdown-item" role="menuitemradio" aria-checked="true" data-theme-palette="aurora">
+          <span class="theme-swatch" data-theme="aurora" aria-hidden="true"></span>Aurora
+        </button>
+        <button type="button" class="dropdown-item" role="menuitemradio" aria-checked="false" data-theme-palette="ember">
+          <span class="theme-swatch" data-theme="ember" aria-hidden="true"></span>Ember
+        </button>
+        <!-- … one per theme you imported -->
+      </div>
+    </div>
+  {% endcall %}
+  <p>
+    Like the light/dark switch, apply the stored choice before first paint with a tiny inline
+    script in the layout's <code>&lt;head&gt;</code>, reading the same keys as
+    <code>htmx-ui/theme</code>:
+  </p>
+  {% call code("html") %}
+    <script>
+      const palette = localStorage.getItem("palette");
+      if (palette) document.documentElement.dataset.theme = palette;
+    </script>
+  {% endcall %}
+  <p>
+    Both opt-in steps still hold: a picker can only switch to what the project imported, and it
+    writes the same <code>data-theme</code> attribute the markup uses.
+  </p>
+
   <h2 id="custom-themes">Custom themes</h2>
   <p>
-    A theme is just a selector that redefines tokens. Scope one to an attribute and you can apply it to
-    a whole page or a single section. These previews use the same markup, with a different
-    <code>data-theme</code> on each wrapper:
+    A theme is just a selector that redefines tokens — what the built-in files are. Scope one to an
+    attribute and you can apply it to a whole page or a single section. These previews use the same
+    markup, with a different <code>data-theme</code> on each wrapper:
   </p>
-  <div class="demo not-prose grid gap-4 sm:grid-cols-3">
-    {% for theme in [none, "rose", "emerald"] %}
-      <div {% if theme %}data-theme="{{ theme }}" {% endif %}class="card">
-        <div class="card-header">
-          <div class="flex items-center justify-between">
-            <h3 class="card-title capitalize">{{ theme or "default" }}</h3>
-            <span class="badge badge-primary">Pro</span>
+  {% call demo() %}
+    <div class="grid w-full gap-4 sm:grid-cols-3">
+      {% for theme in [none, "rose", "emerald"] %}
+        <div {% if theme %}data-theme="{{ theme }}" {% endif %}class="card">
+          <div class="card-header">
+            <div class="flex items-center justify-between">
+              <h3 class="card-title capitalize">{{ theme or "default" }}</h3>
+              <span class="badge badge-primary">Pro</span>
+            </div>
+            <p class="card-description">Same markup, different tokens.</p>
           </div>
-          <p class="card-description">Same markup, different tokens.</p>
+          <div class="card-footer pt-6">
+            <button class="btn btn-primary btn-sm">Upgrade</button>
+            <button class="btn btn-outline btn-sm">Later</button>
+          </div>
         </div>
-        <div class="card-footer pt-6">
-          <button class="btn btn-primary btn-sm">Upgrade</button>
-          <button class="btn btn-outline btn-sm">Later</button>
-        </div>
-      </div>
-    {% endfor %}
-  </div>
+      {% endfor %}
+    </div>
+  {% endcall %}
   {% call code("css", title="src/styles.css") %}
     [data-theme="rose"] {
       --primary: var(--color-rose-600);

@@ -1,0 +1,35 @@
+/* Built-in theme: aurora — violet → indigo → cyan, on a near-black dark mode.
+   Opt-in, in two steps:
+     1. import it after the library:  @import "htmx-ui/themes/aurora.css";
+     2. set the attribute:            <html data-theme="aurora">      the whole page
+                                      <section data-theme="aurora">   one section
+   Importing without the attribute ships nothing styled, and not importing ships no CSS at all,
+   so the theme costs projects that don't use it nothing.
+
+   Same shape as the library's own tokens: light values first, dark values on selectors that
+   also match `.dark` (the class theme.ts puts on <html>), all unlayered so they beat the
+   tokens in @layer base whatever the import order. */
+
+[data-theme="aurora"] {
+  --radius: 0.75rem;
+
+  --primary: var(--color-violet-600);
+  --primary-foreground: var(--color-white);
+  --ring: var(--color-violet-500);
+
+  /* Violet → indigo → cyan, for gradient headlines and accents in your own markup:
+     background-image: var(--brand-gradient). */
+  --brand-gradient: linear-gradient(100deg, var(--color-violet-600), var(--color-indigo-600) 45%, var(--color-cyan-600));
+}
+
+[data-theme="aurora"].dark,
+.dark [data-theme="aurora"] {
+  --primary: var(--color-violet-500);
+  --ring: var(--color-violet-400);
+  --brand-gradient: linear-gradient(100deg, var(--color-violet-300), var(--color-indigo-300) 45%, var(--color-cyan-300));
+
+  /* A dark mode of its own: deeper than the library's zinc, so violet reads brighter against it. */
+  --background: #0a0a0f;
+  --surface: #12121b;
+  --border: #262633;
+}

@@ -1,0 +1,40 @@
+/* Built-in theme: lagoon — teal → cyan → sky, ice-clear light, deep-sea dark.
+   Opt-in, in two steps:
+     1. import it after the library:  @import "htmx-ui/themes/lagoon.css";
+     2. set the attribute:            <html data-theme="lagoon">      the whole page
+                                      <section data-theme="lagoon">   one section
+   Importing without the attribute ships nothing styled, and not importing ships no CSS at all,
+   so the theme costs projects that don't use it nothing.
+
+   Same shape as the library's own tokens: light values first, dark values on selectors that
+   also match `.dark` (the class theme.ts puts on <html>), all unlayered so they beat the
+   tokens in @layer base whatever the import order. */
+
+[data-theme="lagoon"] {
+  --radius: 1rem;
+
+  --primary: var(--color-teal-600);
+  --primary-foreground: var(--color-white);
+  --ring: var(--color-cyan-500);
+
+  /* Teal → cyan → sky, for gradient headlines and accents in your own markup:
+     background-image: var(--brand-gradient). */
+  --brand-gradient: linear-gradient(100deg, var(--color-teal-600), var(--color-cyan-600) 45%, var(--color-sky-600));
+
+  /* Barely-there ice; cards stay white on it. */
+  --background: #f7fdfd;
+}
+
+[data-theme="lagoon"].dark,
+.dark [data-theme="lagoon"] {
+  /* The accent glows in the dark, so the label on it goes dark too. */
+  --primary: var(--color-teal-400);
+  --primary-foreground: #04191c;
+  --ring: var(--color-cyan-400);
+  --brand-gradient: linear-gradient(100deg, var(--color-teal-300), var(--color-cyan-300) 45%, var(--color-sky-300));
+
+  /* Underwater: a deep blue-teal dark. */
+  --background: #04141a;
+  --surface: #0a222b;
+  --border: #1c3d48;
+}

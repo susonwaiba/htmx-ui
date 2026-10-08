@@ -1,0 +1,40 @@
+/* Built-in theme: jade — emerald → teal → lime, fresh mint light, deep green dark.
+   Opt-in, in two steps:
+     1. import it after the library:  @import "htmx-ui/themes/jade.css";
+     2. set the attribute:            <html data-theme="jade">      the whole page
+                                      <section data-theme="jade">   one section
+   Importing without the attribute ships nothing styled, and not importing ships no CSS at all,
+   so the theme costs projects that don't use it nothing.
+
+   Same shape as the library's own tokens: light values first, dark values on selectors that
+   also match `.dark` (the class theme.ts puts on <html>), all unlayered so they beat the
+   tokens in @layer base whatever the import order. */
+
+[data-theme="jade"] {
+  --radius: 0.5rem;
+
+  --primary: var(--color-emerald-600);
+  --primary-foreground: var(--color-white);
+  --ring: var(--color-emerald-500);
+
+  /* Emerald → teal → lime, for gradient headlines and accents in your own markup:
+     background-image: var(--brand-gradient). */
+  --brand-gradient: linear-gradient(100deg, var(--color-emerald-600), var(--color-teal-600) 45%, var(--color-lime-600));
+
+  /* Barely-there mint; cards stay white on it. */
+  --background: #f7fdf9;
+}
+
+[data-theme="jade"].dark,
+.dark [data-theme="jade"] {
+  /* The accent glows in the dark, so the label on it goes dark too. */
+  --primary: var(--color-emerald-400);
+  --primary-foreground: #06251a;
+  --ring: var(--color-emerald-300);
+  --brand-gradient: linear-gradient(100deg, var(--color-emerald-300), var(--color-teal-300) 45%, var(--color-lime-400));
+
+  /* Moss after rain: a deep green dark. */
+  --background: #07140f;
+  --surface: #0d211a;
+  --border: #1e3a2e;
+}

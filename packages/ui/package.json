@@ -37,6 +37,7 @@
       "default": "./lib/theme.js"
     },
     "./styles.css": "./src/styles.css",
+    "./themes/*": "./src/themes/*",
     "./components/*": "./src/components/*",
     "./icons/*": "./src/icons/*",
     "./package.json": "./package.json"
