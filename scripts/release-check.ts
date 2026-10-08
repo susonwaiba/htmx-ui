@@ -214,6 +214,15 @@ await step("smoke test: htmx-ui-engine's lib/ on Node (createSite + server adapt
     `if (typeof core.createSite !== "function") { console.error(Object.keys(core)); process.exit(1); }` +
     `for (const [i, a] of adapters.entries()) if (typeof a.htmxUi !== "function") { console.error(i, Object.keys(a)); process.exit(1); }`;
   failIfNot(await $`node --input-type=module -e ${probe}`.cwd(app).quiet().nothrow(), "importing htmx-ui-engine's lib/ on Node");
+  // NODE_ENV is read when the server runs, not baked in when lib/ is compiled: a page
+  // that is only a template is rendered in development and a 404 in production.
+  await Bun.write(join(app, "pages/only.html"), "<p>template</p>");
+  const env =
+    `const { createSite } = await import("htmx-ui-engine");` +
+    `const status = (await (await createSite({ root: process.cwd() })).handle(new Request("http://x/only"))).status;` +
+    `if (status !== Number(process.argv[1])) { console.error("NODE_ENV=" + process.env.NODE_ENV + ": got " + status); process.exit(1); }`;
+  failIfNot(await $`NODE_ENV=production node --input-type=module -e ${env} 404`.cwd(app).quiet().nothrow(), "NODE_ENV=production on Node");
+  failIfNot(await $`NODE_ENV=development node --input-type=module -e ${env} 200`.cwd(app).quiet().nothrow(), "NODE_ENV=development on Node");
 });
 
 /** This script's environment minus the npm_config_* / npm_* variables Bun sets, so each package manager sets its own. */

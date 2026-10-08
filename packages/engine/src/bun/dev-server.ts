@@ -1,26 +1,35 @@
 // Dev server process, started by `htmx-ui dev` (./dev.ts) as
 //   bun --config=<generated bunfig.toml> --hot dev-server.ts
-// so Bun.serve bundles pages with the htmx-ui plugin and Tailwind, with HMR.
+// so Bun.serve bundles pages with the htmx-ui plugin and Tailwind, with HMR. It runs
+// from the directory holding the project and its linked packages (../core/workspace.ts),
+// with the project root in $HTMX_UI_ROOT.
 //
 // Serves every pages/**/*.html as a route, the config's dev routes (mock htmx
 // endpoints), the public directory, then the config's fetch fallback, then a 404
 // page: pages/404.html when the project has one, htmx-ui's default otherwise.
 //
-// Bun's HMR covers scripts, styles and the page files themselves, but not the
-// templates a page is rendered from (layouts, partials, macros, data): they aren't
-// in the bundle graph. So this watches the template roots, re-imports the pages
-// (a new query string makes Bun bundle them afresh), swaps them in with
-// server.reload(), and tells open pages to reload over server-sent events
-// (the plugin adds the listener to every page in dev; see RELOAD_PATH).
-import { existsSync, readdirSync, watch, type FSWatcher } from "node:fs";
-import { resolve, sep } from "node:path";
+// What reloads what:
+//   - scripts, and stylesheets a page or script links directly: Bun's HMR.
+//   - templates a page is rendered from (layouts, partials, macros, data), and
+//     stylesheets only Tailwind reads (the ones a stylesheet @imports): not in Bun's
+//     bundle graph. So this watches the template roots and the linked packages,
+//     re-imports the pages (a new query string makes Bun bundle them afresh), swaps
+//     them in with server.reload(), and tells open pages to reload over server-sent
+//     events (the plugin adds the listener to every page in dev; see RELOAD_PATH).
+//     A page added or removed under pages/ gets or loses its route the same way.
+//   - the config, its plugins, the mock API and the engine itself: --hot
+//     re-evaluates this module, which hands the bundler plugin a page loader built
+//     from the new code (see DevState) and reloads open pages the same way.
+import { existsSync, readdirSync, watch } from "node:fs";
+import { basename, resolve, sep } from "node:path";
 import { createIgnore } from "./gitignore";
 import { loadConfig, pagesOf } from "../core/config";
 import { NOT_FOUND_HTML } from "../core/not-found";
-import { RELOAD_PATH } from "./plugin";
+import { devState, initDevState, pageLoader, RELOAD_PATH } from "./plugin";
+import { linkedPackages } from "../core/workspace";
 
-const config = await loadConfig();
-const pages = pagesOf(config);
+const config = await loadConfig(process.env.HTMX_UI_ROOT);
+let pages = pagesOf(config);
 
 /** The project's pages/404.html with a 404 status, or htmx-ui's default 404 page. */
 async function notFound(): Promise<Response> {
@@ -33,10 +42,14 @@ async function notFound(): Promise<Response> {
   return new Response(NOT_FOUND_HTML, { status: 404, headers: { "Content-Type": "text/html; charset=utf-8" } });
 }
 
-// Open reload streams. Kept on globalThis so they survive --hot re-evaluation.
-const g = globalThis as typeof globalThis & { __htmxUi?: { clients: Set<ReadableStreamDefaultController>; watchers: FSWatcher[]; version: number } };
-const state = (g.__htmxUi ??= { clients: new Set(), watchers: [], version: 0 });
+// Open reload streams, watchers and the page loader live on globalThis so they
+// survive --hot re-evaluation. State already being there means this is one.
+const reevaluated = devState() !== undefined;
+const state = initDevState();
 for (const w of state.watchers.splice(0)) w.close();
+clearInterval(state.ping);
+state.load = pageLoader(config);
+if (reevaluated) state.version++; // the pages bundled so far were rendered by the old code
 
 const encoder = new TextEncoder();
 const broadcast = (data: string) => {
@@ -91,17 +104,18 @@ const server = Bun.serve({
   idleTimeout: 0, // keep reload streams open
   fetch: fallback,
 });
+if (reevaluated) {
+  config.debug.log("build", `server code changed, reloading pages (v${state.version})`);
+  broadcast("data: reload\n\n");
+}
 
-// Template changes: anything under a template root that Bun doesn't already track.
-// Watch each root's own files plus its subdirectories one by one, skipping
-// Respect .gitignore and avoid watching ignored directories/files
-const isTemplate = (file: string) => !/\.(ts|tsx|js|mjs|css|map)$/.test(file);
 let timer: ReturnType<typeof setTimeout> | undefined;
 const changed = () => {
   clearTimeout(timer);
   timer = setTimeout(async () => {
     state.version++;
     try {
+      pages = pagesOf(config); // a page may have been added or removed
       server.reload({ routes: await routes(), fetch: fallback });
       config.debug.log("build", `template change, reloading pages (v${state.version})`);
       broadcast("data: reload\n\n");
@@ -111,14 +125,27 @@ const changed = () => {
     }
   }, 60);
 };
-const isIgnored = createIgnore(config.root);
-const onEvent = (_: string, name: string | Buffer | null) => {
-  if (!name) return;
-  const file = String(name);
-  // Try to resolve relative to roots if just filename
-  if (isIgnored(resolve(config.root, file)) || isIgnored(file)) return;
-  if (isTemplate(file)) changed();
+
+// What a change to a file means: scripts are Bun's (HMR in the browser, --hot
+// here); a stylesheet may be one Tailwind @imports, which Bun doesn't see (one it
+// does see, it also hot-swaps; telling the two apart isn't reliable); anything
+// else under a template root is a template, data or an icon.
+const SCRIPT = /\.([cm]?[jt]sx?|map)$/;
+// Editors that save by writing a temporary file and renaming it over the original
+// (x.css.tmp, x.css~, JetBrains' x.css___jb_tmp___) cause an event that, from Bun's
+// fs.watch, names only the temporary file: judge it as the file it becomes.
+const TEMPORARY = /(\.tmp|~|___jb_\w+___)+$/;
+// Files that never become the saved one: vim's 4913 probe, swap files, Emacs locks.
+const SCRATCH = /^(4913|\.#.*|.*\.sw[a-p])$/;
+const inside = (dir: string, file: string) => file === dir || file.startsWith(dir + sep);
+const roots = config.roots.map((r) => r.dir);
+const reloads = (event: string) => {
+  if (SCRATCH.test(basename(event))) return false;
+  const file = event.replace(TEMPORARY, "");
+  if (SCRIPT.test(file)) return false;
+  return file.endsWith(".css") || roots.some((r) => inside(r, file));
 };
+
 /**
  * Directories no root watches for, whatever the roots say. A root is usually the
  * project directory, and the things under it that never change a template are the
@@ -130,31 +157,44 @@ const onEvent = (_: string, name: string | Buffer | null) => {
  * a project actually renders from avoids needing this at all.
  */
 const NEVER_WATCHED = new Set(["node_modules", "dist", "public", ".git"]);
+const isIgnored = createIgnore(config.root);
 
-for (const { dir: root } of config.roots) {
-  if (!existsSync(root)) continue;
-  try {
-    state.watchers.push(watch(root, onEvent));
-  } catch (e) {
-    console.warn(`Failed to watch ${root}:`, e);
-  }
+/** Watch a directory's own files, and each subdirectory recursively, skipping ignored ones. */
+function watchTree(root: string) {
+  const watchDir = (dir: string, recursive: boolean) => {
+    try {
+      // Event names are relative to the watched directory.
+      const w = watch(dir, { recursive }, (_, name) => {
+        if (!name) return;
+        const file = resolve(dir, String(name));
+        if (!isIgnored(file) && reloads(file)) changed();
+      });
+      state.watchers.push(w);
+    } catch (e) {
+      console.warn(`Failed to watch ${dir}:`, e);
+    }
+  };
+  watchDir(root, false);
   try {
     for (const entry of readdirSync(root, { withFileTypes: true })) {
       const dir = resolve(root, entry.name);
-      if (entry.isDirectory() && !NEVER_WATCHED.has(entry.name) && !isIgnored(dir)) {
-        try {
-          state.watchers.push(watch(dir, { recursive: true }, onEvent));
-        } catch (e) {
-          console.warn(`Failed to watch ${dir}:`, e);
-        }
-      }
+      if (entry.isDirectory() && !NEVER_WATCHED.has(entry.name) && !isIgnored(dir)) watchDir(dir, true);
     }
   } catch (e) {
     console.warn(`Failed to scan ${root}:`, e);
   }
 }
-setInterval(() => broadcast(": ping\n\n"), 15_000).unref();
 
-console.log(`htmx-ui dev server: ${server.url}`);
-for (const p of pages) console.log("  ", p.url);
-for (const r of Object.keys(config.user.routes ?? {})) console.log("  ", r);
+// The template roots, and the linked packages for their stylesheets; a directory
+// inside another one already watched is covered by it.
+const trees = [...new Set([...roots, ...linkedPackages(config.root)])].filter(existsSync);
+for (const dir of trees) if (!trees.some((other) => other !== dir && inside(other, dir))) watchTree(dir);
+
+state.ping = setInterval(() => broadcast(": ping\n\n"), 15_000);
+state.ping.unref();
+
+if (!reevaluated) {
+  console.log(`htmx-ui dev server: ${server.url}`);
+  for (const p of pages) console.log("  ", p.url);
+  for (const r of Object.keys(config.user.routes ?? {})) console.log("  ", r);
+}

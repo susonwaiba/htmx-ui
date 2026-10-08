@@ -234,6 +234,33 @@
   <h2 id="fixed">Fixed</h2>
   <ul>
     <li>
+      Pages your server renders get their scripts and styles. A page from <code>site.render()</code> (or from
+      <code>handle()</code> in development) linked its sources, such as <code>/app.ts</code>, which nothing served. In
+      development they are now bundled from source on request, kept in memory and reloaded on change, never written to
+      <code>dist/</code>; in production they link the build's bundles, from the manifest <code>htmx-ui build</code>
+      now writes. See <a href="/docs/servers#dev-prod">Development and production</a>.
+    </li>
+    <li>
+      <code>NODE_ENV=production</code> works on Node: the engine's compiled code had the value it was built with baked
+      in, so the adapters on Node always behaved as in development.
+    </li>
+    <li>
+      The Express, Fastify and Koa adapters stream responses, so one that never ends (server-sent events) reaches the
+      client.
+    </li>
+    <li>
+      Server adapters in development show template edits on the next request, find pages added since the server
+      started, and serve <code>public/</code> before a build has copied it.
+    </li>
+    <li>
+      <code>htmx-ui dev</code> on Bun shows every change without a restart. Edits to a linked package (a workspace
+      package, <code>file:</code> or <code>link:</code> dependency) were picked up once and then missed, and saves that
+      replace the file were always missed; stylesheets that a Tailwind stylesheet <code>@import</code>s now reload the
+      page; changes to <code>htmx-ui.config.ts</code>, plugins, the mock API or the engine now reach rendered pages; and a
+      new page gets its route without a restart. If Bun's dev server crashes, <code>htmx-ui dev</code> starts it again
+      and open pages reload. See <a href="/docs/engine#roots-watch">watching</a>.
+    </li>
+    <li>
       <a href="/docs/components/carousel">Carousel</a> previous and next buttons respond to clicks again. A pressed
       <code>.btn</code> nudged down with <code>translate-y-px</code>, which replaced the buttons' own centring, so they
       jumped out from under the pointer. The press nudge is now a <code>transform</code>, which adds to

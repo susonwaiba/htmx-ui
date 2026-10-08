@@ -178,6 +178,13 @@
     longer reloads the page: a new public asset appears on the next refresh rather than immediately.
   </p>
   <p>
+    On Bun it also watches the packages linked into the project (workspace packages, <code>file:</code> and
+    <code>link:</code> dependencies) for stylesheets, since one that a Tailwind stylesheet <code>@import</code>s is
+    invisible to Bun's own hot reloading. And because Bun only reliably notices edits under the directory it runs from,
+    <code>htmx-ui dev</code> runs the server from the directory that holds the project and its linked packages, so editing
+    a linked package's scripts updates the page too.
+  </p>
+  <p>
     <code>templates</code> is the older name for the same list of directories and still works, but it does not move the
     project root and cannot carry names &mdash; prefer <code>roots</code>.
   </p>

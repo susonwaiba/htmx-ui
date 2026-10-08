@@ -55,6 +55,38 @@ describe("bun adapter", () => {
     expect(await Bun.file(join(dir, "dist/404.html")).text()).toContain("<h1>Page not found</h1>");
   }, 30_000);
 
+  test("the build writes a manifest of each page's source scripts and the bundles it made from them", async () => {
+    const dir = await project({
+      "layout.html": layout,
+      "app.ts": "console.log('app');",
+      "pages/index.html": '{% extends "layout.html" %}{% block content %}home{% endblock %}',
+      "pages/docs/intro.html": '{% extends "layout.html" %}{% block content %}intro{% endblock %}',
+      "public/favicon.svg": "<svg/>",
+    });
+    const config = resolveConfig({ ui: false }, dir);
+    const log = console.log;
+    console.log = () => {};
+    const warn = console.warn;
+    console.warn = () => {};
+    try {
+      expect(await build(config)).toBe(true);
+    } finally {
+      console.log = log;
+      console.warn = warn;
+    }
+    const manifest = await Bun.file(join(dir, "dist/.htmx-ui/manifest.json")).json();
+    // Both pages load app.ts through the layout: one entry, with root-absolute URLs.
+    expect(Object.keys(manifest.pages)).toEqual(["app.ts"]);
+    const srcs = [...(manifest.pages["app.ts"] as string).matchAll(/src="([^"]+)"/g)].map((m) => m[1]!);
+    expect(srcs.length).toBeGreaterThan(0);
+    for (const src of srcs) {
+      expect(src).toMatch(/^\/assets\/[\w-]+\.js$/);
+      expect(await Bun.file(join(dir, "dist", src)).exists()).toBe(true);
+    }
+    // The favicon is a public file, linked as it is: not the build's.
+    expect(manifest.pages["app.ts"]).not.toContain("favicon");
+  }, 30_000);
+
   test("a project's own 404 page is the one the build ships", async () => {
     const dir = await project({
       "layout.html": layout,

@@ -20,6 +20,10 @@ const result = await Bun.build({
   splitting: true,
   packages: "external",
   sourcemap: "linked",
+  // Read NODE_ENV when the server runs, as the source does. Bun.build otherwise inlines
+  // the value it has while compiling, and createSite() would think every deployment on
+  // Node is development: rendering templates instead of serving dist/, dev bundles.
+  define: { "process.env.NODE_ENV": "process.env.NODE_ENV" },
 });
 if (!result.success) {
   for (const log of result.logs) console.error(log);

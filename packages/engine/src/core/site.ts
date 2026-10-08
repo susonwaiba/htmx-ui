@@ -11,7 +11,14 @@
 // the project's own (pages/404.html, built to dist/404.html) or htmx-ui's default.
 //
 // While NODE_ENV is not "production" it renders the page templates themselves, so a
-// server you start yourself answers page requests before anything has been built.
+// server you start yourself answers page requests before anything has been built;
+// it also serves public/ (which the build copies), finds pages added since it
+// started, and re-reads templates on every render so edits show without a restart.
+//
+// Pages it renders link their scripts and stylesheets as the templates do, as source
+// files (/app.ts). Those links are swapped (./assets.ts) for bundles made from source
+// in development (./dev.ts, with live reload; nothing is written to dist/), and in
+// production for the bundles the build made, from its manifest.
 //
 // `site.render(url)` renders a page per request (server-rendered data), and
 // `site.fragment(path)` renders any template as an HTML fragment for hx-get/hx-post.
@@ -24,6 +31,8 @@
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { relative, resolve, sep } from "node:path";
 import { loadConfig, pagesOf, renderOptions, renderPage, resolveConfig, type ResolvedConfig, type UserConfig } from "./config";
+import { manifestTags, readManifest, swapAssets, type Manifest } from "./assets";
+import { devAssets, withReload } from "./dev";
 import { locate, render, warm } from "./render";
 import { NOT_FOUND_HTML } from "./not-found";
 import { matchRoute, sortRoutes, type Page } from "./routes";
@@ -78,11 +87,10 @@ export interface SiteOptions {
   asset?: (file: string, page: string) => string;
   /**
    * Keep compiled templates between renders, so each one is read and compiled
-   * once instead of on every request. Default true, and `createSite()` also
-   * compiles everything the pages reach, so no request waits for a compile.
-   * Set false in a long-lived dev server that edits templates without
-   * restarting: the templates are then re-read on every render, and one that was
-   * removed stays cached until it isn't.
+   * once instead of on every request; `createSite()` then also compiles
+   * everything the pages reach, so no request waits for a compile. Default: on
+   * when NODE_ENV is "production", off otherwise, so template edits show on the
+   * next request without restarting the server.
    */
   cache?: boolean;
   /** An existing site to serve, instead of creating one. See `createSite()`. */
@@ -91,7 +99,10 @@ export interface SiteOptions {
 
 export interface Site {
   readonly config: ResolvedConfig;
-  /** Every page, with its file and route. Found once, when the site is created. */
+  /**
+   * Every page, with its file and route. Found when the site is created, and in
+   * development again whenever a route has no page or a page's file is gone.
+   */
   readonly pages: Page[];
   /**
    * Render the page at a route ("/", "/docs/button") with the site's context plus
@@ -178,14 +189,27 @@ export async function createSite(options: SiteOptions = {}): Promise<Site> {
       ? config
       : resolveConfig(config, options.root ?? process.cwd())
     : await loadConfig(options.root);
-  const pages = pagesOf(resolved);
-  const byUrl = new Map(pages.map((p) => [p.url, p]));
+  // A server started against a project that has not been built yet has no dist/ to
+  // read, so it renders the pages it is asked for instead of 404ing them. NODE_ENV,
+  // not a config option: it is the same environment the deploy already sets, and a
+  // build is still what production serves — dist/ answers before this can.
+  const developing = process.env.NODE_ENV !== "production";
+  let pages = pagesOf(resolved);
+  let byUrl = new Map(pages.map((p) => [p.url, p]));
   if (resolved.render) assertRenderable(resolved, pages);
+  /** The page at a route. In development a miss, or a page whose file is gone, looks again: pages come and go while you work. */
+  const pageAt = (url: string): Page | undefined => {
+    const page = byUrl.get(url);
+    if (!developing || (page && existsSync(page.file))) return page;
+    pages = pagesOf(resolved);
+    byUrl = new Map(pages.map((p) => [p.url, p]));
+    return byUrl.get(url);
+  };
 
   const asset =
     options.asset ?? ((file: string) => "/" + posix(relative(resolved.root, file)).replace(/^\.\//, ""));
   const values = (context?: Record<string, unknown>) => ({ ...options.context, ...context });
-  const cache = options.cache !== false;
+  const cache = options.cache ?? !developing;
   const templates = renderOptions(resolved, asset, undefined, cache);
 
   // Compile now, not on the first request. Nunjucks otherwise reads and compiles a
@@ -193,11 +217,31 @@ export async function createSite(options: SiteOptions = {}): Promise<Site> {
   if (cache) warm(pages.map((p) => p.file), templates);
 
   const { debug } = resolved;
-  // A server started against a project that has not been built yet has no dist/ to
-  // read, so it renders the pages it is asked for instead of 404ing them. NODE_ENV,
-  // not a config option: it is the same environment the deploy already sets, and a
-  // build is still what production serves — dist/ answers before this can.
-  const developing = process.env.NODE_ENV !== "production";
+
+  // Source links in pages rendered here: dev bundles, or the build's bundles.
+  const dev = developing ? devAssets(resolved) : null;
+  let manifest: Manifest | null | undefined;
+  let warned = false;
+  const STYLE_OR_SCRIPT = /\.(?:[cm]?[jt]sx?|css)$/;
+  const finish = (html: string): string => {
+    if (dev) return withReload(swapAssets(html, (path) => dev.isSource(path), (sources) => dev.tags(sources)));
+    // A built or public file in dist/ is linked as it is; anything else script- or
+    // stylesheet-like is a source the build bundled.
+    const isSource = (path: string) => STYLE_OR_SCRIPT.test(path) && !existsSync(resolve(resolved.outDir, path));
+    return swapAssets(html, isSource, (sources) => {
+      manifest ??= readManifest(resolved.outDir);
+      const tags = manifest && manifestTags(manifest, sources);
+      if (tags == null && !warned) {
+        warned = true;
+        console.warn(
+          manifest
+            ? `htmx-ui: no built page links ${sources.join(" + ")}, so pages rendered at runtime keep those source links. Link them from a page the build has.`
+            : `htmx-ui: no build manifest in ${resolved.outDir}; run htmx-ui build so pages rendered at runtime get their scripts and styles.`,
+        );
+      }
+      return tags ?? null;
+    });
+  };
   // Name the config and the directories. A site rooted somewhere other than where
   // htmx-ui build ran looks fine and then serves nothing, and the roots are the only
   // way to tell that apart from a missing page.
@@ -216,14 +260,18 @@ export async function createSite(options: SiteOptions = {}): Promise<Site> {
 
   return {
     config: resolved,
-    pages,
+    get pages() {
+      return pages;
+    },
 
     render(url, context) {
-      const page = byUrl.get(route(url));
+      const page = pageAt(route(url));
       if (!page) throw new Error(`[html] no page for ${url} (pages: ${[...byUrl.keys()].join(", ")})`);
-      return debug.time("render", `render ${page.url}`, () => renderPage(resolved, page.file, asset, values(context), cache), {
-        cached: cache,
-      });
+      return finish(
+        debug.time("render", `render ${page.url}`, () => renderPage(resolved, page.file, asset, values(context), cache), {
+          cached: cache,
+        }),
+      );
     },
 
     fragment(path, context) {
@@ -244,6 +292,8 @@ export async function createSite(options: SiteOptions = {}): Promise<Site> {
         debug.log("requests", `${request.method} ${pathname} ${response.status} via ${how} ${took.toFixed(1)}ms`);
         return response;
       };
+      const bundled = await dev?.handle(request);
+      if (bundled) return answer("dev", bundled);
 
       for (const pattern of patterns) {
         const params = matchRoute(pattern, pathname);
@@ -252,14 +302,19 @@ export async function createSite(options: SiteOptions = {}): Promise<Site> {
       const path = route(pathname);
       const file = staticFile(resolved.outDir, path);
       if (file) return answer("dist", fileResponse(file, isHead(request)));
+      // public/ is copied into dist/ by the build; before one, serve it from where it is.
+      const unbuilt = developing && resolved.publicDir ? staticFile(resolved.publicDir, path) : null;
+      if (unbuilt) return answer("public", fileResponse(unbuilt, isHead(request)));
       // No dist/ answer: the build hasn't run, so render the page template the route
       // is written as. After dist/, never before it — a built page carries hashed asset
       // URLs and is the same bytes for everyone.
       const renderAt = (page: Page) =>
-        debug.time("render", `render ${page.url}`, () => renderPage(resolved, page.file, asset, values(context), cache), {
-          cached: cache,
-        });
-      const page = developing ? byUrl.get(path) : undefined;
+        finish(
+          debug.time("render", `render ${page.url}`, () => renderPage(resolved, page.file, asset, values(context), cache), {
+            cached: cache,
+          }),
+        );
+      const page = developing ? pageAt(path) : undefined;
       if (page) return answer("page", htmlResponse(renderAt(page), isHead(request)));
       const fallback = await resolved.user.fetch?.(request);
       if (fallback) return answer("fetch", fallback);
@@ -270,7 +325,7 @@ export async function createSite(options: SiteOptions = {}): Promise<Site> {
         const res = fileResponse(notFound, isHead(request));
         return answer("404.html", new Response(res.body, { status: 404, headers: res.headers }));
       }
-      const notFoundPage = developing ? byUrl.get("/404") : undefined;
+      const notFoundPage = developing ? pageAt("/404") : undefined;
       if (notFoundPage) return answer("pages/404.html", htmlResponse(renderAt(notFoundPage), isHead(request), 404));
       return answer("default 404", htmlResponse(NOT_FOUND_HTML, isHead(request), 404));
     },

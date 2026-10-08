@@ -15,7 +15,7 @@
 // (`htmx-ui build`).
 
 import type { IncomingMessage } from "node:http";
-import { toRequest } from "./core/http";
+import { nodeBody, toRequest } from "./core/http";
 import { createSite, type SiteOptions } from "./core/site";
 
 /** Koa's Context, structurally: the parts of it htmx-ui reads and writes. */
@@ -41,7 +41,8 @@ export function htmxUi(options: SiteOptions = {}): (ctx: Context, next: Next) =>
     ctx.status = response.status;
     // The body first: Koa derives Content-Type and Content-Length from it, and the
     // Response's own headers (a HEAD response's length among them) win after.
-    ctx.body = Buffer.from(await response.arrayBuffer());
+    // Streamed: the dev server's reload events are a response that never ends.
+    ctx.body = nodeBody(response);
     response.headers.forEach((value, key) => {
       if (key !== "set-cookie") ctx.set(key, value);
     });

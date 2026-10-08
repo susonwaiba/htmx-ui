@@ -14,7 +14,7 @@
 // the site first (`htmx-ui build`).
 
 import type { IncomingMessage } from "node:http";
-import { toRequest } from "./core/http";
+import { nodeBody, toRequest } from "./core/http";
 import { createSite, type SiteOptions } from "./core/site";
 
 /** Fastify's request, structurally: the Node request, and the body Fastify parsed off it. */
@@ -52,7 +52,11 @@ export function htmxUi(options: SiteOptions = {}) {
       });
       const cookies = response.headers.getSetCookie();
       if (cookies.length) reply.header("set-cookie", cookies);
-      return reply.send(Buffer.from(await response.arrayBuffer()));
+      // Streamed: the dev server's reload events are a response that never ends, so it
+      // also has to stop when the client goes, or Fastify waits for it on close().
+      const body = nodeBody(response);
+      if (!Buffer.isBuffer(body)) request.raw.once("close", () => body.destroy());
+      return reply.send(body);
     });
   };
   // Fastify scopes what a plugin registers to the plugin itself, so on its own this

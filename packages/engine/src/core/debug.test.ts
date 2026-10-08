@@ -91,7 +91,7 @@ describe("debug", () => {
     let site!: Site;
     const lines = await capture(async () => {
       // Warm-up happens in createSite(), so it has to be captured from here
-      site = await createSite({ root: await fixture(built) });
+      site = await createSite({ root: await fixture(built), cache: true }); // the production default
       expect(site.render("/", { greeting: "Hi" })).toContain("Hi");
       expect(site.fragment("partials/row.html", { row: { name: "a" } })).toBe("<tr><td>a</td></tr>");
       expect(await site.handle(get("/api/users/7"))).toHaveProperty("status", 200);

@@ -40,7 +40,9 @@
   {% endcall %}
   <p>
     Copy every directory a template reaches at render time: <code>macros/</code> and <code>components/</code> too if
-    your templates import from them, and whatever <code>json()</code> and <code>svg()</code> read.
+    your templates import from them, and whatever <code>json()</code> and <code>svg()</code> read. The build's
+    <code>dist/.htmx-ui/manifest.json</code> ships with <code>dist/</code>: it is how a page
+    <code>site.render()</code> returns links the built scripts and stylesheets instead of their sources.
   </p>
   {% call code("ts", title="htmx-ui.config.ts") %}
     import { defineConfig } from "htmx-ui-engine";

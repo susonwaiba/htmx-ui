@@ -3,7 +3,8 @@
 // Pages keep their paths (docs/intro.html); scripts, styles and assets go to
 // assets/ with content hashes, shared by every page that uses them (./chunks.ts).
 import { cp, rm } from "node:fs/promises";
-import { relative } from "node:path";
+import { relative, resolve } from "node:path";
+import { pageSources, writeManifest } from "../core/assets";
 import { pagesOf, type ResolvedConfig } from "../core/config";
 import { writeNotFound } from "../core/not-found";
 import { applyVersions } from "../core/ver";
@@ -18,7 +19,9 @@ export async function build(config: ResolvedConfig): Promise<boolean> {
   config.debug.log("build", `building ${pages.length} pages into ${outDir}`);
   await rm(outDir, { recursive: true, force: true });
 
-  const plugins = [htmxUiPlugin(config)];
+  // Each page's source scripts and stylesheets, for the manifest (../core/assets.ts).
+  const rendered = new Map<string, string>();
+  const plugins = [htmxUiPlugin(config, (path, html) => rendered.set(path, html))];
   try {
     plugins.push((await import(Bun.resolveSync("bun-plugin-tailwind", config.root))).default);
   } catch {
@@ -66,6 +69,15 @@ export async function build(config: ResolvedConfig): Promise<boolean> {
     if (settled !== html) await Bun.write(output.path, settled);
   }
   if (config.publicDir) await cp(config.publicDir, outDir, { recursive: true });
+  // What pages rendered at runtime (site.render()) link instead of their source files.
+  writeManifest(
+    outDir,
+    config.publicDir,
+    pages.map((p) => ({
+      sources: pageSources(rendered.get(p.file) ?? "", p.file, config.root, config.publicDir),
+      built: resolve(outDir, relative(config.pagesDir, p.file)),
+    })),
+  );
   // After public/, which may hold the project's own 404.html.
   writeNotFound(outDir);
   await opts.done?.({ config, outDir, pages });

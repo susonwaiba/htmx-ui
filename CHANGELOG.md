@@ -88,6 +88,27 @@ The docs site has a fuller page per release (`/docs/changelog`).
 
 ### Fixed
 
+- **Pages your server renders get their scripts and styles.** A page returned by `site.render()` (or rendered by
+  `handle()` in development) linked its sources as the templates do (`/app.ts`), which nothing served: no htmx, no
+  component behaviour, no CSS. In development those links now point at bundles made from source on request (Bun.build
+  on Bun, Vite on Node, Tailwind included), kept in memory until a file changes, with open pages reloading; nothing is
+  written to `dist/`. In production they point at the build's bundles: `htmx-ui build` writes
+  `dist/.htmx-ui/manifest.json` mapping each page's scripts and stylesheets to the tags it built for them.
+- **`NODE_ENV=production` works on Node.** The engine's compiled `lib/` had `NODE_ENV` baked in when it was built, so
+  the adapters on Node always behaved as in development: rendering templates instead of serving `dist/`.
+- **The Express, Fastify and Koa adapters stream responses** instead of reading them whole first, so a response that
+  never ends (the dev reload events, server-sent events from a config route) reaches the client.
+- **Server adapters in development** (`createSite()`, and the Elysia, Hono, Express, Fastify and Koa adapters, while
+  `NODE_ENV` is not `production`): template edits show on the next request (`cache` now defaults to on only in
+  production; pass `cache: true` to keep the old behaviour), pages added or removed since the server started are found
+  without a restart, and `public/` is served before a build has copied it.
+- **`htmx-ui dev` (Bun) shows every change without a restart.** Edits to a linked package (a workspace package,
+  `file:` or `link:` dependency) were picked up once, then missed, and a save that replaces the file was always missed:
+  the server now runs from the directory holding the project and its linked packages, where Bun's watching is reliable.
+  Stylesheets that a Tailwind stylesheet `@import`s (component and plugin styles) now reload the page. Changes to
+  `htmx-ui.config.ts`, plugins, the mock API or the engine now reach rendered pages and reload them; before, pages kept
+  rendering with the code the server started with. A page added or removed under `pages/` gets or loses its route
+  without a restart. If Bun's dev server crashes, `htmx-ui dev` starts it again and open pages reload.
 - **Carousel previous / next buttons respond to clicks.** A pressed `.btn` nudged down with `translate-y-px`, which
   replaced the buttons' own `-translate-y-1/2` centring: they jumped half their height under the pointer and the click
   was lost. The press nudge (on `.btn` and `.clipboard-tag`) is now a `transform`, which adds to `translate-*`

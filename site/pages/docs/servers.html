@@ -191,12 +191,19 @@ Bun.serve({
   <ul>
     <li>
       <strong>Not <code>production</code></strong>: a route <code>dist/</code> has no file for is rendered from its
-      template, so a server you start before building still shows every page. <code>dist/</code> still answers first,
-      so an old build hides your template edits. Rebuild, or delete <code>dist/</code> while you work.
+      template, so a server you start before building still shows every page. Templates are re-read on every
+      render, so edits show on the next request; pages you add are found without a restart; and
+      <code>public/</code> is served as it is, before a build copies it. The scripts and stylesheets a rendered page
+      links (<code>&#123;&#123; asset('app.ts') &#125;&#125;</code>) are bundled from source when the browser asks for them,
+      Tailwind included, and kept in memory until a file changes; then open pages reload. Nothing is written to
+      <code>dist/</code>. <code>dist/</code> still answers first, so an old build hides your template edits.
+      Rebuild, or delete <code>dist/</code> while you work.
     </li>
     <li>
       <strong><code>production</code></strong>: pages come only from <code>dist/</code>, so run
-      <code>htmx-ui build</code> first. Fragments and <code>site.render()</code> still render at request time; see
+      <code>htmx-ui build</code> first. Fragments and <code>site.render()</code> still render at request time, and
+      a page rendered that way links the bundles the build made for the same scripts and stylesheets, from the
+      manifest the build writes (<code>dist/.htmx-ui/manifest.json</code>). See
       <a href="/docs/servers/deploying">Deploying</a> for what that needs on the server.
     </li>
   </ul>

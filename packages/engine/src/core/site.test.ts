@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { mkdir, mkdtemp, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { createSite } from "./site";
@@ -94,10 +94,11 @@ describe("createSite", () => {
       "pages/index.html": '<script src="{{ asset("app.ts") }}">',
       "app.ts": "console.log(1);",
     });
+    // fragment(): render() also swaps source links for bundles (see "scripts and styles" below).
     const site = await createSite({ root: dir });
-    expect(site.render("/")).toBe('<script src="/app.ts">');
+    expect(site.fragment("pages/index.html")).toBe('<script src="/app.ts">');
     const custom = await createSite({ root: dir, asset: (file, page) => `/${page === file ? "same" : "other"}` });
-    expect(custom.render("/")).toBe('<script src="/other">');
+    expect(custom.fragment("pages/index.html")).toBe('<script src="/other">');
   });
 
   test("handle() serves the config's routes, most specific first", async () => {
@@ -220,6 +221,45 @@ describe("development: handle() renders the pages the build has not written", ()
     });
   });
 
+  test("edits, new pages and removed pages show without restarting the server", async () => {
+    await inEnv(undefined, async () => {
+      const site = await createSite({ root: await fixture(unbuilt) });
+      const root = site.config.root;
+      expect(await (await site.handle(get("/about"))).text()).toContain("<p>About</p>");
+      await writeFile(join(root, "layout.html"), "<title>{{ site }}!</title>{% block content %}{% endblock %}");
+      await writeFile(join(root, "pages/about.html"), '{% extends "layout.html" %}{% block content %}<p>Edited</p>{% endblock %}');
+      expect(await (await site.handle(get("/about"))).text()).toBe("<title>Acme!</title><p>Edited</p><!-- /about-->");
+      await writeFile(join(root, "pages/new.html"), "<p>new</p>");
+      expect(await (await site.handle(get("/new"))).text()).toBe("<p>new</p><!-- /new-->");
+      expect(site.render("/new")).toBe("<p>new</p><!-- /new-->");
+      await rm(join(root, "pages/new.html"));
+      expect((await site.handle(get("/new"))).status).toBe(404);
+    });
+  });
+
+  test("public/ is served before the build has copied it", async () => {
+    const dir = await fixture({ ...unbuilt, "public/favicon.svg": "<svg/>" });
+    await inEnv(undefined, async () => {
+      const icon = await (await createSite({ root: dir })).handle(get("/favicon.svg"));
+      expect(icon.status).toBe(200);
+      expect(icon.headers.get("Content-Type")).toBe("image/svg+xml");
+    });
+    await inEnv("production", async () => {
+      expect((await (await createSite({ root: dir })).handle(get("/favicon.svg"))).status).toBe(404);
+    });
+  });
+
+  test("templates are compiled once in production unless cache says otherwise", async () => {
+    const dir = await fixture(unbuilt);
+    await inEnv("production", async () => {
+      const site = await createSite({ root: dir });
+      const fresh = await createSite({ root: dir, cache: false });
+      await writeFile(join(dir, "pages/about.html"), "<p>Edited</p>");
+      expect(site.render("/about")).toContain("<p>About</p>");
+      expect(fresh.render("/about")).toContain("<p>Edited</p>");
+    });
+  });
+
   test("a config route still beats the page behind it", async () => {
     await inEnv(undefined, async () => {
       const site = await createSite({ root: await fixture(unbuilt) });
@@ -279,13 +319,15 @@ describe("render: a deployment that renders templates at runtime", () => {
   };
 
   test("renders pages and fragments from the templates it was deployed with", async () => {
-    const site = await createSite({ root: await fixture(deployed) });
-    // Pages still come from the build: handle() serves dist/, as always.
-    expect(await site.handle(get("/"))).toHaveProperty("status", 200);
-    // extends, block and a copied data file all resolve out of the render root.
-    expect(site.render("/dashboard", { user: { name: "Sam" } })).toBe("<body>Acme<h1>Sam's dashboard</h1></body>");
-    expect(site.render("/", { user: { name: "Sam" } })).toBe("<body>Acme<p>Hi Sam</p></body>");
-    expect(site.fragment("partials/row.html", { row: { name: "a" } })).toBe("<tr><td>a</td></tr>");
+    await inEnv("production", async () => {
+      const site = await createSite({ root: await fixture(deployed) });
+      // Pages still come from the build: handle() serves dist/, as always.
+      expect(await site.handle(get("/"))).toHaveProperty("status", 200);
+      // extends, block and a copied data file all resolve out of the render root.
+      expect(site.render("/dashboard", { user: { name: "Sam" } })).toBe("<body>Acme<h1>Sam's dashboard</h1></body>");
+      expect(site.render("/", { user: { name: "Sam" } })).toBe("<body>Acme<p>Hi Sam</p></body>");
+      expect(site.fragment("partials/row.html", { row: { name: "a" } })).toBe("<tr><td>a</td></tr>");
+    });
   });
 
   test("say what to copy when the templates were not deployed", async () => {
@@ -318,5 +360,86 @@ describe("render: a deployment that renders templates at runtime", () => {
     expect(site.config.render).toBe(false);
     expect(site.pages).toEqual([]);
     expect(await site.handle(get("/"))).toHaveProperty("status", 200);
+  });
+});
+
+describe("scripts and styles in pages rendered at runtime", () => {
+  const project = {
+    "htmx-ui.config.ts": "export default { ui: false };",
+    "layout.html": '<head><link rel="icon" href="/favicon.svg"><script type="module" src="{{ asset(\'app.ts\') }}"></script></head>{% block content %}{% endblock %}',
+    "pages/index.html": '{% extends "layout.html" %}{% block content %}<h1>Home</h1>{% endblock %}',
+    "app.ts": 'import "./styles.css"; export const answer = 42; console.log(answer);',
+    "styles.css": ".brand { width: 123px; }",
+    "public/favicon.svg": "<svg/>",
+  };
+
+  test("development: source links become bundles made from source, with live reload; nothing is written to dist/", async () => {
+    const dir = await fixture(project);
+    await inEnv(undefined, async () => {
+      const site = await createSite({ root: dir });
+      const html = site.render("/");
+      expect(html).not.toContain('src="/app.ts"');
+      expect(html).toContain('<link rel="icon" href="/favicon.svg">');
+      expect(html).toContain("/__htmx-ui/reload");
+      const css = /href="(\/__htmx-ui\/dev\/[^"]+\/bundle\.css)"/.exec(html)![1]!;
+      const js = /src="(\/__htmx-ui\/dev\/[^"]+\/app\.js)"/.exec(html)![1]!;
+      // handle() renders the page the same way.
+      expect(await (await site.handle(get("/"))).text()).toContain(js);
+
+      const script = await site.handle(get(js));
+      expect(script.headers.get("Content-Type")).toContain("javascript");
+      expect(await script.text()).toContain("42");
+      const style = await site.handle(get(css));
+      expect(style.headers.get("Content-Type")).toBe("text/css; charset=utf-8");
+      expect(await style.text()).toContain("123px");
+      expect(await Bun.file(join(dir, "dist")).exists()).toBe(false);
+
+      // Only files in the project can be bundled.
+      const outside = Buffer.from("../outside.ts").toString("base64url");
+      expect((await site.handle(get(`/__htmx-ui/dev/${outside}/outside.js`))).status).toBe(404);
+
+      const reload = await site.handle(get("/__htmx-ui/reload"));
+      expect(reload.headers.get("Content-Type")).toBe("text/event-stream");
+      const first = await reload.body!.getReader().read();
+      expect(new TextDecoder().decode(first.value)).toContain("connected");
+    });
+  }, 30_000);
+
+  test("production: source links become the build's bundles, from its manifest", async () => {
+    const dir = await fixture({
+      ...project,
+      "dist/index.html": "<h1>built</h1>",
+      "dist/favicon.svg": "<svg/>",
+      "dist/assets/app-1a2b.js": "",
+      "dist/.htmx-ui/manifest.json": JSON.stringify({
+        version: 1,
+        pages: { "app.ts": '<link rel="stylesheet" crossorigin href="/assets/app-3c4d.css"><script type="module" crossorigin src="/assets/app-1a2b.js"></script>' },
+      }),
+    });
+    await inEnv("production", async () => {
+      const html = (await createSite({ root: dir })).render("/");
+      expect(html).toBe(
+        '<head><link rel="icon" href="/favicon.svg"><link rel="stylesheet" crossorigin href="/assets/app-3c4d.css">' +
+          '<script type="module" crossorigin src="/assets/app-1a2b.js"></script></head><h1>Home</h1>',
+      );
+    });
+  });
+
+  test("production without a build: the source links stay, and it says to build", async () => {
+    const dir = await fixture(project);
+    const warn = console.warn;
+    const warnings: string[] = [];
+    console.warn = (message: string) => void warnings.push(message);
+    try {
+      await inEnv("production", async () => {
+        const site = await createSite({ root: dir });
+        expect(site.render("/")).toContain('<script type="module" src="/app.ts"></script>');
+        site.render("/");
+      });
+    } finally {
+      console.warn = warn;
+    }
+    expect(warnings).toHaveLength(1);
+    expect(warnings[0]).toContain("run htmx-ui build");
   });
 });

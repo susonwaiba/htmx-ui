@@ -15,7 +15,7 @@ import { writeNotFound } from "../core/not-found";
 type Vite = typeof import("vite");
 
 /** Import a package as the project resolves it (it's the project's dependency, not ours). */
-async function fromProject<T>(root: string, name: string): Promise<T | null> {
+export async function fromProject<T>(root: string, name: string): Promise<T | null> {
   try {
     const require = createRequire(resolve(root, "package.json"));
     return (await import(pathToFileURL(require.resolve(name)).href)) as T;
@@ -24,7 +24,7 @@ async function fromProject<T>(root: string, name: string): Promise<T | null> {
   }
 }
 
-async function vite(root: string): Promise<Vite> {
+export async function vite(root: string): Promise<Vite> {
   const v = await fromProject<Vite>(root, "vite");
   if (!v) throw new Error("htmx-ui on Node needs Vite: npm install -D vite @tailwindcss/vite (or run on Bun with --bun)");
   return v;

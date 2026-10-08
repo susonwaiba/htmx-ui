@@ -18,6 +18,7 @@ import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync } 
 import { dirname, relative, resolve, sep } from "node:path";
 import type { Plugin, PreviewServer, ViteDevServer } from "vite";
 import { pagesOf, renderPage, resolveConfig, type Handler, type ResolvedConfig, type UserConfig } from "../core/config";
+import { pageSources, writeManifest } from "../core/assets";
 import { send, toRequest } from "../core/http";
 import { NOT_FOUND_HTML } from "../core/not-found";
 import { relativeAsset } from "../core/render";
@@ -47,6 +48,7 @@ export function htmxUi(input: UserConfig | ResolvedConfig = {}): Plugin[] {
   let config: ResolvedConfig = isResolved(input) ? input : resolveConfig(input, process.cwd());
   let dev = false;
   let outDir = config.outDir;
+  const rendered = new Map<string, string>(); // page file -> its rendered source, for the manifest
 
   // asset() in dev: pages are served at their routes (/about), not at their file
   // paths (/pages/about.html), so a page-relative URL would resolve against the
@@ -97,7 +99,10 @@ export function htmxUi(input: UserConfig | ResolvedConfig = {}): Plugin[] {
         const file = resolve(ctx.filename);
         // assetVer()'s ?ver= leaves the URL here, so Vite resolves the file; the
         // post hook below puts it back on the URL Vite ends up with (../core/ver.ts).
-        return inside(config.pagesDir, file) && file.endsWith(".html") ? deferVersions(renderPage(config, file, asset)) : html;
+        if (!inside(config.pagesDir, file) || !file.endsWith(".html")) return html;
+        const page = deferVersions(renderPage(config, file, asset));
+        rendered.set(file, page); // its sources, for the build's manifest
+        return page;
       },
     },
 
@@ -172,6 +177,15 @@ export function htmxUi(input: UserConfig | ResolvedConfig = {}): Plugin[] {
 
     writeBundle() {
       hoistPages(outDir, posix(relative(config.root, config.pagesDir)));
+      // What pages rendered at runtime (site.render()) link instead of their source files.
+      writeManifest(
+        outDir,
+        config.publicDir,
+        [...rendered].map(([file, html]) => ({
+          sources: pageSources(html, file, config.root, config.publicDir),
+          built: resolve(outDir, relative(config.pagesDir, file)),
+        })),
+      );
     },
   };
 

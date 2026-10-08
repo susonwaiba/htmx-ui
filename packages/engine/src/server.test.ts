@@ -33,6 +33,8 @@ const root = await fixture({
     routes: {
       "/api/site": () => new Response("from the config"),
       "/api/echo": async (req) => new Response(req.headers.get("content-type") + " " + (await req.text())),
+      // Never ends, like the dev server's reload events.
+      "/api/stream": () => new Response(new ReadableStream({ start(c) { c.enqueue(new TextEncoder().encode("first")); } })),
     },
   };`,
   "pages/index.html": "<h1>home</h1>",
@@ -60,13 +62,28 @@ const get = (port: number, path: string, method = "GET", type?: string, body?: s
 
 const post = (port: number, path: string, type: string, body: string) => get(port, path, "POST", type, body);
 
+/** The first chunk of a response that may never end, then hang up. */
+const firstChunk = (port: number, path: string): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const req = request({ host: "localhost", port, path, agent: false }, (res) => {
+      res.setEncoding("utf8");
+      res.once("data", (chunk: string) => {
+        resolve(chunk);
+        req.destroy();
+      });
+    }).on("error", reject);
+    req.end();
+  });
+
 /** What every adapter must do, given a way to ask its server for a path. */
-async function behaves(get: (path: string) => Promise<Page>, own: string) {
+async function behaves(get: (path: string) => Promise<Page>, own: string, first?: (path: string) => Promise<string>) {
   expect(await get("/")).toMatchObject({ status: 200, body: "<h1>built home</h1>", type: expect.stringContaining("text/html") });
   expect((await get("/docs/setup")).body).toBe("<p>built setup</p>");
   expect((await get("/api/site")).body).toBe("from the config");
   expect(await get("/api/own")).toMatchObject({ status: 200, body: own });
   expect(await get("/missing")).toMatchObject({ status: 404, body: "<h1>nope</h1>" });
+  // Streamed, not read whole first: a response that never ends still arrives.
+  if (first) expect(await first("/api/stream")).toBe("first");
 }
 
 describe("elysia", () => {
@@ -82,7 +99,7 @@ describe("elysia", () => {
       .listen(0);
     try {
       const port = (app.server as { port: number }).port;
-      await behaves((path) => get(port, path), "from elysia");
+      await behaves((path) => get(port, path), "from elysia", (path) => firstChunk(port, path));
       expect((await get(port, "/api/other")).body).toBe("other");
       const posted = await new Promise<Page>((resolve, reject) => {
         request({ host: "localhost", port, path: "/api/own", method: "POST", agent: false }, (res) => {
@@ -115,7 +132,7 @@ describe("express", () => {
     try {
       await new Promise((r) => server.once("listening", r));
       const port = (server.address() as { port: number }).port;
-      await behaves((path) => get(port, path), "from express");
+      await behaves((path) => get(port, path), "from express", (path) => firstChunk(port, path));
     } finally {
       server.close();
     }
@@ -128,14 +145,17 @@ describe("fastify", () => {
   expect(typeof asFastifyPlugin).toBe("function");
 
   test("serves the built site, the config's routes and the built 404, registered before its routes", async () => {
-    const app = Fastify();
+    // forceCloseConnections: the never-ending stream below is a happy-dom ReadableStream
+    // here (the test preload), and cancelling one never settles, so close() would wait
+    // for it. A real server's streams stop when the client goes.
+    const app = Fastify({ forceCloseConnections: true });
     // First, on purpose: it is the not-found handler, so registration order doesn't matter.
     await app.register(fastifyUi({ root }));
     app.get("/api/own", async () => "from fastify");
     await app.listen({ port: 0 });
     try {
       const port = (app.server.address() as { port: number }).port;
-      await behaves((path) => get(port, path), "from fastify");
+      await behaves((path) => get(port, path), "from fastify", (path) => firstChunk(port, path));
       const head = await get(port, "/", "HEAD");
       expect(head).toMatchObject({ status: 200, body: "" });
     } finally {
@@ -160,7 +180,7 @@ describe("koa", () => {
     try {
       await new Promise((r) => server.once("listening", r));
       const port = (server.address() as { port: number }).port;
-      await behaves((path) => get(port, path), "from koa");
+      await behaves((path) => get(port, path), "from koa", (path) => firstChunk(port, path));
       expect(await get(port, "/", "HEAD")).toMatchObject({ status: 200, body: "" });
     } finally {
       server.close();

@@ -221,6 +221,11 @@ app.post("/api/invoices/:id/refund", (c) => {
     app.get("/dashboard", ({ request }) => html(site.render("/dashboard", { user: currentUser(request) })));
   {% endcall %}
   <p>
+    The page's scripts and stylesheets work as they do in a built page: in development they are bundled from
+    source on request, and in production they are the build's bundles (see
+    <a href="/docs/servers#dev-prod">Development and production</a>).
+  </p>
+  <p>
     Register the route yourself: a page in <code>dist/</code> is only served when no route of yours claims the path.
     <code>render()</code> throws for a route with no page. Pass values in the context, not in config globals, so one
     visitor's data never reaches another's render.
@@ -318,5 +323,12 @@ app.post("/api/invoices/:id/refund", (c) => {
     <code>public/</code>, which the build copies as-is, or map URLs yourself with
     <a href="/docs/servers/api#options"><code>options.asset</code></a>. Built pages already carry hashed URLs, so this
     only affects <code>render()</code> and <code>fragment()</code>.
+  </p>
+  <p>
+    Scripts and stylesheets in a page <code>render()</code> returns are the exception: their source links are
+    swapped for bundles (from source in development, the build's in production). In production that needs a page
+    the build has that links the same files, which every page using your layout does. A script only some renders
+    link (say, behind <code>&#123;% if user.admin %&#125;</code>) needs a built page that links it too; otherwise the
+    server says which one it could not find and leaves the source link.
   </p>
 {% endblock %}

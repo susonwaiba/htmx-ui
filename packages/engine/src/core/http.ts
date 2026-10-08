@@ -5,6 +5,9 @@
 // and return a Response, whatever the server underneath is.
 
 import type { IncomingMessage, ServerResponse } from "node:http";
+import { Readable } from "node:stream";
+import { pipeline } from "node:stream/promises";
+import type { ReadableStream as WebReadableStream } from "node:stream/web";
 
 /**
  * Web Request from a Node request. Honours originalUrl, so it works when mounted on a sub-path.
@@ -55,7 +58,15 @@ function encode(parsed: unknown, headers: Headers): Buffer | undefined {
   return Buffer.from(JSON.stringify(parsed));
 }
 
-/** Send a web Response as a Node response, headers and body. */
+/** A web Response body as a Node stream, for frameworks that take one (Fastify, Koa). */
+export const nodeBody = (response: Response): Readable | Buffer =>
+  response.body ? Readable.fromWeb(response.body as unknown as WebReadableStream) : Buffer.alloc(0);
+
+/**
+ * Send a web Response as a Node response, headers and body. The body is streamed, not
+ * read whole first: a stream that never ends (the dev server's reload events) is a
+ * response too.
+ */
 export async function send(res: ServerResponse, response: Response): Promise<void> {
   res.statusCode = response.status;
   response.headers.forEach((value, key) => {
@@ -63,6 +74,8 @@ export async function send(res: ServerResponse, response: Response): Promise<voi
   });
   const cookies = response.headers.getSetCookie();
   if (cookies.length) res.setHeader("set-cookie", cookies);
-  if (res.req.method === "HEAD") return void res.end();
-  res.end(Buffer.from(await response.arrayBuffer()));
+  if (res.req.method === "HEAD" || !response.body) return void res.end();
+  await pipeline(Readable.fromWeb(response.body as unknown as WebReadableStream), res).catch(() => {
+    // The client went away mid-response (a closed tab's reload stream): nothing to send to.
+  });
 }

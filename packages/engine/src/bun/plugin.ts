@@ -13,21 +13,17 @@ import type { BunPlugin } from "bun";
 import { existsSync } from "node:fs";
 import { relative, resolve, sep } from "node:path";
 import { loadConfig, renderPage, resolveConfig, type ResolvedConfig, type UserConfig } from "../core/config";
+import { withReload as addReload } from "../core/dev";
 import { relativeAsset } from "../core/render";
 import { deferVersions, verToken } from "../core/ver";
 
 const isResolved = (c: UserConfig | ResolvedConfig): c is ResolvedConfig => "roots" in c;
 
 /** Server-sent events stream the dev server (./dev-server.ts) uses to reload pages on template changes. */
-export const RELOAD_PATH = "/__htmx-ui/reload";
-const RELOAD_SCRIPT = `<script id="script:htmx-ui-reload">new EventSource("${RELOAD_PATH}").onmessage = () => location.reload();</script>`;
+export { RELOAD_PATH } from "../core/dev";
 
 /** Add the reload listener to a page in dev (`htmx-ui dev` sets HTMX_UI_DEV=1). */
-const withReload = (html: string) => {
-  if (process.env.HTMX_UI_DEV !== "1") return html;
-  if (html.includes(RELOAD_PATH)) return html;
-  return html.includes("</head>") ? html.replace("</head>", `${RELOAD_SCRIPT}</head>`) : html + RELOAD_SCRIPT;
-};
+const withReload = (html: string) => (process.env.HTMX_UI_DEV === "1" ? addReload(html) : html);
 
 /** The plugin for a resolved config, a user config (root = cwd), or the project's config file. */
 export async function htmxUi(config?: UserConfig | ResolvedConfig): Promise<BunPlugin> {
@@ -71,24 +67,51 @@ function publicUrls(config: ResolvedConfig, page: string, html: string): string 
     .transform(html);
 }
 
-export function htmxUiPlugin(config: ResolvedConfig): BunPlugin {
+/** What the plugin hands the bundler for an .html file: the rendered page, or the file as it is outside the template roots. */
+export type PageLoader = (path: string) => Promise<string>;
+
+export function pageLoader(config: ResolvedConfig): PageLoader {
   const inRoots = (path: string) => config.roots.some((r) => !relative(r.dir, path).startsWith(".."));
   // A dev server must always load the file as it is now, so its assetVer() URLs
   // carry a fresh random suffix on top of the project version (../core/ver.ts).
   if (process.env.HTMX_UI_DEV === "1") config.ver = verToken(config.version, true);
+  // assetVer()'s ?ver= has to leave the URL for the bundler, which resolves
+  // the file itself and can't read a query string. Bun re-serializes the tags
+  // it bundles (link, script), dropping the marker with it, and builds no
+  // stale URL to worry about: it names every asset after its content, in a
+  // build and in dev. A build puts the version back on the tags Bun passes
+  // through (./build.ts), so the query is not simply lost.
+  return async (path) => (inRoots(path) ? withReload(deferVersions(publicUrls(config, path, renderPage(config, path)))) : await Bun.file(path).text());
+}
+
+/**
+ * State the dev server (./dev-server.ts) keeps on globalThis, where it survives
+ * --hot re-evaluation. Bun.serve loads its bundler plugins once, so the plugin
+ * would otherwise go on rendering with the config, plugins and engine code it
+ * started with; instead the dev server registers a loader built from the current
+ * ones each time it is evaluated, and the plugin uses that.
+ */
+export type DevState = {
+  clients: Set<ReadableStreamDefaultController>;
+  watchers: { close(): void }[];
+  version: number;
+  load?: PageLoader;
+  ping?: ReturnType<typeof setInterval>;
+};
+export const devState = () => (globalThis as typeof globalThis & { __htmxUi?: DevState }).__htmxUi;
+export const initDevState = (): DevState => ((globalThis as typeof globalThis & { __htmxUi?: DevState }).__htmxUi ??= { clients: new Set(), watchers: [], version: 0 });
+
+/** `onPage` sees each page as rendered, before the bundler: `htmx-ui build` records its sources for the manifest. */
+export function htmxUiPlugin(config: ResolvedConfig, onPage?: (path: string, html: string) => void): BunPlugin {
+  const load = pageLoader(config);
   return {
     name: "htmx-ui",
     setup(build) {
-      build.onLoad({ filter: /\.html$/ }, async ({ path }) => ({
-        // assetVer()'s ?ver= has to leave the URL for the bundler, which resolves
-        // the file itself and can't read a query string. Bun re-serializes the tags
-        // it bundles (link, script), dropping the marker with it, and builds no
-        // stale URL to worry about: it names every asset after its content, in a
-        // build and in dev. A build puts the version back on the tags Bun passes
-        // through (./build.ts), so the query is not simply lost.
-        contents: inRoots(path) ? withReload(deferVersions(publicUrls(config, path, renderPage(config, path)))) : await Bun.file(path).text(),
-        loader: "html",
-      }));
+      build.onLoad({ filter: /\.html$/ }, async ({ path }) => {
+        const contents = await (devState()?.load ?? load)(path);
+        onPage?.(path, contents);
+        return { contents, loader: "html" };
+      });
     },
   };
 }
