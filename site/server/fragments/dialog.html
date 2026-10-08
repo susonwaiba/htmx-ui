@@ -1,0 +1,14 @@
+{# /api/dialog: a dialog that opens itself once htmx inserts it, and is removed again when it closes. #}
+{% from "components/dialog/dialog.html" import dialog %}
+{% call dialog("server-dialog", "Rename project", "Loaded from the server at " ~ time ~ ".", show=true, remove=true) %}
+  <form class="contents" hx-post="/api/dialog/save" hx-target="#server-dialog-result">
+    <div class="field">
+      <label class="field-label" for="server-dialog-name">Name</label>
+      <input class="input" id="server-dialog-name" name="name" value="htmx-ui" required autofocus />
+    </div>
+    <div class="dialog-footer">
+      <button type="button" class="btn btn-outline" data-dialog-close>Cancel</button>
+      <button class="btn btn-primary">Save</button>
+    </div>
+  </form>
+{% endcall %}

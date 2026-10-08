@@ -1,0 +1,10 @@
+{# /api/attachment: an attachment that polls itself through the upload states. #}
+{% from "components/icon/icon.html" import icon %}
+<div class="attachment" data-state="{{ state }}"{% if next %} hx-get="/api/attachment?step={{ next }}" hx-trigger="load delay:600ms" hx-swap="outerHTML"{% endif %}>
+  <div class="attachment-media">{{ icon("file") }}</div>
+  <div class="attachment-content">
+    <p class="attachment-title">quarterly-report.pdf</p>
+    <p class="attachment-description">{{ detail }}</p>
+  </div>
+  {% if state == "uploading" %}<progress class="attachment-progress" value="{{ progress }}" max="100" aria-label="Upload progress"></progress>{% endif %}
+</div>

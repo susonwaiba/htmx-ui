@@ -1,15 +1,19 @@
 // Mock htmx endpoints for local development. Each returns an HTML fragment.
+import { join } from "node:path";
+import { render } from "htmx-ui-engine";
+import { SITE, UI } from "../lib/paths";
+
 const html = (body: string) =>
   new Response(body, { headers: { "Content-Type": "text/html; charset=utf-8" } });
 
+/** A fragment rendered from server/fragments/<name>.html, so it can use the component macros. */
+const fragment = (name: string, context: Record<string, unknown> = {}) =>
+  html(render(join(SITE, "server/fragments", `${name}.html`), { roots: [SITE, UI], context }).trim());
+const time = () => new Date().toLocaleTimeString();
+
 export const apiRoutes = {
   // Returns a dismissible alert, so it also shows components initialising after a swap.
-  "/api/hello": () =>
-    html(`<div class="alert alert-success" role="status" data-dismissible>
-  <div class="alert-title">Hello from the server</div>
-  <div class="alert-description">Rendered at ${new Date().toLocaleTimeString()}. Dismiss me; I was wired up after the swap.</div>
-  <button type="button" class="alert-close" data-dismiss aria-label="Dismiss">×</button>
-</div>`),
+  "/api/hello": () => fragment("hello", { time: time() }),
 
   // Table rows for the "load more" demo on /docs/components/table.
   "/api/invoices": () => {
@@ -33,22 +37,7 @@ export const apiRoutes = {
   // (/docs/components/dialog). Its form posts to /api/dialog/save.
   "/api/dialog": async () => {
     await Bun.sleep(300);
-    return html(`<dialog class="dialog" data-dialog data-dialog-show data-dialog-remove aria-labelledby="server-dialog-title">
-  <div class="dialog-header">
-    <h2 class="dialog-title" id="server-dialog-title">Rename project</h2>
-    <p class="dialog-description">Loaded from the server at ${new Date().toLocaleTimeString()}.</p>
-  </div>
-  <form class="contents" hx-post="/api/dialog/save" hx-target="#server-dialog-result">
-    <div class="field">
-      <label class="field-label" for="server-dialog-name">Name</label>
-      <input class="input" id="server-dialog-name" name="name" value="htmx-ui" required autofocus />
-    </div>
-    <div class="dialog-footer">
-      <button type="button" class="btn btn-outline" data-dialog-close>Cancel</button>
-      <button class="btn btn-primary">Save</button>
-    </div>
-  </form>
-</dialog>`);
+    return fragment("dialog", { time: time() });
   },
 
   // Answers the dialog's form, and closes the dialog with the HX-Trigger response header.
@@ -66,16 +55,8 @@ export const apiRoutes = {
     const step = Number(new URL(req.url).searchParams.get("step") ?? 0);
     const progress = Math.min(step * 20, 100);
     const state = step < 5 ? "uploading" : step < 7 ? "processing" : "done";
-    const poll = state === "done" ? "" : ` hx-get="/api/attachment?step=${step + 1}" hx-trigger="load delay:600ms" hx-swap="outerHTML"`;
     const detail = { uploading: `Uploading · ${progress}%`, processing: "Processing…", done: "2.4 MB · PDF" }[state];
-    return html(`<div class="attachment" data-state="${state}"${poll}>
-  <div class="attachment-media"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/></svg></div>
-  <div class="attachment-content">
-    <p class="attachment-title">quarterly-report.pdf</p>
-    <p class="attachment-description">${detail}</p>
-  </div>
-  ${state === "uploading" ? `<progress class="attachment-progress" value="${progress}" max="100" aria-label="Upload progress"></progress>` : ""}
-</div>`);
+    return fragment("attachment", { state, progress, detail, next: state === "done" ? null : step + 1 });
   },
 
   // Echoes the submitted values back, for demos that post a choice (toggles, toggle groups).

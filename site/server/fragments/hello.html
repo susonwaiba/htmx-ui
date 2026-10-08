@@ -1,0 +1,3 @@
+{# /api/hello: a dismissible alert, so it also shows components initialising after a swap. #}
+{% from "components/alert/alert.html" import alert %}
+{% call alert("Hello from the server", variant="success", dismissible=true) %}Rendered at {{ time }}. Dismiss me; I was wired up after the swap.{% endcall %}
