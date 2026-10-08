@@ -17,8 +17,8 @@
           {% endfor %}
         </div>
       </div>
-      <button type="button" class="btn btn-outline btn-icon carousel-prev" data-carousel-prev aria-label="Previous slide">{{ icon("arrow-left") }}</button>
-      <button type="button" class="btn btn-outline btn-icon carousel-next" data-carousel-next aria-label="Next slide">{{ icon("arrow-right") }}</button>
+      <button type="button" class="btn btn-outline btn-icon btn-no-press carousel-prev" data-carousel-prev aria-label="Previous slide">{{ icon("arrow-left") }}</button>
+      <button type="button" class="btn btn-outline btn-icon btn-no-press carousel-next" data-carousel-next aria-label="Next slide">{{ icon("arrow-right") }}</button>
     </div>
   {% endcall %}
 
@@ -29,7 +29,7 @@
   <h2 id="markup">Markup</h2>
   <ul>
     <li><code>.carousel[data-carousel]</code> holds a <code>.carousel-viewport</code> (it clips), a <code>.carousel-container</code> (it moves) and the <code>.carousel-item</code>s.</li>
-    <li><code>[data-carousel-prev]</code> and <code>[data-carousel-next]</code> buttons scroll, and disable themselves at the ends. Give them an <code>aria-label</code>.</li>
+    <li><code>[data-carousel-prev]</code> and <code>[data-carousel-next]</code> buttons scroll, and disable themselves at the ends. Give them an <code>aria-label</code>, and <a href="/docs/components/button#press"><code>.btn-no-press</code></a> so they don't nudge when pressed.</li>
     <li>The behaviour marks the carousel as a region and each item as a slide ("2 of 5"); name the region with <code>aria-label</code>. <kbd class="kbd">←</kbd> <kbd class="kbd">→</kbd> scroll when focus is inside it.</li>
     <li>Without JavaScript the slides are a clipped row; give the viewport <code>overflow-x-auto</code> if they must stay reachable then.</li>
   </ul>
@@ -47,8 +47,8 @@
           {% endfor %}
         </div>
       </div>
-      <button type="button" class="btn btn-outline btn-icon carousel-prev" data-carousel-prev aria-label="Previous slide">{{ icon("arrow-left") }}</button>
-      <button type="button" class="btn btn-outline btn-icon carousel-next" data-carousel-next aria-label="Next slide">{{ icon("arrow-right") }}</button>
+      <button type="button" class="btn btn-outline btn-icon btn-no-press carousel-prev" data-carousel-prev aria-label="Previous slide">{{ icon("arrow-left") }}</button>
+      <button type="button" class="btn btn-outline btn-icon btn-no-press carousel-next" data-carousel-next aria-label="Next slide">{{ icon("arrow-right") }}</button>
     </div>
   {% endcall %}
 
@@ -65,8 +65,8 @@
           {% endfor %}
         </div>
       </div>
-      <button type="button" class="btn btn-outline btn-icon carousel-prev" data-carousel-prev aria-label="Previous slide">{{ icon("arrow-left") }}</button>
-      <button type="button" class="btn btn-outline btn-icon carousel-next" data-carousel-next aria-label="Next slide">{{ icon("arrow-right") }}</button>
+      <button type="button" class="btn btn-outline btn-icon btn-no-press carousel-prev" data-carousel-prev aria-label="Previous slide">{{ icon("arrow-left") }}</button>
+      <button type="button" class="btn btn-outline btn-icon btn-no-press carousel-next" data-carousel-next aria-label="Next slide">{{ icon("arrow-right") }}</button>
     </div>
   {% endcall %}
 
@@ -83,8 +83,8 @@
           {% endfor %}
         </div>
       </div>
-      <button type="button" class="btn btn-outline btn-icon carousel-prev" data-carousel-prev aria-label="Previous slide">{{ icon("arrow-left") }}</button>
-      <button type="button" class="btn btn-outline btn-icon carousel-next" data-carousel-next aria-label="Next slide">{{ icon("arrow-right") }}</button>
+      <button type="button" class="btn btn-outline btn-icon btn-no-press carousel-prev" data-carousel-prev aria-label="Previous slide">{{ icon("arrow-left") }}</button>
+      <button type="button" class="btn btn-outline btn-icon btn-no-press carousel-next" data-carousel-next aria-label="Next slide">{{ icon("arrow-right") }}</button>
     </div>
   {% endcall %}
 
@@ -107,9 +107,9 @@
         </div>
       </div>
       <div class="carousel-controls">
-        <button type="button" class="btn btn-ghost btn-icon carousel-prev" data-carousel-prev aria-label="Previous slide">{{ icon("chevron-left") }}</button>
+        <button type="button" class="btn btn-ghost btn-icon btn-no-press carousel-prev" data-carousel-prev aria-label="Previous slide">{{ icon("chevron-left") }}</button>
         <div class="carousel-dots" data-carousel-dots></div>
-        <button type="button" class="btn btn-ghost btn-icon carousel-next" data-carousel-next aria-label="Next slide">{{ icon("chevron-right") }}</button>
+        <button type="button" class="btn btn-ghost btn-icon btn-no-press carousel-next" data-carousel-next aria-label="Next slide">{{ icon("chevron-right") }}</button>
       </div>
     </div>
   {% endcall %}

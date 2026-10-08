@@ -7,8 +7,8 @@
          <div class="carousel-item">…</div>
        </div>
      </div>
-     <button class="btn btn-outline btn-icon carousel-prev" data-carousel-prev aria-label="Previous slide">{{ icon("arrow-left") }}</button>
-     <button class="btn btn-outline btn-icon carousel-next" data-carousel-next aria-label="Next slide">{{ icon("arrow-right") }}</button>
+     <button class="btn btn-outline btn-icon btn-no-press carousel-prev" data-carousel-prev aria-label="Previous slide">{{ icon("arrow-left") }}</button>
+     <button class="btn btn-outline btn-icon btn-no-press carousel-next" data-carousel-next aria-label="Next slide">{{ icon("arrow-right") }}</button>
      <div class="carousel-dots" data-carousel-dots></div>                                optional
    </div>
 

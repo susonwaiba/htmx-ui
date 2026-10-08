@@ -48,7 +48,7 @@
         <span class="font-semibold">Documentation</span>
         <button type="button" class="btn btn-ghost btn-icon btn-sm" data-sidebar-close aria-label="Close navigation">{{ icon("x") }}</button>
       </div>
-      <div class="sidebar-content gap-6 p-6 lg:px-0 lg:py-8">
+      <div class="sidebar-content gap-6 p-6 lg:px-0 lg:py-8" hx-sidebar-active-scroll="docs-nav">
         {{ version_switcher(class="w-full", links=[{ title: "Changelog", href: "/docs/changelog" }]) }}
         {% for group in nav_state.sections %}
           <nav class="sidebar-group p-0" aria-labelledby="docs-nav-{{ loop.index }}">

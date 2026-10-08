@@ -27,6 +27,9 @@ export const apiRoutes = {
     return html(rows.join(""));
   },
 
+  // Lists and rows re-rendered on every request, for /docs/preserve-scroll.
+  "/api/preserve-scroll": () => fragment("preserve-scroll", { time: time() }),
+
   // Slow response for loading-state demos.
   "/api/slow": async () => {
     await Bun.sleep(1200);

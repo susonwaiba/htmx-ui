@@ -79,6 +79,21 @@
       <code>password_input()</code> macro.
     </li>
   </ul>
+  <h3>Scroll position across swaps</h3>
+  <ul>
+    <li>
+      <a href="/docs/preserve-scroll">preserve-scroll</a>, an htmx extension: <code>registerPreserveScroll()</code>, then
+      <code>hx-preserve-scroll="&lt;key&gt;"</code> on any number of scroll containers keeps their position when htmx
+      replaces them, boosted navigations included. Repeated keys match in order; <code>snapshotScroll()</code> and
+      <code>restoreScroll()</code> do the same for DOM you replace yourself.
+    </li>
+    <li>
+      <a href="/docs/preserve-scroll#sidebar">sidebar-active-scroll</a>, for navigation sidebars:
+      <code>hx-sidebar-active-scroll</code> keeps the position across swaps and the current page's link in view,
+      centred on a fresh page load (a link opened in a new tab, a reload) and scrolled just into view after a swap that
+      hid it. The docs sidebar uses it.
+    </li>
+  </ul>
   <h3>Copying everywhere</h3>
   <ul>
     <li>
@@ -218,6 +233,13 @@
 
   <h2 id="fixed">Fixed</h2>
   <ul>
+    <li>
+      <a href="/docs/components/carousel">Carousel</a> previous and next buttons respond to clicks again. A pressed
+      <code>.btn</code> nudged down with <code>translate-y-px</code>, which replaced the buttons' own centring, so they
+      jumped out from under the pointer. The press nudge is now a <code>transform</code>, which adds to
+      <code>translate-*</code> positioning. New <a href="/docs/components/button#press"><code>.btn-no-press</code></a>
+      turns the nudge off.
+    </li>
     <li>
       Scroll areas inside components show their scrollbar without hovering: popup lists and menus (select, combobox,
       dropdown, command, popover…), <code>.command-list</code> and <code>.card-scroll</code> use

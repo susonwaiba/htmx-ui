@@ -1,0 +1,26 @@
+{# /api/preserve-scroll, and the first render on /docs/preserve-scroll: two lists, one keeping its
+   scroll position across the swap (hx-preserve-scroll) and one not, and two rows sharing a key. #}
+{% set swapped = time or "page load" %}
+<div class="grid gap-4 sm:grid-cols-2">
+  {% for kept in [true, false] %}
+  <div class="space-y-2">
+    <p class="text-sm font-medium">{{ "With hx-preserve-scroll" if kept else "Without" }}</p>
+    <ol class="h-48 space-y-1 overflow-y-auto rounded-(--radius) border border-border bg-surface p-3 text-sm"
+        {% if kept %}hx-preserve-scroll="demo-list"{% endif %} tabindex="0" aria-label="{{ 'Kept' if kept else 'Reset' }} list">
+      {% for i in range(1, 31) %}
+      <li class="flex justify-between gap-4"><span>Item {{ i }}</span><span class="text-muted-foreground tabular-nums">{{ swapped }}</span></li>
+      {% endfor %}
+    </ol>
+  </div>
+  {% endfor %}
+</div>
+<div class="mt-4 space-y-2">
+  <p class="text-sm font-medium">Two rows sharing hx-preserve-scroll="demo-row"</p>
+  {% for row in [1, 2] %}
+  <div class="flex gap-2 overflow-x-auto rounded-(--radius) border border-border bg-surface p-3" hx-preserve-scroll="demo-row" tabindex="0" aria-label="Row {{ row }}">
+    {% for i in range(1, 21) %}
+    <span class="badge badge-outline shrink-0">{{ row }}.{{ i }}</span>
+    {% endfor %}
+  </div>
+  {% endfor %}
+</div>

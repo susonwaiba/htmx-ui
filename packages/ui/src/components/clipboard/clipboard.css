@@ -44,7 +44,7 @@
   .clipboard-tag {
     @apply inline-flex h-8 max-w-full min-w-0 cursor-pointer items-center gap-2 rounded-(--radius) border border-transparent
       bg-muted px-3 font-mono text-xs text-foreground transition-colors select-none focus-outline hover:bg-accent
-      active:translate-y-px [&_svg]:size-3.5! [&_svg]:shrink-0;
+      active:[transform:translateY(1px)] [&_svg]:size-3.5! [&_svg]:shrink-0;
   }
   .clipboard-tag > code,
   .clipboard-tag > [data-clipboard-content] {

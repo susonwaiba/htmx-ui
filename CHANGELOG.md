@@ -24,6 +24,16 @@ The docs site has a fuller page per release (`/docs/changelog`).
   attribute renames, markup that changed shape, removed APIs, config keys, and the new versions in `package.json`. It
   lists, as `file:line`, what it couldn't change safely. It knows the 0.2.0 and 0.3.0 breaking changes. See
   `/docs/upgrading`.
+- **preserve-scroll htmx extension:** `registerPreserveScroll()` from `htmx-ui`, then `hx-preserve-scroll="<key>"` (or
+  an empty attribute and an id) on any number of scroll containers keeps their scroll position when htmx swaps them,
+  including boosted navigations that replace the body. Repeated keys are matched in document order;
+  `hx-preserve-scroll="false"` opts out; `snapshotScroll()` / `restoreScroll()` for DOM replaced by script. See
+  `/docs/preserve-scroll`.
+- **sidebar-active-scroll htmx extension:** `registerSidebarActiveScroll()`, then `hx-sidebar-active-scroll="<key>"` on a
+  sidebar's scroll container. It keeps the position across swaps like preserve-scroll, and keeps the current page's
+  link (`[aria-current="page"]`, `[data-active]`, or `hx-sidebar-active-item`) in view: centred on a fresh page load
+  (a link opened in a new tab, a reload) or when the sidebar first gets a size, scrolled just into view after a swap
+  that left it hidden. `revealActive()` / `revealAllActive()` for script. The docs sidebar uses it.
 - **Password input:** a show / hide toggle on an input group: eye icon or Show / Hide text, or a checkbox for several
   fields; keeps the caret, hides the password again on submit so password managers save it, hides Edge's own reveal
   button, an optional Caps Lock warning, and a `password_input()` macro.
@@ -78,6 +88,11 @@ The docs site has a fuller page per release (`/docs/changelog`).
 
 ### Fixed
 
+- **Carousel previous / next buttons respond to clicks.** A pressed `.btn` nudged down with `translate-y-px`, which
+  replaced the buttons' own `-translate-y-1/2` centring: they jumped half their height under the pointer and the click
+  was lost. The press nudge (on `.btn` and `.clipboard-tag`) is now a `transform`, which adds to `translate-*`
+  positioning instead of replacing it. New **`.btn-no-press`** turns the nudge off; the carousel docs use it on their
+  buttons.
 - **Scroll areas inside components show their scrollbar** without hovering: popup lists and menus (select, combobox,
   dropdown, command, popover...), `.command-list` and `.card-scroll` use `--scrollbar-thumb` through the new
   `scrollbar-visible` utility, so a long list looks scrollable. Other scrollbars still appear on hover.

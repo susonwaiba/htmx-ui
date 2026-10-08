@@ -19,6 +19,7 @@
       "title": "Guides",
       "items": [
         { "title": "Templates & data", "href": "/docs/templates", "description": "Nunjucks templates, JSON data, icons and SVG." },
+        { "title": "Scroll position", "href": "/docs/preserve-scroll", "description": "htmx extensions that keep scroll containers where they were across swaps, and a sidebar's current page in view." },
         { "title": "AI agents", "href": "/docs/ai-agents", "description": "Markdown pages, llms.txt and sitemaps for agents." }
       ]
     },

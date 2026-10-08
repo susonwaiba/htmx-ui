@@ -1,9 +1,13 @@
 @layer components {
+  /* The press nudge is a `transform`, not Tailwind's translate-*: those set the `translate`
+     property, so on :active they would replace a button's own positioning (the carousel's
+     -translate-y-1/2) and move it out from under the pointer, losing the click. A transform
+     adds to `translate` instead. */
   .btn {
     @apply inline-flex h-9 shrink-0 cursor-pointer items-center justify-center gap-2 rounded-(--radius) px-4
       text-sm font-medium whitespace-nowrap transition-colors select-none
       focus-outline
-      active:translate-y-px
+      active:[transform:translateY(1px)]
       disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50
       [&_svg]:size-4 [&_svg]:shrink-0;
   }
@@ -56,6 +60,12 @@
   /* Fully rounded ends (a circle for .btn-icon) */
   .btn-rounded {
     @apply rounded-full;
+  }
+
+  /* No press nudge: for buttons that should stay put when pressed, such as overlay controls
+     (carousel previous / next) or buttons that animate on their own. */
+  .btn-no-press {
+    @apply active:transform-none;
   }
 
   /* Busy: <button class="btn" aria-busy="true">{{ spinner(label=none) }} Saving</button>.

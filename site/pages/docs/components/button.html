@@ -60,6 +60,17 @@
     <button class="btn btn-secondary btn-icon btn-rounded" aria-label="Add">{{ icon("plus") }}</button>
   {% endcall %}
 
+  <h2 id="press">Press effect</h2>
+  <p>
+    A pressed button nudges down by a pixel. <code>.btn-no-press</code> turns that off, for buttons that should stay put:
+    controls laid over other content, such as a <a href="/docs/components/carousel">carousel's</a> previous and next
+    buttons, or buttons with an animation of their own.
+  </p>
+  {% call demo() %}
+    <button class="btn btn-outline">Nudges when pressed</button>
+    <button class="btn btn-outline btn-no-press">Stays put</button>
+  {% endcall %}
+
   <h2 id="links">As a link</h2>
   {% call demo() %}
     <a href="/docs/installation" class="btn btn-secondary">Read the guide</a>
@@ -117,6 +128,7 @@
     [".btn-xs / .btn-sm / .btn-lg", "24px, 32px or 44px tall instead of the default 36px."],
     [".btn-icon", "Square button for a single icon. Combine with a size."],
     [".btn-rounded", "Fully rounded ends; a circle with .btn-icon."],
+    [".btn-no-press", "No 1px nudge when pressed."],
     ["aria-busy=\"true\"", "Loading: ignores clicks without fading."]
   ]) }}
 {% endblock %}

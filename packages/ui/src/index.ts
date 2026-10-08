@@ -19,5 +19,11 @@ export * from "./components/toast/toast";
 // `export *` for the same reason as above (a named re-export left queryAll undeclared in lib/).
 export * from "./utils/dom";
 
+// htmx extensions: registerPreserveScroll() keeps [hx-preserve-scroll] containers' scroll
+// position across swaps; registerSidebarActiveScroll() does that for a sidebar and keeps its
+// current page's link in view. `export *` for the same reason.
+export * from "./htmx-extensions/preserve-scroll";
+export * from "./htmx-extensions/sidebar-active-scroll";
+
 // Keyboard shortcuts: matchesHotkey(event, "mod+k"), as data-command-hotkey uses.
 export * from "./utils/hotkey";

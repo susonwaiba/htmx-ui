@@ -1,0 +1,153 @@
+{% extends "layouts/docs.html" %}
+{% from "docs/macros.html" import demo %}
+{% from "components/code/code.html" import code %}
+{% from "components/alert/alert.html" import alert %}
+{% set title = "Scroll position" %}
+{% set description = "Two htmx extensions: preserve-scroll keeps the scroll position of marked containers when htmx swaps them, and sidebar-active-scroll also keeps a sidebar's current page in view, on a fresh page load too." %}
+
+{% block content %}
+  <p>
+    When htmx swaps content it inserts new elements, and a new element starts scrolled to the top. That is right for most
+    content, but not for a sidebar the reader has scrolled to the current page, a log refreshed by polling, or a table
+    re-rendered after a filter. Mark those containers with <code>hx-preserve-scroll</code> and they come back where
+    they were.
+  </p>
+
+  {% call demo() %}
+    <div class="w-full">
+      <div id="scroll-demo">{% include "server/fragments/preserve-scroll.html" %}</div>
+      <button type="button" class="btn btn-outline btn-sm mt-4" hx-get="/api/preserve-scroll" hx-target="#scroll-demo">Re-render from the server</button>
+    </div>
+  {% endcall %}
+  <p>
+    Scroll the lists and rows, then re-render them: every element is replaced (the times change), but the marked ones
+    keep their position. For a navigation sidebar, use <a href="#sidebar">sidebar-active-scroll</a> instead.
+  </p>
+
+  <h2 id="setup">Setup</h2>
+  <p>Register the extension once, after htmx has loaded:</p>
+  {% call code("ts", title="app.ts") %}
+    import "htmx.org";
+    import { registerPreserveScroll } from "htmx-ui";
+
+    registerPreserveScroll(); // uses window.htmx; or registerPreserveScroll(htmx)
+  {% endcall %}
+  <p>
+    Like every htmx 4 extension it applies to the whole page once registered; there is no <code>hx-ext</code>. If you
+    restrict extensions with <code>htmx.config.extensions</code>, add <code>preserve-scroll</code> to the list.
+    Registering twice is harmless.
+  </p>
+
+  <h2 id="markup">Markup</h2>
+  <p>Put <code>hx-preserve-scroll</code> on the element that scrolls (the one with <code>overflow: auto</code>), and give it a key:</p>
+  {% call code("html") %}
+    <div class="h-96 overflow-y-auto" hx-preserve-scroll="results">…</div>
+
+    <!-- An empty attribute uses the element's id as the key -->
+    <div id="log" class="h-80 overflow-y-auto" hx-preserve-scroll>…</div>
+  {% endcall %}
+  <ul>
+    <li>
+      The key is what connects the old element with the new one. Use as many containers on a page as you like, each with
+      its own key. An element with no key and no id is ignored.
+    </li>
+    <li>
+      <strong>Repeated keys</strong> are matched in document order: the first old element with the first new one, and so
+      on. A list of horizontally scrolling rows can share one key, as the two rows in the demo above do.
+    </li>
+    <li>
+      The swap can replace the container itself (<code>outerHTML</code>), its parent, or the whole body in a boosted
+      navigation. It works with OOB swaps and partials too.
+    </li>
+    <li>
+      <code>hx-preserve-scroll="false"</code> opts an element out, for a fragment that should start at the top even though
+      it has the same id.
+    </li>
+  </ul>
+
+  <h2 id="how">How it works</h2>
+  <ul>
+    <li>Before each swap (<code>htmx:before:swap</code>) it records the scroll position of every marked element in the document.</li>
+    <li>
+      New content is scrolled to the recorded position at <code>htmx:before:settle</code>, before the browser paints
+      it, so it never flashes at the top. A last pass at <code>htmx:finally:swap</code> catches content from every task.
+    </li>
+    <li>
+      Elements the swap didn't replace are left alone, so a container the reader scrolls while the request is in flight
+      keeps the reader's position. Morph swaps keep the element and therefore its scroll already.
+    </li>
+    <li>Nothing is stored: positions are kept only for the duration of a swap.</li>
+  </ul>
+  {% call alert("Content that grows after the swap", variant="info") %}
+    Positions are applied once, when the content is inserted. If images or lazy content above the position load later and
+    change its height, give them a fixed size (<code>width</code> and <code>height</code> on images) so the position still
+    lands on the same content.
+  {% endcall %}
+
+  <h2 id="sidebar">Sidebars: sidebar-active-scroll</h2>
+  <p>
+    Keeping the position is not enough for a navigation sidebar. Open a link in a new tab, or reload, and there is no
+    position to keep: the sidebar starts at the top, and the current page may be far below. A link in the page itself
+    can lead to a page whose sidebar entry is out of view. <code>sidebar-active-scroll</code> handles both:
+  </p>
+  <ul>
+    <li><strong>Fresh page load</strong> (new tab, reload, a sidebar new to the page): the active item is centred in the sidebar.</li>
+    <li>
+      <strong>After a swap</strong>: the old position comes back, as with <code>hx-preserve-scroll</code>. If the new
+      active item is then out of view, the sidebar scrolls just enough to show it, with a neighbouring item's height
+      to spare. Clicking a link that is already visible doesn't move anything.
+    </li>
+    <li>
+      <strong>A hidden sidebar</strong> (an off-canvas panel with <code>display: none</code>) is centred the first time
+      it gets a size.
+    </li>
+    <li>Only the sidebar scrolls; the page never jumps.</li>
+  </ul>
+  {% call code("ts", title="app.ts") %}
+    import { registerSidebarActiveScroll } from "htmx-ui";
+
+    registerSidebarActiveScroll();
+  {% endcall %}
+  {% call code("html") %}
+    <div class="sidebar-content" hx-sidebar-active-scroll="docs-nav">
+      …
+      <a class="sidebar-menu-button" href="/docs/theming" aria-current="page">Theming</a>
+      …
+    </div>
+  {% endcall %}
+  <ul>
+    <li>
+      Put <code>hx-sidebar-active-scroll</code> on the element that scrolls. Its value is the key, with the same rules as
+      <code>hx-preserve-scroll</code> (empty: the id; <code>"false"</code>: off).
+    </li>
+    <li>
+      The active item is the first <code>[aria-current="page"]</code> or <code>[data-active]</code> inside, as the
+      <a href="/docs/components/sidebar">Sidebar</a> component marks it. <code>hx-sidebar-active-item="&lt;selector&gt;"</code>
+      picks something else.
+    </li>
+    <li>Use one extension per container. This site's docs sidebar uses <code>sidebar-active-scroll</code>.</li>
+  </ul>
+
+  <h2 id="api">API</h2>
+  <p>Exported from <code>htmx-ui</code>:</p>
+  <ul>
+    <li><code>registerPreserveScroll(htmx?)</code>: registers the extension as <code>preserve-scroll</code>.</li>
+    <li>
+      <code>snapshotScroll(root?)</code> and <code>restoreScroll(snapshot, root?)</code>: the same capture and restore,
+      for DOM you replace yourself.
+    </li>
+    <li><code>registerSidebarActiveScroll(htmx?)</code>: registers <code>sidebar-active-scroll</code> and centres the active item of sidebars already on the page.</li>
+    <li>
+      <code>revealActive(container, mode?)</code>: scrolls a container so its active item shows, <code>"nearest"</code>
+      (the default: only if it is out of view) or <code>"center"</code>. <code>revealAllActive(root?, mode?)</code> does the same
+      for every <code>[hx-sidebar-active-scroll]</code>; call it after changing <code>aria-current</code> yourself.
+    </li>
+  </ul>
+  {% call code("ts") %}
+    import { restoreScroll, snapshotScroll } from "htmx-ui";
+
+    const snapshot = snapshotScroll();
+    panel.innerHTML = html;
+    restoreScroll(snapshot);
+  {% endcall %}
+{% endblock %}
