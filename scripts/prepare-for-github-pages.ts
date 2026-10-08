@@ -212,7 +212,7 @@ function rewriteTagUrls(tag: string): string {
       } else if (attribute === "style") {
         next = rewriteCssUrls(value);
       } else if (attribute.startsWith("data-") && isUrlDataValue(value)) {
-        // data-markdown-copy="/docs/x.md", data-versions-src="/docs/versions.json".
+        // data-clipboard-url="/docs/x.md", data-versions-src="/docs/versions.json".
         // Only a rooted value: an unrooted data-* is component state
         // (data-value="README.md", data-prompt-input-menu="/"), not a link.
         next = toAbsolute(value) ?? value;

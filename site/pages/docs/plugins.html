@@ -50,14 +50,14 @@
   {% endcall %}
   <p>
     Each plugin is a function: call it, with options if it takes any, and the result goes in the list. Restart
-    <code>htmx-ui dev</code> after changing the list. A plugin that has a browser side or styles says so in its docs;
-    those are two lines you add yourself, so you decide where they go:
+    <code>htmx-ui dev</code> after changing the list. A plugin that has a browser side or styles (the search plugin, for one)
+    says so in its docs; those are two lines you add yourself, so you decide where they go:
   </p>
   {% call code("ts", title="app.ts") %}
-    import { initMarkdownCopy } from "htmx-ui-plugin-docs/client";
+    import { initSearch } from "htmx-ui-plugin-search/client";
 
     document.addEventListener("DOMContentLoaded", () => {
-      initMarkdownCopy();
+      initSearch();
     });
   {% endcall %}
   {% call code("css", title="styles.css") %}

@@ -31,12 +31,13 @@
 </div>
 {%- endmacro %}
 
-{# "Copy Markdown" and "View .md" for the page at `page_url` (usually `url`). The copy
-   button needs htmx-ui-plugin-docs/client (initMarkdownCopy) on the page. #}
+{# "Copy Markdown" (an htmx-ui clipboard button, fetching the page's .md when clicked) and "View .md"
+   for the page at `page_url` (usually `url`). #}
 {% macro markdown_actions(page_url) %}
-<div class="flex flex-wrap gap-2">
-  <button type="button" class="btn btn-outline btn-sm" data-markdown-copy="{{ page_url }}.md">
-    {{ icon("copy") }} <span data-markdown-copy-label>Copy Markdown</span>
+<div class="flex flex-wrap items-center gap-2">
+  <button type="button" class="btn btn-outline btn-sm clipboard" data-clipboard data-clipboard-url="{{ page_url }}.md" title="This page as Markdown, for pasting into a chat">
+    <span class="clipboard-idle">{{ icon("copy") }} Copy Markdown</span>
+    <span class="clipboard-done">{{ icon("check") }} Copied</span>
   </button>
   <a hx-boost="false" href="{{ page_url }}.md" target="_blank" class="btn btn-ghost btn-sm" title="This page as Markdown, for AI agents">{{ icon("file-text") }} View .md</a>
 </div>

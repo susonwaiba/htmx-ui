@@ -67,7 +67,7 @@ describe("htmx-ui-plugin-docs", () => {
     expect(guide).toContain('<p class="eyebrow">Start</p>');
     expect(guide).toContain('<a rel="prev" href="/docs">Introduction</a>');
     expect(guide).toContain('<a rel="next" href="/docs/api">API</a>');
-    expect(guide).toContain('data-markdown-copy="/docs/guide.md"');
+    expect(guide).toContain('data-clipboard-url="/docs/guide.md"');
 
     // A page outside the nav: its closest entry is active, and it has no prev/next
     const extra = renderPage(c, join(root, "pages/docs/api/extra.html"));

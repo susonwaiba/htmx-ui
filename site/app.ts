@@ -3,7 +3,6 @@ import "./styles/app.css";
 import Autoplay from "embla-carousel-autoplay";
 import { initComponents, registerCarouselPlugin } from "htmx-ui";
 import { initTheme } from "htmx-ui/theme";
-import { initMarkdownCopy } from "htmx-ui-plugin-docs/client";
 import { initSearch } from "htmx-ui-plugin-search/client";
 import { initVersions } from "htmx-ui-plugin-versions/client";
 import { initChatDemo } from "./features/chat-demo";
@@ -20,7 +19,6 @@ document.addEventListener("DOMContentLoaded", () => {
   initTheme();
   initYear();
   initChatDemo();
-  initMarkdownCopy();
   initVersions();
   initSearch();
   init();

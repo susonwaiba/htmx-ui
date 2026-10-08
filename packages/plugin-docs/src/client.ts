@@ -1,9 +1,8 @@
 // htmx-ui-plugin-docs/client: the browser side of the docs plugin.
 //
-//   import { initMarkdownCopy } from "htmx-ui-plugin-docs/client";
-//   document.addEventListener("DOMContentLoaded", () => initMarkdownCopy());
-//
-// "Copy page as Markdown" buttons on docs pages (markdown_actions() in docs/macros.html):
+// Deprecated: markdown_actions() now renders an htmx-ui clipboard button (data-clipboard
+// data-clipboard-url="….md"), which initComponents() from htmx-ui handles, so new pages need
+// nothing from here. initMarkdownCopy() stays for pages built with the plugin's older markup:
 //   <button data-markdown-copy="/docs/components/button.md"><span data-markdown-copy-label>Copy Markdown</span></button>
 // Idempotent, so it can also run on content htmx swaps in.
 import { queryAll } from "htmx-ui";

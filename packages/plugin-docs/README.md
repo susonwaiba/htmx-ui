@@ -36,11 +36,9 @@ export default defineConfig({
 @import "htmx-ui-plugin-docs/styles.css";
 ```
 
-```ts
-// app.ts: the "Copy Markdown" buttons
-import { initMarkdownCopy } from "htmx-ui-plugin-docs/client";
-document.addEventListener("DOMContentLoaded", () => initMarkdownCopy());
-```
+The "Copy Markdown" button that `markdown_actions()` renders is an htmx-ui clipboard button, so it works
+wherever htmx-ui's `initComponents()` runs: no browser module to import. (`htmx-ui-plugin-docs/client` still exports
+`initMarkdownCopy()` for pages built with the plugin's older markup.)
 
 A docs layout wraps the article body in `<div data-docs-content>`, inside an `<article>` whose first `h1` is the page title:
 

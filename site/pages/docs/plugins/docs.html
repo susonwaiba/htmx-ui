@@ -29,11 +29,12 @@
     @import "htmx-ui/styles.css";
     @import "htmx-ui-plugin-docs/styles.css";
   {% endcall %}
-  {% call code("ts", title="app.ts") %}
-    import { initMarkdownCopy } from "htmx-ui-plugin-docs/client";
-
-    document.addEventListener("DOMContentLoaded", () => initMarkdownCopy());
-  {% endcall %}
+  <p>
+    There is no browser module to add: the "Copy Markdown" button is a
+    <a href="/docs/components/clipboard">clipboard</a> button that fetches the page's <code>.md</code>, so htmx-ui's
+    <code>initComponents()</code> runs it. (<code>htmx-ui-plugin-docs/client</code> still exports
+    <code>initMarkdownCopy()</code>, for pages built with the plugin's older markup.)
+  </p>
 
   <h2 id="layout">The docs layout</h2>
   <p>
@@ -137,7 +138,7 @@
   {{ classes([
     ["demo(class, source, isolate)", "A live preview of the call body with its source underneath. In Markdown it becomes just the source."],
     ["classes(rows, heading)", "A two-column reference table of [name, description] rows."],
-    ["markdown_actions(page_url)", "\"Copy Markdown\" and \"View .md\" buttons for the page. Copying needs htmx-ui-plugin-docs/client."]
+    ["markdown_actions(page_url)", "A \"Copy Markdown\" clipboard button and a \"View .md\" link for the page."]
   ], heading="Macro") }}
 
   <h2 id="options">Options</h2>

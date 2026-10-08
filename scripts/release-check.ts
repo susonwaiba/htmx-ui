@@ -267,9 +267,9 @@ async function withPlugins(pm: "bun" | "npm" | "pnpm" | "yarn") {
   const app = await Bun.file(join(dir, "app.ts")).text();
   await Bun.write(
     join(dir, "app.ts"),
-    `import { initMarkdownCopy } from "htmx-ui-plugin-docs/client";\nimport { initSearch } from "htmx-ui-plugin-search/client";\nimport { initVersions } from "htmx-ui-plugin-versions/client";\n` +
+    `import { initSearch } from "htmx-ui-plugin-search/client";\nimport { initVersions } from "htmx-ui-plugin-versions/client";\n` +
       app +
-      `document.addEventListener("DOMContentLoaded", () => {\n  initMarkdownCopy();\n  initVersions();\n  initSearch();\n});\n`,
+      `document.addEventListener("DOMContentLoaded", () => {\n  initVersions();\n  initSearch();\n});\n`,
   );
   const css = await Bun.file(join(dir, "styles.css")).text();
   const imports = ["docs", "versions", "search"].map((n) => `@import "htmx-ui-plugin-${n}/styles.css";`).join("\n");
@@ -283,7 +283,7 @@ async function withPlugins(pm: "bun" | "npm" | "pnpm" | "yarn") {
   const sitemap = JSON.parse(await read("dist/sitemap.json"));
   if (sitemap.version !== "next" || sitemap.versions?.length !== 1) throw new Error(`${pm}: dist/sitemap.json has no versions`);
   const guide = await read("dist/docs/guide.html");
-  for (const needle of ['id="set-up"', "heading-anchor", "data-version-switcher", "data-search-dialog", 'data-markdown-copy="/docs/guide.md"']) {
+  for (const needle of ['id="set-up"', "heading-anchor", "data-version-switcher", "data-search-dialog", 'data-clipboard-url="/docs/guide.md"']) {
     if (!guide.includes(needle)) throw new Error(`${pm}: dist/docs/guide.html is missing ${needle}`);
   }
   await checkCss(join(dir, "dist"), [".search-dialog", ".search-option", ".btn-primary", ".font-mono"]);

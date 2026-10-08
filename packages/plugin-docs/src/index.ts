@@ -13,7 +13,7 @@
 //     written to outDir by the build
 //   - docsNav(url) in templates: sidebar, active entry and prev/next from the nav file
 //   - docs/macros.html: demo(), classes() and markdown_actions() for writing pages
-// The browser side, "Copy Markdown" buttons, is htmx-ui-plugin-docs/client.
+// The "Copy Markdown" button is an htmx-ui clipboard button (no client module needed).
 //
 // With htmx-ui-plugin-versions in `plugins`, the sitemaps and llms.txt also describe
 // every docs version (see `versionsApi()`).
