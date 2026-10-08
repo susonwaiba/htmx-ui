@@ -15,21 +15,25 @@
 </button>
 <button type="button" class="btn btn-ghost btn-icon md:hidden" data-search-open aria-haspopup="dialog" aria-label="Search the docs">{{ icon("search") }}</button>
 
-<dialog class="search-dialog" data-search-dialog data-search-src="{{ src }}" aria-label="Search the docs">
-  <div class="search-field">
-    {{ icon("search", "size-4 shrink-0 text-muted-foreground") }}
-    <input type="search" class="search-input" placeholder="{{ placeholder }}" autocomplete="off" spellcheck="false"
-      role="combobox" aria-expanded="false" aria-controls="search-results" aria-autocomplete="list" aria-label="Search" data-search-input />
-    <kbd class="kbd">Esc</kbd>
-  </div>
-  <div class="search-body">
-    <ul id="search-results" class="search-results" role="listbox" aria-label="Results" data-search-results></ul>
-    <p class="search-message" data-search-message>Type to search pages and sections.</p>
-  </div>
-  <div class="search-footer" aria-hidden="true">
-    <span><kbd class="kbd">↑</kbd> <kbd class="kbd">↓</kbd> to navigate</span>
-    <span><kbd class="kbd">{{ icon("corner-down-left", "size-3") }}</kbd> to open</span>
-    <span class="ml-auto" data-search-version></span>
+{# The palette is htmx-ui's command menu in a dialog (.dialog.command-dialog > .command, command.css);
+   initSearch() drives it rather than the command behaviour, as results come from the index. #}
+<dialog class="dialog command-dialog search-dialog" data-search-dialog data-search-src="{{ src }}" aria-label="Search the docs">
+  <div class="command">
+    <div class="command-input-wrapper">
+      {{ icon("search") }}
+      <input type="search" class="command-input" placeholder="{{ placeholder }}" autocomplete="off" spellcheck="false"
+        role="combobox" aria-expanded="false" aria-controls="search-results" aria-autocomplete="list" aria-label="Search" data-search-input />
+      <kbd class="kbd">Esc</kbd>
+    </div>
+    <div class="command-list search-body">
+      <ul id="search-results" class="search-results" role="listbox" aria-label="Results" data-search-results></ul>
+      <p class="command-empty" data-search-message>Type to search pages and sections.</p>
+    </div>
+    <div class="command-footer" aria-hidden="true">
+      <span><kbd class="kbd">↑</kbd> <kbd class="kbd">↓</kbd> to navigate</span>
+      <span><kbd class="kbd">{{ icon("corner-down-left", "size-3") }}</kbd> to open</span>
+      <span class="ml-auto" data-search-version></span>
+    </div>
   </div>
 </dialog>
 {%- endmacro %}

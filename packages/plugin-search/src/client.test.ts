@@ -60,7 +60,7 @@ describe("site search", () => {
     await type(input, "tabs");
     const options = [...document.querySelectorAll<HTMLAnchorElement>('[role="option"]')];
     expect(options.map((o) => o.getAttribute("href"))).toEqual(["/docs/components/tabs", "/docs/components/tabs#sync"]);
-    expect(document.querySelector(".search-group")!.textContent).toBe("Tabs · Components");
+    expect(document.querySelector(".command-label")!.textContent).toBe("Tabs · Components");
     expect(options[0]!.getAttribute("aria-selected")).toBe("true");
     expect(input.getAttribute("aria-expanded")).toBe("true");
   });

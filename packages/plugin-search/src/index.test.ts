@@ -14,7 +14,7 @@ describe("htmx-ui-plugin-search", () => {
     await writeFile(join(root, "pages/index.html"), '{% from "search/macros.html" import search %}{{ search() }}|{{ search(src="/blog/index.json") }}');
     const c = resolveConfig({ ui: false, roots: [".", UI], plugins: [search()] }, root);
     const [own, blog] = renderPage(c, join(root, "pages/index.html")).split("|");
-    expect(own).toContain('<dialog class="search-dialog" data-search-dialog data-search-src="/sitemap.json"');
+    expect(own).toContain('<dialog class="dialog command-dialog search-dialog" data-search-dialog data-search-src="/sitemap.json"');
     expect(own).toContain("data-search-open");
     expect(own).toContain("data-search-input");
     expect(blog).toContain('data-search-src="/blog/index.json"');

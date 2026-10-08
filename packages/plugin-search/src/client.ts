@@ -77,12 +77,15 @@ export function initSearch() {
   let options: HTMLAnchorElement[] = [];
   let active = -1;
 
+  // The highlighted result is aria-selected and data-highlighted (.command-item's highlight).
   function setActive(i: number, scroll = true) {
     options[active]?.setAttribute("aria-selected", "false");
+    options[active]?.removeAttribute("data-highlighted");
     active = options.length ? (i + options.length) % options.length : -1;
     const option = options[active];
     if (option) {
       option.setAttribute("aria-selected", "true");
+      option.setAttribute("data-highlighted", "");
       input!.setAttribute("aria-activedescendant", option.id);
       if (scroll) option.scrollIntoView({ block: "nearest" });
     } else {
@@ -119,13 +122,13 @@ export function initSearch() {
 
     let n = 0;
     for (const [title, hits] of groups) {
-      const header = el("li", "search-group", title);
+      const header = el("li", "command-label", title);
       header.setAttribute("role", "presentation");
       list!.append(header);
       for (const hit of hits) {
         const li = el("li");
         li.setAttribute("role", "presentation");
-        const a = el("a", "search-option");
+        const a = el("a", "command-item search-option");
         a.href = hit.href;
         a.id = `search-option-${n++}`;
         a.tabIndex = -1;
