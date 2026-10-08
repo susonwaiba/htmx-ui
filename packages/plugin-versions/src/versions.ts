@@ -24,7 +24,8 @@
 // node: APIs and editHtml() only: this runs in the config, which Node loads under Vite.
 
 import { editHtml, routeFor } from "htmx-ui-engine";
-import { existsSync, statSync } from "node:fs";
+import { existsSync, readFileSync, statSync } from "node:fs";
+import { createRequire } from "node:module";
 import { cp, mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { dirname, join, posix, relative, resolve, sep } from "node:path";
 
@@ -153,7 +154,7 @@ export function startNext(data: VersionsFile): VersionsFile {
 }
 
 /** Attributes that may hold URLs to rewrite. */
-const URL_ATTRS = ["href", "src", "poster", "data-markdown-copy"];
+const URL_ATTRS = ["href", "src", "poster", "data-clipboard-url", "data-markdown-copy"];
 
 /** Files pages reference (chunks, styles, images). Everything else is a page or an index. */
 const isAsset = (name: string) => !/\.(html|md|txt|xml|json|map)$/.test(name);
@@ -198,10 +199,25 @@ export function bannerMarkup(current: string, latest: string, href: string): str
   const label = escapeHtml(latest);
   return (
     `<div class="alert alert-warning mb-8" role="status" data-version-banner data-md-skip>` +
+    warningIcon() +
     `<div class="alert-title">You're viewing the docs for ${escapeHtml(current)}.</div>` +
     `<div class="alert-description">The latest version is ${label}. ` +
     `<a class="link" href="${escapeHtml(href)}">Go to this page in ${label}</a>.</div></div>`
   );
+}
+
+let icon: string | undefined;
+/** htmx-ui's alert-triangle icon, as icon() inlines it (decorative), or "" when htmx-ui can't be found. */
+function warningIcon(): string {
+  if (icon === undefined) {
+    try {
+      const file = createRequire(import.meta.url).resolve("htmx-ui/icons/alert-triangle.svg");
+      icon = readFileSync(file, "utf8").trim().replace("<svg ", '<svg class="size-4" aria-hidden="true" ');
+    } catch {
+      icon = "";
+    }
+  }
+  return icon;
 }
 
 async function walk(dir: string): Promise<string[]> {

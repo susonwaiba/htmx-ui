@@ -45,4 +45,5 @@
 
 {# Where an archived page's "old version" banner goes. Empty on the latest docs: the
    archiver bakes the banner in, and the client refreshes it at view time. #}
-{% macro version_banner() %}<div data-version-banner data-md-skip hidden></div>{% endmacro %}
+{# The slot holds the alert's warning icon (as alert(variant="warning") draws it); the client keeps it. #}
+{% macro version_banner() %}<div data-version-banner data-md-skip hidden>{{ icon("alert-triangle") }}</div>{% endmacro %}

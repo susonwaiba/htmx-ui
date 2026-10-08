@@ -60,7 +60,7 @@ describe("archiveDocs", () => {
         '<a href="/docs/x">x</a><a href="/docs/versions" data-version-link>v</a><script src="../chunk-a.js"></script></body></html>',
       "docs/x.html":
         '<html><head><link rel="modulepreload" href="../assets/app-c.js"></head><body><div data-version-banner data-md-skip hidden></div>' +
-        '<button data-markdown-copy="/docs/x.md"></button>' +
+        '<button data-clipboard data-clipboard-url="/docs/x.md"></button><button data-markdown-copy="/docs/x.md"></button>' +
         '<script type="module" src="../assets/app-c.js"></script></body></html>',
       "docs/x.md": "[home](/docs)\n",
       "docs/versions.json": "{}",
@@ -87,7 +87,8 @@ describe("archiveDocs", () => {
     expect(index).toContain("<div data-version-banner data-md-skip hidden></div>");
 
     const x = await Bun.file(join(archive, "v0.1/x.html")).text();
-    expect(x).toContain('data-markdown-copy="/docs/v0.1/x.md"');
+    expect(x).toContain('data-clipboard-url="/docs/v0.1/x.md"');
+    expect(x).toContain('data-markdown-copy="/docs/v0.1/x.md"'); // the plugin's older markup
     // The engine's assets/ directory flattens into _assets/; its icons/ copy stays out
     expect(x).toContain('src="/docs/v0.1/_assets/app-c.js"');
     expect(x).toContain('<link rel="modulepreload" href="/docs/v0.1/_assets/app-c.js">');
@@ -124,7 +125,7 @@ describe("archiveDocs", () => {
     // The build's sitemap lists /x but not the docs root, so only that page keeps its route
     const x = await Bun.file(join(archive, "v0.1/x.html")).text();
     expect(x).toContain(bannerMarkup("v0.1", "next", "/docs/x"));
-    expect(x).not.toContain("hidden");
+    expect(x).not.toMatch(/\shidden[\s>]/); // shown: no hidden attribute (aria-hidden on the icon is fine)
   });
 });
 

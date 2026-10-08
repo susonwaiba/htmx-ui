@@ -57,7 +57,7 @@ describe("htmx-ui-plugin-versions", () => {
     expect(html).toMatch(/href="\/docs" aria-current="true">\s*<span class="font-mono">next<\/span>\s*<span class="badge badge-primary">In development<\/span>/);
     expect(html).toMatch(/href="\/docs\/v0.1">\s*<span class="font-mono">v0.1<\/span>\s*<\/a>/);
     expect(html).toContain('href="/docs/changelog">Changelog <svg');
-    expect(html).toContain("<div data-version-banner data-md-skip hidden></div>");
+    expect(html).toMatch(/<div data-version-banner data-md-skip hidden><svg[^>]*aria-hidden="true"[^>]*>.*?<\/svg><\/div>/); // the slot carries the alert's warning icon
   });
 
   test("serves the manifest and the archived versions", async () => {

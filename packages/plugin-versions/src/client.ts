@@ -57,7 +57,9 @@ function banner(el: HTMLElement, current: string, latestLabel: string, href: str
   a.href = href;
   a.textContent = `Go to this page in ${latestLabel}`;
   body.replaceChildren(`The latest version is ${latestLabel}. `, a, ".");
-  el.replaceChildren(title, body);
+  // The warning icon comes with the slot (version_banner()) or the built banner; keep it.
+  const icon = el.querySelector(":scope > svg");
+  el.replaceChildren(...(icon ? [icon] : []), title, body);
   el.hidden = false;
 }
 
