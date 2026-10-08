@@ -1,6 +1,8 @@
 {% extends "layouts/docs.html" %}
 {% from "docs/macros.html" import demo, classes %}
 {% from "components/icon/icon.html" import icon %}
+{% from "components/reasoning/reasoning.html" import reasoning %}
+{% from "components/loader/loader.html" import loader %}
 {% set title = "Message" %}
 {% set description = "A message in a conversation, with an avatar, a header, a footer, attachments and start or end alignment; groups for consecutive messages, and reasoning, tool calls and typing for AI chat." %}
 
@@ -94,7 +96,7 @@
             <span class="message-status">Edited</span>
             <div class="message-actions message-actions-hover">
               <button type="button" class="btn btn-ghost btn-icon" aria-label="Reply">{{ icon("corner-down-left") }}</button>
-              <button type="button" class="btn btn-ghost btn-icon" aria-label="Copy" data-toast="Copied">{{ icon("copy") }}</button>
+              <button type="button" class="btn btn-ghost btn-icon clipboard" data-clipboard data-clipboard-target=".message-content" aria-label="Copy"><span class="clipboard-idle">{{ icon("copy") }}</span><span class="clipboard-done">{{ icon("check") }}</span></button>
               <button type="button" class="btn btn-ghost btn-icon" aria-label="More">{{ icon("ellipsis") }}</button>
             </div>
           </div>
@@ -168,13 +170,12 @@
 
   <h2 id="ai">AI chat</h2>
   <p>
-    For assistants: <code>.message-reasoning</code> is a <code>&lt;details&gt;</code> of thinking steps (add <code>data-state="streaming"</code> to shimmer its summary while it runs),
-    <code>.message-tool</code> a tool call with its input and output, its state in <code>data-state</code> (<code>running</code>, <code>done</code>, <code>error</code>),
-    and <code>.message-typing</code> three dots for a reply on its way. Stream them in with htmx, swapping or appending to the conversation.
-  </p>
-  <p>
-    For more, use the standalone components: <a href="/docs/components/reasoning">Reasoning</a> opens while the reasoning streams and closes with how long it took,
-    and <a href="/docs/components/chain-of-thought">Chain of thought</a> shows a model's steps, searches and tool calls on a line.
+    For assistants, <code>.message-tool</code> is a tool call with its input and output, its state in <code>data-state</code>
+    (<code>running</code>, <code>done</code>, <code>error</code>). The rest comes from other components, placed in
+    <code>.message-body</code>: <a href="/docs/components/reasoning">Reasoning</a> for the model's thinking (open while it
+    streams, then folded away with how long it took), a <a href="/docs/components/loader">typing loader</a>
+    (<code>loader("typing")</code>) for a reply on its way, and <a href="/docs/components/chain-of-thought">Chain of thought</a>
+    for steps, searches and tool calls on a line. Stream them in with htmx, swapping or appending to the conversation.
   </p>
   {% call demo("block") %}
     <div class="message-list mx-auto w-full max-w-lg" role="log" aria-live="polite" aria-label="Conversation">
@@ -184,13 +185,12 @@
       <div class="message message-plain">
         <span class="avatar message-avatar" role="img" aria-label="Assistant"><span class="avatar-fallback" aria-hidden="true">{{ icon("bot") }}</span></span>
         <div class="message-body">
-          <details class="message-reasoning">
-            <summary>{{ icon("sparkles") }} Thought for 3 seconds</summary>
+          {% call reasoning(duration=3) %}
             <ol>
               <li>The user wants tomorrow's forecast for Sydney, Australia.</li>
               <li>Call the weather tool with the city and date.</li>
             </ol>
-          </details>
+          {% endcall %}
           <details class="message-tool" data-state="done">
             <summary class="message-tool-header">{{ icon("cloud") }} get_weather <span class="message-tool-status">{{ icon("check-circle") }} Done</span></summary>
             <div class="message-tool-content">
@@ -203,7 +203,7 @@
           <div class="message-content">Tomorrow in Sydney: partly cloudy, a high of 24°C and a low of 17°C.</div>
           <div class="message-footer">
             <div class="message-actions">
-              <button type="button" class="btn btn-ghost btn-icon" aria-label="Copy" data-toast="Copied to clipboard">{{ icon("copy") }}</button>
+              <button type="button" class="btn btn-ghost btn-icon clipboard" data-clipboard data-clipboard-target=".message-content" aria-label="Copy"><span class="clipboard-idle">{{ icon("copy") }}</span><span class="clipboard-done">{{ icon("check") }}</span></button>
               <button type="button" class="btn btn-ghost btn-icon" aria-label="Regenerate">{{ icon("refresh-cw") }}</button>
             </div>
           </div>
@@ -215,15 +215,12 @@
       <div class="message message-plain">
         <span class="avatar message-avatar" role="img" aria-label="Assistant"><span class="avatar-fallback" aria-hidden="true">{{ icon("bot") }}</span></span>
         <div class="message-body">
-          <details class="message-reasoning" data-state="streaming">
-            <summary>{{ icon("sparkles") }} Thinking…</summary>
-            <p>Looking up Saturday and Sunday.</p>
-          </details>
+          {% call reasoning(streaming=true, auto_close=false) %}<p>Looking up Saturday and Sunday.</p>{% endcall %}
           <details class="message-tool" data-state="running" open>
             <summary class="message-tool-header">{{ icon("cloud") }} get_weather <span class="message-tool-status">{{ icon("loader") }} Running</span></summary>
             <div class="message-tool-content"><span class="message-tool-label">Input</span><pre>{"city": "Sydney", "date": "weekend"}</pre></div>
           </details>
-          <div class="message-content text-muted-foreground"><span class="message-typing" role="status" aria-label="Assistant is typing"><span></span><span></span><span></span></span></div>
+          <div class="message-content text-muted-foreground">{{ loader("typing", label="Assistant is typing") }}</div>
         </div>
       </div>
     </div>
@@ -243,8 +240,6 @@
     [".message-actions / .message-actions-hover", "Small icon buttons; the second shows on hover or focus."],
     [".message-group", "Consecutive messages from one sender."],
     [".message-list", "A conversation's spacing."],
-    [".message-reasoning", "On a <details>: thinking steps; data-state=\"streaming\" shimmers."],
-    [".message-tool (-header, -status, -content, -label)", "On a <details>: a tool call; data-state running | done | error."],
-    [".message-typing", "Three animated dots (three empty spans inside)."]
+    [".message-tool (-header, -status, -content, -label)", "On a <details>: a tool call; data-state running | done | error."]
   ]) }}
 {% endblock %}

@@ -1,5 +1,6 @@
 {% extends "layouts/docs.html" %}
 {% from "components/icon/icon.html" import icon %}
+{% from "components/select/select.html" import select %}
 {% from "components/code/code.html" import code %}
 {% from "components/prompt-input/prompt-input.html" import prompt_input %}
 {% from "docs/macros.html" import demo, classes %}
@@ -31,11 +32,7 @@
             <span class="tooltip-content" role="tooltip">Attach files</span>
           </span>
           <button type="button" class="btn btn-ghost btn-sm" data-toggle aria-pressed="false">{{ icon("search") }} Search</button>
-          <select class="select input-sm prompt-input-select" name="model" aria-label="Model">
-            <option>GPT-5</option>
-            <option selected>Claude Opus</option>
-            <option>Gemini Pro</option>
-          </select>
+          {{ select("pi-model", ["GPT-5", "Claude Opus", "Gemini Pro"], value="Claude Opus", name="model", label="Model", size="sm", side="top", class="prompt-input-select") }}
         </div>
         <button class="btn btn-primary btn-icon btn-sm btn-rounded prompt-input-submit" data-prompt-input-submit aria-label="Send">
           {{ icon("arrow-up") }}<span class="prompt-input-stop-icon" aria-hidden="true"></span>
@@ -94,8 +91,9 @@
   <h2 id="actions">Actions</h2>
   <p>
     Anything can go in <code>.prompt-input-tools</code>: small ghost buttons (<code>btn btn-ghost btn-icon btn-sm</code>),
-    <a href="/docs/components/toggle">toggles</a> with <code>aria-pressed</code> for tools the model may use, a native
-    <code>select.select.input-sm.prompt-input-select</code> for the model (it looks like a ghost button until hovered),
+    <a href="/docs/components/toggle">toggles</a> with <code>aria-pressed</code> for tools the model may use, a
+    <a href="/docs/components/select">select</a> for the model with <code>class="prompt-input-select"</code>, <code>size="sm"</code>
+    and <code>side="top"</code> (it looks like a ghost button until hovered, and opens above the box),
     <a href="/docs/components/tooltip">tooltips</a> on icon buttons, or a <a href="/docs/components/dropdown">dropdown</a>.
     Give them <code>type="button"</code> so they don't send the form.
   </p>
@@ -279,7 +277,7 @@ document.addEventListener("prompt-input:select", (e) => {
     <code>commands_src</code> fetch them from the server instead.
   </p>
   {% call demo("min-h-80 flex-col flex-nowrap items-stretch justify-end") %}
-    {% call prompt_input(id="pi-macro", placeholder="Send a message", mentions=people, commands=commands, attrs='hx-boost="false" onsubmit="event.preventDefault()"') %}
+    {% call prompt_input(id="pi-macro", placeholder="Send a message", mentions=people, commands=commands, attrs={"hx-boost": "false", "onsubmit": "event.preventDefault()"}) %}
       <button type="button" class="btn btn-ghost btn-icon btn-sm" aria-label="Attach files">{{ icon("paperclip") }}</button>
     {% endcall %}
   {% endcall %}
@@ -305,7 +303,7 @@ document.addEventListener("prompt-input:select", (e) => {
     [".prompt-input-attachments", "A row of attachments above the text; takes no room while empty."],
     [".prompt-input-actions", "The toolbar under the text."],
     [".prompt-input-tools", "Buttons, toggles and selects at the start of the toolbar."],
-    [".prompt-input-select", "A native select.select.input-sm that looks like a ghost button (the model)."],
+    [".prompt-input-select", "On a .select (or a native select.select.input-sm): the model picker, looking like a ghost button."],
     [".prompt-input-submit", "The send button, at the end of the toolbar. Add data-prompt-input-submit."],
     [".prompt-input-stop-icon", "The square shown in the submit button while loading."],
     [".prompt-input-menu", "A listbox of suggestions for one trigger, above the box. data-prompt-input-menu=\"@\"."],

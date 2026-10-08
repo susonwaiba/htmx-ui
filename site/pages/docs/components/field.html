@@ -1,5 +1,6 @@
 {% extends "layouts/docs.html" %}
 {% from "components/icon/icon.html" import icon %}
+{% from "components/select/select.html" import select %}
 {% from "docs/macros.html" import demo, classes %}
 {% set title = "Field" %}
 {% set description = "Labels, descriptions, help and error messages for form controls, and layouts for whole forms: stacked, inline, responsive and grid." %}
@@ -99,8 +100,8 @@
         <input class="input" id="field-first" />
       </div>
       <div class="field field-horizontal">
-        <label class="field-label w-24 shrink-0" for="field-role">Role</label>
-        <select class="select" id="field-role"><option>Developer</option><option>Designer</option></select>
+        <label class="field-label w-24 shrink-0" id="field-role-label" for="field-role">Role</label>
+        {{ select("field-role", ["Developer", "Designer"], value="Developer", name="role", labelledby="field-role-label") }}
       </div>
     </div>
   {% endcall %}
@@ -192,8 +193,8 @@
           <input class="input" id="field-g-city" />
         </div>
         <div class="field">
-          <label class="field-label" for="field-g-country">Country</label>
-          <select class="select" id="field-g-country"><option>Australia</option><option>New Zealand</option></select>
+          <label class="field-label" id="field-g-country-label" for="field-g-country">Country</label>
+          {{ select("field-g-country", ["Australia", "New Zealand"], value="Australia", name="country", labelledby="field-g-country-label", class="w-full") }}
         </div>
       </div>
     </form>

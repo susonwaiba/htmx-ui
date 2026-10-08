@@ -29,7 +29,7 @@
           <button class="btn btn-primary" value="save">Save changes</button>
         </div>
       </form>
-      <button type="button" class="dialog-close" data-dialog-close aria-label="Close">{{ icon("x") }}</button>
+      <button type="button" class="btn btn-ghost btn-icon btn-sm dialog-close" data-dialog-close aria-label="Close">{{ icon("x") }}</button>
     </dialog>
   {% endcall %}
 
@@ -124,7 +124,7 @@
         <p>Alert dialogs are the same element with role="alertdialog". They don't close on a click outside, because they need an answer.</p>
         <p>Without JavaScript, a form with method="dialog" still closes it, and browsers with invoker commands still open it.</p>
       </div>
-      <button type="button" class="dialog-close" data-dialog-close aria-label="Close">{{ icon("x") }}</button>
+      <button type="button" class="btn btn-ghost btn-icon btn-sm dialog-close" data-dialog-close aria-label="Close">{{ icon("x") }}</button>
     </dialog>
   {% endcall %}
 
@@ -167,12 +167,12 @@
     <dialog id="size-sm" class="dialog dialog-sm" data-dialog aria-labelledby="size-sm-title">
       <div class="dialog-header"><h2 class="dialog-title" id="size-sm-title">Small dialog</h2></div>
       <p class="muted">.dialog-sm is max-w-sm.</p>
-      <button type="button" class="dialog-close" data-dialog-close aria-label="Close">{{ icon("x") }}</button>
+      <button type="button" class="btn btn-ghost btn-icon btn-sm dialog-close" data-dialog-close aria-label="Close">{{ icon("x") }}</button>
     </dialog>
     <dialog id="size-xl" class="dialog dialog-xl" data-dialog aria-labelledby="size-xl-title">
       <div class="dialog-header"><h2 class="dialog-title" id="size-xl-title">Extra large dialog</h2></div>
       <p class="muted">.dialog-xl is max-w-4xl.</p>
-      <button type="button" class="dialog-close" data-dialog-close aria-label="Close">{{ icon("x") }}</button>
+      <button type="button" class="btn btn-ghost btn-icon btn-sm dialog-close" data-dialog-close aria-label="Close">{{ icon("x") }}</button>
     </dialog>
   {% endcall %}
 

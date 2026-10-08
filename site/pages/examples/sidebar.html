@@ -5,6 +5,7 @@
    Without one, the page remembers its state in the sidebar_state cookie. #}
 {% extends "layouts/base.html" %}
 {% from "components/icon/icon.html" import icon %}
+{% from "components/progress/progress.html" import progress %}
 
 {% set environments = [
   { name: "Production", host: "switchboard.app", status: "bg-success" },
@@ -70,9 +71,9 @@
         <li class="sidebar-menu-item">
           <div class="dropdown w-full" data-dropdown>
             <button type="button" class="sidebar-menu-button sidebar-menu-button-lg" data-dropdown-trigger aria-haspopup="menu" aria-expanded="false">
-              <span class="relative grid size-8 shrink-0 place-items-center rounded-full border-2 border-sidebar-primary text-sidebar-primary">
-                {{ icon("zap", "size-4") }}
-                <span class="absolute -right-0.5 -bottom-0.5 size-2.5 rounded-full border-2 border-sidebar bg-success"></span>
+              <span class="avatar" aria-hidden="true">
+                <span class="avatar-fallback border-2 border-sidebar-primary bg-transparent text-sidebar-primary">{{ icon("zap") }}</span>
+                <span class="avatar-badge bg-success ring-sidebar"></span>
               </span>
               <span class="grid flex-1 leading-tight">
                 <span class="truncate font-semibold">Switchboard</span>
@@ -171,11 +172,7 @@
     <div class="sidebar-footer">
       {# The plan's usage: hidden in the icon rail, where there is no room for it. #}
       <div class="sidebar-group-content rounded-lg border border-sidebar-border bg-background p-3 in-data-[state=collapsed]:hidden">
-        <div class="progress-field">
-          <label class="progress-label text-xs" for="usage-meter">Requests this month</label>
-          <span class="progress-value text-xs" aria-hidden="true">72%</span>
-          <progress id="usage-meter" class="progress progress-sm" value="72" max="100">72%</progress>
-        </div>
+        {{ progress(72, label="Requests this month", show_value=true, id="usage-meter", size="sm", class="[&_.progress-label]:text-xs [&_.progress-value]:text-xs") }}
         <p class="mt-2 text-xs text-muted-foreground">720k of 1M. <a class="font-medium text-sidebar-primary hover:underline" href="#plan">Raise the limit</a></p>
       </div>
       <ul class="sidebar-menu">
@@ -206,7 +203,7 @@
 
   <main class="sidebar-inset">
     <header class="flex h-14 shrink-0 items-center gap-3 border-b border-border px-4">
-      <button type="button" class="sidebar-trigger -ml-1" data-sidebar-trigger aria-controls="app-sidebar" aria-label="Toggle sidebar" title="Toggle sidebar (Ctrl+B)">{{ icon("panel-left") }}</button>
+      <button type="button" class="btn btn-ghost btn-icon btn-sm sidebar-trigger -ml-1" data-sidebar-trigger aria-controls="app-sidebar" aria-label="Toggle sidebar" title="Toggle sidebar (Ctrl+B)">{{ icon("panel-left") }}</button>
       <div class="separator separator-vertical h-4 self-center" role="none"></div>
       <h1 class="text-sm font-semibold">Requests</h1>
       <span class="badge badge-success badge-dot hidden sm:inline-flex">Live</span>

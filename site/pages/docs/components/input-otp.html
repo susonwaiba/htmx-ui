@@ -24,6 +24,57 @@
     </div>
   {% endcall %}
 
+  <h2 id="pin">PIN and authenticator codes</h2>
+  <p>
+    A short numeric code, such as the 4-digit code from an authenticator app or a PIN the user reads off a screen, is the
+    same component with fewer slots. Give each slot its own box with <code>.input-otp-spaced</code> and leave the digits
+    visible, so the user can check what they typed against the code in front of them. Next to it, the usual 6-digit code
+    from a text message or email:
+  </p>
+  {% call demo("flex-col gap-8 sm:flex-row sm:items-start") %}
+    <div class="field w-fit">
+      <label class="label" for="otp-authenticator">Authenticator code</label>
+      <div class="input-otp input-otp-spaced input-otp-lg" data-input-otp>
+        <input class="input-otp-input" data-input-otp-input id="otp-authenticator" name="pin" aria-describedby="otp-authenticator-help" />
+        <div class="input-otp-group" aria-hidden="true">
+          <div class="input-otp-slot"></div>
+          <div class="input-otp-slot"></div>
+          <div class="input-otp-slot"></div>
+          <div class="input-otp-slot"></div>
+        </div>
+      </div>
+      <p class="field-description" id="otp-authenticator-help">The 4-digit code shown in your authenticator app.</p>
+    </div>
+    <div class="field w-fit">
+      <label class="label" for="otp-six">Verification code</label>
+      <div class="input-otp input-otp-spaced input-otp-lg" data-input-otp>
+        <input class="input-otp-input" data-input-otp-input id="otp-six" name="code" aria-describedby="otp-six-help" />
+        <div class="input-otp-group" aria-hidden="true">
+          <div class="input-otp-slot"></div>
+          <div class="input-otp-slot"></div>
+          <div class="input-otp-slot"></div>
+        </div>
+        <div class="input-otp-separator" aria-hidden="true"></div>
+        <div class="input-otp-group" aria-hidden="true">
+          <div class="input-otp-slot"></div>
+          <div class="input-otp-slot"></div>
+          <div class="input-otp-slot"></div>
+        </div>
+      </div>
+      <p class="field-description" id="otp-six-help">The 6-digit code we sent to your phone.</p>
+    </div>
+  {% endcall %}
+  <p>With the macro:</p>
+  {% call code("jinja", title="page.html") %}
+    {% raw %}{{ input_otp("pin", length=4, spaced=true, size="lg", label="Authenticator code") }}
+{{ input_otp("code", groups=[3, 3], spaced=true, size="lg", label="Verification code") }}{% endraw %}
+  {% endcall %}
+  <p>
+    Both open the number pad on phones. Add <code>data-mask</code> only for a secret the user chose themselves, such as a
+    card PIN (see <a href="#pattern">Pattern</a>): a code read from another screen is easier to enter when it stays
+    visible. To check it as soon as the last digit goes in, see <a href="#htmx">With htmx</a>.
+  </p>
+
   <h2 id="markup">Markup</h2>
   <ul>
     <li>Wrap everything in <code>.input-otp</code> with <code>data-input-otp</code>.</li>
@@ -61,7 +112,7 @@
   </p>
   {% call demo("flex-col gap-6") %}
     <div class="field w-fit">
-      <label class="label" for="otp-pin">PIN (digits only)</label>
+      <label class="label" for="otp-pin">Masked PIN (digits only)</label>
       <div class="input-otp input-otp-spaced" data-input-otp data-mask>
         <input class="input-otp-input" data-input-otp-input id="otp-pin" name="pin" />
         <div class="input-otp-group" aria-hidden="true">
@@ -93,8 +144,8 @@
     </div>
   {% endcall %}
   <p>
-    The PIN shows <code>•</code> in its slots with <code>data-mask</code>, and <code>.input-otp-spaced</code> gives every
-    slot a box of its own.
+    The masked PIN shows <code>•</code> in its slots with <code>data-mask</code>, and <code>.input-otp-spaced</code> gives
+    every slot a box of its own.
   </p>
 
   <h2 id="separator">Groups and separators</h2>
@@ -183,8 +234,9 @@
 
 {{ input_otp("code", groups=[3, 3], label="Verification code", required=true) }}
 {{ input_otp("invite", length=8, groups=[4, 4], pattern="alphanumeric", case="upper") }}
+{{ input_otp("pin", length=4, spaced=true, size="lg", label="Authenticator code") }}
 {{ input_otp("pin", length=4, mask=true, spaced=true, size="lg") }}
-{{ input_otp("code", invalid=true, attrs='aria-describedby="code-error"') }}{% endraw %}
+{{ input_otp("code", invalid=true, attrs={"aria-describedby": "code-error"}) }}{% endraw %}
   {% endcall %}
 
   <h2 id="reference">Reference</h2>

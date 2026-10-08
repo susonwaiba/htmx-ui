@@ -70,7 +70,7 @@
     <div class="input-group max-w-sm">
       <input class="input" value="https://htmx-ui.dev/r/3f9a" readonly aria-label="Share link" />
       <span class="input-group-addon input-group-addon-inline-end">
-        <button class="btn btn-ghost btn-icon" aria-label="Copy">{{ icon("copy") }}</button>
+        <button type="button" class="btn btn-ghost btn-icon clipboard" data-clipboard data-clipboard-target="input" aria-label="Copy link"><span class="clipboard-idle">{{ icon("copy") }}</span><span class="clipboard-done">{{ icon("check") }}</span></button>
       </span>
     </div>
     <div class="input-group max-w-sm">

@@ -1,5 +1,6 @@
 {% extends "layouts/docs.html" %}
 {% from "components/icon/icon.html" import icon %}
+{% from "components/select/select.html" import select %}
 {% from "components/spinner/spinner.html" import spinner %}
 {% from "docs/macros.html" import demo, classes %}
 {% set title = "Button group" %}
@@ -112,10 +113,7 @@
     <div class="btn-group w-full max-w-sm" role="group" aria-label="Website">
       <span class="btn-group-text">https://</span>
       <input class="input" placeholder="example.com" aria-label="Website" />
-      <select class="select w-auto flex-none" aria-label="Domain">
-        <option>.com</option>
-        <option>.org</option>
-      </select>
+      {{ select("bg-domain", [".com", ".org", ".net"], value=".com", label="Domain", align="end", class="w-24 flex-none") }}
     </div>
   {% endcall %}
 

@@ -178,7 +178,7 @@
 
 {{ checkbox("terms", "I accept the terms", required=true) }}
 {{ checkbox("digest", "Weekly digest", description="A summary every Monday.", checked=true) }}
-{{ checkbox("alerts", "Deploy alerts", size="sm", state="warning", attrs='hx-post="/api/settings"') }}{% endraw %}
+{{ checkbox("alerts", "Deploy alerts", size="sm", state="warning", attrs={"hx-post": "/api/settings"}) }}{% endraw %}
   {% endcall %}
 
   <h2 id="reference">Reference</h2>

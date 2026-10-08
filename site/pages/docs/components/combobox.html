@@ -164,7 +164,7 @@
   {% call demo("min-h-[26rem] flex-col items-start gap-6") %}
     <div class="field w-64">
       <label class="label" for="cb-invalid">Framework</label>
-      {{ combobox("cb-invalid", frameworks, invalid=true, required=true, attrs='aria-describedby="cb-invalid-error"') }}
+      {{ combobox("cb-invalid", frameworks, invalid=true, required=true, attrs={"aria-describedby": "cb-invalid-error"}) }}
       <p class="field-error" id="cb-invalid-error">{{ icon("x-circle") }} Pick the framework your project uses.</p>
     </div>
     <div class="field w-64">

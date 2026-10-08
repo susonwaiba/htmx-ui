@@ -31,7 +31,7 @@ function row(html: string) {
 
 async function reply(content: HTMLElement, index: number) {
   const message = row(`<div class="message message-plain" data-streaming>
-    <div class="message-body"><div class="message-content"><span class="message-typing" aria-hidden="true"><span></span><span></span><span></span></span></div></div>
+    <div class="message-body"><div class="message-content"><span class="loader loader-typing" aria-hidden="true"><span></span><span></span><span></span></span></div></div>
   </div>`);
   // The transcript's assistant avatar, if it has one.
   const avatar = content.querySelector(".message-plain .message-avatar")?.cloneNode(true);

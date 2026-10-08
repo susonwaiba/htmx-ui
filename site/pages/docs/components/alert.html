@@ -49,7 +49,7 @@
       {{ icon("info") }}
       <div class="alert-title">Cookies</div>
       <div class="alert-description">We only use essential cookies.</div>
-      <button type="button" class="alert-close" data-dismiss aria-label="Dismiss">{{ icon("x") }}</button>
+      <button type="button" class="btn btn-ghost btn-icon btn-sm alert-close" data-dismiss aria-label="Dismiss">{{ icon("x") }}</button>
     </div>
   {% endcall %}
 
@@ -76,6 +76,6 @@
     [".alert-description", "Body text in the muted colour."],
     [".alert-info / -success / -warning / -danger", "Status tint for border, background, icon and title."],
     [".alert-close", "Top-right close button. Pair with data-dismiss."],
-    ["[data-dismissible] + [data-dismiss]", "Behaviour: clicking [data-dismiss] removes the [data-dismissible] element."]
+    ["[data-dismissible] + [data-dismiss]", "Behaviour: clicking any [data-dismiss] inside removes the [data-dismissible] element, after a cancelable dismissible:dismiss event and any data-state=\"closing\" transition."]
   ]) }}
 {% endblock %}

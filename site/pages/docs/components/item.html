@@ -182,7 +182,7 @@
   <p>
     <code>.item-group</code> stacks items in a list. Give it <code>role="list"</code> and each item
     <code>role="listitem"</code> (or use a <code>&lt;ul&gt;</code> and <code>&lt;li&gt;</code>). Put an
-    <code>.item-separator</code> between items for a line, hidden from screen readers with
+    a <a href="/docs/components/separator"><code>.separator</code></a> between items for a line, hidden from screen readers with
     <code>aria-hidden="true"</code> so the list only holds items; or space them with a <code>gap-*</code> utility.
   </p>
   {% call demo() %}
@@ -202,7 +202,7 @@
           <button type="button" class="btn btn-ghost btn-icon btn-sm btn-rounded" aria-label="Invite {{ person.name }}">{{ icon("plus") }}</button>
         </div>
       </div>
-      {% if not loop.last %}<div class="item-separator" aria-hidden="true"></div>{% endif %}
+      {% if not loop.last %}<div class="separator" aria-hidden="true"></div>{% endif %}
       {% endfor %}
     </div>
   {% endcall %}
@@ -382,7 +382,6 @@
     [".item-header / .item-footer", "Full-width rows above / below. An image or video directly inside fills the width."],
     [".item-link", "A link whose ::after covers the item, for a link item that also has actions."],
     [".item-group", "A list of items (flex column). Add role=\"list\"."],
-    [".item-separator", "A line between items in a group. Add aria-hidden=\"true\" inside a list."],
     [".dropdown-menu .item", "Items with role=\"menuitem\" inside a dropdown take the menu's padding and highlight."]
   ]) }}
 {% endblock %}
