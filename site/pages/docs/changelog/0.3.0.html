@@ -17,14 +17,213 @@
     {% endif %}
   </div>
 
+  {% if not release.date %}
+    <p class="muted">
+      This release is still being worked on. The notes below grow as work is committed, alongside the
+      <code>0.3.0 — Unreleased</code> section of
+      <a href="https://github.com/susonwaiba/htmx-ui/blob/main/CHANGELOG.md">CHANGELOG.md</a>.
+    </p>
+  {% endif %}
+
+  <h2 id="breaking">Breaking changes</h2>
   <p>
-    This release is being worked on, and nothing has been recorded yet. Notes land on this page — and in the
-    <code>0.3.0 — Unreleased</code> section of
-    <a href="https://github.com/susonwaiba/htmx-ui/blob/main/CHANGELOG.md">CHANGELOG.md</a> — as work is committed,
-    so this page is always the running account of the release.
+    One change needs an edit, and only in hand-written code blocks; several component classes also moved onto shared
+    button markup (see <a href="#reuse">Components reuse each other</a>).
   </p>
-  <p class="muted">
-    Reading what has already shipped? The <a href="/docs/changelog">changelog index</a> lists every released version,
-    and the version switcher in the sidebar takes you to the docs of an older one.
+  <h3>Code block copy buttons are clipboard buttons</h3>
+  <p>
+    <code>initCode()</code> is gone. The <code>code()</code>, <code>code_block()</code>, <code>code_tabs()</code> and
+    <code>cli()</code> macros render the new button for you. In hand-written blocks, replace the old button with an
+    icon-only <a href="/docs/components/clipboard">clipboard</a> button holding <code>.clipboard-idle</code> and
+    <code>.clipboard-done</code> icons:
   </p>
+  <ul>
+    <li>
+      Before: <code>&lt;button class="btn btn-ghost btn-xs code-copy" data-copy&gt;…&lt;/button&gt;</code>
+    </li>
+    <li>
+      After: <code>&lt;button type="button" class="btn btn-ghost btn-xs btn-icon clipboard code-copy" data-clipboard
+      data-clipboard-target="pre:not([hidden]) code" aria-label="Copy code"&gt;…&lt;/button&gt;</code>
+    </li>
+  </ul>
+  <p>
+    <code>.code-copy-idle</code>, <code>.code-copied</code> and <code>data-copy-label</code> are gone.
+    <code>initComponents()</code> runs the clipboard, so drop any direct <code>initCode()</code> call. See
+    <a href="/docs/components/code-block#markup">Code block</a> for the full markup.
+  </p>
+
+  <h2 id="added">Added</h2>
+  <h3>Components</h3>
+  <ul>
+    <li>
+      <a href="/docs/components/clipboard">Clipboard</a>: copy buttons on any button variant and size, with an icon, a
+      label or both, that swap to a green tick for two seconds without changing width, and copy tags. It copies a fixed
+      text, the nearest element matching <code>data-clipboard-target</code> (its value or text), or a URL's text
+      (<code>data-clipboard-url</code>). It uses the Clipboard API with an <code>execCommand</code> fallback for plain
+      http, older Safari and iframes, is announced to screen readers, fires <code>clipboard:copy</code> and
+      <code>clipboard:error</code>, and comes with <code>clipboard()</code> and <code>clipboard_tag()</code> macros.
+    </li>
+    <li>
+      <a href="/docs/components/timeline">Timeline</a>: CSS only, with dot, icon, number or avatar markers in five colours
+      and outline, a current step, opposite content, alternating sides, vertical or horizontal, dashed or dotted lines,
+      and three sizes.
+    </li>
+    <li>
+      <a href="/docs/components/password-input">Password input</a>: a show / hide toggle on an input group (an eye icon
+      or Show / Hide text, or a checkbox for several fields). It keeps the caret, hides the password again on submit so
+      password managers save it, hides Edge's own reveal button, has an optional Caps Lock warning, and a
+      <code>password_input()</code> macro.
+    </li>
+  </ul>
+  <h3>Copying everywhere</h3>
+  <ul>
+    <li>
+      Every copy button is now a clipboard button that shows a green tick for two seconds: icon only on code blocks and
+      the docs demos, icon and text on the docs plugin's "Copy Markdown" button.
+    </li>
+    <li>
+      "Copy Markdown" reads "Copied" after copying and fetches the page's <code>.md</code> through
+      <code>data-clipboard-url</code>, so it needs no plugin client. <code>initMarkdownCopy()</code> from
+      <code>htmx-ui-plugin-docs/client</code> stays, deprecated, for pages built with the older markup.
+    </li>
+    <li>Copying from a code block now works over plain http too.</li>
+  </ul>
+  <h3>Docs</h3>
+  <ul>
+    <li>
+      <a href="/docs/components/input-otp">Input OTP</a> is documented for visible 4-digit authenticator codes and PINs,
+      next to 6-digit codes.
+    </li>
+  </ul>
+
+  <h2 id="changed">Changed</h2>
+  <h3>The select() macro covers what the component does</h3>
+  <p>
+    The docs use it wherever they had a native <code>&lt;select&gt;</code> (field, button group, pagination, prompt
+    input). New options:
+  </p>
+  <ul>
+    <li>
+      <code>id</code> on the trigger (for <code>&lt;label for&gt;</code>), <code>labelledby</code>,
+      <code>describedby</code>, <code>size</code>, <code>align</code>, <code>side</code>, <code>invalid</code>,
+      <code>required</code> and <code>class</code>.
+    </li>
+    <li>
+      Option groups (<code>{label, options}</code>) and per-option <code>disabled</code>, <code>icon</code> and
+      <code>keywords</code>. <code>attrs</code> also takes a dict.
+    </li>
+    <li>
+      The preselected <code>value</code> is written into the trigger and the hidden field, so it shows and submits
+      before JavaScript runs.
+    </li>
+  </ul>
+  <p>
+    The <a href="/docs/components/select#search">select's search</a> now filters like the combobox's (accents, every
+    word, <code>data-keywords</code>, empty groups hidden), and typing a letter in a list without a search box jumps to
+    the next option starting with it. Button groups and <code>.prompt-input-select</code> accept the select component as
+    well as a native select.
+  </p>
+
+  <h3 id="reuse">Components reuse each other</h3>
+  <ul>
+    <li>
+      <strong>Shared CSS:</strong> shared looks are Tailwind utilities in the new <code>utilities.css</code>:
+      <code>menu-item</code>, <code>menu-label</code>, <code>menu-separator</code>, <code>menu-empty</code>,
+      <code>popup-surface</code>, <code>focus-outline</code>, <code>input-bare</code>, <code>label-text</code>,
+      <code>description-text</code>, <code>choice-card</code>, <code>panel-title</code>, <code>chevron-mask</code>,
+      <code>summary-trigger</code> and <code>details-animate</code>. Select, combobox, command, dropdown, prompt input,
+      popover, hover card, navigation menu, label and field, the radio card, accordion, reasoning and chain of thought
+      are built on them.
+    </li>
+    <li>
+      <strong>Button markup:</strong> close buttons (dialog, sheet, alert), the code block's copy button, the sidebar
+      trigger and the message scroller's jump button are <code>.btn</code> buttons. <code>.dialog-close</code>,
+      <code>.sheet-close</code>, <code>.alert-close</code>, <code>.code-copy</code>, <code>.sidebar-trigger</code> and
+      <code>.message-scroller-jump</code> now only position them. Add <code>btn btn-ghost btn-icon btn-sm</code> (copy:
+      <code>btn btn-ghost btn-xs</code>; jump: <code>btn btn-outline btn-sm btn-rounded</code>) to hand-written markup.
+      This also gives the alert's close and the copy button a focus ring.
+    </li>
+    <li>
+      <strong>Select trigger:</strong> <code>.select-trigger</code> shares the <code>.input</code> rules, including
+      <code>.input-warning</code> and <code>.input-success</code>.
+    </li>
+    <li>
+      <strong>Code tabs:</strong> code block tabs are <code>.tabs-list.tabs-line.code-tabs</code> with
+      <code>.tabs-trigger</code> buttons. <code>.code-tab</code> is gone.
+    </li>
+    <li><strong>Item separator:</strong> <code>.item-separator</code> is gone; use <code>.separator</code>.</li>
+    <li>
+      <strong>Reasoning and typing:</strong> <code>.message-reasoning</code> and <code>.message-typing</code> are gone;
+      use the <a href="/docs/components/reasoning">reasoning</a> component and <code>loader("typing")</code>.
+      <code>reasoning()</code> renders its streaming label with <code>loader()</code>, and
+      <code>loader(…, label=none)</code> on a text variant drops <code>role="status"</code>.
+    </li>
+    <li><strong>Toast icons</strong> come from <code>src/icons</code>.</li>
+  </ul>
+
+  <h3>Shared behaviour helpers</h3>
+  <p>New modules in <code>packages/ui/src/utils/</code>:</p>
+  <ul>
+    <li>
+      <code>listbox.ts</code>: option filtering and the <code>activeDescendant()</code> highlight, used by combobox,
+      command and prompt input, and filtering in select.
+    </li>
+    <li><code>dismiss.ts</code>: closing on an outside pointer down or when focus leaves.</li>
+    <li><code>position.ts</code>: <code>place()</code>, which flips a popup that would leave the viewport.</li>
+    <li><code>shared.ts</code>: ids, arrow-key indexes, small checks.</li>
+    <li><code>hotkey.ts</code>: <code>matchesHotkey</code>, still exported from <code>htmx-ui</code>.</li>
+  </ul>
+  <p>As a result:</p>
+  <ul>
+    <li>
+      Select, combobox and popover lists flip when they would leave the viewport, and so does the dropdown's own menu
+      (before, only submenus did).
+    </li>
+    <li>Tabs and toggle groups swap ← and → in right-to-left layouts.</li>
+    <li>The command menu's filter ignores accents.</li>
+    <li>The listboxes scroll their own list, never the page.</li>
+  </ul>
+
+  <h3>Also changed</h3>
+  <ul>
+    <li>
+      <code>dismissible</code> reacts to any <code>[data-dismiss]</code> inside it, including buttons added later, and
+      fires a cancelable <code>dismissible:dismiss</code>. It sets <code>data-state="closing"</code> and waits for a
+      transition before removing the element.
+    </li>
+    <li>
+      Macro options are consistent. Every component macro takes <code>class=""</code> and <code>attrs</code> as a dict,
+      through <code>macros/attrs.html</code>; string <code>attrs</code> still work. <code>alert</code>,
+      <code>dialog</code>, <code>drawer</code>, <code>sheet</code>, <code>empty</code>, <code>code_block</code>,
+      <code>code_tabs</code>, <code>cli</code>, <code>checkbox</code> and <code>input_otp</code> gained the options they
+      lacked, and <code>checkbox</code> gained <code>invalid</code>.
+    </li>
+    <li>
+      A new <code>--overlay</code> token (<code>bg-overlay</code>) dims the page behind modals, sheets, drawers and the
+      mobile sidebar. Accordion, reasoning, chain of thought, collapsible, progress, toast and sidebar transitions use
+      the <a href="/docs/theming#motion">motion tokens</a>, so they stop under reduced motion.
+    </li>
+    <li>
+      htmx-ui-plugin-search's palette is htmx-ui's <a href="/docs/components/command">command menu</a> in a dialog
+      (<code>.dialog.command-dialog</code>, <code>.command-*</code>); its stylesheet only sizes it.
+      <code>.search-field</code>, <code>.search-input</code>, <code>.search-group</code> and
+      <code>.search-message</code> are gone.
+    </li>
+    <li>htmx-ui-plugin-versions' old-version banner shows the alert's warning icon.</li>
+  </ul>
+
+  <h2 id="fixed">Fixed</h2>
+  <ul>
+    <li>
+      Scroll areas inside components show their scrollbar without hovering: popup lists and menus (select, combobox,
+      dropdown, command, popover…), <code>.command-list</code> and <code>.card-scroll</code> use
+      <code>--scrollbar-thumb</code> through the new <code>scrollbar-visible</code> utility, so a long list looks
+      scrollable. Other <a href="/docs/theming#scrollbars">scrollbars</a> still appear on hover.
+    </li>
+    <li>
+      The page no longer shifts sideways when a modal dialog, sheet or drawer opens: <code>html</code> reserves its
+      scrollbar's room (<code>scrollbar-gutter: stable</code>), so hiding the scrollbar to lock the page doesn't widen
+      it.
+    </li>
+  </ul>
 {% endblock %}

@@ -7,7 +7,77 @@ The docs site has a fuller page per release (`/docs/changelog`).
 
 ## 0.3.0 — Unreleased
 
-In development. Nothing recorded yet — notes land here as work is committed.
+### Breaking
+
+- **Code block copy buttons are clipboard buttons; `initCode()` is gone.** The `code()`, `code_block()`, `code_tabs()`
+  and `cli()` macros render the new button for you. Hand-written blocks: replace
+  `<button class="btn btn-ghost btn-xs code-copy" data-copy>…</button>` with an icon-only clipboard button,
+  `<button type="button" class="btn btn-ghost btn-xs btn-icon clipboard code-copy" data-clipboard
+  data-clipboard-target="pre:not([hidden]) code" aria-label="Copy code">` holding `.clipboard-idle` / `.clipboard-done`
+  icons (see the code block page). `.code-copy-idle`, `.code-copied` and `data-copy-label` are gone. `initComponents()`
+  runs it; drop any direct `initCode()` call.
+
+### Added
+
+- **Password input:** a show / hide toggle on an input group: eye icon or Show / Hide text, or a checkbox for several
+  fields; keeps the caret, hides the password again on submit so password managers save it, hides Edge's own reveal
+  button, an optional Caps Lock warning, and a `password_input()` macro.
+- **Input OTP** is documented for visible 4-digit authenticator codes and PINs next to 6-digit codes.
+- **Clipboard and timeline:** clipboard (copy buttons on any button variant and size, with an icon, a label or both,
+  that swap to a green tick for two seconds without changing width; copy tags; copies text, an input's value or an
+  element's text; the Clipboard API with an `execCommand` fallback for plain http, older Safari and iframes; announced
+  to screen readers; `clipboard:copy` / `clipboard:error` events; `clipboard()` and `clipboard_tag()` macros) and
+  timeline (CSS only: dot, icon, number or avatar markers in five colours and outline, a current step, opposite content,
+  alternating sides, vertical or horizontal, dashed or dotted lines, three sizes). A clipboard copies a fixed text, the
+  nearest element matching `data-clipboard-target` (its value or text), or a URL's text (`data-clipboard-url`).
+- **Every copy button is now a clipboard button** that shows a green tick for two seconds: icon only on code blocks
+  and the docs demos, icon and text on the docs plugin's "Copy Markdown" button ("Copied" after copying; it fetches
+  the page's `.md` through `data-clipboard-url`, so it needs no plugin client). Code block copying now works over plain http
+  too.
+
+### Changed
+
+- **The `select()` macro covers what the component does**, so the docs use it wherever they had a native `<select>`
+  (field, button group, pagination, prompt input). New options: `id` on the trigger (for `<label for>`), `labelledby`,
+  `describedby`, `size`, `align`, `side`, `invalid`, `required`, `class`, option groups `{label, options}`, and per-option
+  `disabled`, `icon` and `keywords`. `attrs` also takes a dict. The preselected `value` is written into the trigger and
+  the hidden field, so it shows and submits before JavaScript runs. The select's search now filters like the combobox's
+  (accents, every word, `data-keywords`, empty groups hidden), from a shared `utils/listbox.ts`, and typing a letter in a
+  list without a search box jumps to the next option starting with it. Button groups and `.prompt-input-select` accept
+  the select component as well as a native select.
+- **Components reuse each other instead of copying.**
+  - **Shared CSS:** shared looks are Tailwind utilities in the new `utilities.css`. These are `menu-item`, `menu-label`, `menu-separator`, `menu-empty`, `popup-surface`, `focus-outline`, `input-bare`, `label-text`, `description-text`, `choice-card`, `panel-title`, `chevron-mask`, `summary-trigger` and `details-animate`. Select, combobox, command, dropdown, prompt input, popover, hover card, navigation menu, label/field, the radio card, accordion, reasoning and chain of thought are built on them.
+  - **Button markup:** close buttons (dialog, sheet, alert), the code block's copy button, the sidebar trigger and the message scroller's jump button are `.btn` buttons. `.dialog-close`, `.sheet-close`, `.alert-close`, `.code-copy`, `.sidebar-trigger` and `.message-scroller-jump` now only position them. Add `btn btn-ghost btn-icon btn-sm` (copy: `btn btn-ghost btn-xs`; jump: `btn btn-outline btn-sm btn-rounded`) to hand-written markup. This also gives the alert's close and the copy button a focus ring.
+  - **Select trigger:** `.select-trigger` shares the `.input` rules, including `.input-warning` / `.input-success`.
+  - **Code tabs:** code block tabs are `.tabs-list.tabs-line.code-tabs` with `.tabs-trigger` buttons. `.code-tab` is gone.
+  - **Item separator:** `.item-separator` is gone; use `.separator`.
+  - **Reasoning and typing:** `.message-reasoning` and `.message-typing` are gone; use the reasoning component and `loader("typing")`. `reasoning()` renders its streaming label with `loader()`, and `loader(…, label=none)` on a text variant drops `role="status"`.
+  - **Toast icons:** toast icons come from `src/icons`.
+- **Shared behaviour helpers** in `packages/ui/src/utils/`:
+  - `listbox.ts`: option filtering and the `activeDescendant()` highlight, used by combobox, command and prompt input, and filtering in select.
+  - `dismiss.ts`: closing on an outside pointer down or when focus leaves.
+  - `position.ts`: `place()`.
+  - `shared.ts`: ids, arrow-key indexes, small checks.
+  - `hotkey.ts`: `matchesHotkey`, still exported from `htmx-ui`.
+
+  As a result:
+  - Select, combobox and popover lists flip when they would leave the viewport, and so does the dropdown's own menu (before, only submenus did).
+  - Tabs and toggle groups swap ← and → in right-to-left layouts.
+  - The command menu's filter ignores accents.
+  - The listboxes scroll their own list, never the page.
+- **`dismissible`** reacts to any `[data-dismiss]` inside it, including buttons added later, and fires a cancelable `dismissible:dismiss`. It sets `data-state="closing"` and waits for a transition before removing the element.
+- **Macro options are consistent.** Every component macro takes `class=""` and `attrs` as a dict, through `macros/attrs.html`. String `attrs` still work. `alert`, `dialog`, `drawer`, `sheet`, `empty`, `code_block`, `code_tabs`, `cli`, `checkbox` and `input_otp` gained the options they lacked, and `checkbox` gained `invalid`.
+- **Tokens:** `--overlay` (`bg-overlay`) dims the page behind modals, sheets, drawers and the mobile sidebar. Accordion, reasoning, chain of thought, collapsible, progress, toast and sidebar transitions use the `--motion-duration-*` tokens, so they stop under reduced motion.
+- **Search palette:** htmx-ui-plugin-search's palette is htmx-ui's command menu in a dialog (`.dialog.command-dialog`, `.command-*`). Its stylesheet only sizes it. `.search-field`, `.search-input`, `.search-group` and `.search-message` are gone.
+- **Version banner:** htmx-ui-plugin-versions' old-version banner shows the alert's warning icon.
+
+### Fixed
+
+- **Scroll areas inside components show their scrollbar** without hovering: popup lists and menus (select, combobox,
+  dropdown, command, popover...), `.command-list` and `.card-scroll` use `--scrollbar-thumb` through the new
+  `scrollbar-visible` utility, so a long list looks scrollable. Other scrollbars still appear on hover.
+- **The page no longer shifts sideways when a modal dialog, sheet or drawer opens**: `html` reserves its scrollbar's
+  room (`scrollbar-gutter: stable`), so hiding the scrollbar to lock the page doesn't widen it.
 
 ## 0.2.0 — 2026-10-06
 

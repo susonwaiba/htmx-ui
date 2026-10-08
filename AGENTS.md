@@ -59,7 +59,9 @@ A Bun workspace (`package.json` `workspaces`). One rule: **`packages/ui/src/` is
 │   │       │   ├── index.ts        # initComponents(root): registers every behaviour
 │   │       │   ├── index.test.ts   # Registry test: every component is imported in styles.css / registered here
 │   │       │   └── <name>/         # <name>.css, optional <name>.ts + .test.ts, <name>.html (macro), *.json (macro data)
-│   │       ├── utils/dom.ts        # queryAll(root, selector), which includes root itself
+│   │       ├── utilities.css       # Shared @utility building blocks (menu-item, popup-surface, focus-outline, …)
+│   │       ├── utils/              # Shared behaviour helpers (see §4.2): dom.ts (queryAll, public), listbox.ts,
+│   │       │                       #   dismiss.ts, position.ts, menu.ts, shared.ts, hotkey.ts (public)
 │   │       └── icons/*.svg         # Icon files; inlined by icon(), copied to the site's dist/assets/icons/
 │   ├── engine/                     # htmx-ui-engine: CLI + Bun plugin + Vite plugin + server adapters (published)
 │   │   ├── bin/htmx-ui.js          # Launcher: picks Bun or Node, then runs that runtime's CLI
@@ -128,12 +130,14 @@ Each component is a directory, `packages/ui/src/components/<name>/`, holding eve
    - Write styles under `@layer components`.
    - Use Tailwind `@apply` directives for utilities.
    - Must be `@import`ed in `packages/ui/src/styles.css`.
-   - Use token utilities (`bg-primary`, `text-muted-foreground`, `border-border`), never raw palette colours, so theming and dark mode work. Tokens are defined in `packages/ui/src/styles.css`; see `/docs/theming`.
+   - Use token utilities (`bg-primary`, `text-muted-foreground`, `border-border`), never raw palette colours, so theming and dark mode work. Tokens are defined in `packages/ui/src/styles.css`; see `/docs/theming`. Durations use the motion tokens (`duration-(--motion-duration-moderate)`, `var(--motion-duration-*)`), backdrops `bg-overlay`.
+   - **Reuse before writing.** `@apply` only takes utilities, not another component's class, so shared looks live as `@utility` blocks in `packages/ui/src/utilities.css`: `menu-item` / `menu-label` / `menu-separator` / `menu-empty` (rows in popup lists), `popup-surface` (floating panels), `focus-outline`, `input-bare`, `label-text` / `description-text`, `choice-card`, `panel-title`, `chevron-mask`, `summary-trigger`, `details-animate`. Use them instead of copying their utilities; add one there when a second component needs the same look. In markup and macros, build on existing classes (`btn btn-ghost btn-icon btn-sm` for an icon button, `.input` rules for a field-like trigger, `.tabs-trigger`, `.separator`, `loader()`, `icon()`) and keep a component class only for what is its own (position, a variant).
    - **Tailwind gotcha:** Tailwind's optimiser keeps only one `color-mix()` override per rule, so two opacity-modified token colours in one rule (e.g. `@apply border-info/30 bg-info/5`) leave the second one solid. Put each in a separate rule with a distinct selector; see `alert/alert.css`.
    - **Icon sizes:** `icon()` puts a `size-4` utility on every icon, and the utilities layer beats `@layer components`, so a component rule like `[&>svg]:size-3` never applies to it. Where the component must decide its icons' size, mark the rule important (`[&>svg]:size-3!`); see `badge/badge.css`, `attachment/attachment.css`.
 2. **Behavior (`packages/ui/src/components/<name>/<name>.ts`):**
    - Export an initialization function accepting an optional `root: ParentNode = document`.
-   - **Idempotency Rule:** To prevent duplicate event listeners on htmx swaps, selectors must query `[data-<component>]:not([data-init])` and immediately stamp matched elements with `el.dataset.init = ""` (or `"true"`).
+   - **Idempotency Rule:** To prevent duplicate event listeners on htmx swaps, selectors must query `[data-<component>]:not([data-init])` and immediately stamp matched elements with `el.dataset.init = ""` (or `"true"`). A component whose attribute can sit on the same element as another's uses its own marker instead (`data-tabs-init`, `data-drawer-init`).
+   - **Shared helpers** (`packages/ui/src/utils/`): `listbox.ts` (option filtering, `reachable()`, the `activeDescendant()` highlight for lists whose focus stays in an input), `dismiss.ts` (`dismissable()`: close on a pointer down outside or focus leaving), `position.ts` (`place()`: flip a popup that would leave the viewport), `menu.ts` (role="menu" panels: keys, typeahead, submenus, one open at a time), `shared.ts` (`ensureId`, `nextIndex` for arrow keys, `isEditable`, `isDisabled`, `cssTime`, `transitionTime`, `reducedMotion`, `responseOk`), `hotkey.ts` (`matchesHotkey`). Import icons a behaviour draws from `src/icons` as text (`import x from "../../icons/x.svg" with { type: "text" }`) rather than pasting SVG.
 3. **Registration:**
    - Call the component's initializer within `initComponents(root)` in `packages/ui/src/components/index.ts`.
    - `packages/ui/src/components/index.test.ts` fails if a component's CSS isn't imported in `styles.css` or its behaviour isn't registered.
@@ -150,7 +154,7 @@ Each component is a directory, `packages/ui/src/components/<name>/`, holding eve
   - `year.ts` — fills `[data-year]` elements with the current year.
   - `chat-demo.ts` — demo only: `form[data-chat-demo="#scroller"]` appends the typed turn to that message scroller and streams a canned reply (the message scroller docs).
 - Behaviour a plugin provides comes from its `/client` module, imported in `site/app.ts` and called in the same `DOMContentLoaded` handler (§4.10):
-  - `htmx-ui-plugin-docs/client` — `initMarkdownCopy()`: "Copy Markdown" buttons on docs pages.
+  - `htmx-ui-plugin-docs/client` — `initMarkdownCopy()`: deprecated, for the plugin's older "Copy Markdown" markup only. The "Copy Markdown" button is now an htmx-ui clipboard button (icon + text) (`data-clipboard-url`), handled by `initComponents`; the site no longer calls it.
   - `htmx-ui-plugin-versions/client` — `initVersions()`: rebuilds the version switcher from `/docs/versions.json`; shows the "old version" banner.
   - `htmx-ui-plugin-search/client` — `initSearch()`: a `<dialog>` command palette (Ctrl/⌘K, `/`) over the sitemap of the docs version being read (the dialog's `data-search-src`, default `/sitemap.json`, or an archived version's own sitemap). `search-index.ts` in the plugin is the pure fuzzy matcher (pages + sections; exact > prefix > substring > in-order letters > one typo); results link to `page#section`. The index loads on first open or on hovering the search button.
 - The theme switcher is part of the package: `packages/ui/src/theme.ts` (`initTheme`, `getTheme`). It applies `.dark` on `<html>`, persists the choice in `localStorage`, and follows `prefers-color-scheme` until the user picks.

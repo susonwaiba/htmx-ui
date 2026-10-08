@@ -3,7 +3,7 @@
   "releases": [
     {
       "version": "0.3.0",
-      "summary": "In development. Nothing recorded yet: notes land here as work is committed."
+      "summary": "In development: clipboard, timeline and password input components; copy buttons that work everywhere; a select() macro that covers the whole component; and components rebuilt on shared utilities and behaviour helpers."
     },
     {
       "version": "0.2.0",
