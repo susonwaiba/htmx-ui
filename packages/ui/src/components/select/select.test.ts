@@ -128,6 +128,62 @@ describe("select", () => {
     expect(added.getAttribute("tabindex")).toBe("-1");
   });
 
+  test("the filter ignores accents, matches data-keywords and hides emptied groups and separators", () => {
+    document.body.innerHTML = `
+      <div data-select>
+        <button data-select-trigger><span class="select-value"></span></button>
+        <div role="listbox" hidden>
+          <input data-select-search />
+          <div role="group"><p class="select-label">Europe</p>
+            <span role="option" aria-selected="false" value="zh">Zürich</span>
+          </div>
+          <div class="select-separator" role="separator"></div>
+          <div role="group"><p class="select-label">Oceania</p>
+            <span role="option" aria-selected="false" value="akl" data-keywords="new zealand">Auckland</span>
+          </div>
+        </div>
+      </div>`;
+    initSelect(document);
+    const trigger = document.querySelector<HTMLElement>("[data-select-trigger]")!;
+    const search = document.querySelector<HTMLInputElement>("[data-select-search]")!;
+    const [europe, oceania] = document.querySelectorAll<HTMLElement>('[role="group"]');
+    const separator = document.querySelector<HTMLElement>('[role="separator"]')!;
+    const type = (q: string) => {
+      search.value = q;
+      search.dispatchEvent(new Event("input", { bubbles: true }));
+    };
+    trigger.click();
+    type("zurich");
+    expect([europe!.hidden, oceania!.hidden, separator.hidden]).toEqual([false, true, true]);
+    type("zealand");
+    expect([europe!.hidden, oceania!.hidden, separator.hidden]).toEqual([true, false, true]);
+    // Only the visible option is reachable with the keyboard.
+    key(search, "ArrowDown");
+    expect(document.activeElement?.getAttribute("value")).toBe("akl");
+    type("");
+    expect([europe!.hidden, oceania!.hidden, separator.hidden]).toEqual([false, false, false]);
+  });
+
+  test("without a search box, typing a letter moves to the next option starting with it", () => {
+    document.body.innerHTML = `
+      <div data-select>
+        <button data-select-trigger><span class="select-value"></span></button>
+        <div role="listbox" hidden>
+          <span role="option" aria-selected="false" value="au">Australia</span>
+          <span role="option" aria-selected="false" value="br">Brazil</span>
+          <span role="option" aria-selected="false" value="bg">Bulgaria</span>
+        </div>
+      </div>`;
+    initSelect(document);
+    const trigger = document.querySelector<HTMLElement>("[data-select-trigger]")!;
+    const popup = document.querySelector<HTMLElement>('[role="listbox"]')!;
+    trigger.click();
+    key(popup, "b");
+    expect(document.activeElement?.getAttribute("value")).toBe("br");
+    key(popup, "b");
+    expect(document.activeElement?.getAttribute("value")).toBe("bg");
+  });
+
   test("initialises a select that is itself the root, as after an htmx swap", () => {
     const root = document.createElement("div");
     root.setAttribute("data-select", "");

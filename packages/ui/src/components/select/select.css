@@ -22,11 +22,10 @@
     @apply relative inline-block;
   }
 
-  /* The trigger looks like an .input, so a select lines up with the other controls. */
+  /* The trigger is drawn by the .input rules (input.css: box, focus ring, invalid, .input-warning /
+     .input-success), so a select lines up with the other controls. Here only its layout. */
   .select-trigger {
-    @apply flex h-9 w-full min-w-0 items-center justify-between gap-2 rounded-(--radius) border border-border
-      bg-transparent px-3 text-sm text-foreground outline-none transition-[color,box-shadow,border-color]
-      disabled:cursor-not-allowed disabled:opacity-50;
+    @apply flex h-9 items-center justify-between gap-2 text-left;
   }
   .select-trigger > svg {
     @apply size-4 shrink-0 text-muted-foreground;
@@ -46,27 +45,28 @@
     content: attr(data-placeholder);
     @apply text-muted-foreground;
   }
-  /* Open ring, error border: one color-mix() per rule (see components/alert). */
-  .select-trigger:is(:focus-visible, [aria-expanded="true"]) {
+  /* While open, the focus ring stays on (input.css draws it for :focus-visible). One color-mix()
+     per rule (see components/alert). */
+  .select-trigger[aria-expanded="true"] {
     @apply border-ring ring-3 ring-ring/30;
   }
-  .select-trigger:is([aria-invalid="true"], :user-invalid) {
-    @apply border-danger;
-  }
-  .select-trigger:is([aria-invalid="true"], :user-invalid):is(:focus-visible, [aria-expanded="true"]) {
+  .select-trigger:is([aria-invalid="true"], :user-invalid)[aria-expanded="true"] {
     @apply ring-danger/20;
   }
 
   /* The listbox. Opens below, aligned to the trigger's left edge. */
   .select-content {
-    @apply absolute top-full left-0 z-50 mt-1 max-h-60 w-full min-w-48 overflow-y-auto overscroll-contain
-      rounded-(--radius) border border-border bg-surface p-1 text-foreground shadow-lg;
+    @apply popup-surface absolute top-full left-0 z-50 mt-1 max-h-60 w-full min-w-48 overflow-y-auto
+      overscroll-contain p-1 shadow-lg;
   }
-  /* Align to the trigger's right edge / open upwards */
-  .select-content-end {
+  /* Align to the trigger's right edge / open upwards: by class, or set by the behaviour when the
+     list would leave the viewport (data-flip-x / data-flip-y, utils/position.ts). */
+  .select-content-end,
+  .select-content[data-flip-x] {
     @apply right-0 left-auto;
   }
-  .select-content-up {
+  .select-content-up,
+  .select-content[data-flip-y] {
     @apply top-auto bottom-full mt-0 mb-1;
   }
   /* Optional filter box. Sticky, so it stays put while the options scroll under it. */
@@ -74,10 +74,8 @@
     @apply sticky top-0 z-10 -mx-1 -mt-1 mb-1 bg-surface p-1;
   }
   .select-item {
-    @apply flex w-full cursor-pointer items-center justify-between gap-2 rounded-[calc(var(--radius)-2px)] px-2
-      py-1.5 text-left text-sm leading-normal outline-none select-none hover:bg-accent hover:text-accent-foreground
-      focus-visible:bg-accent focus-visible:text-accent-foreground aria-disabled:pointer-events-none
-      aria-disabled:opacity-50 [&_svg]:size-4 [&_svg]:shrink-0;
+    @apply menu-item justify-between leading-normal hover:bg-accent hover:text-accent-foreground
+      focus-visible:bg-accent focus-visible:text-accent-foreground;
   }
   .select-item[aria-selected="true"] {
     @apply bg-accent/60 font-medium;
@@ -91,10 +89,10 @@
   }
   /* Small muted heading inside the list, and a divider between groups. */
   .select-label {
-    @apply px-2 py-1.5 text-xs font-medium text-muted-foreground;
+    @apply menu-label;
   }
   .select-separator {
-    @apply -mx-1 my-1 h-px bg-border;
+    @apply menu-separator;
   }
   /* Shown by the behaviour when a filter matches nothing. */
   .select-empty {

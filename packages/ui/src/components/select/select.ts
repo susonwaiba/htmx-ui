@@ -2,16 +2,23 @@
 // - The trigger toggles the listbox and keeps aria-expanded in sync.
 // - ↓/↑ on the trigger open on the picked option (or the first/last); ↓ ↑ Home End move
 //   between options; Enter or Space picks the focused one; Escape closes and returns focus.
-// - Clicking outside, tabbing away, or picking an option closes it.
+// - Clicking outside, tabbing away, or picking an option closes it. A list that would leave the
+//   viewport flips to the other side (data-flip-x / data-flip-y).
 // - Picking marks the option aria-selected, copies its text into the trigger's
 //   .select-value, mirrors its value into a [data-select-input] hidden field and fires
 //   a bubbling "select:change" with detail { value, label, option }.
-// - A [data-select-search] input filters the options as you type, and reveals [data-select-empty]
-//   when nothing matches. A preselected option fills the trigger and the hidden field on load.
+// - A [data-select-search] input filters the options as you type, ignoring case and accents and
+//   matching every word in an option's label or data-keywords (utils/listbox.ts, as combobox).
+//   Groups ([role=group]) left empty hide, and so do stray separators. [data-select-empty] shows
+//   when nothing matches. Without a search box, typing a letter jumps to the next option starting
+//   with it. A preselected option fills the trigger and the hidden field on load.
 // Options are looked up on every event, so lists filled in from fetched data keep working.
 import { queryAll } from "../../utils/dom";
-
-let ids = 0;
+import { dismissable } from "../../utils/dismiss";
+import { filterOptions, optionLabel, reachable } from "../../utils/listbox";
+import { typeahead } from "../../utils/menu";
+import { place } from "../../utils/position";
+import { ensureId } from "../../utils/shared";
 
 export function initSelect(root: ParentNode) {
   queryAll(root, "[data-select]:not([data-init])").forEach((select) => {
@@ -25,27 +32,25 @@ export function initSelect(root: ParentNode) {
     const field = select.querySelector<HTMLInputElement>("[data-select-input]");
     const value = trigger.querySelector<HTMLElement>(".select-value, [data-select-value]");
 
-    popup.id ||= `select-${++ids}`;
-    trigger.setAttribute("aria-controls", popup.id);
+    trigger.setAttribute("aria-controls", ensureId(popup, "select"));
     trigger.setAttribute("aria-expanded", String(!popup.hidden));
 
     const all = () => [...popup!.querySelectorAll<HTMLElement>('[role="option"]')];
-    // Filtered out (hidden) and unavailable options are not choices.
-    const options = () => all().filter((o) => !o.hidden && o.getAttribute("aria-disabled") !== "true");
+    // Filtered out (hidden, or in a hidden group) and unavailable options are not choices.
+    const options = () => reachable(popup!);
     const chosen = () => all().find((o) => o.getAttribute("aria-selected") === "true");
     // data-label when the option holds markup (a flag, a badge) the trigger should not repeat.
-    const label = (o: HTMLElement) => o.getAttribute("data-label") ?? o.textContent?.trim() ?? "";
+    const label = optionLabel;
     // Options take focus as the arrow keys move, so they need to be focusable: a span is not.
     // Done on open as well, so a list swapped in by htmx is ready before it is used.
     const focusable = () => all().forEach((o) => o.setAttribute("tabindex", "-1"));
 
-    const onOutside = (e: PointerEvent) => {
-      if (!select.contains(e.target as Node)) close(false);
-    };
+    const dismiss = dismissable(select, () => close(false));
     function open(focus?: "first" | "last") {
       popup!.hidden = false;
       trigger!.setAttribute("aria-expanded", "true");
-      document.addEventListener("pointerdown", onOutside);
+      dismiss.opened();
+      place(popup!, trigger!);
       focusable();
       if (search) search.focus();
       else if (focus === "last") options().at(-1)?.focus();
@@ -55,7 +60,7 @@ export function initSelect(root: ParentNode) {
       if (popup!.hidden) return;
       popup!.hidden = true;
       trigger!.setAttribute("aria-expanded", "false");
-      document.removeEventListener("pointerdown", onOutside);
+      dismiss.closed();
       if (search) {
         search.value = "";
         filter("");
@@ -64,13 +69,8 @@ export function initSelect(root: ParentNode) {
     }
 
     function filter(q: string) {
-      const needle = q.trim().toLowerCase();
-      let shown = 0;
-      for (const o of all()) {
-        o.hidden = !!needle && !label(o).toLowerCase().includes(needle);
-        if (!o.hidden) shown++;
-      }
-      if (empty) empty.hidden = !needle || shown > 0;
+      const shown = filterOptions(popup!, q, { separator: "[role='separator'], .select-separator" });
+      if (empty) empty.hidden = !q.trim() || shown > 0;
     }
 
     function pick(option: HTMLElement) {
@@ -113,6 +113,8 @@ export function initSelect(root: ParentNode) {
       } else if ((e.key === "Enter" || e.key === " ") && i >= 0) {
         e.preventDefault();
         pick(list[i]!);
+      } else if (!search && e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        typeahead(popup!, list, e.key, document.activeElement)?.focus();
       }
     });
     popup.addEventListener("click", (e) => {
@@ -120,10 +122,6 @@ export function initSelect(root: ParentNode) {
       if (option && options().includes(option)) pick(option);
     });
     search?.addEventListener("input", () => filter(search.value));
-    select.addEventListener("focusout", (e) => {
-      const next = e.relatedTarget as Node | null;
-      if (next && !select.contains(next)) close(false);
-    });
 
     // Server-rendered choice: show it in the trigger and hand its value to the form.
     const start = chosen();

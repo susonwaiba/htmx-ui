@@ -1,6 +1,7 @@
 {% extends "layouts/docs.html" %}
 {% from "components/icon/icon.html" import icon %}
 {% from "components/code/code.html" import code %}
+{% from "components/select/select.html" import select %}
 {% from "docs/macros.html" import demo, classes %}
 {% set title = "Select" %}
 {% set description = "A list of options in a popup, opened from a button: searchable, keyboard driven, and styled like an input." %}
@@ -69,6 +70,7 @@
       <tbody>
         <tr><td><kbd class="kbd">↓</kbd> <kbd class="kbd">↑</kbd> on the trigger</td><td class="text-muted-foreground">Open on the picked option, or the first / last</td></tr>
         <tr><td><kbd class="kbd">↓</kbd> <kbd class="kbd">↑</kbd> <kbd class="kbd">Home</kbd> <kbd class="kbd">End</kbd></td><td class="text-muted-foreground">Move between options</td></tr>
+        <tr><td>A letter</td><td class="text-muted-foreground">Move to the next option starting with it (without a search box)</td></tr>
         <tr><td><kbd class="kbd">Enter</kbd> <kbd class="kbd">Space</kbd></td><td class="text-muted-foreground">Pick the focused option and close</td></tr>
         <tr><td><kbd class="kbd">Esc</kbd></td><td class="text-muted-foreground">Close and return focus to the trigger</td></tr>
         <tr><td><kbd class="kbd">Tab</kbd>, click outside</td><td class="text-muted-foreground">Close</td></tr>
@@ -79,7 +81,8 @@
   <h2 id="search">Searching</h2>
   <p>
     Put an <code>.input</code> in a <code>.select-search</code> wrapper inside the list with <code>data-select-search</code>.
-    Typing filters the options, <kbd class="kbd">↓</kbd> moves into them, and a matching option can carry
+    Typing filters the options (ignoring case and accents, matching every word in an option's text or its
+    <code>data-keywords</code>; groups left empty hide), <kbd class="kbd">↓</kbd> moves into them, and a matching option can carry
     <code>aria-selected="true"</code> so it comes first. Add a <code>.select-empty</code> with
     <code>data-select-empty</code> for the "no matches" message: it stays hidden until a search finds nothing, and the
     filter resets when the list closes.
@@ -106,7 +109,8 @@
   <h2 id="groups">Groups</h2>
   <p>
     A <code>.select-label</code> heads a run of options and a <code>.select-separator</code> divides them. They are text, not
-    options, so the keyboard skips them.
+    options, so the keyboard skips them. Wrap each run in <code>&lt;div role="group" aria-labelledby="…"&gt;</code> (as the
+    macro does) and a search hides the groups it empties, with their separators.
   </p>
   {% call demo("min-h-72 items-start") %}
     <div class="select w-56" data-select>
@@ -219,18 +223,50 @@
   <h2 id="macro">Nunjucks macro</h2>
   <p>
     The <code>select</code> macro writes the trigger, the options and the hidden field from a list. Options are
-    <code>[&#123;value, label&#125;]</code> pairs, or plain strings when the value is the label.
+    <code>[&#123;value, label&#125;]</code> pairs, or plain strings when the value is the label; an option can also
+    carry <code>disabled</code>, <code>icon</code> and <code>keywords</code> (more words the filter matches), and
+    <code>&#123;label, options&#125;</code> makes a group. The preselected <code>value</code> is written into the trigger
+    and the hidden field, so the page shows and submits it before any JavaScript runs.
   </p>
+  {% call demo("min-h-80 items-start") %}
+    <div class="field w-64">
+      <label class="field-label" id="macro-food-label" for="macro-food">Ingredient</label>
+      {{ select("macro-food", [
+        { label: "Fruit", options: ["Apple", "Banana", { value: "durian", label: "Durian", disabled: true }] },
+        { label: "Vegetables", options: [{ value: "carrot", label: "Carrot", keywords: "orange root" }, "Leek"] }
+      ], value="Banana", name="food", labelledby="macro-food-label", describedby="macro-food-help", searchable=true, class="w-full") }}
+      <p class="field-description" id="macro-food-help">Type "root" to find the carrot.</p>
+    </div>
+  {% endcall %}
   {% call code("jinja", title="page.html") %}
     {% raw %}{% from "components/select/select.html" import select %}
 
 <div class="field">
-  <span class="field-label" id="country">Country</span>
-  {{ select("country", json("data/countries.json"), value="nz", name="country", searchable=true, label="Country") }}
+  <label class="field-label" id="country-label" for="country">Country</label>
+  {{ select("country", json("data/countries.json"), value="nz", name="country", labelledby="country-label", searchable=true) }}
 </div>
 
-{{ select("plan", ["Free", "Pro"], value="Free", label="Plan") }}{% endraw %}
+{{ select("plan", ["Free", "Pro"], value="Free", label="Plan", size="sm", invalid=true) }}{% endraw %}
   {% endcall %}
+  <div class="table-wrap not-prose">
+    <table class="table">
+      <thead><tr><th>Parameter</th><th>Does</th></tr></thead>
+      <tbody>
+        <tr><td><code>id</code></td><td class="text-muted-foreground">The trigger's id, so a <code>&lt;label for&gt;</code> can point at it. The list is <code>&lt;id&gt;-listbox</code>.</td></tr>
+        <tr><td><code>options</code></td><td class="text-muted-foreground">Strings, <code>&#123;value, label, disabled?, icon?, keywords?&#125;</code>, or groups <code>&#123;label, options&#125;</code>.</td></tr>
+        <tr><td><code>value</code>, <code>name</code></td><td class="text-muted-foreground">The preselected value, and the name of the hidden field that submits the choice.</td></tr>
+        <tr><td><code>label</code> / <code>labelledby</code></td><td class="text-muted-foreground">The accessible name as text, or the id of a visible label (the trigger then reads as "Country, New Zealand").</td></tr>
+        <tr><td><code>describedby</code></td><td class="text-muted-foreground"><code>aria-describedby</code> on the trigger, e.g. a <code>.field-description</code>.</td></tr>
+        <tr><td><code>placeholder</code></td><td class="text-muted-foreground">Shown until something is picked. Default "Select…".</td></tr>
+        <tr><td><code>searchable</code></td><td class="text-muted-foreground">A filter box; <code>search_placeholder</code> and <code>empty</code> set its texts.</td></tr>
+        <tr><td><code>size</code></td><td class="text-muted-foreground"><code>"sm"</code> or <code>"lg"</code>.</td></tr>
+        <tr><td><code>align</code>, <code>side</code></td><td class="text-muted-foreground"><code>align="end"</code> lines the list up with the right edge, <code>side="top"</code> opens it above.</td></tr>
+        <tr><td><code>invalid</code>, <code>required</code>, <code>disabled</code></td><td class="text-muted-foreground"><code>aria-invalid</code>, <code>aria-required</code> and <code>disabled</code> on the trigger.</td></tr>
+        <tr><td><code>class</code></td><td class="text-muted-foreground">More classes on the <code>.select</code> wrapper, usually a width.</td></tr>
+        <tr><td><code>attrs</code></td><td class="text-muted-foreground">More attributes on the trigger, as a dict (<code>&#123;"hx-get": "…"&#125;</code>).</td></tr>
+      </tbody>
+    </table>
+  </div>
 
   <h2 id="reference">Reference</h2>
   {{ classes([

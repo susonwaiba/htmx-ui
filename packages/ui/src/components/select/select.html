@@ -2,27 +2,86 @@
    {% from "components/select/select.html" import select %}
    {{ select("country", [{value: "nz", label: "New Zealand"}, {value: "pt", label: "Portugal"}], value="nz", label="Country") }}
    {{ select("plan", ["Free", "Pro"], label="Choose a plan") }}   bare strings: value == label
-   options: [{value, label}], or strings. value: preselected option's value. name: adds a hidden
-   field so the choice submits with a form. placeholder: shown while nothing is picked.
-   searchable=true adds a filter box. attrs: any extra attributes on the trigger. #}
+   <label class="field-label" id="role-label" for="role">Role</label>
+   {{ select("role", roles, name="role", labelledby="role-label", invalid=true) }}
+   {{ select("food", [{label: "Fruit", options: ["Apple", "Pear"]}, {label: "Vegetables", options: [...]}]) }}
 
-{% macro select(id, options, value=none, label=none, name=none, placeholder="Select…", searchable=false, disabled=false, attrs="") %}
-<div class="select" data-select>
-  <button type="button" class="select-trigger" data-select-trigger aria-haspopup="listbox" aria-expanded="false"{% if disabled %} disabled{% endif %}{% if attrs %} {{ attrs | safe }}{% endif %}>
-    <span class="select-value" data-placeholder="{{ placeholder }}"></span>
-    {% from "components/icon/icon.html" import icon %}{{ icon("chevron-down") }}
+   id                  the trigger's id (a <label for> can point at it); the list is "<id>-listbox"
+   options             strings, {value, label, disabled?, icon?, keywords?}, or groups {label, options}
+                       (a separator between groups). keywords: more words the filter matches.
+   value=none          the preselected option's value: shown in the trigger and in the hidden field
+                       from the start, before any JavaScript runs
+   name=none           a hidden field, so the choice submits with a form
+   label=none          the accessible name (aria-label on the trigger and the list)
+   labelledby=none     instead of label: the id of a visible label. The trigger is named by it and by
+                       its own text ("Role, Developer"), the list by the label.
+   describedby=none    aria-describedby on the trigger, e.g. a .field-description's id
+   placeholder="Select…"   shown while nothing is picked
+   searchable=false    a filter box at the top of the list; search_placeholder, empty: its texts
+   size=none           "sm" | "lg"
+   align=none          "end": the list lines up with the trigger's right edge
+   side=none           "top": the list opens above the trigger
+   invalid, required, disabled   aria-invalid, aria-required, disabled on the trigger
+   class=""            more classes on the .select wrapper (a width: w-56, flex-none)
+   attrs=none          more attributes on the trigger, as a dict ({"hx-get": "…"}; macros/attrs.html) #}
+{% from "components/icon/icon.html" import icon as icon_svg %}
+{% from "macros/attrs.html" import attrs as html_attrs %}
+
+{% macro _option(o, value) %}
+{% set val = o.value if o.value is defined else o %}
+{% set text = o.label if o.label is defined else o %}
+<span class="select-item" role="option" value="{{ val }}" aria-selected="{{ 'true' if val == value else 'false' }}"
+  {%- if o.keywords %} data-keywords="{{ o.keywords }}"{% endif %}
+  {%- if o.disabled %} aria-disabled="true"{% endif %}>
+  {%- if o.icon %}<span class="inline-flex min-w-0 items-center gap-2">{{ icon_svg(o.icon) }}{{ text }}</span>{% else %}{{ text }}{% endif -%}
+  <span class="select-check">{{ icon_svg("check") }}</span></span>
+{%- endmacro %}
+
+{% macro select(id, options, value=none, label=none, name=none, placeholder="Select…", searchable=false, disabled=false, labelledby=none, describedby=none, size=none, align=none, side=none, invalid=false, required=false, search_placeholder="Search…", empty="No matches.", class="", attrs=none) %}
+{# The picked option's label, written into the trigger so it shows before select.ts runs #}
+{% set picked = [] %}
+{% if value != none %}
+  {% for o in options %}
+    {% for item in (o.options if o.options is defined else [o]) %}
+      {% if (item.value if item.value is defined else item) == value %}{% set _ = picked.push(item.label if item.label is defined else item) %}{% endif %}
+    {% endfor %}
+  {% endfor %}
+{% endif %}
+<div class="select{% if class %} {{ class }}{% endif %}" data-select>
+  <button type="button" id="{{ id }}" class="select-trigger{% if size %} select-{{ size }}{% endif %}" data-select-trigger aria-haspopup="listbox" aria-expanded="false"
+    {%- if labelledby %} aria-labelledby="{{ labelledby }} {{ id }}"{% elif label %} aria-label="{{ label }}"{% endif %}
+    {%- if describedby %} aria-describedby="{{ describedby }}"{% endif %}
+    {%- if invalid %} aria-invalid="true"{% endif %}
+    {%- if required %} aria-required="true"{% endif %}
+    {%- if disabled %} disabled{% endif %}
+    {{- html_attrs(attrs) }}>
+    <span class="select-value" data-placeholder="{{ placeholder }}">{{ picked[0] if picked.length else "" }}</span>
+    {{ icon_svg("chevron-down") }}
   </button>
-  <div class="select-content" role="listbox" aria-label="{{ label or id }}" hidden>
+  <div class="select-content{% if align == 'end' %} select-content-end{% endif %}{% if side == 'top' %} select-content-up{% endif %}" id="{{ id }}-listbox" role="listbox"
+    {%- if labelledby %} aria-labelledby="{{ labelledby }}"{% else %} aria-label="{{ label or placeholder }}"{% endif %} hidden>
     {% if searchable %}
-    <div class="select-search"><input class="input input-sm" data-select-search placeholder="Search…" aria-label="Filter options" /></div>
+    <div class="select-search"><input class="input input-sm" data-select-search placeholder="{{ search_placeholder }}" aria-label="Filter options" /></div>
     {% endif %}
     {% for o in options %}
-      {% set val = o.value if o.value is defined else o %}
-      {% set text = o.label if o.label is defined else o %}
-    <span class="select-item" role="option" aria-selected="{{ 'true' if val == value else 'false' }}" value="{{ val }}">{{ text }}</span>
+    {% if o.options is defined %}
+    {% if not loop.first %}
+    <div class="select-separator" role="separator"></div>
+    {% endif %}
+    <div role="group" aria-labelledby="{{ id }}-group-{{ loop.index }}">
+      <div class="select-label" id="{{ id }}-group-{{ loop.index }}">{{ o.label }}</div>
+      {% for item in o.options %}
+      {{ _option(item, value) }}
+      {% endfor %}
+    </div>
+    {% else %}
+    {{ _option(o, value) }}
+    {% endif %}
     {% endfor %}
-    <p class="select-empty" data-select-empty hidden>No matches.</p>
+    {% if searchable %}
+    <p class="select-empty" data-select-empty hidden>{{ empty }}</p>
+    {% endif %}
   </div>
-  {% if name %}<input type="hidden" name="{{ name }}" data-select-input />{% endif %}
+  {% if name %}<input type="hidden" name="{{ name }}" value="{{ value if value != none else '' }}" data-select-input />{% endif %}
 </div>
 {%- endmacro %}
