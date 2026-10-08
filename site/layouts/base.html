@@ -4,6 +4,13 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{% block title %}HTMX UI{% endblock %}</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
     {% block head %}{% endblock %}
     {% if ga %}
       <!-- Google Analytics, only when GA_MEASUREMENT_ID is set (the deploy pipeline).
@@ -37,8 +44,10 @@
     <script>
       // Apply the stored theme before first paint to avoid a flash of the wrong
       // colors. Kept inline and tiny on purpose; htmx-ui/theme takes over
-      // once app.ts loads.
+      // once app.ts loads. The `js` class gates the scroll-in reveals (styles/app.css),
+      // so they only hide content that JavaScript is about to reveal.
       (() => {
+        document.documentElement.classList.add("js");
         const stored = localStorage.getItem("theme");
         const dark = stored ? stored === "dark" : matchMedia("(prefers-color-scheme: dark)").matches;
         document.documentElement.classList.toggle("dark", dark);

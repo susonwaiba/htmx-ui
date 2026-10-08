@@ -1,10 +1,58 @@
-<footer class="border-t border-border">
-  <div class="mx-auto flex w-full max-w-7xl flex-col items-center justify-between gap-4 px-4 py-8 text-sm text-muted-foreground sm:flex-row sm:px-6 lg:px-8">
-    <p>© <span data-year></span> HTMX UI. Built with htmx, Tailwind CSS and Bun.</p>
-    <nav class="flex gap-5">
-      <a href="/docs" class="hover:text-foreground">Docs</a>
-      <a href="/docs/changelog" class="hover:text-foreground">Changelog</a>
-      <a href="/about" class="hover:text-foreground">About</a>
-    </nav>
+{% from "components/icon/icon.html" import icon %}
+<footer class="border-t border-border/70 bg-background">
+  <div class="mx-auto w-full max-w-7xl px-4 py-14 sm:px-6 lg:px-8">
+    <div class="grid gap-10 sm:grid-cols-2 lg:grid-cols-[1.5fr_1fr_1fr_1fr]">
+      <div class="max-w-sm">
+        <a href="/" class="flex items-center gap-2.5">
+          <span class="grid size-8 place-items-center rounded-lg bg-gradient-to-br from-violet-500 via-indigo-500 to-cyan-400 text-white shadow-md shadow-violet-500/30">{{ icon("layers", "size-4") }}</span>
+          <span class="text-[15px] font-semibold tracking-tight">HTMX UI</span>
+        </a>
+        <p class="mt-4 text-sm leading-6 text-muted-foreground">
+          Tailwind CSS components for htmx apps. Plain HTML, themeable with CSS variables, dark mode built in.
+        </p>
+      </div>
+
+      <nav aria-label="Product">
+        <p class="text-xs font-semibold tracking-[0.18em] text-primary uppercase">Product</p>
+        <ul class="mt-4 space-y-2.5 text-sm">
+          <li><a href="/docs" class="text-muted-foreground transition-colors hover:text-foreground">Documentation</a></li>
+          <li><a href="/docs/components" class="text-muted-foreground transition-colors hover:text-foreground">Components</a></li>
+          <li><a href="/docs/installation" class="text-muted-foreground transition-colors hover:text-foreground">Installation</a></li>
+          <li><a href="/docs/theming" class="text-muted-foreground transition-colors hover:text-foreground">Theming</a></li>
+          <li><a href="/docs/plugins" class="text-muted-foreground transition-colors hover:text-foreground">Plugins</a></li>
+        </ul>
+      </nav>
+
+      <nav aria-label="Guides">
+        <p class="text-xs font-semibold tracking-[0.18em] text-primary uppercase">Guides</p>
+        <ul class="mt-4 space-y-2.5 text-sm">
+          <li><a href="/docs/dark-mode" class="text-muted-foreground transition-colors hover:text-foreground">Dark mode</a></li>
+          <li><a href="/docs/templates" class="text-muted-foreground transition-colors hover:text-foreground">Templates &amp; data</a></li>
+          <li><a href="/docs/servers" class="text-muted-foreground transition-colors hover:text-foreground">Server frameworks</a></li>
+          <li><a href="/docs/servers/deploying" class="text-muted-foreground transition-colors hover:text-foreground">Deploying</a></li>
+          <li><a href="/docs/ai-agents" class="text-muted-foreground transition-colors hover:text-foreground">AI agents</a></li>
+        </ul>
+      </nav>
+
+      <nav aria-label="Project">
+        <p class="text-xs font-semibold tracking-[0.18em] text-primary uppercase">Project</p>
+        <ul class="mt-4 space-y-2.5 text-sm">
+          <li><a href="/docs/changelog" class="text-muted-foreground transition-colors hover:text-foreground">Changelog</a></li>
+          <li><a href="/docs/versions" class="text-muted-foreground transition-colors hover:text-foreground">Versions</a></li>
+          <li><a href="/about" class="text-muted-foreground transition-colors hover:text-foreground">About</a></li>
+          <li><a href="https://github.com/susonwaiba/htmx-ui" target="_blank" class="text-muted-foreground transition-colors hover:text-foreground">GitHub</a></li>
+          <li><a href="https://www.npmjs.com/package/htmx-ui" target="_blank" class="text-muted-foreground transition-colors hover:text-foreground">npm</a></li>
+        </ul>
+      </nav>
+    </div>
+
+    <div class="mt-12 flex flex-col gap-3 border-t border-border pt-6 text-sm text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
+      <p>© <span data-year></span> HTMX UI. Built with htmx, Tailwind CSS and Bun.</p>
+      <div class="flex flex-wrap gap-5">
+        <a href="https://htmx.org" target="_blank" class="transition-colors hover:text-foreground">htmx</a>
+        <a href="https://tailwindcss.com" target="_blank" class="transition-colors hover:text-foreground">Tailwind CSS</a>
+        <a href="https://bun.sh" target="_blank" class="transition-colors hover:text-foreground">Bun</a>
+      </div>
+    </div>
   </div>
 </footer>

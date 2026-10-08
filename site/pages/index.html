@@ -3,10 +3,16 @@
 {% from "components/code/code.html" import cli %}
 {% from "components/spinner/spinner.html" import spinner %}
 {% set latestReleased = json("data/changelog.json").latestReleased %}
+{% set byTitle = json("data/docs-nav.json").sections | groupby("title") %}
+{% set componentItems = byTitle["Components"][0].items | selectattr("component") | list %}
+{% set categories = json("data/component-categories.json").categories %}
 
 {% block title %}HTMX UI · Server-driven components for htmx{% endblock %}
 {% block head %}
   <meta name="description" content="Tailwind CSS components for htmx apps. Plain HTML, themeable with CSS variables, dark mode built in." />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="HTMX UI · Server-driven components for htmx" />
+  <meta property="og:description" content="A small Tailwind CSS component library for apps where the server renders HTML." />
 {% endblock %}
 
 {% set features = [
@@ -18,41 +24,64 @@
   { icon: "box", title: "Small and idempotent", text: "Each behaviour is a few lines of TypeScript that marks what it touched, so running it twice is harmless." }
 ] %}
 
+{% set start = [
+  { icon: "download", title: "Installation", href: "/docs/installation", text: "A new site, or htmx-ui added to the project you already have." },
+  { icon: "palette", title: "Theming", href: "/docs/theming", text: "Override design tokens, or build a theme of your own." },
+  { icon: "server", title: "Server frameworks", href: "/docs/servers", text: "Elysia, Fastify, Koa, Express, Hono, Bun or plain static." },
+  { icon: "bot", title: "AI agents", href: "/docs/ai-agents", text: "Markdown for every page, llms.txt and sitemaps." }
+] %}
+
 {% block content %}
   {# Hero #}
-  <section class="relative overflow-hidden border-b border-border">
-    <div class="hero-grid pointer-events-none absolute inset-0"></div>
+  <section class="relative overflow-hidden border-b border-border/70">
+    <div class="bg-grid bg-grid-fade pointer-events-none absolute inset-0"></div>
+    <div class="orb -top-24 -left-20 h-72 w-72 bg-violet-600/25 dark:bg-violet-500/20"></div>
+    <div class="orb -top-10 right-[-6rem] h-64 w-64 bg-cyan-500/20 dark:bg-cyan-400/15" style="animation-delay:-7s"></div>
     <div class="relative mx-auto max-w-4xl px-4 py-24 text-center sm:px-6 sm:py-32">
-      <a href="/docs/changelog/{{ latestReleased }}" class="badge badge-outline mb-6 gap-2 bg-background py-1 pr-3 pl-1 text-sm transition-colors hover:bg-accent">
+      <a href="/docs/changelog/{{ latestReleased }}" class="badge badge-outline mb-6 gap-2 bg-background py-1 pr-3 pl-1 text-sm transition-colors hover:bg-accent reveal">
         <span class="badge badge-primary">New</span> v{{ latestReleased }} is out {{ icon("chevron-right", "size-3.5") }}
       </a>
-      <h1 class="h1 sm:text-6xl">Server-driven UI components for <span class="text-primary">htmx</span></h1>
-      <p class="lead mx-auto mt-6 max-w-2xl">
+      <h1 class="h1 reveal sm:text-6xl" style="--reveal-delay:60ms">Server-driven UI components for <span class="text-gradient">htmx</span></h1>
+      <p class="lead mx-auto mt-6 max-w-2xl reveal" style="--reveal-delay:120ms">
         A small Tailwind CSS component library for apps where the server renders HTML. Copy the markup,
         swap fragments with htmx, and theme everything with a handful of CSS variables.
       </p>
-      <div class="mt-10 flex flex-wrap items-center justify-center gap-3">
+      <div class="mt-10 flex flex-wrap items-center justify-center gap-3 reveal" style="--reveal-delay:180ms">
         <a href="/docs/installation" class="btn btn-primary btn-lg">Get started {{ icon("arrow-right") }}</a>
         <a href="/docs/components" class="btn btn-outline btn-lg">Browse components</a>
       </div>
-      <div class="mx-auto mt-12 max-w-md text-left">
+      <div class="mx-auto mt-12 max-w-md text-left reveal" style="--reveal-delay:240ms">
         {{ cli("create htmx-ui my-site") }}
+      </div>
+    </div>
+  </section>
+
+  {# Every component, scrolling #}
+  <section class="border-b border-border/70 py-7" aria-label="Components">
+    <div class="marquee">
+      <div class="marquee-track">
+        {% for item in componentItems %}
+          <a href="{{ item.href }}" class="me-3 rounded-full border border-border bg-surface px-4 py-2 text-sm text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground">{{ item.title }}</a>
+        {% endfor %}
+        {% for item in componentItems %}
+          <a href="{{ item.href }}" class="me-3 rounded-full border border-border bg-surface px-4 py-2 text-sm text-muted-foreground transition-colors hover:border-primary/40 hover:text-foreground" aria-hidden="true" tabindex="-1">{{ item.title }}</a>
+        {% endfor %}
       </div>
     </div>
   </section>
 
   {# Features #}
   <section class="mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-8">
-    <div class="mx-auto max-w-2xl text-center">
+    <div class="mx-auto max-w-2xl text-center reveal">
       <p class="eyebrow">Why HTMX UI</p>
       <h2 class="h2 mt-2">Components that respect the server</h2>
       <p class="lead mt-4">Everything you need to ship a polished hypermedia app, and nothing that fights it.</p>
     </div>
     <div class="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
       {% for f in features %}
-        <div class="card">
+        <div class="card reveal" data-spotlight style="--reveal-delay:{{ loop.index0 % 3 * 70 }}ms">
           <div class="card-header">
-            <span class="mb-3 grid size-10 place-items-center rounded-(--radius) bg-primary/10 text-primary">{{ icon(f.icon, "size-5") }}</span>
+            <span class="mb-3 grid size-10 place-items-center rounded-xl bg-primary/10 text-primary">{{ icon(f.icon, "size-5") }}</span>
             <h3 class="card-title">{{ f.title }}</h3>
           </div>
           <div class="card-content pt-3"><p class="muted leading-6">{{ f.text }}</p></div>
@@ -61,16 +90,35 @@
     </div>
   </section>
 
+  {# Numbers #}
+  <section class="border-y border-border/70 bg-muted/30">
+    {% set stats = [
+      { value: componentItems | length, label: "Components" },
+      { value: categories | length, label: "Categories" },
+      { value: 5, label: "Server adapters" },
+      { value: 3, label: "First-party plugins" }
+    ] %}
+    <dl class="mx-auto grid max-w-6xl gap-8 px-4 py-14 sm:grid-cols-2 sm:px-6 lg:grid-cols-4">
+      {% for stat in stats %}
+        <div class="reveal text-center" style="--reveal-delay:{{ loop.index0 * 70 }}ms">
+          <dt class="sr-only">{{ stat.label }}</dt>
+          <dd class="text-gradient text-4xl font-bold tracking-tight tabular-nums sm:text-5xl">{{ stat.value }}</dd>
+          <p class="mt-2 text-sm text-muted-foreground">{{ stat.label }}</p>
+        </div>
+      {% endfor %}
+    </dl>
+  </section>
+
   {# Component showcase #}
-  <section class="border-t border-border">
+  <section class="border-b border-border/70">
     <div class="mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-8">
-      <div class="mx-auto max-w-2xl text-center">
+      <div class="mx-auto max-w-2xl text-center reveal">
         <p class="eyebrow">Components</p>
         <h2 class="h2 mt-2">Forms, toggles, menus and more</h2>
-        <p class="lead mt-4">Twenty components, all plain HTML. Everything below is live: click, type and toggle.</p>
+        <p class="lead mt-4">Everything below is live: click, type and toggle. It is the same markup you get from the docs.</p>
       </div>
       <div class="mt-16 grid items-start gap-6 lg:grid-cols-2">
-        <form class="card" onsubmit="return false">
+        <form class="card reveal" data-spotlight onsubmit="return false">
           <div class="card-header">
             <h3 class="card-title">Invite a teammate</h3>
             <p class="card-description">Field, input group, toggle group and a loading button.</p>
@@ -101,7 +149,7 @@
           </div>
         </form>
         <div class="grid gap-6">
-          <div class="card">
+          <div class="card reveal" data-spotlight style="--reveal-delay:80ms">
             <div class="card-header pb-6">
               <h3 class="card-title">Editor toolbar</h3>
               <p class="card-description">Toggles, a button group and a split button with a dropdown.</p>
@@ -131,7 +179,7 @@
               </div>
             </div>
           </div>
-          <div class="card">
+          <div class="card reveal" data-spotlight style="--reveal-delay:160ms">
             <div class="card-content">
               <div class="accordion" data-accordion>
                 <details class="accordion-item" name="home-faq" open>
@@ -152,15 +200,16 @@
         </div>
       </div>
       <div class="mt-12 text-center">
-        <a href="/docs/components" class="btn btn-outline">Browse all components {{ icon("arrow-right") }}</a>
+        <a href="/docs/components" class="btn btn-outline">Browse all {{ componentItems | length }} components {{ icon("arrow-right") }}</a>
       </div>
     </div>
   </section>
 
   {# Live demo #}
-  <section class="border-y border-border bg-muted/40">
-    <div class="mx-auto grid max-w-7xl items-center gap-12 px-4 py-24 sm:px-6 lg:grid-cols-2 lg:px-8">
-      <div>
+  <section class="relative overflow-hidden border-b border-border/70 bg-muted/30">
+    <div class="bg-grid bg-grid-fade pointer-events-none absolute inset-0"></div>
+    <div class="relative mx-auto grid max-w-7xl items-center gap-12 px-4 py-24 sm:px-6 lg:grid-cols-2 lg:px-8">
+      <div class="reveal">
         <p class="eyebrow">Live</p>
         <h2 class="h2 mt-2">Fragments in, components ready</h2>
         <p class="lead mt-4">
@@ -169,10 +218,10 @@
         </p>
         <div class="mt-8 flex gap-3">
           <a href="/docs" class="btn btn-secondary">Read the docs</a>
-          <a href="/docs/components/button" class="btn btn-ghost">Button docs {{ icon("arrow-right") }}</a>
+          <a href="/docs/components/button" class="btn btn-ghost">Button docs {{ icon("arrow-right", "size-4") }}</a>
         </div>
       </div>
-      <div class="card">
+      <div class="card reveal" data-spotlight style="--reveal-delay:120ms">
         <div class="card-header">
           <div class="flex items-center justify-between">
             <h3 class="card-title">htmx request</h3>
@@ -196,13 +245,39 @@
     </div>
   </section>
 
+  {# Start here #}
+  <section class="mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-8">
+    <div class="mx-auto max-w-2xl text-center reveal">
+      <p class="eyebrow">Start here</p>
+      <h2 class="h2 mt-2">Read one page, ship something</h2>
+    </div>
+    <div class="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      {% for s in start %}
+        <a href="{{ s.href }}" class="card card-link reveal" data-spotlight style="--reveal-delay:{{ loop.index0 * 70 }}ms">
+          <div class="card-header pb-6">
+            <span class="mb-3 grid size-10 place-items-center rounded-xl bg-primary/10 text-primary">{{ icon(s.icon, "size-5") }}</span>
+            <h3 class="card-title">{{ s.title }}</h3>
+            <p class="card-description">{{ s.text }}</p>
+          </div>
+        </a>
+      {% endfor %}
+    </div>
+  </section>
+
   {# CTA #}
-  <section class="mx-auto max-w-4xl px-4 py-24 text-center sm:px-6">
-    <h2 class="h2">Start building in a couple of minutes</h2>
-    <p class="lead mx-auto mt-4 max-w-xl">Install the package, import one stylesheet, and call one function.</p>
-    <div class="mt-8 flex flex-wrap justify-center gap-3">
-      <a href="/docs/installation" class="btn btn-primary btn-lg">Installation guide</a>
-      <a href="/docs/theming" class="btn btn-outline btn-lg">Make it yours</a>
+  <section class="relative overflow-hidden border-t border-border/70">
+    <div class="bg-grid bg-grid-fade pointer-events-none absolute inset-0"></div>
+    <div class="orb right-[15%] -bottom-28 h-64 w-64 bg-indigo-500/20 dark:bg-indigo-400/15" style="animation-delay:-4s"></div>
+    <div class="relative mx-auto max-w-3xl px-4 py-24 text-center sm:px-6">
+      <h2 class="h2 reveal">Start building in a couple of minutes</h2>
+      <p class="lead mx-auto mt-4 max-w-xl reveal" style="--reveal-delay:80ms">Install the package, import one stylesheet, and call one function.</p>
+      <div class="mx-auto mt-8 max-w-md text-left reveal" style="--reveal-delay:140ms">
+        {{ cli("add htmx-ui htmx.org") }}
+      </div>
+      <div class="mt-8 flex flex-wrap justify-center gap-3 reveal" style="--reveal-delay:200ms">
+        <a href="/docs/installation" class="btn btn-primary btn-lg">Installation guide</a>
+        <a href="/docs/theming" class="btn btn-outline btn-lg">Make it yours</a>
+      </div>
     </div>
   </section>
 {% endblock %}

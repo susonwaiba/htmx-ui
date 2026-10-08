@@ -1,21 +1,73 @@
 {% extends "layouts/site.html" %}
+{% from "components/icon/icon.html" import icon %}
 
 {% block title %}About · HTMX UI{% endblock %}
+{% block head %}
+  <meta name="description" content="HTMX UI is a component library for server-rendered apps: plain HTML, Tailwind CSS tokens, and behaviours that survive htmx swaps." />
+{% endblock %}
+
+{% set principles = [
+  { icon: "code", title: "Plain HTML first", text: "Every component is markup you can read, copy and paste. Behaviour is optional, small and idempotent — never a hidden runtime." },
+  { icon: "palette", title: "Tokens, not variants", text: "Colour, radius and motion are CSS variables mapped into Tailwind v4. Theme the kit by overriding a handful of them." },
+  { icon: "zap", title: "Built for swaps", text: "Behaviours re-run on whatever htmx just inserted, so a fragment arrives already wired up." }
+] %}
 
 {% block content %}
-  <section class="mx-auto max-w-2xl px-4 py-20 sm:px-6">
-    <p class="eyebrow">About</p>
-    <h1 class="h1 mt-2">About this project</h1>
-    <div class="prose mt-8">
-      <p>
+  <section class="relative overflow-hidden border-b border-border/70">
+    <div class="bg-grid bg-grid-fade pointer-events-none absolute inset-0"></div>
+    <div class="orb -top-24 right-[5%] h-64 w-64 bg-violet-600/25 dark:bg-violet-500/20"></div>
+    <div class="relative mx-auto max-w-3xl px-4 py-20 text-center sm:px-6 sm:py-24">
+      <p class="eyebrow reveal">About</p>
+      <h1 class="h1 mt-3 reveal text-gradient" style="--reveal-delay:60ms">Built for apps that render on the server</h1>
+      <p class="lead mx-auto mt-6 max-w-2xl reveal" style="--reveal-delay:120ms">
         HTMX UI is a component library for server-rendered apps that use htmx. Components are plain HTML
         styled with Tailwind CSS, plus a few small behaviours that survive htmx swaps.
       </p>
+    </div>
+  </section>
+
+  <section class="mx-auto max-w-3xl px-4 py-20 sm:px-6">
+    <div class="prose reveal">
+      <h2>How it works</h2>
       <p>
-        This site is built with the library itself: each file in <code>site/pages</code> is a route,
-        rendered with Nunjucks at build time and bundled by Bun.
+        The package ships design tokens, component styles and a handful of behaviours. You import one
+        stylesheet, copy the markup you need from the docs, and the server keeps rendering HTML. When htmx
+        swaps a fragment in, the behaviours inside it initialise themselves — nothing to re-wire by hand.
       </p>
-      <p><a href="/docs">Read the documentation</a> or <a href="/docs/components">browse the components</a>.</p>
+      <h2>This site</h2>
+      <p>
+        The site is built with the library itself: each file in <code>site/pages</code> is a route,
+        rendered with Nunjucks at build time and bundled by Bun. The docs come from Markdown, with a
+        version switcher and a search palette as plugins on top of the engine.
+      </p>
+      <p>
+        <a href="/docs">Read the documentation</a>, <a href="/docs/components">browse the components</a>,
+        or copy the source of this page — it is all in the repository under <code>site/</code>.
+      </p>
+    </div>
+  </section>
+
+  <section class="border-t border-border/70 bg-muted/30">
+    <div class="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
+      <div class="mx-auto max-w-2xl text-center reveal">
+        <p class="eyebrow">Principles</p>
+        <h2 class="h2 mt-2">Three things we hold to</h2>
+      </div>
+      <div class="mt-12 grid gap-6 sm:grid-cols-3">
+        {% for p in principles %}
+          <div class="card reveal" data-spotlight style="--reveal-delay:{{ loop.index0 * 70 }}ms">
+            <div class="card-header">
+              <span class="mb-3 grid size-10 place-items-center rounded-xl bg-primary/10 text-primary">{{ icon(p.icon, "size-5") }}</span>
+              <h3 class="card-title">{{ p.title }}</h3>
+            </div>
+            <div class="card-content pt-3"><p class="muted leading-6">{{ p.text }}</p></div>
+          </div>
+        {% endfor %}
+      </div>
+      <div class="mt-12 flex flex-wrap justify-center gap-3 reveal">
+        <a href="/docs/installation" class="btn btn-primary">Get started {{ icon("arrow-right", "size-4") }}</a>
+        <a href="/docs/changelog" class="btn btn-outline">See the changelog</a>
+      </div>
     </div>
   </section>
 {% endblock %}

@@ -1,18 +1,25 @@
 {% from "components/icon/icon.html" import icon %}
+{% from "components/sheet/sheet.html" import sheet %}
 {% from "search/macros.html" import search %}
 {% set links = [
   { title: "Docs", href: "/docs" },
   { title: "Components", href: "/docs/components" },
   { title: "Changelog", href: "/docs/changelog" }
 ] %}
-<header class="sticky top-0 z-30 border-b border-border bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/70">
-  <div class="mx-auto flex h-14 w-full max-w-7xl items-center gap-2 px-4 sm:px-6 lg:px-8">
+{% set more = [
+  { title: "About", href: "/about" },
+  { title: "Theming", href: "/docs/theming" },
+  { title: "Dark mode", href: "/docs/dark-mode" },
+  { title: "AI agents", href: "/docs/ai-agents" }
+] %}
+<header class="sticky top-0 z-40 border-b border-border/70 bg-background/75 backdrop-blur-xl supports-[backdrop-filter]:bg-background/70">
+  <div class="mx-auto flex h-16 w-full max-w-7xl items-center gap-2 px-4 sm:px-6 lg:px-8">
     {% if has_sidebar %}
-      <button type="button" class="btn btn-ghost btn-icon -ml-2 lg:hidden" data-sidebar-trigger aria-controls="docs-nav" aria-expanded="false" aria-label="Open navigation">{{ icon("menu") }}</button>
+      <button type="button" class="btn btn-ghost btn-icon -ml-2 lg:hidden" data-sidebar-trigger aria-controls="docs-nav" aria-expanded="false" aria-label="Open documentation navigation">{{ icon("panel-left") }}</button>
     {% endif %}
-    <a href="/" class="mr-4 flex items-center gap-2 font-semibold">
-      <span class="grid size-7 place-items-center rounded-md bg-primary text-primary-foreground">{{ icon("layers", "size-4") }}</span>
-      HTMX UI
+    <a href="/" class="mr-3 flex shrink-0 items-center gap-2.5">
+      <span class="grid size-8 place-items-center rounded-lg bg-gradient-to-br from-violet-500 via-indigo-500 to-cyan-400 text-white shadow-md shadow-violet-500/30">{{ icon("layers", "size-4") }}</span>
+      <span class="text-[15px] font-semibold tracking-tight">HTMX UI</span>
     </a>
     <nav class="navigation-menu hidden sm:flex" aria-label="Main">
       <ul class="navigation-menu-list">
@@ -22,14 +29,47 @@
         {% endfor %}
       </ul>
     </nav>
-    <div id="site-main-header-actions" class="ml-auto flex items-center gap-1" hx-preserve="true">
+    <div id="site-main-header-actions" class="ml-auto flex items-center gap-1.5" hx-preserve="true">
       {{ search() }}
+      <a href="https://github.com/susonwaiba/htmx-ui" target="_blank" class="btn btn-ghost btn-sm hidden text-muted-foreground lg:inline-flex">GitHub</a>
       <a href="/docs/installation" class="btn btn-primary btn-sm hidden sm:inline-flex">Get started</a>
       <button type="button" class="btn btn-ghost btn-icon" data-theme-toggle aria-pressed="false" title="Toggle light and dark theme">
         <span class="dark:hidden">{{ icon("sun") }}</span>
         <span class="hidden dark:inline">{{ icon("moon") }}</span>
         <span class="sr-only">Theme: <span data-theme-label>light</span></span>
       </button>
+      <button type="button" class="btn btn-ghost btn-icon md:hidden" commandfor="nav-menu" command="show-modal" aria-label="Open navigation menu">
+        {{ icon("menu") }}
+      </button>
     </div>
   </div>
 </header>
+
+{# Outside <header>: the sheet is position:fixed, and the header's backdrop-filter
+   would otherwise become its containing block. #}
+{% call sheet("nav-menu", side="left") %}
+  <div class="sheet-content">
+    <nav class="flex flex-col gap-1" aria-label="Primary">
+      {% for link in links %}
+        {% set is_active = url == link.href or (link.href != "/docs" and url.startsWith(link.href)) or (link.href == "/docs" and url.startsWith("/docs") and not url.startsWith("/docs/components") and not url.startsWith("/docs/changelog")) %}
+        <a href="{{ link.href }}" data-dialog-close class="flex items-center justify-between rounded-(--radius) px-3 py-2.5 text-base font-medium transition-colors {{ 'bg-accent text-foreground' if is_active else 'text-muted-foreground hover:bg-accent/60 hover:text-foreground' }}"{% if is_active %} aria-current="page"{% endif %}>
+          {{ link.title }} {{ icon("arrow-right", "size-4") }}
+        </a>
+      {% endfor %}
+    </nav>
+    <nav class="mt-6 flex flex-col gap-1 border-t border-border pt-4" aria-label="More">
+      {% for link in more %}
+        <a href="{{ link.href }}" data-dialog-close class="flex items-center justify-between rounded-(--radius) px-3 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-accent/60 hover:text-foreground">
+          {{ link.title }} {{ icon("arrow-right", "size-4") }}
+        </a>
+      {% endfor %}
+    </nav>
+    <div class="mt-6 flex gap-4 border-t border-border pt-4 text-sm">
+      <a href="https://github.com/susonwaiba/htmx-ui" target="_blank" class="link">GitHub</a>
+      <a href="https://www.npmjs.com/package/htmx-ui" target="_blank" class="link">npm</a>
+    </div>
+  </div>
+  <div class="sheet-footer">
+    <a href="/docs/installation" class="btn btn-primary w-full" data-dialog-close>Get started {{ icon("arrow-right", "size-4") }}</a>
+  </div>
+{% endcall %}

@@ -7,6 +7,8 @@
 //   - mock htmx endpoints (server/api.ts)
 //   - the package's icons at stable URLs, /assets/icons/<name>.svg
 // In dev these are served on request; the build hooks write them to dist/.
+// site/public/ is the engine's public directory: it is served as-is in dev and
+// copied into dist/ by the build (favicon.svg lives there).
 import { defineConfig } from "htmx-ui-engine";
 import docs from "htmx-ui-plugin-docs";
 import search from "htmx-ui-plugin-search";
@@ -28,7 +30,6 @@ export default defineConfig({
   // Absolute URLs in sitemaps and llms.txt, and the `origin` template global. $SITE_URL overrides it.
   url: site.url,
   outDir: DIST,
-  publicDir: false,
 
   // Template globals; `ga` is what the {% if ga %} in layouts/base.html keys on.
   globals: { ga },

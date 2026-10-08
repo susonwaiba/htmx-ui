@@ -36,13 +36,14 @@
 {% endblock %}
 
 {% block body %}
+  <a href="#main" class="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:rounded-md focus:bg-background focus:px-3 focus:py-2 focus:text-sm focus:font-medium focus:shadow-lg">Skip to content</a>
   {% include "partials/header.html" %}
   {# The docs navigation is htmx-ui's Sidebar (components/sidebar), composed for a docs site:
      always expanded from lg up (collapsible "none"), an off-canvas panel below lg (opened by the
      header's [data-sidebar-trigger]), a transparent sticky column under the 56px header, and
      muted links through the --sidebar-* tokens. #}
   <div class="sidebar-layout mx-auto min-h-0 max-w-7xl gap-12 px-4 sm:px-6 lg:px-8">
-    <aside id="docs-nav" class="sidebar [--sidebar-foreground:var(--muted-foreground)] [--sidebar-top:3.5rem] [--sidebar-width:15rem] [--sidebar:var(--background)] text-foreground lg:border-r-0 lg:[--sidebar:transparent]"
+    <aside id="docs-nav" class="sidebar [--sidebar-foreground:var(--muted-foreground)] [--sidebar-top:4rem] [--sidebar-width:15rem] [--sidebar:var(--background)] text-foreground lg:border-r-0 lg:[--sidebar:transparent]"
            data-sidebar data-collapsible="none" data-breakpoint="lg" data-shortcut="none" aria-label="Documentation">
       <div class="sidebar-header flex-row items-center justify-between px-6 pt-6 pb-0 lg:hidden">
         <span class="font-semibold">Documentation</span>
@@ -75,11 +76,12 @@
       </div>
     </aside>
 
-    <main class="min-w-0 flex-1 pt-8 pb-16 lg:pt-12">
+    <main id="main" class="min-w-0 flex-1 pt-8 pb-16 lg:pt-12">
       <article class="mx-auto max-w-3xl">
         {# Banner for older versions: filled in when they are archived, refreshed at view time. Empty on the latest docs. #}
         {{ version_banner() }}
         <header class="mb-10 space-y-3 border-b border-border pb-8">
+          <span class="mb-1 block h-1 w-16 rounded-full bg-gradient-to-r from-violet-500 via-indigo-500 to-cyan-500" aria-hidden="true"></span>
           <p class="eyebrow">{{ nav_state.section }}</p>
           <h1 class="h1">{{ title }}</h1>
           {% if description %}<p class="lead">{{ description }}</p>{% endif %}

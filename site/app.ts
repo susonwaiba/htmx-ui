@@ -1,7 +1,7 @@
 import "htmx.org"; // registers window.htmx
 import "./styles/app.css";
 import Autoplay from "embla-carousel-autoplay";
-import { initComponents, registerCarouselPlugin, registerPreserveScroll, registerSidebarActiveScroll } from "htmx-ui";
+import { initComponents, queryAll, registerCarouselPlugin, registerPreserveScroll, registerSidebarActiveScroll } from "htmx-ui";
 import { initTheme } from "htmx-ui/theme";
 import { initSearch } from "htmx-ui-plugin-search/client";
 import { initVersions } from "htmx-ui-plugin-versions/client";
@@ -16,8 +16,44 @@ registerCarouselPlugin("autoplay", Autoplay);
 registerPreserveScroll();
 registerSidebarActiveScroll();
 
+// Scroll-in entrances for .reveal elements; null when the browser can't observe.
+let revealObserver: IntersectionObserver | null = null;
+
+if ("IntersectionObserver" in window) {
+  revealObserver = new IntersectionObserver(
+    (entries) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        entry.target.classList.add("is-visible");
+        revealObserver?.unobserve(entry.target);
+      }
+    },
+    { rootMargin: "0px 0px -8% 0px", threshold: 0.08 },
+  );
+}
+
+/** Reveals (.reveal) and the pointer-tracked glow on [data-spotlight] cards. */
+function initPage(root: ParentNode) {
+  queryAll<HTMLElement>(root, ".reveal:not([data-reveal-ready])").forEach((el) => {
+    el.dataset.revealReady = "";
+    if (!revealObserver) el.classList.add("is-visible");
+    else revealObserver.observe(el);
+  });
+
+  queryAll<HTMLElement>(root, "[data-spotlight]:not([data-spotlight-ready])").forEach((el) => {
+    el.dataset.spotlightReady = "";
+    el.classList.add("spotlight");
+    el.addEventListener("pointermove", (event) => {
+      const box = el.getBoundingClientRect();
+      el.style.setProperty("--spot-x", `${event.clientX - box.left}px`);
+      el.style.setProperty("--spot-y", `${event.clientY - box.top}px`);
+    });
+  });
+}
+
 function init(root: ParentNode = document) {
   initComponents(root);
+  initPage(root);
 }
 
 document.addEventListener("DOMContentLoaded", () => {

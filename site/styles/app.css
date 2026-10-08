@@ -1,5 +1,6 @@
 /* Stylesheet for the website (marketing pages + docs). The library itself is
-   htmx-ui/styles.css (packages/ui); this file adds Tailwind, source scanning and site-only styles. */
+   htmx-ui/styles.css (packages/ui); this file adds Tailwind, source scanning, the
+   site's brand tokens and the marketing styles. */
 @import "tailwindcss";
 
 /* Scan site templates for class names (htmx-ui/styles.css scans the package's own macros) */
@@ -11,3 +12,161 @@
 @import "htmx-ui-plugin-versions/styles.css";
 @import "htmx-ui-plugin-search/styles.css";
 @import "./docs.css";
+
+/* Type: Inter for the interface, JetBrains Mono for code and commands. */
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+    sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+/* Brand. Unlayered, so these win over the tokens htmx-ui sets in @layer base.
+   One palette across marketing and docs: every demo renders in it too. */
+:root {
+  --radius: 0.75rem;
+  --primary: var(--color-violet-600);
+  --primary-foreground: var(--color-white);
+  --ring: var(--color-violet-500);
+  --brand-gradient: linear-gradient(100deg, var(--color-violet-600), var(--color-indigo-600) 45%, var(--color-cyan-600));
+  /* 16% of the brand colour, used by the pointer glow (.spotlight). Kept on a
+     custom property so bundlers lower color-mix to a declaration-level
+     @supports (which Chromium honours) rather than a nested `& { … }` rule
+     (which it drops, leaving the full-strength fallback that looks hard). */
+  --spotlight-soft: color-mix(in oklab, var(--primary) 16%, transparent);
+}
+
+:root.dark {
+  --primary: var(--color-violet-500);
+  --primary-foreground: var(--color-white);
+  --ring: var(--color-violet-400);
+  --brand-gradient: linear-gradient(100deg, var(--color-violet-300), var(--color-indigo-300) 45%, var(--color-cyan-300));
+
+  --background: #0a0a0f;
+  --surface: #12121b;
+  --border: #262633;
+}
+
+@layer components {
+  /* Small caps label above a section heading (tighter than the library's) */
+  .eyebrow {
+    @apply text-xs font-semibold tracking-[0.18em] text-primary uppercase;
+  }
+
+  /* Gradient headline text, on --brand-gradient */
+  .text-gradient {
+    background-image: var(--brand-gradient);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    -webkit-text-fill-color: transparent;
+  }
+
+  /* Faint blueprint grid behind a hero */
+  .bg-grid {
+    background-image:
+      linear-gradient(to right, color-mix(in oklab, var(--foreground) 7%, transparent) 1px, transparent 1px),
+      linear-gradient(to bottom, color-mix(in oklab, var(--foreground) 7%, transparent) 1px, transparent 1px);
+    background-size: 72px 72px;
+  }
+  .bg-grid-fade {
+    mask-image: radial-gradient(ellipse 75% 60% at 50% 0%, #000 25%, transparent 100%);
+  }
+
+  /* Blurred colour wash. Give it a size and inset it (absolute inset-0 etc.). */
+  .orb {
+    position: absolute;
+    border-radius: 9999px;
+    filter: blur(72px);
+    pointer-events: none;
+    animation: ui-float 16s ease-in-out infinite;
+  }
+
+  /* Edge-faded row of chips that scrolls on its own. Items carry their own trailing
+     margin (me-*), so the duplicated halves line up exactly at -50%. */
+  .marquee {
+    overflow: hidden;
+    mask-image: linear-gradient(to right, transparent, #000 7%, #000 93%, transparent);
+  }
+  .marquee-track {
+    display: flex;
+    width: max-content;
+    animation: ui-marquee 60s linear infinite;
+  }
+  .marquee:hover .marquee-track {
+    animation-play-state: paused;
+  }
+
+  /* Scroll-in entrance. Only applies once html has .js, so no-JS visitors still see
+     everything; see app.ts. */
+  .js .reveal {
+    opacity: 0;
+    transform: translate3d(0, 18px, 0);
+    transition:
+      opacity 700ms var(--motion-ease-out) var(--reveal-delay, 0ms),
+      transform 700ms var(--motion-ease-out) var(--reveal-delay, 0ms);
+  }
+  .js .reveal.is-visible {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* Card that lights up under the pointer: pair with data-spotlight (app.ts). */
+  .spotlight {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+  }
+  .spotlight::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    /* Soft, polite wash: 16% of the brand colour, via the --spotlight-soft
+       token in :root. Writes color-mix here directly and bundlers nest it as
+       `@supports { & { … } }`, which Chromium drops and leaves a
+       full-strength, hard-looking glow in its place. */
+    background: radial-gradient(
+      340px circle at var(--spot-x, 50%) var(--spot-y, 0%),
+      var(--spotlight-soft),
+      transparent 65%
+    );
+    opacity: 0;
+    transition: opacity var(--motion-duration-normal) var(--motion-ease-out);
+    pointer-events: none;
+  }
+  .spotlight:hover::before,
+  .spotlight:focus-within::before {
+    opacity: 1;
+  }
+}
+
+@keyframes ui-float {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -28px, 0);
+  }
+}
+
+@keyframes ui-marquee {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .js .reveal {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+  .orb,
+  .marquee-track {
+    animation: none !important;
+  }
+}

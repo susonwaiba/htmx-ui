@@ -1,14 +1,21 @@
 {% extends "layouts/site.html" %}
+{% from "components/icon/icon.html" import icon %}
 
 {% block title %}404 Not Found · HTMX UI{% endblock %}
 
 {% block content %}
-  <section class="mx-auto max-w-2xl px-4 py-20 sm:px-6 text-center">
-    <p class="eyebrow">404</p>
-    <h1 class="h1 mt-2">Page not found</h1>
-    <div class="prose mt-8">
-      <p>Sorry, we couldn't find the page you're looking for.</p>
-      <p><a href="/">Go back to the homepage</a>.</p>
+  <section class="relative overflow-hidden">
+    <div class="bg-grid bg-grid-fade pointer-events-none absolute inset-0"></div>
+    <div class="orb -top-20 left-1/2 h-72 w-72 -translate-x-1/2 bg-indigo-500/20 dark:bg-indigo-400/15"></div>
+    <div class="relative mx-auto max-w-2xl px-4 py-24 text-center sm:px-6 sm:py-32">
+      <p class="eyebrow">404</p>
+      <h1 class="h1 mt-3 text-gradient">Page not found</h1>
+      <p class="lead mx-auto mt-6 max-w-xl">Sorry, we couldn't find the page you're looking for. It may have moved with a release — the docs are still where you left them.</p>
+      <div class="mt-10 flex flex-wrap justify-center gap-3">
+        <a href="/" class="btn btn-primary btn-lg">Back to the homepage</a>
+        <a href="/docs/components" class="btn btn-outline btn-lg">Browse components</a>
+      </div>
+      <p class="muted mt-10">Or search everything with <kbd class="kbd">Ctrl</kbd> <kbd class="kbd">K</kbd>.</p>
     </div>
   </section>
 {% endblock %}
