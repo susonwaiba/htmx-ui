@@ -3,7 +3,7 @@ name: deploy-site-to-github-pages
 on:
   push:
     branches:
-      - site # Triggers the workflow every time you push to the site branch
+      - main # Triggers the workflow every time you push to the site branch
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
