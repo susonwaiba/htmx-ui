@@ -5,7 +5,7 @@ create-htmx-ui are listed here. The packages are released together with one vers
 versions may contain breaking changes, each listed with migration notes.
 The docs site has a fuller page per release (`/docs/changelog`).
 
-## 0.3.0 — Unreleased
+## 0.3.0 — 2026-10-08
 
 ### Breaking
 
@@ -100,6 +100,13 @@ The docs site has a fuller page per release (`/docs/changelog`).
 
 ### Fixed
 
+- **Switching docs versions loads the target page.** Version links — the switcher's items, the ones its client
+  rebuilds from the manifest, the "you're viewing an old version" banner, and the links on the versions page — carry
+  `hx-boost="false"`. A boosted swap left the new version's content under the stylesheet and scripts of the one you
+  left, since every version brings its own theme; crossing versions is now a full page load. Archiving bakes the
+  attribute into a snapshot, whose `<body>` also carries `hx-boost="false"` — nothing inside a frozen page (its logo,
+  footer, sidebar or content links) may boost the live site's code into it either — and `htmx-ui-upgrade` adds the
+  attribute to a hand-written switcher. The published v0.1 and v0.2 snapshots carry it all.
 - **Pages your server renders get their scripts and styles.** A page returned by `site.render()` (or rendered by
   `handle()` in development) linked its sources as the templates do (`/app.ts`), which nothing served: no htmx, no
   component behaviour, no CSS. In development those links now point at bundles made from source on request (Bun.build

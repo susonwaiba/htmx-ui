@@ -202,7 +202,7 @@ export function bannerMarkup(current: string, latest: string, href: string): str
     warningIcon() +
     `<div class="alert-title">You're viewing the docs for ${escapeHtml(current)}.</div>` +
     `<div class="alert-description">The latest version is ${label}. ` +
-    `<a class="link" href="${escapeHtml(href)}">Go to this page in ${label}</a>.</div></div>`
+    `<a class="link" href="${escapeHtml(href)}" hx-boost="false">Go to this page in ${label}</a>.</div></div>`
   );
 }
 
@@ -294,7 +294,21 @@ export async function archiveDocs({
           }
           // Old versions shouldn't compete with the latest docs in search results
           if (el.tagName === "head") el.append('<meta name="robots" content="noindex" />');
-          if (el.hasAttribute("data-version-link")) return; // the switcher's links point across versions
+          // A snapshot ships its own theme, CSS and scripts, so nothing inside it may be
+          // boosted into the live site (the logo, the footer, the sidebar's Versions link,
+          // any content link): the body opts out for every link it contains. The version
+          // links carry the flag explicitly too, for the case where the body is rewritten.
+          if (el.tagName === "body") {
+            el.removeAttribute("hx-boost:inherited");
+            if (!el.hasAttribute("hx-boost")) el.setAttribute("hx-boost", "false");
+          }
+          if (el.hasAttribute("data-version-link")) {
+            // The switcher's links point across versions, so the URL rewriting below leaves
+            // them alone — and they must never be boosted: a snapshot ships its own theme
+            // and scripts, so crossing versions is a full page load.
+            if (el.tagName === "a" && !el.hasAttribute("hx-boost")) el.setAttribute("hx-boost", "false");
+            return;
+          }
           for (const attr of URL_ATTRS) {
             const value = el.getAttribute(attr);
             if (value === null) continue;

@@ -1,6 +1,6 @@
 {
   "name": "htmx-ui-engine",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Build htmx sites from Nunjucks pages: file-based routing, Tailwind, dev server with HMR and static builds, on Bun or Node.",
   "keywords": [
     "htmx",

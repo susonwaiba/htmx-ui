@@ -26,6 +26,9 @@ function link(href: string, label: string, current: boolean, latest: boolean, re
   a.className = "dropdown-item";
   a.setAttribute("role", "menuitem");
   a.dataset.versionLink = "";
+  // Each version ships its own theme and scripts: switching versions is a full page
+  // load, never a boosted swap that would leave this document's CSS on the new content.
+  a.setAttribute("hx-boost", "false");
   if (current) a.setAttribute("aria-current", "true");
   const name = document.createElement("span");
   name.className = "font-mono";
@@ -55,6 +58,7 @@ function banner(el: HTMLElement, current: string, latestLabel: string, href: str
   const a = body.querySelector<HTMLAnchorElement>("a") ?? document.createElement("a");
   a.className = "link";
   a.href = href;
+  a.setAttribute("hx-boost", "false"); // crossing versions is a full page load
   a.textContent = `Go to this page in ${latestLabel}`;
   body.replaceChildren(`The latest version is ${latestLabel}. `, a, ".");
   // The warning icon comes with the slot (version_banner()) or the built banner; keep it.

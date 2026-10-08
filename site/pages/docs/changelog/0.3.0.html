@@ -252,6 +252,16 @@
   <h2 id="fixed">Fixed</h2>
   <ul>
     <li>
+      <a href="/docs/versions">Switching docs versions</a> loads the target page instead of swapping the body under
+      the version you are leaving. Version links carry <code>hx-boost="false"</code> — the switcher's items, the ones
+      its client rebuilds from the manifest, the old-version banner, and the links on the versions page — because every
+      version brings its own theme, styles and scripts. Archiving bakes it into a snapshot, whose
+      <code>&lt;body&gt;</code> carries <code>hx-boost="false"</code> as well: nothing inside a frozen page (its logo,
+      footer, sidebar or content links) may boost the live site's code into it. The published v0.1 and v0.2 snapshots
+      carry it all, and <a href="/docs/upgrading"><code>htmx-ui-upgrade</code></a> adds the attribute to a hand-written
+      switcher.
+    </li>
+    <li>
       Pages your server renders get their scripts and styles. A page from <code>site.render()</code> (or from
       <code>handle()</code> in development) linked its sources, such as <code>/app.ts</code>, which nothing served. In
       development they are now bundled from source on request, kept in memory and reloaded on change, never written to

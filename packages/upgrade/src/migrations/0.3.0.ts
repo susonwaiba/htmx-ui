@@ -47,8 +47,17 @@ export default defineMigration({
     warn(/(?<![\w-])message-reasoning(?![\w-])/, ".message-reasoning is gone: use the reasoning component (/docs/components/reasoning)"),
     warn(/(?<![\w-])message-typing(?![\w-])/, '.message-typing is gone: use loader("typing") (/docs/components/loader)'),
     warn(/(?<![\w-])search-(field|input|group|message)(?![\w-])/, "htmx-ui-plugin-search's palette is the command menu now (.command-*); .search-field, .search-input, .search-group and .search-message are gone", any(STYLE, SCRIPT)),
+
+    // Version switcher links are not boosted: a version ships its own theme and scripts,
+    // so crossing versions has to be a full page load (versions/macros.html, client.ts)
+    replace('version link gets hx-boost="false" (crossing versions is a full page load)', any(MARKUP), /<a((?:\s(?:[^>"']|"[^"]*"|'[^']*')*)?)>/g, (all, attrs: string) =>
+      /\bdata-version-link\b/.test(attrs) && !/\bhx-boost\s*=/.test(attrs) ? `<a${attrs} hx-boost="false">` : all),
+    replace('version switcher links under the "Documentation versions" label get hx-boost="false"', any(MARKUP), /(<p[^>]*>\s*Documentation versions\s*<\/p>)([\s\S]*?)(?=<\/div>)/g, (all, label: string, items: string) =>
+      label +
+      items.replace(/<a((?:\s(?:[^>"']|"[^"]*"|'[^']*')*)?)>/g, (tag, attrs: string) => (/\bhx-boost\s*=/.test(attrs) ? tag : `<a${attrs} hx-boost="false">`))),
   ],
   notes: [
     "htmx-ui-plugin-docs: initMarkdownCopy() still works but is deprecated; the docs plugin's Copy Markdown button needs no client now.",
+    'Snapshots already in site/archive/ are not migrated (the tool skips archive/): re-run "htmx-ui versions:archive", or add hx-boost="false" to their <body>. A frozen page must never boost the live site\'s code into it.',
   ],
 });

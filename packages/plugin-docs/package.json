@@ -1,6 +1,6 @@
 {
   "name": "htmx-ui-plugin-docs",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Docs for htmx-ui-engine sites that people and AI agents can both read: heading anchors, Markdown for every page, llms.txt, JSON and XML sitemaps, docs navigation and page macros.",
   "keywords": [
     "htmx",

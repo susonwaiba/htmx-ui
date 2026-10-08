@@ -11,8 +11,10 @@
    The links rendered here go to each version's root. At runtime
    htmx-ui-plugin-versions/client rebuilds them from the manifest so they point at the
    same page in each version and include versions released after this page was built.
-   Links carry data-version-link so archiving leaves them alone. Uses htmx-ui's
-   Dropdown component. Override by putting your own versions/macros.html in the project. #}
+   Links carry data-version-link so archiving leaves them alone, and hx-boost="false":
+   a version ships its own theme and scripts, so switching versions is a full page load,
+   never a boosted swap of the body. Uses htmx-ui's Dropdown component. Override by
+   putting your own versions/macros.html in the project. #}
 {% from "components/icon/icon.html" import icon %}
 
 {# The dropdown. `links` are extra entries under a separator: [{ title, href }]. #}
@@ -27,7 +29,7 @@
     <p class="dropdown-label">Documentation versions</p>
     <div data-version-items>
       {% for v in all.versions %}
-        <a role="menuitem" class="dropdown-item" data-version-link href="{{ v.path }}"{% if v.id == all.current %} aria-current="true"{% endif %}>
+        <a role="menuitem" class="dropdown-item" data-version-link href="{{ v.path }}"{% if v.id == all.current %} aria-current="true"{% endif %} hx-boost="false">
           <span class="font-mono">{{ v.label }}</span>
           {% if v.latest %}<span class="badge badge-primary">{{ "In development" if (v.label == "next" or not v.released) else "Latest" }}</span>{% endif %}
         </a>
@@ -36,7 +38,7 @@
     {% if links.length %}
       <div class="dropdown-separator" role="separator"></div>
       {% for link in links %}
-        <a role="menuitem" class="dropdown-item" data-version-link href="{{ link.href }}">{{ link.title }} {{ icon("arrow-right") }}</a>
+        <a role="menuitem" class="dropdown-item" data-version-link href="{{ link.href }}" hx-boost="false">{{ link.title }} {{ icon("arrow-right") }}</a>
       {% endfor %}
     {% endif %}
   </div>
@@ -44,6 +46,8 @@
 {%- endmacro %}
 
 {# Where an archived page's "old version" banner goes. Empty on the latest docs: the
-   archiver bakes the banner in, and the client refreshes it at view time. #}
+   archiver bakes the banner in, and the client refreshes it at view time. The slot
+   opts out of boosting: the link inside it points at another version, and is created
+   (or refreshed) after htmx has read the page. #}
 {# The slot holds the alert's warning icon (as alert(variant="warning") draws it); the client keeps it. #}
-{% macro version_banner() %}<div data-version-banner data-md-skip hidden>{{ icon("alert-triangle") }}</div>{% endmacro %}
+{% macro version_banner() %}<div data-version-banner data-md-skip hx-boost="false" hidden>{{ icon("alert-triangle") }}</div>{% endmacro %}

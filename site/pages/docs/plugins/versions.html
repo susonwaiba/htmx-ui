@@ -92,9 +92,10 @@
     <li>
       <strong><code>versions:archive</code></strong> builds the site, freezes the latest version's built docs into
       <code>archive/v&lt;id&gt;/</code> and opens a new <code>next</code>. Links between docs pages are rewritten into
-      the snapshot, assets move to <code>_assets/</code>, and pages get <code>noindex</code> so old versions don't
-      compete with the latest in search results. <code>--skip-build</code> archives the <code>dist/</code> you already
-      have.
+      the snapshot, assets move to <code>_assets/</code>, pages get <code>noindex</code> so old versions don't
+      compete with the latest in search results, and every <code>&lt;body&gt;</code> gets
+      <code>hx-boost="false"</code> so nothing on a frozen page boosts the live site's code into it.
+      <code>--skip-build</code> archives the <code>dist/</code> you already have.
     </li>
   </ol>
   <p>Commit <code>archive/</code> and <code>data/versions.json</code>.</p>
@@ -112,7 +113,15 @@
   <p>
     The version in development never reaches a URL: it is always served at <code>/docs</code>, and only archived
     versions get a <code>/v&lt;id&gt;</code> prefix. Links that must point across versions carry
-    <code>data-version-link</code>, which archiving leaves alone.
+    <code>data-version-link</code>, which archiving leaves alone, and <code>hx-boost="false"</code>: every version
+    ships its own theme and scripts, so switching versions must load the target page fresh instead of swapping the
+    body under this version's stylesheet.
+  </p>
+  <p>
+    Archiving applies the same rule to the whole snapshot, by setting <code>hx-boost="false"</code> on its
+    <code>&lt;body&gt;</code>. A frozen page ships its own theme, stylesheet and scripts, so no link inside it —
+    its logo, footer, sidebar or a link in the prose — may be boosted into the current site, and no current page may
+    be swapped into it: every navigation out of a snapshot is a full page load.
   </p>
 
   <h2 id="options">Options</h2>

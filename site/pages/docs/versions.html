@@ -19,7 +19,7 @@
               {% if v.id == all.latest %}<span class="badge badge-primary">{{ "In development" if not v.released else "Latest" }}</span>
               {% else %}<span class="badge badge-secondary">Archived</span>{% endif %}
             </td>
-            <td class="text-right"><a class="link" href="{{ path }}" data-version-link>{{ path }}</a></td>
+            <td class="text-right"><a class="link" href="{{ path }}" data-version-link hx-boost="false">{{ path }}</a></td>
           </tr>
         {% endfor %}
       </tbody>
@@ -43,7 +43,12 @@
   <p>
     The switcher keeps you on the same page when it exists in the version you pick, and goes to that
     version's introduction otherwise. Older versions list newer releases too, because the list is read
-    from <a href="/docs/versions.json" data-version-link>/docs/versions.json</a> when the page loads.
+    from <a href="/docs/versions.json" data-version-link hx-boost="false">/docs/versions.json</a> when the page loads.
+  </p>
+  <p>
+    Version links are never htmx-boosted: each version carries its own theme, styles and scripts, so a switch
+    is a full page load (<code>hx-boost="false"</code>) rather than a body swap under the stylesheet you are
+    already wearing.
   </p>
 
   <h2 id="policy">Versioning policy</h2>
@@ -62,7 +67,7 @@
   </p>
 
   <h2 id="agents">For tools and agents</h2>
-  <p><a href="/docs/versions.json" data-version-link>/docs/versions.json</a> lists every version with its URL prefix, its own sitemap (with section text, for search) and the pages it contains:</p>
+  <p><a href="/docs/versions.json" data-version-link hx-boost="false">/docs/versions.json</a> lists every version with its URL prefix, its own sitemap (with section text, for search) and the pages it contains:</p>
   {% call code("json", title="/docs/versions.json") %}
     {
       "latest": "0.2",

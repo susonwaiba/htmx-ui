@@ -13,7 +13,7 @@
     },
     "packages/create-htmx-ui": {
       "name": "create-htmx-ui",
-      "version": "0.2.0",
+      "version": "0.3.0",
       "bin": {
         "create-htmx-ui": "./index.js",
       },
@@ -32,7 +32,7 @@
     },
     "packages/engine": {
       "name": "htmx-ui-engine",
-      "version": "0.2.0",
+      "version": "0.3.0",
       "bin": {
         "htmx-ui": "./bin/htmx-ui.js",
       },
@@ -68,7 +68,7 @@
     },
     "packages/plugin-docs": {
       "name": "htmx-ui-plugin-docs",
-      "version": "0.2.0",
+      "version": "0.3.0",
       "dependencies": {
         "happy-dom": "^20.14.5",
       },
@@ -84,7 +84,7 @@
     },
     "packages/plugin-search": {
       "name": "htmx-ui-plugin-search",
-      "version": "0.2.0",
+      "version": "0.3.0",
       "devDependencies": {
         "@types/node": "^24",
         "htmx-ui": "workspace:*",
@@ -97,7 +97,7 @@
     },
     "packages/plugin-versions": {
       "name": "htmx-ui-plugin-versions",
-      "version": "0.2.0",
+      "version": "0.3.0",
       "devDependencies": {
         "@types/node": "^24",
         "htmx-ui": "workspace:*",
@@ -110,7 +110,7 @@
     },
     "packages/ui": {
       "name": "htmx-ui",
-      "version": "0.2.0",
+      "version": "0.3.0",
       "dependencies": {
         "@tailwindcss/typography": "^0.5.20",
         "embla-carousel": "^8.6.0",
@@ -127,7 +127,7 @@
     },
     "packages/upgrade": {
       "name": "htmx-ui-upgrade",
-      "version": "0.2.0",
+      "version": "0.3.0",
       "bin": {
         "htmx-ui-upgrade": "./bin/htmx-ui-upgrade.js",
       },

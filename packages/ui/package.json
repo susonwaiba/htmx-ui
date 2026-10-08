@@ -1,6 +1,6 @@
 {
   "name": "htmx-ui",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Tailwind CSS v4 components for htmx apps: plain HTML, themeable with CSS variables, dark mode built in.",
   "keywords": [
     "htmx",

@@ -101,6 +101,8 @@ describe("versions", () => {
     expect(banner.querySelector(".alert-title")?.textContent).toBe("You're viewing the docs for v0.1.");
     expect(banner.querySelector(".alert-description")?.textContent).toBe("The latest version is v0.2. Go to this page in v0.2.");
     expect(banner.querySelector("a")?.getAttribute("href")).toBe("/docs/installation");
+    // Crossing versions is a full page load: each version ships its own theme and scripts
+    expect(banner.querySelector("a")?.getAttribute("hx-boost")).toBe("false");
     expect(bannerMarkup("v0.1", "v0.2", "/docs/installation")).toContain(banner.innerHTML);
   });
 
@@ -127,6 +129,15 @@ describe("versions", () => {
     expect(banner.querySelector("a")?.getAttribute("href")).toBe("/docs/installation");
     // The warning icon the snapshot was built with stays, first, as alert() draws it.
     expect(banner.firstElementChild?.tagName.toLowerCase()).toBe("svg");
+  });
+
+  test("rebuilds the switcher links unboosted: switching versions is a full page load", async () => {
+    await page("/docs/components/button");
+    // The template's hx-boost="false" would be lost with the element, so the client sets it again
+    expect([...document.querySelectorAll("[data-version-items] a")].map((a) => a.getAttribute("hx-boost"))).toEqual([
+      "false",
+      "false",
+    ]);
   });
 
   test("marks the version in development instead of calling it the latest", async () => {

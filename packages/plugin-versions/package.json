@@ -1,6 +1,6 @@
 {
   "name": "htmx-ui-plugin-versions",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Versioned docs for htmx-ui-engine sites: frozen snapshots of older releases served under /docs/v<id>, a version switcher, an old-version banner and CLI commands to name and archive versions.",
   "keywords": [
     "htmx",

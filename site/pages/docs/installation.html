@@ -15,6 +15,7 @@
         <tr><td><code class="code">htmx-ui</code></td><td class="text-muted-foreground">The components: CSS classes, design tokens, dark mode and small behaviours. Works with any bundler.</td></tr>
         <tr><td><code class="code">htmx-ui-engine</code></td><td class="text-muted-foreground">Builds a site from Nunjucks pages: <code class="code">htmx-ui dev</code>, <code class="code">build</code> and <code class="code">preview</code>, on Bun or Node. See <a class="link" href="/docs/engine">Engine</a>.</td></tr>
         <tr><td><code class="code">create-htmx-ui</code></td><td class="text-muted-foreground">Scaffolds a new site that uses both.</td></tr>
+        <tr><td><code class="code">htmx-ui-upgrade</code></td><td class="text-muted-foreground">Not installed with the project: run it when you update, and it rewrites what the release changed. See <a class="link" href="/docs/upgrading">Upgrading</a>.</td></tr>
       </tbody>
     </table>
   </div>
@@ -132,6 +133,20 @@ add-dev htmx-ui-engine tailwindcss") }}
     The library switches Tailwind's <code>dark:</code> variant from the OS media query to a
     <code>.dark</code> class on <code>&lt;html&gt;</code>. If your app relies on the media-query
     behaviour, read <a href="/docs/dark-mode">Dark mode</a> before upgrading.
+  </p>
+
+  <h2 id="upgrading">Upgrading later</h2>
+  <p>
+    A release before 1.0 can rename a class or change a component's markup — each one listed under
+    <em>Breaking changes</em> in the <a href="/docs/changelog">changelog</a>. You don't have to apply them by
+    hand: <code>htmx-ui-upgrade</code> rewrites your templates, scripts, stylesheets and config to the release you
+    are moving to, and prints the places it left for you to check. It refuses to run on uncommitted changes, so an
+    upgrade is one diff to review:
+  </p>
+  {{ cli("exec htmx-ui-upgrade@latest") }}
+  <p>
+    Then install the new versions and build. What it changes, its options and how to check the result are on
+    <a href="/docs/upgrading">Upgrading</a>.
   </p>
 
   <h2 id="exports">What the package exports</h2>

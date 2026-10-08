@@ -1,9 +1,10 @@
 {
-  "latestReleased": "0.2.0",
+  "latestReleased": "0.3.0",
   "releases": [
     {
       "version": "0.3.0",
-      "summary": "In development: clipboard, timeline and password input components; copy buttons that work everywhere; a select() macro that covers the whole component; and components rebuilt on shared utilities and behaviour helpers."
+      "date": "2026-10-08",
+      "summary": "Six built-in themes with a switcher; htmx-ui-upgrade, one command that migrates a project between versions; clipboard, timeline and password input components; copy buttons that work everywhere; scroll-preserving htmx extensions; a dev server that reflects every change; and components rebuilt on shared utilities."
     },
     {
       "version": "0.2.0",

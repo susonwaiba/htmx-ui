@@ -1,6 +1,6 @@
 {
   "name": "htmx-ui-plugin-search",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Site search for htmx-ui-engine sites: a Ctrl/⌘K command palette with fuzzy matching over pages and sections, reading the sitemap htmx-ui-plugin-docs publishes.",
   "keywords": [
     "htmx",

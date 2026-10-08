@@ -124,6 +124,21 @@ describe("0.3.0", () => {
     const html = `<div class="code-tabs" role="tablist"><button class="code-tab" role="tab">a</button></div><hr class="item-separator">`;
     expect(run(html).text).toBe(`<div class="tabs-list tabs-line code-tabs" role="tablist"><button class="tabs-trigger" role="tab">a</button></div><hr class="separator">`);
   });
+
+  test('version switcher links get hx-boost="false", and only once', () => {
+    const html = `<p class="dropdown-label">Documentation versions</p>
+<div class="dropdown-menu" role="menu">
+  <a class="dropdown-item" href="/docs/v0.1">v0.1</a>
+  <a class="dropdown-item" data-version-link href="/docs" hx-boost="false">v0.3</a>
+</div>
+<a class="link" data-version-link href="/docs/v0.2">/docs/v0.2</a>`;
+    expect(run(html).text).toBe(`<p class="dropdown-label">Documentation versions</p>
+<div class="dropdown-menu" role="menu">
+  <a class="dropdown-item" href="/docs/v0.1" hx-boost="false">v0.1</a>
+  <a class="dropdown-item" data-version-link href="/docs" hx-boost="false">v0.3</a>
+</div>
+<a class="link" data-version-link href="/docs/v0.2" hx-boost="false">/docs/v0.2</a>`);
+  });
 });
 
 describe("upgrade()", () => {

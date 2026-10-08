@@ -10,7 +10,8 @@
   { icon: "download", title: "Installation", href: "/docs/installation", text: "Add the package to a new or existing Bun project." },
   { icon: "palette", title: "Theming", href: "/docs/theming", text: "Override design tokens or build a custom theme." },
   { icon: "moon", title: "Dark mode", href: "/docs/dark-mode", text: "How dark mode works and how to add a switcher." },
-  { icon: "box", title: "Components", href: "/docs/components", text: "Browse every component with live examples." }
+  { icon: "box", title: "Components", href: "/docs/components", text: "Browse every component with live examples." },
+  { icon: "refresh-cw", title: "Upgrading", href: "/docs/upgrading", text: "One command rewrites what a release renamed." }
 ] %}
 
 {% block content %}
@@ -77,6 +78,15 @@
     In htmx 4, <code class="code">htmx:after:swap</code> is dispatched on the element that made the request, so its target is not the new content.
     <code class="code">htmx:after:process</code> fires on each element htmx inserts, which is exactly what needs initialising.
   {% endcall %}
+
+  <h2 id="upgrading">Upgrading</h2>
+  <p>
+    Before 1.0 a minor release can rename a class or change a component's markup, and every one of them is listed
+    under <em>Breaking changes</em> in the <a href="/docs/changelog">changelog</a>. You don't make those edits by
+    hand: <code>htmx-ui-upgrade</code> rewrites your templates, scripts, stylesheets and config to the release you
+    are moving to, then prints the places it left for you to check. It refuses to run on uncommitted changes, so
+    an upgrade is one diff to review — or to undo. See <a href="/docs/upgrading">Upgrading</a>.
+  </p>
 
   <h2 id="stack">What it's built on</h2>
   <ul>

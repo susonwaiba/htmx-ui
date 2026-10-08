@@ -1,6 +1,6 @@
 {
   "name": "htmx-ui-upgrade",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Upgrade an htmx-ui project's code to a newer htmx-ui: npx htmx-ui-upgrade@latest, bunx htmx-ui-upgrade@latest.",
   "keywords": [
     "htmx",

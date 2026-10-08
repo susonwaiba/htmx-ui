@@ -54,10 +54,10 @@ describe("htmx-ui-plugin-versions", () => {
     const html = renderPage(c, join(root, "pages/docs/setup.html"));
     expect(html).toContain('data-version-switcher data-version="next" data-versions-src="/docs/versions.json"');
     expect(html).toMatch(/<span class="font-mono">next<\/span><svg/); // the button shows this page's version
-    expect(html).toMatch(/href="\/docs" aria-current="true">\s*<span class="font-mono">next<\/span>\s*<span class="badge badge-primary">In development<\/span>/);
-    expect(html).toMatch(/href="\/docs\/v0.1">\s*<span class="font-mono">v0.1<\/span>\s*<\/a>/);
-    expect(html).toContain('href="/docs/changelog">Changelog <svg');
-    expect(html).toMatch(/<div data-version-banner data-md-skip hidden><svg[^>]*aria-hidden="true"[^>]*>.*?<\/svg><\/div>/); // the slot carries the alert's warning icon
+    expect(html).toMatch(/href="\/docs" aria-current="true" hx-boost="false">\s*<span class="font-mono">next<\/span>\s*<span class="badge badge-primary">In development<\/span>/);
+    expect(html).toMatch(/href="\/docs\/v0.1" hx-boost="false">\s*<span class="font-mono">v0.1<\/span>\s*<\/a>/);
+    expect(html).toContain('href="/docs/changelog" hx-boost="false">Changelog <svg');
+    expect(html).toMatch(/<div data-version-banner data-md-skip hx-boost="false" hidden><svg[^>]*aria-hidden="true"[^>]*>.*?<\/svg><\/div>/); // the slot carries the warning icon, and opts out of boosting
   });
 
   test("serves the manifest and the archived versions", async () => {
