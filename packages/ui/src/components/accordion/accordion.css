@@ -12,20 +12,18 @@
   .accordion {
     @apply flex w-full flex-col;
   }
+  /* details-animate: opens and closes smoothly where the browser can animate to height: auto */
   .accordion-item {
-    @apply border-b border-border last:border-b-0;
+    @apply details-animate border-b border-border last:border-b-0;
   }
   .accordion-trigger {
     @apply flex w-full cursor-pointer list-none items-center justify-between gap-4 rounded-(--radius) py-4 text-left
-      text-sm font-medium transition-colors select-none hover:underline focus-visible:outline-2
-      focus-visible:outline-offset-2 focus-visible:outline-ring [&::-webkit-details-marker]:hidden
+      text-sm font-medium transition-colors select-none hover:underline focus-outline [&::-webkit-details-marker]:hidden
       [&_svg]:size-4 [&_svg]:shrink-0;
   }
   /* Chevron, drawn from the text colour; turns when open */
   .accordion-trigger::after {
-    @apply size-4 shrink-0 bg-current text-muted-foreground transition-transform duration-200 content-[''];
-    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")
-      center / contain no-repeat;
+    @apply chevron-mask size-4 shrink-0 bg-current text-muted-foreground transition-transform duration-(--motion-duration-moderate) content-[''];
   }
   .accordion-item[open] > .accordion-trigger::after {
     @apply rotate-180;
@@ -60,28 +58,5 @@
   }
   .accordion-separated .accordion-item {
     @apply rounded-(--radius) border border-border px-4 last:border-b;
-  }
-}
-
-/* Smooth open/close where the browser can animate to height: auto (Chromium); elsewhere it
-   just snaps. Outside the layer list so browsers without ::details-content skip only this. */
-@supports selector(::details-content) {
-  .accordion-item {
-    interpolate-size: allow-keywords;
-  }
-  .accordion-item::details-content {
-    height: 0;
-    overflow: clip;
-    transition:
-      height 200ms ease,
-      content-visibility 200ms allow-discrete;
-  }
-  .accordion-item[open]::details-content {
-    height: auto;
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .accordion-item::details-content {
-      transition: none;
-    }
   }
 }

@@ -20,8 +20,8 @@
    bubble: assistant replies and long text). The header, footer and attachments follow the
    message's side, and so do the footer's actions on data-align="end" rows.
    .message-group stacks consecutive messages from one sender: the avatar and header show once.
-   .message-list spaces a conversation. For AI apps: .message-reasoning (a <details> of thinking
-   steps), .message-tool (a tool call with its state) and .message-typing (three dots). */
+   .message-list spaces a conversation. For AI apps: .message-tool (a tool call with its state);
+   for thinking and typing, put the reasoning component and loader("typing") in .message-body. */
 @layer components {
   .message-list {
     @apply flex flex-col gap-6;
@@ -156,44 +156,6 @@
     @apply hidden;
   }
 
-  /* AI: reasoning steps, folded away under a summary */
-  .message-reasoning {
-    @apply text-muted-foreground;
-  }
-  .message-reasoning > summary {
-    @apply inline-flex cursor-pointer list-none items-center gap-1.5 rounded-md py-0.5 text-sm transition-colors
-      select-none hover:text-foreground focus-visible:outline-2 focus-visible:outline-ring [&::-webkit-details-marker]:hidden
-      [&_svg]:size-4;
-  }
-  .message-reasoning > summary::after {
-    @apply size-3.5 bg-current transition-transform content-[''];
-    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")
-      center / contain no-repeat;
-  }
-  .message-reasoning[open] > summary::after {
-    @apply rotate-180;
-  }
-  .message-reasoning > :not(summary) {
-    @apply mt-2 border-s-2 border-border ps-3 text-sm leading-relaxed;
-  }
-  .message-reasoning ol,
-  .message-reasoning ul {
-    @apply flex flex-col gap-1.5;
-  }
-  /* Still thinking: the summary shimmers (as an uploading .attachment's title does). */
-  .message-reasoning[data-state="streaming"] > summary {
-    background: linear-gradient(90deg, var(--muted-foreground) 35%, var(--foreground) 50%, var(--muted-foreground) 65%) 0 0 / 250% 100%;
-    background-clip: text;
-    color: transparent;
-    animation: message-shimmer 1.6s linear infinite;
-  }
-  .message-reasoning[data-state="streaming"] > summary::after {
-    @apply bg-muted-foreground;
-  }
-  .message-reasoning[data-state="streaming"] > summary svg {
-    @apply text-muted-foreground;
-  }
-
   /* AI: a tool call, its state in data-state="running" | "done" | "error" */
   .message-tool {
     @apply w-full max-w-md overflow-hidden rounded-(--radius) border border-border bg-surface text-sm;
@@ -222,48 +184,5 @@
   }
   .message-tool-content pre {
     @apply overflow-x-auto rounded-[calc(var(--radius)-2px)] bg-background p-2 font-mono text-xs leading-relaxed;
-  }
-
-  /* Typing: three dots that rise in turn */
-  .message-typing {
-    @apply inline-flex h-5 items-center gap-1;
-  }
-  .message-typing > span {
-    @apply size-1.5 rounded-full bg-current opacity-60;
-    animation: message-typing 1.2s ease-in-out infinite;
-  }
-  .message-typing > span:nth-child(2) {
-    animation-delay: 0.15s;
-  }
-  .message-typing > span:nth-child(3) {
-    animation-delay: 0.3s;
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .message-typing > span,
-    .message-reasoning[data-state="streaming"] > summary {
-      animation: none;
-    }
-  }
-}
-
-@keyframes message-typing {
-  0%,
-  60%,
-  100% {
-    transform: translateY(0);
-    opacity: 0.4;
-  }
-  30% {
-    transform: translateY(-3px);
-    opacity: 1;
-  }
-}
-
-@keyframes message-shimmer {
-  from {
-    background-position: 100% 0;
-  }
-  to {
-    background-position: 0 0;
   }
 }

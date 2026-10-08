@@ -11,9 +11,11 @@
    text=none        the visible text of a text variant (default: label, or "Loading" without one)
    size=none        "sm" | "lg"
    label="Loading"  the accessible name of a shape (screen-reader text); label=none hides the
-                    loader from assistive technology. Text variants are read as their text.
+                    loader from assistive technology. Text variants are read as their text, in a
+                    role="status" unless label=none (e.g. inside a summary that names itself).
    class=""         more classes on the .loader (e.g. text-primary, [--loader-duration:2s])
    attrs=none       more attributes, as a dict ({"id": "save-loader", "style": "--loader-size: 2rem"}) #}
+{% from "macros/attrs.html" import attrs as html_attrs %}
 
 {% macro loader(variant="dots", text=none, size=none, label="Loading", class="", attrs=none) %}
 {% set bars = {"dots": 3, "typing": 3, "wave": 5} %}
@@ -21,9 +23,9 @@
 {% set shown = text or label or "Loading" %}
 {% set count = bars[variant] if variant in bars else 0 %}
 <span class="loader loader-{{ variant }}{% if size %} loader-{{ size }}{% endif %}{% if class %} {{ class }}{% endif %}"
-  {%- if label or is_text %} role="status"{% else %} aria-hidden="true"{% endif %}
+  {%- if label %} role="status"{% elif not is_text %} aria-hidden="true"{% endif %}
   {%- if label and not is_text and not count %} aria-label="{{ label }}"{% endif %}
-  {%- if attrs %}{% for k, a in attrs %} {{ k }}="{{ a }}"{% endfor %}{% endif %}>
+  {{- html_attrs(attrs) }}>
   {%- if is_text %}{{ shown }}{% endif %}
   {%- if variant == "loading-dots" %}{% for i in range(3) %}<span aria-hidden="true">.</span>{% endfor %}{% endif %}
   {%- for i in range(count) %}<span aria-hidden="true"></span>{% endfor %}

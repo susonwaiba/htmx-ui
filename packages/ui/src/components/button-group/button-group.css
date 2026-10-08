@@ -3,7 +3,7 @@
      <button class="btn btn-outline">Bold</button>
      <button class="btn btn-outline">Italic</button>
    </div>
-   Children can be buttons, .input / .select, .input-group, .btn-group-text, .btn-group-separator,
+   Children can be buttons, .input / .select (native or the select component), .input-group, .btn-group-text, .btn-group-separator,
    or a .dropdown / .popover whose trigger is a .btn. A group of groups (a toolbar) spaces them apart. */
 @layer components {
   .btn-group {
@@ -17,11 +17,11 @@
 
   /* Horizontal: square off the inner corners and overlap the shared borders */
   .btn-group:not(.btn-group-vertical, :has(> .btn-group)) > :not(:first-child),
-  .btn-group:not(.btn-group-vertical, :has(> .btn-group)) > :not(:first-child) > .btn {
+  .btn-group:not(.btn-group-vertical, :has(> .btn-group)) > :not(:first-child) > :is(.btn, .select-trigger) {
     @apply rounded-s-none;
   }
   .btn-group:not(.btn-group-vertical, :has(> .btn-group)) > :not(:last-child),
-  .btn-group:not(.btn-group-vertical, :has(> .btn-group)) > :not(:last-child) > .btn {
+  .btn-group:not(.btn-group-vertical, :has(> .btn-group)) > :not(:last-child) > :is(.btn, .select-trigger) {
     @apply rounded-e-none;
   }
   .btn-group:not(.btn-group-vertical, :has(> .btn-group))
@@ -34,11 +34,11 @@
     @apply flex-col;
   }
   .btn-group-vertical:not(:has(> .btn-group)) > :not(:first-child),
-  .btn-group-vertical:not(:has(> .btn-group)) > :not(:first-child) > .btn {
+  .btn-group-vertical:not(:has(> .btn-group)) > :not(:first-child) > :is(.btn, .select-trigger) {
     @apply rounded-t-none;
   }
   .btn-group-vertical:not(:has(> .btn-group)) > :not(:last-child),
-  .btn-group-vertical:not(:has(> .btn-group)) > :not(:last-child) > .btn {
+  .btn-group-vertical:not(:has(> .btn-group)) > :not(:last-child) > :is(.btn, .select-trigger) {
     @apply rounded-b-none;
   }
   .btn-group-vertical:not(:has(> .btn-group))
@@ -56,7 +56,8 @@
   .btn-group-sm > * > .btn {
     @apply h-8 gap-1.5 px-3 text-xs;
   }
-  .btn-group-sm > :is(.input, .select, .btn-group-text) {
+  .btn-group-sm > :is(.input, select.select, .btn-group-text),
+  .btn-group-sm > .select > .select-trigger {
     @apply h-8 px-2.5 text-xs;
   }
   .btn-group-sm > .btn-icon,
@@ -67,7 +68,8 @@
   .btn-group-lg > * > .btn {
     @apply h-11 px-6 text-base;
   }
-  .btn-group-lg > :is(.input, .select, .btn-group-text) {
+  .btn-group-lg > :is(.input, select.select, .btn-group-text),
+  .btn-group-lg > .select > .select-trigger {
     @apply h-11 px-4 text-base;
   }
   .btn-group-lg > .btn-icon,

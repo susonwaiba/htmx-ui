@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { commandMatches, initCommand, matchesHotkey } from "./command";
+import { matchesHotkey } from "../../utils/hotkey";
+import { commandMatches, initCommand } from "./command";
 
 const markup = `
   <div class="command" data-command>

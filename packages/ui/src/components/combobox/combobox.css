@@ -27,21 +27,21 @@
 
   /* The list. Opens below, as wide as the input. */
   .combobox-content {
-    @apply absolute top-full left-0 z-50 mt-1 max-h-72 w-full min-w-48 overflow-y-auto overscroll-contain
-      rounded-(--radius) border border-border bg-surface p-1 text-foreground shadow-lg;
+    @apply popup-surface absolute top-full left-0 z-50 mt-1 max-h-72 w-full min-w-48 overflow-y-auto
+      overscroll-contain p-1 shadow-lg;
   }
-  .combobox-content-end {
+  .combobox-content-end,
+  .combobox-content[data-flip-x] {
     @apply right-0 left-auto;
   }
-  .combobox-content-up {
+  .combobox-content-up,
+  .combobox-content[data-flip-y] {
     @apply top-auto bottom-full mt-0 mb-1;
   }
   /* The highlight follows the keyboard and the pointer alike (data-highlighted, set by the
      behaviour), so there is only ever one. */
   .combobox-item {
-    @apply flex w-full cursor-pointer items-center gap-2 rounded-[calc(var(--radius)-2px)] px-2 py-1.5 text-left
-      text-sm leading-normal outline-none select-none aria-disabled:pointer-events-none aria-disabled:opacity-50
-      data-highlighted:bg-accent data-highlighted:text-accent-foreground [&_svg]:size-4 [&_svg]:shrink-0;
+    @apply menu-item leading-normal data-highlighted:bg-accent data-highlighted:text-accent-foreground;
   }
   .combobox-item[aria-selected="true"] {
     @apply font-medium;
@@ -61,13 +61,13 @@
     @apply flex flex-col;
   }
   .combobox-label {
-    @apply px-2 py-1.5 text-xs font-medium text-muted-foreground;
+    @apply menu-label;
   }
   .combobox-separator {
-    @apply -mx-1 my-1 h-px bg-border;
+    @apply menu-separator;
   }
   .combobox-empty {
-    @apply px-2 py-4 text-center text-sm text-muted-foreground;
+    @apply menu-empty;
   }
 
   /* Multiple: chips and the input wrap inside one box that looks like an .input.
@@ -89,8 +89,7 @@
     @apply cursor-not-allowed opacity-50;
   }
   .combobox-chips-input {
-    @apply h-6 min-w-16 flex-1 border-0 bg-transparent px-1 text-sm text-foreground outline-none
-      placeholder:text-muted-foreground disabled:cursor-not-allowed;
+    @apply input-bare h-6 min-w-16 flex-1 px-1 text-sm;
   }
   /* Buttons at the end of the chip box (clear, toggle) */
   .combobox-chips > .btn {

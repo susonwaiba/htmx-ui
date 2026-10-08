@@ -13,8 +13,7 @@
    Inside a .field, .label behaves like .field-label (required asterisk, error tint); see field.css. */
 @layer components {
   .label {
-    @apply flex w-fit items-center gap-2 text-sm leading-snug font-medium text-foreground select-none
-      [&_svg]:size-4;
+    @apply label-text;
   }
   /* Wrapping a checkbox, radio or switch: the box lines up with the first line of text. */
   .label:has(> :is(input[type="checkbox"], input[type="radio"])) {
@@ -40,9 +39,7 @@
 
   /* Choice card: the whole card is the hit area. One color-mix() per rule (see components/alert). */
   .label-card {
-    @apply flex w-full cursor-pointer items-start gap-3 rounded-(--radius) border border-border bg-surface p-3 text-sm
-      leading-snug font-medium text-foreground transition-[color,box-shadow,border-color,background-color]
-      select-none hover:bg-accent/40;
+    @apply choice-card w-full leading-snug font-medium select-none;
   }
   .label-card > :is(input[type="checkbox"], input[type="radio"]) {
     @apply mt-px;
@@ -63,6 +60,6 @@
     @apply flex min-w-0 flex-1 flex-col gap-1;
   }
   .label-description {
-    @apply text-sm leading-normal font-normal text-muted-foreground;
+    @apply description-text;
   }
 }

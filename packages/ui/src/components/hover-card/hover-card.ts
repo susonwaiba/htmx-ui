@@ -13,6 +13,7 @@
 //   if that has room; data-side on the card is the side it opened on.
 // No ARIA role: the card is supplementary to a real link. It is hidden (visibility) while closed.
 import { queryAll } from "../../utils/dom";
+import { cssTime } from "../../utils/shared";
 
 type Side = "top" | "right" | "bottom" | "left";
 const SIDES: Side[] = ["top", "right", "bottom", "left"];
@@ -21,14 +22,6 @@ const OPPOSITE: Record<Side, Side> = { top: "bottom", bottom: "top", left: "righ
 type Card = { close: (refocus: boolean) => void; root: HTMLElement };
 const open = new Set<Card>();
 let listening = false;
-
-/** A CSS time ("700ms", "0.3s") from a custom property, or the fallback in ms. */
-function delay(el: Element, name: string, fallback: number) {
-  const value = getComputedStyle(el).getPropertyValue(name).trim();
-  const n = parseFloat(value);
-  if (!value || Number.isNaN(n)) return fallback;
-  return value.endsWith("ms") ? n : value.endsWith("s") ? n * 1000 : n;
-}
 
 function focusVisible(el: Element) {
   try {
@@ -130,14 +123,14 @@ export function initHoverCard(root: ParentNode = document) {
       if (e.pointerType === "touch") return;
       hovering = true;
       clearTimeout(closeTimer);
-      if (!isOpen() && !dismissed) openTimer = setTimeout(show, delay(wrapper, "--hover-card-open-delay", 700));
+      if (!isOpen() && !dismissed) openTimer = setTimeout(show, cssTime(wrapper, "--hover-card-open-delay", 700));
     });
     wrapper.addEventListener("pointerleave", (e) => {
       if (e.pointerType === "touch") return;
       hovering = false;
       dismissed = false;
       clearTimeout(openTimer);
-      if (isOpen() && !holdsFocus()) closeTimer = setTimeout(hide, delay(wrapper, "--hover-card-close-delay", 300));
+      if (isOpen() && !holdsFocus()) closeTimer = setTimeout(hide, cssTime(wrapper, "--hover-card-close-delay", 300));
     });
     trigger.addEventListener("focus", () => {
       if (!dismissed && focusVisible(trigger)) show();

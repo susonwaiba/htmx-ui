@@ -55,8 +55,7 @@
   /* A link or button covering the whole attachment (open, preview, download). The actions
      stay clickable above it. Give it an aria-label: it has no text of its own. */
   .attachment-trigger {
-    @apply absolute inset-0 z-0 cursor-pointer rounded-[inherit] outline-none focus-visible:outline-2
-      focus-visible:outline-offset-2 focus-visible:outline-ring;
+    @apply absolute inset-0 z-0 cursor-pointer rounded-[inherit] outline-none focus-outline;
   }
   .attachment:has(> .attachment-trigger) {
     @apply transition-colors hover:bg-accent;

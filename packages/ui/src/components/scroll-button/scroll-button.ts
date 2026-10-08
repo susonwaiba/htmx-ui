@@ -11,6 +11,7 @@
 //   when its content grows (children added or resized), so a chat transcript's "jump to
 //   bottom" appears as messages stream in. Listeners are dropped once the button leaves the document.
 import { queryAll } from "../../utils/dom";
+import { reducedMotion } from "../../utils/shared";
 
 export type ScrollEdge = "top" | "bottom";
 /** An element that scrolls, or null for the page. */
@@ -20,8 +21,6 @@ const DEFAULT_THRESHOLD = 200;
 
 const pageScroller = () => (document.scrollingElement ?? document.documentElement) as HTMLElement;
 
-const reducedMotion = () =>
-  typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 function scrollsY(el: Element): boolean {
   const overflow = getComputedStyle(el).overflowY;

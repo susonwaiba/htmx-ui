@@ -31,15 +31,14 @@
   }
 
   .field-label {
-    @apply flex w-fit items-center gap-2 text-sm leading-snug font-medium text-foreground select-none
-      [&_svg]:size-4;
+    @apply label-text;
   }
   /* Label + description side by side with a control in horizontal fields */
   .field-content {
     @apply flex flex-1 flex-col gap-1.5 leading-snug;
   }
   .field-description {
-    @apply text-sm leading-normal font-normal text-muted-foreground;
+    @apply description-text;
   }
   /* Links in the text: a separate rule, because the minified build drops [&_a]:underline inside @apply. */
   .field-description a {

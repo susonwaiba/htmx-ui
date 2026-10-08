@@ -8,10 +8,10 @@
          <div class="message message-plain" id="m2" data-streaming>…</div>
        </div>
      </div>
-     <button type="button" class="message-scroller-jump" data-message-scroller-jump aria-label="Jump to latest">
+     <button type="button" class="btn btn-outline btn-sm btn-rounded message-scroller-jump" data-message-scroller-jump aria-label="Jump to latest">
        {{ icon("arrow-down") }}
        <span class="message-scroller-jump-unread">New messages</span>
-       <span class="message-scroller-jump-streaming message-typing" aria-hidden="true"><span></span><span></span><span></span></span>
+       <span class="message-scroller-jump-streaming loader loader-typing" aria-hidden="true"><span></span><span></span><span></span></span>
      </button>
    </div>
 
@@ -50,11 +50,12 @@
   }
 
   /* Jump to latest: hidden at the bottom; data-state latest | unread | streaming */
+  /* <button class="btn btn-outline btn-sm btn-rounded message-scroller-jump">: .btn draws the pill
+     (as the scroll button's); this places it and fades it in and out. */
   .message-scroller-jump {
-    @apply absolute bottom-3 left-1/2 z-10 inline-flex h-8 min-w-8 -translate-x-1/2 items-center justify-center gap-1.5
-      rounded-full border border-border bg-surface px-2 text-xs font-medium text-foreground shadow-md
-      transition-[opacity,translate] duration-200 hover:bg-muted focus-visible:outline-2 focus-visible:outline-offset-2
-      focus-visible:outline-ring [&>svg]:size-4 [&>svg]:shrink-0;
+    @apply absolute bottom-3 left-1/2 z-10 min-w-8 -translate-x-1/2 bg-surface px-2 shadow-md;
+    transition-property: color, background-color, opacity, translate;
+    transition-duration: var(--motion-duration-moderate);
   }
   .message-scroller-jump:is(:not([data-state]), [data-state="hidden"]) {
     @apply pointer-events-none invisible translate-y-2 opacity-0;
@@ -72,11 +73,8 @@
   .message-scroller-jump[data-state="streaming"] .message-scroller-jump-streaming {
     @apply inline-flex;
   }
-  .message-scroller-jump .message-typing {
-    @apply h-4;
-  }
-  .message-scroller-jump .message-typing > span {
-    @apply size-1;
+  .message-scroller-jump .loader {
+    --loader-size: 0.75rem;
   }
 
   /* "New" divider before the first unread row */

@@ -28,15 +28,12 @@
     @apply flex w-full flex-col text-sm;
   }
   details.chain-of-thought {
-    @apply block;
+    @apply details-animate block;
   }
 
   /* The whole chain's summary, when it folds away */
   .chain-of-thought-header {
-    @apply inline-flex max-w-full cursor-pointer list-none items-center gap-1.5 rounded-md py-0.5 text-sm
-      text-muted-foreground transition-colors select-none hover:text-foreground focus-visible:outline-2
-      focus-visible:outline-offset-2 focus-visible:outline-ring [&::-webkit-details-marker]:hidden
-      [&>svg]:size-4 [&>svg]:shrink-0;
+    @apply summary-trigger;
   }
   .chain-of-thought-content {
     @apply flex flex-col pt-3;
@@ -45,6 +42,9 @@
   /* One step: its line runs from under the icon to the bottom of the step, into the next one */
   .chain-of-thought-step {
     @apply relative block pb-3 last:pb-0;
+  }
+  details.chain-of-thought-step {
+    @apply details-animate;
   }
   .chain-of-thought-step::before {
     @apply absolute start-[calc(0.625rem-1px)] top-6.5 bottom-0.5 w-0.5 rounded-full bg-border content-[''];
@@ -58,15 +58,12 @@
     @apply flex min-h-6 w-full list-none items-start gap-2 rounded-md text-muted-foreground [&::-webkit-details-marker]:hidden;
   }
   summary.chain-of-thought-step-header {
-    @apply cursor-pointer transition-colors select-none hover:text-foreground focus-visible:outline-2
-      focus-visible:outline-offset-2 focus-visible:outline-ring;
+    @apply focus-outline cursor-pointer transition-colors select-none hover:text-foreground;
   }
   /* Chevrons, drawn from the text colour */
   .chain-of-thought-header::after,
   summary.chain-of-thought-step-header::after {
-    @apply size-3.5 shrink-0 bg-current transition-[rotate] duration-200 content-[''] motion-reduce:transition-none;
-    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")
-      center / contain no-repeat;
+    @apply chevron-mask size-3.5 shrink-0 bg-current transition-[rotate] duration-(--motion-duration-moderate) content-[''] motion-reduce:transition-none;
   }
   summary.chain-of-thought-step-header::after {
     @apply mt-[5px];
@@ -115,32 +112,5 @@
   }
   .chain-of-thought-step[data-status="error"] > .chain-of-thought-step-header {
     @apply text-danger;
-  }
-}
-
-/* Smooth open/close where the browser can animate to height: auto (Chromium); elsewhere it
-   just snaps. Outside the layer list so browsers without ::details-content skip only this. */
-@supports selector(::details-content) {
-  details.chain-of-thought,
-  details.chain-of-thought-step {
-    interpolate-size: allow-keywords;
-  }
-  details.chain-of-thought::details-content,
-  details.chain-of-thought-step::details-content {
-    height: 0;
-    overflow: clip;
-    transition:
-      height 200ms ease,
-      content-visibility 200ms allow-discrete;
-  }
-  details.chain-of-thought[open]::details-content,
-  details.chain-of-thought-step[open]::details-content {
-    height: auto;
-  }
-  @media (prefers-reduced-motion: reduce) {
-    details.chain-of-thought::details-content,
-    details.chain-of-thought-step::details-content {
-      transition: none;
-    }
   }
 }

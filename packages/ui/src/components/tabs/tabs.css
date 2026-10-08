@@ -17,12 +17,12 @@
   .tabs-trigger {
     @apply inline-flex h-7 cursor-pointer items-center justify-center gap-1.5 rounded-[calc(var(--radius)-2px)] px-3
       text-sm font-medium whitespace-nowrap transition-colors hover:text-foreground
-      focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring
+      focus-outline
       disabled:pointer-events-none disabled:opacity-50
       aria-selected:bg-background aria-selected:text-foreground aria-selected:shadow-xs [&_svg]:size-4 [&_svg]:shrink-0;
   }
   .tabs-panel {
-    @apply min-w-0 flex-1 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring;
+    @apply min-w-0 flex-1 focus-outline;
   }
   /* A list used without the .tabs wrapper keeps the old spacing above its panels. */
   :not(.tabs) > .tabs-list ~ .tabs-panel {

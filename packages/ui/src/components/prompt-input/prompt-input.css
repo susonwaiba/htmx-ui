@@ -8,7 +8,7 @@
      <div class="prompt-input-actions">
        <div class="prompt-input-tools">
          <button type="button" class="btn btn-ghost btn-icon btn-sm" aria-label="Attach files">{{ icon("paperclip") }}</button>
-         <select class="select input-sm prompt-input-select" name="model" aria-label="Model">…</select>
+         {{ select("model", models, name="model", label="Model", size="sm", side="top", class="prompt-input-select") }}
        </div>
        <button class="btn btn-primary btn-icon btn-sm btn-rounded prompt-input-submit" data-prompt-input-submit aria-label="Send">
          {{ icon("arrow-up") }}<span class="prompt-input-stop-icon"></span>
@@ -54,8 +54,8 @@
   /* The textarea drops its own frame. It grows with its text up to max-h-48 (another max-h-*
      utility on it changes that), then scrolls. */
   .prompt-input-textarea {
-    @apply field-sizing-content block max-h-48 min-h-10 w-full min-w-0 resize-none border-0 bg-transparent px-2 py-1.5
-      text-base text-foreground outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed sm:text-sm;
+    @apply input-bare field-sizing-content block max-h-48 min-h-10 w-full min-w-0 resize-none px-2 py-1.5 text-base
+      sm:text-sm;
   }
 
   /* Attachments above the text. Empty: takes no room. */
@@ -76,8 +76,10 @@
   .prompt-input-tools > .btn:not(.btn-icon) {
     @apply px-2.5;
   }
-  /* A native select for the model, as quiet as a ghost button */
-  select.select.prompt-input-select {
+  /* A select for the model, as quiet as a ghost button: the select component
+     (select(…, size="sm", side="top", class="prompt-input-select")) or a native one */
+  select.select.prompt-input-select,
+  .prompt-input-select > .select-trigger {
     @apply w-auto border-transparent bg-transparent shadow-none hover:bg-accent hover:text-accent-foreground;
   }
   .prompt-input-submit {
@@ -97,8 +99,8 @@
 
   /* Suggestions for @ mentions and / commands, above the box, as wide as it. */
   .prompt-input-menu {
-    @apply absolute inset-x-0 bottom-full z-50 mb-2 max-h-64 scroll-py-1 overflow-y-auto overscroll-contain
-      rounded-(--radius) border border-border bg-surface p-1 text-sm text-foreground shadow-lg;
+    @apply popup-surface absolute inset-x-0 bottom-full z-50 mb-2 max-h-64 scroll-py-1 overflow-y-auto
+      overscroll-contain p-1 text-sm shadow-lg;
   }
   .prompt-input-menu-down,
   .prompt-input-menu[data-side="bottom"] {
@@ -110,9 +112,7 @@
   /* The highlight follows the keyboard and the pointer alike (data-highlighted, set by the
      behaviour), so there is only ever one. */
   .prompt-input-option {
-    @apply flex w-full cursor-pointer items-center gap-2 rounded-[calc(var(--radius)-2px)] px-2 py-1.5 text-left
-      leading-normal outline-none select-none aria-disabled:pointer-events-none aria-disabled:opacity-50
-      data-highlighted:bg-accent data-highlighted:text-accent-foreground [&>svg]:size-4 [&>svg]:shrink-0
+    @apply menu-item leading-normal data-highlighted:bg-accent data-highlighted:text-accent-foreground
       [&>svg]:text-muted-foreground;
   }
   .prompt-input-option-label {
@@ -128,9 +128,9 @@
     @apply mt-1;
   }
   .prompt-input-label {
-    @apply px-2 py-1.5 text-xs font-medium text-muted-foreground;
+    @apply menu-label;
   }
   .prompt-input-empty {
-    @apply px-2 py-4 text-center text-sm text-muted-foreground;
+    @apply menu-empty;
   }
 }

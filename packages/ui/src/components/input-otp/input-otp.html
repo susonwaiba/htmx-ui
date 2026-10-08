@@ -8,12 +8,14 @@
    pattern: "digits", "alphanumeric", "alpha" or a regex character class like "[0-9a-f]".
    case: "upper" / "lower". mask: show • for each character. spaced: one box per slot.
    size: "sm" / "lg". state: "warning" / "success". invalid, disabled, required: as on an input.
-   submit: submit the form once the last slot is filled. id, value, attrs: on the input. #}
+   submit: submit the form once the last slot is filled. id, value: on the input. class: on the
+   .input-otp wrapper. attrs: more attributes on the input, as a dict. #}
+{% from "macros/attrs.html" import attrs as html_attrs %}
 
-{% macro input_otp(name, length=6, groups=none, pattern="digits", case=none, mask=false, spaced=false, size=none, state=none, invalid=false, disabled=false, required=false, submit=false, label="One-time code", id=none, value=none, attrs="") %}
+{% macro input_otp(name, length=6, groups=none, pattern="digits", case=none, mask=false, spaced=false, size=none, state=none, invalid=false, disabled=false, required=false, submit=false, label="One-time code", id=none, value=none, class="", attrs=none) %}
 {% set groups = groups or [length] %}
-<div class="input-otp{% if size %} input-otp-{{ size }}{% endif %}{% if state %} input-otp-{{ state }}{% endif %}{% if spaced %} input-otp-spaced{% endif %}" data-input-otp{% if pattern != "digits" %} data-pattern="{{ pattern }}"{% endif %}{% if case %} data-case="{{ case }}"{% endif %}{% if mask %} data-mask{% endif %}{% if submit %} data-submit{% endif %}>
-  <input class="input-otp-input" data-input-otp-input name="{{ name }}"{% if id %} id="{{ id }}"{% endif %} aria-label="{{ label }}"{% if value %} value="{{ value }}"{% endif %}{% if invalid %} aria-invalid="true"{% endif %}{% if disabled %} disabled{% endif %}{% if required %} required{% endif %}{% if attrs %} {{ attrs | safe }}{% endif %} />
+<div class="input-otp{% if size %} input-otp-{{ size }}{% endif %}{% if state %} input-otp-{{ state }}{% endif %}{% if spaced %} input-otp-spaced{% endif %}{% if class %} {{ class }}{% endif %}" data-input-otp{% if pattern != "digits" %} data-pattern="{{ pattern }}"{% endif %}{% if case %} data-case="{{ case }}"{% endif %}{% if mask %} data-mask{% endif %}{% if submit %} data-submit{% endif %}>
+  <input class="input-otp-input" data-input-otp-input name="{{ name }}"{% if id %} id="{{ id }}"{% endif %} aria-label="{{ label }}"{% if value %} value="{{ value }}"{% endif %}{% if invalid %} aria-invalid="true"{% endif %}{% if disabled %} disabled{% endif %}{% if required %} required{% endif %}{{ html_attrs(attrs) }} />
   {% for count in groups %}
   {% if not loop.first %}<div class="input-otp-separator" aria-hidden="true"></div>{% endif %}
   <div class="input-otp-group" aria-hidden="true">

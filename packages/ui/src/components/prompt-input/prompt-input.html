@@ -11,7 +11,8 @@
    them from the server instead. attachments: an empty .prompt-input-attachments row (id
    "<id>-attachments") to fill. clear=false keeps the text after a send. submit_label /
    stop_label: the submit button's names. id: on the form, and the prefix of inner ids.
-   class: on the form. attrs: extra attributes on the form. #}
+   class: on the form. attrs: more attributes on the form, as a dict ({"hx-ext": "sse"}). #}
+{% from "macros/attrs.html" import attrs as html_attrs %}
 
 {% macro _menu(trigger, label, items, src, empty) %}
 {% from "components/icon/icon.html" import icon %}
@@ -29,9 +30,9 @@
 </div>
 {%- endmacro %}
 
-{% macro prompt_input(name="prompt", placeholder="Ask anything…", label="Prompt", id=none, action=none, target=none, swap=none, mentions=none, commands=none, mentions_src=none, commands_src=none, attachments=false, clear=true, rows=1, maxlength=none, required=false, submit_label="Send", stop_label="Stop", class="", attrs="") %}
+{% macro prompt_input(name="prompt", placeholder="Ask anything…", label="Prompt", id=none, action=none, target=none, swap=none, mentions=none, commands=none, mentions_src=none, commands_src=none, attachments=false, clear=true, rows=1, maxlength=none, required=false, submit_label="Send", stop_label="Stop", class="", attrs=none) %}
 {% from "components/icon/icon.html" import icon %}
-<form class="prompt-input{% if class %} {{ class }}{% endif %}" data-prompt-input{% if id %} id="{{ id }}"{% endif %}{% if action %} hx-post="{{ action }}"{% endif %}{% if target %} hx-target="{{ target }}"{% endif %}{% if swap %} hx-swap="{{ swap }}"{% endif %}{% if not clear %} data-prompt-input-clear="false"{% endif %}{% if attrs %} {{ attrs | safe }}{% endif %}>
+<form class="prompt-input{% if class %} {{ class }}{% endif %}" data-prompt-input{% if id %} id="{{ id }}"{% endif %}{% if action %} hx-post="{{ action }}"{% endif %}{% if target %} hx-target="{{ target }}"{% endif %}{% if swap %} hx-swap="{{ swap }}"{% endif %}{% if not clear %} data-prompt-input-clear="false"{% endif %}{{ html_attrs(attrs) }}>
   {% if attachments %}
   <div class="prompt-input-attachments"{% if id %} id="{{ id }}-attachments"{% endif %}></div>
   {% endif %}

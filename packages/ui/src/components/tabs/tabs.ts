@@ -7,6 +7,7 @@
 //   together, the choice is saved to localStorage ("tabs:key"), restored on load,
 //   and followed across browser tabs.
 import { queryAll } from "../../utils/dom";
+import { isDisabled, isRtl, nextIndex, uniqueId } from "../../utils/shared";
 
 const storageKey = (sync: string) => `tabs:${sync}`;
 
@@ -39,14 +40,14 @@ function selectSynced(sync: string, value: string) {
 
 let listening = false;
 
-const disabled = (tab: HTMLElement) => tab.hasAttribute("disabled") || tab.getAttribute("aria-disabled") === "true";
+const disabled = isDisabled;
 
 export function initTabs(root: ParentNode) {
-  queryAll(root, "[data-tabs]:not([data-tabs-init])").forEach((group, n) => {
+  queryAll(root, "[data-tabs]:not([data-tabs-init])").forEach((group) => {
     group.dataset.tabsInit = "";
     const sync = group.dataset.tabsSync;
     const tabs = [...group.querySelectorAll<HTMLElement>("[data-tab]")];
-    const id = group.id || `tabs-${Math.random().toString(36).slice(2, 8)}-${n}`;
+    const id = group.id || uniqueId("tabs");
     const vertical = group.dataset.orientation === "vertical";
     const list = group.querySelector<HTMLElement>('[role="tablist"]');
     if (list && vertical) list.setAttribute("aria-orientation", "vertical");
@@ -72,12 +73,11 @@ export function initTabs(root: ParentNode) {
 
       tab.addEventListener("keydown", (e) => {
         const enabled = tabs.filter((t) => !disabled(t));
-        const i = enabled.indexOf(tab);
-        const [back, forward] = vertical ? ["ArrowUp", "ArrowDown"] : ["ArrowLeft", "ArrowRight"];
-        const next = { [forward]: i + 1, [back]: i - 1, Home: 0, End: enabled.length - 1 }[e.key];
-        if (next === undefined || !enabled.length) return;
+        const orientation = vertical ? "vertical" : "horizontal";
+        const next = nextIndex(e.key, enabled.indexOf(tab), enabled.length, { orientation, rtl: isRtl(group) });
+        if (next === undefined) return;
         e.preventDefault();
-        const target = enabled[(next + enabled.length) % enabled.length]!;
+        const target = enabled[next]!;
         target.focus();
         target.click();
       });

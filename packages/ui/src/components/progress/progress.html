@@ -13,6 +13,7 @@
    size="sm" | "lg"    variant="success" | "warning" | "danger"
    attrs=none          more attributes for the outer element, as a dict: {"hx-get": "/jobs/1", …}
    class=""            more classes on the outer element (the .progress-field, or the <progress>) #}
+{% from "macros/attrs.html" import attrs as html_attrs %}
 
 {% macro progress(value=none, max=100, label=none, aria_label=none, show_value=false, description=none, id=none, size=none, variant=none, attrs=none, class="") %}
 {% set field = label or show_value or description %}
@@ -22,7 +23,7 @@
   {% set pct = ((value / max) * 100) | round %}
   {% if pct > 100 %}{% set pct = 100 %}{% elif pct < 0 %}{% set pct = 0 %}{% endif %}
 {% endif %}
-{% set extra %}{% if attrs %}{% for k, v in attrs %} {{ k }}="{{ v }}"{% endfor %}{% endif %}{% endset %}
+{% set extra %}{{ html_attrs(attrs) }}{% endset %}
 {% set bar %}
 <progress class="progress{% if size %} progress-{{ size }}{% endif %}{% if variant %} progress-{{ variant }}{% endif %}{% if class and not field %} {{ class }}{% endif %}"
   {%- if field or id %} id="{{ pid }}"{% endif %}

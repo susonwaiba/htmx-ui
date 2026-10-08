@@ -24,19 +24,17 @@
    The list scrolls past max-h-72 (set another max-h-* on .command-list). Behaviour: command.ts. */
 @layer components {
   .command {
-    @apply flex w-full flex-col overflow-hidden rounded-(--radius) border border-border bg-surface text-sm
-      text-foreground;
+    @apply popup-surface flex w-full flex-col overflow-hidden text-sm;
   }
   .command-input-wrapper {
     @apply flex h-11 shrink-0 items-center gap-2 border-b border-border px-3 text-muted-foreground [&>svg]:size-4
       [&>svg]:shrink-0;
   }
   .command-input {
-    @apply h-full w-full min-w-0 flex-1 border-0 bg-transparent text-sm text-foreground outline-none
-      placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 [&::-webkit-search-cancel-button]:hidden;
+    @apply input-bare h-full w-full min-w-0 flex-1 text-sm disabled:opacity-50 [&::-webkit-search-cancel-button]:hidden;
   }
   .command-list {
-    @apply max-h-72 scroll-py-1 overflow-x-hidden overflow-y-auto overscroll-contain p-1;
+    @apply scrollbar-visible max-h-72 scroll-py-1 overflow-x-hidden overflow-y-auto overscroll-contain p-1;
   }
   .command-group {
     @apply flex flex-col;
@@ -49,15 +47,13 @@
     @apply mt-1;
   }
   .command-label {
-    @apply px-2 py-1.5 text-xs font-medium text-muted-foreground;
+    @apply menu-label;
   }
   /* The highlight follows the keyboard and the pointer alike (data-highlighted, set by the
      behaviour), so there is only ever one. */
   .command-item {
-    @apply relative flex w-full cursor-pointer items-center gap-2 rounded-[calc(var(--radius)-2px)] px-2 py-1.5
-      text-left text-sm leading-normal text-foreground no-underline outline-none select-none
-      aria-disabled:pointer-events-none aria-disabled:opacity-50 data-highlighted:bg-accent
-      data-highlighted:text-accent-foreground [&_svg]:size-4 [&_svg]:shrink-0 [&>svg]:text-muted-foreground;
+    @apply menu-item relative leading-normal text-foreground no-underline data-highlighted:bg-accent
+      data-highlighted:text-accent-foreground [&>svg]:text-muted-foreground;
   }
   .command-item[hidden] {
     @apply hidden;
@@ -69,7 +65,7 @@
     @apply font-sans;
   }
   .command-separator {
-    @apply -mx-1 my-1 h-px shrink-0 bg-border;
+    @apply menu-separator shrink-0;
   }
   .command-empty {
     @apply py-6 text-center text-sm text-muted-foreground;

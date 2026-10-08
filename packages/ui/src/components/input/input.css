@@ -1,12 +1,14 @@
 /* <input class="input" type="email" placeholder="you@example.com" />
    <textarea class="textarea"></textarea>       <select class="select">…</select>
+   The select component's trigger (.select-trigger, select.css) shares these rules, states included.
    States: disabled, aria-invalid="true" (error), .input-warning, .input-success (.textarea-warning /
    .textarea-success on a textarea). Sizes: .input-sm / .input-lg; for textareas see textarea.css.
    Labels, help text and messages: see field.css. Addons and buttons inside: see input-group.css. */
 @layer components {
   .input,
   .textarea,
-  select.select {
+  select.select,
+  .select-trigger {
     @apply w-full min-w-0 rounded-(--radius) border border-border bg-transparent px-3 text-sm text-foreground shadow-xs
       transition-[color,box-shadow,border-color] outline-none placeholder:text-muted-foreground
       focus-visible:border-ring focus-visible:ring-3 disabled:cursor-not-allowed disabled:opacity-50;
@@ -24,6 +26,13 @@
     @apply cursor-pointer appearance-none bg-[length:1rem] bg-[position:right_0.625rem_center] bg-no-repeat pe-9;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2371717a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
   }
+  /* The native list: Chromium paints it with the select's own background, and a transparent one
+     falls back to white, leaving dark mode's light text on white. Give the options the theme's
+     surface and text colours (and the dark color-scheme its scrollbar). */
+  select.select option,
+  select.select optgroup {
+    @apply bg-surface text-foreground;
+  }
   select.select[multiple],
   select.select[size] {
     @apply h-auto bg-none py-2 pe-3;
@@ -37,13 +46,13 @@
   }
 
   /* Focus ring and state colours. One color-mix() per rule (see components/alert). */
-  :is(.input, .textarea, select.select):focus-visible {
+  :is(.input, .textarea, select.select, .select-trigger):focus-visible {
     @apply ring-ring/30;
   }
-  :is(.input, .textarea, select.select):is([aria-invalid="true"], :user-invalid) {
+  :is(.input, .textarea, select.select, .select-trigger):is([aria-invalid="true"], :user-invalid) {
     @apply border-danger;
   }
-  :is(.input, .textarea, select.select):is([aria-invalid="true"], :user-invalid):focus-visible {
+  :is(.input, .textarea, select.select, .select-trigger):is([aria-invalid="true"], :user-invalid):focus-visible {
     @apply ring-danger/20;
   }
   .input-warning,

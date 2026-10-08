@@ -10,6 +10,6 @@
     "outDir": "./lib",
     "types": []
   },
-  "include": ["src/index.ts", "src/theme.ts"],
+  "include": ["src/index.ts", "src/theme.ts", "src/svg.d.ts"],
   "exclude": ["src/**/*.test.ts"]
 }

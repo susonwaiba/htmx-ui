@@ -42,8 +42,7 @@
 
   /* A link or button that is an avatar, e.g. a menu trigger */
   :is(a, button).avatar {
-    @apply cursor-pointer outline-none focus-visible:outline-2 focus-visible:outline-offset-2
-      focus-visible:outline-ring;
+    @apply cursor-pointer outline-none focus-outline;
   }
 
   /* Status dot or icon at the bottom right. Colour it with a bg-* utility (bg-primary by

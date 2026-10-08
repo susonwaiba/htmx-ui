@@ -9,11 +9,13 @@
 //   attribute keep a hidden input in sync for a surrounding form. data-keep-open on an item,
 //   group or menu keeps the menu open when choosing.
 // - Submenus (.dropdown-sub: an item with aria-haspopup="menu" + a nested [role="menu"]) open on
-//   hover, → / Enter / Space or click, and close on ← / Escape; they flip when near the edge.
+//   hover, → / Enter / Space or click, and close on ← / Escape. The menu and its submenus flip
+//   when they would leave the viewport (utils/position.ts).
 // Items are looked up on every event, so menus whose items change (e.g. filled in from fetched
 // data) keep working.
 import { queryAll } from "../../utils/dom";
 import { bindMenus, closeSubs, focusItem, menuClosed, menuOpened, prepareMenu, type MenuHost } from "../../utils/menu";
+import { place } from "../../utils/position";
 
 export function initDropdown(root: ParentNode = document) {
   queryAll(root, "[data-dropdown]:not([data-init])").forEach((dropdown) => {
@@ -38,6 +40,7 @@ export function initDropdown(root: ParentNode = document) {
       prepareMenu(menu!, trigger!);
       menu!.hidden = false;
       trigger!.setAttribute("aria-expanded", "true");
+      place(menu!, trigger!);
       menuOpened(host);
       if (focus) focusItem(menu!, focus);
     }

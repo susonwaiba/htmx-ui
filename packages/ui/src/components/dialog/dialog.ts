@@ -12,6 +12,7 @@
 // - data-dialog-show opens it as a modal as soon as it is initialised, for a dialog an htmx
 //   request returns. data-dialog-remove removes it from the page once it has closed.
 import { queryAll } from "../../utils/dom";
+import { transitionTime } from "../../utils/shared";
 
 let listening = false;
 
@@ -28,16 +29,6 @@ function onCommand(e: MouseEvent) {
   else if (command === "request-close" && target.open) {
     if (target.dispatchEvent(new Event("cancel", { cancelable: true }))) target.close(button!.value);
   }
-}
-
-/** The longest transition (duration + delay) on `el`, in ms; 150 when the browser doesn't say. */
-function transitionTime(el: Element): number {
-  const style = getComputedStyle(el);
-  const ms = (list: string) => list.split(",").map((v) => parseFloat(v) * (/ms\s*$/.test(v) ? 1 : 1000) || 0);
-  const durations = ms(style.transitionDuration || "");
-  const delays = ms(style.transitionDelay || "");
-  if (!style.transitionDuration) return 150;
-  return Math.max(0, ...durations.map((d, i) => d + (delays[i % delays.length] ?? 0)));
 }
 
 export function initDialog(root: ParentNode) {

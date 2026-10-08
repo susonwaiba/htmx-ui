@@ -10,15 +10,17 @@
    handle_only=true    data-drawer-handle-only: only the handle drags
    responsive=true     .drawer-responsive: a centred dialog from md up
    show=true, remove=true   data-dialog-show / data-dialog-remove, for a drawer htmx returns
-   class=""            more classes on the <dialog> #}
+   class=""            more classes on the <dialog>
+   attrs=none          more attributes on the <dialog>, as a dict ({"hx-get": "…"}) #}
+{% from "macros/attrs.html" import attrs as html_attrs %}
 
-{% macro drawer(id, title=none, description=none, direction="down", handle=true, handle_only=false, responsive=false, show=false, remove=false, class="") %}
+{% macro drawer(id, title=none, description=none, direction="down", handle=true, handle_only=false, responsive=false, show=false, remove=false, class="", attrs=none) %}
 <dialog id="{{ id }}" class="drawer{% if responsive %} drawer-responsive{% endif %}{% if class %} {{ class }}{% endif %}" data-dialog data-drawer data-swipe-direction="{{ direction }}"
   {%- if handle_only %} data-drawer-handle-only{% endif %}
   {%- if title %} aria-labelledby="{{ id }}-title"{% endif %}
   {%- if description %} aria-describedby="{{ id }}-description"{% endif %}
   {%- if show %} data-dialog-show{% endif %}
-  {%- if remove %} data-dialog-remove{% endif %}>
+  {%- if remove %} data-dialog-remove{% endif %}{{ html_attrs(attrs) }}>
   {% if handle %}<div class="drawer-handle"></div>{% endif %}
   {% if title or description %}
   <div class="drawer-header">

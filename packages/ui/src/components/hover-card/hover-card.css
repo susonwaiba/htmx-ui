@@ -24,9 +24,9 @@
     --hover-card-y: 0px;
     --hover-card-shift-x: 0px;
     --hover-card-shift-y: -0.25rem;
-    @apply invisible absolute z-50 block w-64 max-w-[calc(100vw-2rem)] rounded-(--radius) border border-border
-      bg-surface p-4 text-left text-sm leading-normal font-normal tracking-normal whitespace-normal text-foreground
-      normal-case no-underline opacity-0 shadow-md outline-none;
+    @apply popup-surface invisible absolute z-50 block w-64 max-w-[calc(100vw-2rem)] p-4 text-left text-sm
+      leading-normal font-normal tracking-normal whitespace-normal normal-case no-underline opacity-0 shadow-md
+      outline-none;
     top: 100%;
     right: auto;
     bottom: auto;

@@ -27,6 +27,7 @@
 // - getMessageScroller(el) returns the API below. Events on the scroller (they bubble):
 //   message-scroller:init {api}, :follow, :unfollow {reason}, :unread {rows}, :anchor {row}.
 import { queryAll } from "../../utils/dom";
+import { isEditable, reducedMotion } from "../../utils/shared";
 
 export type ScrollAlign = "start" | "center" | "end";
 
@@ -76,9 +77,6 @@ export function getMessageScroller(el: Element | null): MessageScroller | undefi
   return scroller ? instances.get(scroller) : undefined;
 }
 
-const reducedMotion = () => typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches;
-const editable = (t: EventTarget | null) =>
-  t instanceof HTMLElement && (/^(input|textarea|select)$/i.test(t.tagName) || t.isContentEditable);
 const now = () => performance.now();
 
 function setup(el: HTMLElement): MessageScroller {
@@ -415,7 +413,7 @@ function setup(el: HTMLElement): MessageScroller {
     touchY = y;
   };
   const onKeyDown = (e: KeyboardEvent) => {
-    if (editable(e.target)) return;
+    if (isEditable(e.target)) return;
     if (["PageUp", "ArrowUp", "Home"].includes(e.key) || (e.key === " " && e.shiftKey)) {
       programmatic = null;
       setFollowing(false, "keyboard");

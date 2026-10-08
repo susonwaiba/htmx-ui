@@ -10,8 +10,7 @@
       text-xs font-medium whitespace-nowrap transition-colors [&_svg:not(.spinner)]:size-3!;
   }
   :is(a, button).badge {
-    @apply cursor-pointer outline-none focus-visible:outline-2 focus-visible:outline-offset-2
-      focus-visible:outline-ring;
+    @apply cursor-pointer outline-none focus-outline;
   }
 
   .badge-primary {

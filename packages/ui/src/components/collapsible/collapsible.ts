@@ -6,8 +6,7 @@
 // - hidden="until-found" content opens when find-in-page matches text inside it, and goes back to
 //   until-found when closed.
 import { queryAll } from "../../utils/dom";
-
-let ids = 0;
+import { ensureId } from "../../utils/shared";
 
 export function initCollapsible(root: ParentNode) {
   queryAll(root, "[data-collapsible]:not([data-init])").forEach((collapsible) => {
@@ -20,7 +19,7 @@ export function initCollapsible(root: ParentNode) {
     if (!content) return;
 
     const closedAs = content.getAttribute("hidden") === "until-found" ? "until-found" : "";
-    content.id ||= `collapsible-${++ids}`;
+    ensureId(content, "collapsible");
     for (const t of triggers) t.setAttribute("aria-controls", content.id);
 
     function sync(open: boolean) {

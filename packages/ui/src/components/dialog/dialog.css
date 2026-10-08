@@ -12,7 +12,7 @@
        <button class="btn btn-outline" data-dialog-close>Cancel</button>
        <button class="btn btn-primary">Save</button>
      </div>
-     <button class="dialog-close" data-dialog-close aria-label="Close">{{ icon("x") }}</button>   optional
+     <button class="btn btn-ghost btn-icon btn-sm dialog-close" data-dialog-close aria-label="Close">{{ icon("x") }}</button>   optional
    </dialog>
 
    Alert dialog: role="alertdialog" (no light dismiss), .dialog-sm, .dialog-media. */
@@ -26,7 +26,7 @@
     @apply flex;
   }
   .dialog::backdrop {
-    @apply bg-black/50;
+    @apply bg-overlay;
   }
 
   /* Fade, zoom and rise in; fade and zoom out, quicker. Closing keeps the dialog (and its
@@ -75,7 +75,7 @@
     @apply flex shrink-0 flex-col gap-1.5 text-center sm:text-left;
   }
   .dialog-title {
-    @apply text-lg leading-none font-semibold tracking-tight;
+    @apply panel-title;
   }
   .dialog-description {
     @apply text-muted-foreground;
@@ -92,12 +92,11 @@
   .dialog-footer-sticky {
     @apply -mx-6 -mb-6 rounded-b-[calc(var(--radius)+3px)] border-t border-border bg-muted/50 px-6 py-4;
   }
-  /* The corner close button. Leave it out to close with Escape, a click outside or a button of
-     your own. */
+  /* The corner close button: <button class="btn btn-ghost btn-icon btn-sm dialog-close">. The button
+     look comes from .btn; this only places it. Leave it out to close with Escape, a click outside
+     or a button of your own. */
   .dialog-close {
-    @apply absolute top-4 right-4 inline-flex size-7 cursor-pointer items-center justify-center rounded-md
-      text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-2
-      focus-visible:outline-ring [&_svg]:size-4;
+    @apply absolute top-3.5 right-3.5 text-muted-foreground;
   }
   .dialog:has(> .dialog-close) .dialog-header {
     @apply pr-8;

@@ -14,6 +14,11 @@
 // - Esc in a top-level menu, Tab, clicking outside or focus leaving host.root close it.
 // Items are looked up on every event, so menus whose items change after an htmx swap work.
 
+import { place } from "./position";
+import { ensureId, isDisabled } from "./shared";
+
+export { isDisabled };
+
 export const ITEM = '[role="menuitem"], [role="menuitemcheckbox"], [role="menuitemradio"]';
 const MENU = '[role="menu"]';
 const OPEN_DELAY = 100;
@@ -30,11 +35,6 @@ export interface MenuHost {
   /** ← in a top-level menu (-1) or → on an item without a submenu (1). Returns true if handled. */
   sideways?(dir: 1 | -1, menu: HTMLElement): boolean;
 }
-
-let ids = 0;
-
-export const isDisabled = (el: Element) =>
-  el.getAttribute("aria-disabled") === "true" || (el as HTMLButtonElement).disabled === true;
 
 /** Not hidden itself, nor inside a hidden element below `menu`. */
 function isShown(el: HTMLElement, menu: HTMLElement) {
@@ -74,21 +74,9 @@ export function prepareMenu(menu: HTMLElement, trigger?: HTMLElement) {
   if (!menu.hasAttribute("tabindex")) menu.tabIndex = -1;
   for (const item of menuItems(menu, true)) item.tabIndex = -1;
   if (trigger) {
-    menu.id ||= `menu-${++ids}`;
+    ensureId(menu, "menu");
     trigger.setAttribute("aria-controls", menu.id);
   }
-}
-
-/** Flip a panel that would leave the viewport to the side with more room. */
-export function place(panel: HTMLElement, anchor: HTMLElement) {
-  delete panel.dataset.flipX;
-  delete panel.dataset.flipY;
-  const view = panel.ownerDocument.defaultView;
-  if (!view) return;
-  const r = panel.getBoundingClientRect();
-  const a = anchor.getBoundingClientRect();
-  if (r.right > view.innerWidth && a.left > view.innerWidth - a.right) panel.dataset.flipX = "";
-  if (r.bottom > view.innerHeight && a.top > view.innerHeight - a.bottom) panel.dataset.flipY = "";
 }
 
 export function openSub(trigger: HTMLElement, focus: boolean) {

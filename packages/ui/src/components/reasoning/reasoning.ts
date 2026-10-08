@@ -47,6 +47,7 @@ export function initReasoning(root: ParentNode = document) {
       if (!from) el.removeAttribute("data-reasoning-duration");
       el.open = from?.touched ? from.open : true;
       el.setAttribute("aria-busy", "true");
+      // The markup loader("text-shimmer", label=none) writes (components/loader/loader.html).
       if (label && !label.querySelector(".loader")) {
         const shimmer = document.createElement("span");
         shimmer.className = "loader loader-text-shimmer";

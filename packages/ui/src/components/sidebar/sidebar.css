@@ -16,7 +16,7 @@
        <button type="button" class="sidebar-rail" data-sidebar-rail tabindex="-1" aria-label="Toggle sidebar"></button>
      </aside>
      <main class="sidebar-inset">
-       <button type="button" class="sidebar-trigger" data-sidebar-trigger aria-controls="app-sidebar" aria-label="Toggle sidebar">…</button>
+       <button type="button" class="btn btn-ghost btn-icon btn-sm sidebar-trigger" data-sidebar-trigger aria-controls="app-sidebar" aria-label="Toggle sidebar">…</button>
      </main>
    </div>
    Options on .sidebar: data-side="left|right", data-variant="sidebar|floating|inset",
@@ -38,8 +38,8 @@
   /* Mobile backdrop: a pseudo-element, so there's no markup for it. sidebar.ts closes the
      panel when it's clicked (the click lands on the layout itself). */
   .sidebar-layout:has(> .sidebar[data-open])::after {
-    @apply fixed inset-0 z-40 bg-black/40 content-[''];
-    transition: opacity 200ms;
+    @apply fixed inset-0 z-40 bg-overlay content-[''];
+    transition: opacity var(--motion-duration-moderate);
     @starting-style {
       opacity: 0;
     }
@@ -64,8 +64,8 @@
     width: var(--sidebar-width, 16rem);
     padding: var(--_sidebar-pad);
     transition:
-      width 200ms linear,
-      padding 200ms linear,
+      width var(--motion-duration-moderate) linear,
+      padding var(--motion-duration-moderate) linear,
       visibility 0s;
   }
   .sidebar[data-side="right"] {
@@ -98,15 +98,15 @@
      width and slide with it; hidden once out of view, so nothing in it can take focus. */
   .sidebar:not([data-collapsible="icon"], [data-collapsible="none"], [data-mobile]) > :not(.sidebar-rail) {
     width: calc(var(--sidebar-width, 16rem) - var(--_sidebar-cut));
-    transition: translate 200ms linear;
+    transition: translate var(--motion-duration-moderate) linear;
   }
   .sidebar:not([data-collapsible="icon"], [data-collapsible="none"], [data-mobile])[data-state="collapsed"] {
     @apply invisible border-0 px-0;
     width: 0;
     transition:
-      width 200ms linear,
-      padding 200ms linear,
-      visibility 0s 200ms;
+      width var(--motion-duration-moderate) linear,
+      padding var(--motion-duration-moderate) linear,
+      visibility 0s var(--motion-duration-moderate);
   }
   .sidebar:not([data-collapsible="icon"], [data-collapsible="none"], [data-mobile], [data-side="right"])[data-state="collapsed"]
     > :not(.sidebar-rail) {
@@ -176,7 +176,7 @@
   .sidebar-group-label {
     --collapsible-rotate: 90deg;
     @apply flex h-8 w-full shrink-0 items-center gap-2 rounded-md px-2 text-left text-[0.6875rem] font-semibold tracking-wider uppercase
-      outline-none transition-[margin,opacity] duration-200 ease-linear focus-visible:ring-2 focus-visible:ring-sidebar-ring
+      outline-none transition-[margin,opacity] duration-(--motion-duration-moderate) ease-linear focus-visible:ring-2 focus-visible:ring-sidebar-ring
       [&>svg]:size-4 [&>svg]:shrink-0;
   }
   /* One color-mix() per rule (see components/alert). */
@@ -215,7 +215,7 @@
   .sidebar-menu-button {
     --collapsible-rotate: 90deg;
     @apply flex h-8 w-full cursor-pointer items-center gap-2 overflow-hidden rounded-md p-2 text-left text-sm
-      text-sidebar-foreground outline-none transition-[width,height,padding] duration-200 ease-linear
+      text-sidebar-foreground outline-none transition-[width,height,padding] duration-(--motion-duration-moderate) ease-linear
       hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2
       focus-visible:ring-sidebar-ring active:bg-sidebar-accent active:text-sidebar-accent-foreground
       disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50
@@ -345,17 +345,17 @@
   }
 
   /* --- Toggles --------------------------------------------------------------------------- */
+  /* <button class="btn btn-ghost btn-icon btn-sm sidebar-trigger" data-sidebar-trigger>: the look is
+     .btn's; the class is a hook for layouts (e.g. hiding it from md up). */
   .sidebar-trigger {
-    @apply inline-flex size-7 shrink-0 cursor-pointer items-center justify-center rounded-md text-foreground
-      outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:ring-2
-      focus-visible:ring-ring [&>svg]:size-4;
+    @apply text-foreground;
   }
   /* A thin hit area along the sidebar's inner edge: click to toggle. */
   .sidebar-rail {
     @apply absolute inset-y-0 -right-4 z-20 flex w-4 -translate-x-1/2 cursor-w-resize outline-none
       after:absolute after:inset-y-0 after:left-1/2 after:w-0.5 hover:after:bg-sidebar-border;
     visibility: visible;
-    transition: translate 200ms linear;
+    transition: translate var(--motion-duration-moderate) linear;
   }
   .sidebar[data-side="right"] > .sidebar-rail {
     @apply right-auto left-0 cursor-e-resize;
@@ -391,8 +391,8 @@
       width: var(--sidebar-width-mobile, 18rem);
       translate: -100% 0;
       transition:
-        translate 200ms ease-in-out,
-        visibility 0s 200ms;
+        translate var(--motion-duration-moderate) ease-in-out,
+        visibility 0s var(--motion-duration-moderate);
       &[data-side="right"] {
         @apply right-0 left-auto border-r-0 border-l;
         translate: 100% 0;
@@ -400,7 +400,7 @@
       &[data-open] {
         @apply visible shadow-xl;
         translate: 0 0;
-        transition: translate 200ms ease-out;
+        transition: translate var(--motion-duration-moderate) ease-out;
       }
       &::before,
       & > .sidebar-rail {
@@ -416,8 +416,8 @@
       width: var(--sidebar-width-mobile, 18rem);
       translate: -100% 0;
       transition:
-        translate 200ms ease-in-out,
-        visibility 0s 200ms;
+        translate var(--motion-duration-moderate) ease-in-out,
+        visibility 0s var(--motion-duration-moderate);
       &[data-side="right"] {
         @apply right-0 left-auto border-r-0 border-l;
         translate: 100% 0;
@@ -425,7 +425,7 @@
       &[data-open] {
         @apply visible shadow-xl;
         translate: 0 0;
-        transition: translate 200ms ease-out;
+        transition: translate var(--motion-duration-moderate) ease-out;
       }
       &::before,
       & > .sidebar-rail {
@@ -441,8 +441,8 @@
       width: var(--sidebar-width-mobile, 18rem);
       translate: -100% 0;
       transition:
-        translate 200ms ease-in-out,
-        visibility 0s 200ms;
+        translate var(--motion-duration-moderate) ease-in-out,
+        visibility 0s var(--motion-duration-moderate);
       &[data-side="right"] {
         @apply right-0 left-auto border-r-0 border-l;
         translate: 100% 0;
@@ -450,7 +450,7 @@
       &[data-open] {
         @apply visible shadow-xl;
         translate: 0 0;
-        transition: translate 200ms ease-out;
+        transition: translate var(--motion-duration-moderate) ease-out;
       }
       &::before,
       & > .sidebar-rail {

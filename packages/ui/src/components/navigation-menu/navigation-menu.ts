@@ -16,22 +16,13 @@
 // - The panel fires bubbling "navigation-menu:open" / "navigation-menu:close" events, so htmx can load
 //   it on first open: hx-trigger="navigation-menu:open once".
 import { queryAll } from "../../utils/dom";
+import { cssTime, ensureId } from "../../utils/shared";
 
 const FOCUSABLE = "a[href], button:not([disabled]), input:not([disabled]), select, textarea, [tabindex]:not([tabindex='-1'])";
 
 type Menu = { nav: HTMLElement; close: (refocus: boolean) => void };
 const openMenus = new Set<Menu>();
 let listening = false;
-let ids = 0;
-
-/** A CSS time ("200ms", "0.3s") from a custom property, or the fallback in ms. */
-function delay(el: Element, name: string, fallback: number) {
-  const value = getComputedStyle(el).getPropertyValue(name).trim();
-  const n = parseFloat(value);
-  if (!value || Number.isNaN(n)) return fallback;
-  return value.endsWith("ms") ? n : value.endsWith("s") ? n * 1000 : n;
-}
-
 function listen() {
   if (listening) return;
   listening = true;
@@ -66,7 +57,7 @@ export function initNavigationMenu(root: ParentNode = document) {
       const trigger = triggerOf(item);
       const panel = panelOf(item);
       if (!trigger || !panel) continue;
-      panel.id ||= `navigation-menu-${++ids}`;
+      ensureId(panel, "navigation-menu");
       trigger.setAttribute("aria-controls", panel.id);
       trigger.setAttribute("aria-expanded", "false");
       if (trigger instanceof HTMLButtonElement && !trigger.hasAttribute("type")) trigger.type = "button";
@@ -123,7 +114,7 @@ export function initNavigationMenu(root: ParentNode = document) {
       if (!triggerOf(item)!.contains(e.target as Node)) return; // only the trigger opens, not its gap
       clearTimeout(openTimer);
       if (current) open(item, "hover");
-      else openTimer = setTimeout(() => open(item, "hover"), delay(nav, "--navigation-menu-open-delay", 200));
+      else openTimer = setTimeout(() => open(item, "hover"), cssTime(nav, "--navigation-menu-open-delay", 200));
     });
     list.addEventListener("pointerout", (e) => {
       if (e.pointerType === "touch" || vertical()) return;
@@ -133,7 +124,7 @@ export function initNavigationMenu(root: ParentNode = document) {
       clearTimeout(openTimer);
       if (from === current && openedBy === "hover") {
         clearTimeout(closeTimer);
-        closeTimer = setTimeout(() => close(false), delay(nav, "--navigation-menu-close-delay", 300));
+        closeTimer = setTimeout(() => close(false), cssTime(nav, "--navigation-menu-close-delay", 300));
       }
     });
 

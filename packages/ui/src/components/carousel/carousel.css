@@ -89,7 +89,7 @@
   }
   .carousel-dot {
     @apply size-2 cursor-pointer rounded-full bg-muted-foreground/30 transition-[background-color,width]
-      focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring;
+      focus-outline;
   }
   .carousel-dot[aria-current="true"] {
     @apply w-5 bg-primary;

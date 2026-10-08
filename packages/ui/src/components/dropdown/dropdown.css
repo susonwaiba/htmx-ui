@@ -24,23 +24,24 @@
     @apply relative inline-block;
   }
   .dropdown-menu {
-    @apply absolute top-full left-0 z-50 mt-1 min-w-48 rounded-(--radius) border border-border bg-surface p-1
-      text-foreground shadow-lg outline-none;
+    @apply popup-surface absolute top-full left-0 z-50 mt-1 min-w-48 p-1 shadow-lg outline-none;
   }
   /* Align to the trigger's right edge / open upwards */
-  .dropdown-menu-end {
+  /* Align to the trigger's right edge / open upwards: by class, or set by the behaviour
+     (data-flip-x / data-flip-y, utils/position.ts) when the menu would leave the viewport. */
+  .dropdown-menu-end,
+  .dropdown > .dropdown-menu[data-flip-x] {
     @apply right-0 left-auto;
   }
-  .dropdown-menu-up {
+  .dropdown-menu-up,
+  .dropdown > .dropdown-menu[data-flip-y] {
     @apply top-auto bottom-full mt-0 mb-1;
   }
 
   /* Items are highlighted on hover and focus (hovering focuses them, see utils/menu.ts). */
   .dropdown-item {
-    @apply relative flex w-full cursor-pointer items-center gap-2 rounded-[calc(var(--radius)-2px)] px-2 py-1.5
-      text-left text-sm outline-none select-none hover:bg-accent hover:text-accent-foreground focus:bg-accent
-      focus:text-accent-foreground aria-[current]:font-semibold aria-disabled:pointer-events-none
-      aria-disabled:opacity-50 disabled:pointer-events-none disabled:opacity-50 [&_svg]:size-4 [&_svg]:shrink-0;
+    @apply menu-item relative hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground
+      aria-[current]:font-semibold disabled:pointer-events-none disabled:opacity-50;
   }
   .dropdown-item > svg {
     @apply text-muted-foreground;
@@ -86,13 +87,13 @@
   }
 
   .dropdown-label {
-    @apply px-2 py-1.5 text-xs font-medium text-muted-foreground;
+    @apply menu-label;
   }
   .dropdown-label.dropdown-item-inset {
     @apply pl-8;
   }
   .dropdown-separator {
-    @apply -mx-1 my-1 h-px bg-border;
+    @apply menu-separator;
   }
 
   /* Submenu: opens beside its trigger, its first item level with the trigger. utils/menu.ts sets

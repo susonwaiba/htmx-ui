@@ -2,13 +2,15 @@
    {% from "components/checkbox/checkbox.html" import checkbox %}
    {{ checkbox("terms", "Accept the terms", required=true) }}
    {{ checkbox("digest", "Weekly digest", description="A summary every Monday.", checked=true) }}
-   size: "sm" | "lg"     state: "warning" | "success"     indeterminate=true marks a partly
-   selected group (behaviour: checkbox.ts)     attrs: any extra attributes, e.g. name, value,
-   hx-post, aria-describedby. #}
+   size: "sm" | "lg"     state: "warning" | "success"     invalid=true: aria-invalid (error)
+   indeterminate=true marks a partly selected group (behaviour: checkbox.ts)
+   class: more classes on the .field. attrs: more attributes on the checkbox, as a dict
+   ({"name": "terms", "value": "yes", "hx-post": "/terms"}). #}
+{% from "macros/attrs.html" import attrs as html_attrs %}
 
-{% macro checkbox(id, label, description=none, checked=false, indeterminate=false, disabled=false, required=false, size=none, state=none, attrs="") %}
-<div class="field field-horizontal">
-  <input class="checkbox{% if size %} checkbox-{{ size }}{% endif %}{% if state %} checkbox-{{ state }}{% endif %}" type="checkbox" id="{{ id }}"{% if checked %} checked{% endif %}{% if indeterminate %} data-indeterminate{% endif %}{% if disabled %} disabled{% endif %}{% if required %} required{% endif %}{% if attrs %} {{ attrs | safe }}{% endif %} />
+{% macro checkbox(id, label, description=none, checked=false, indeterminate=false, disabled=false, required=false, invalid=false, size=none, state=none, class="", attrs=none) %}
+<div class="field field-horizontal{% if class %} {{ class }}{% endif %}">
+  <input class="checkbox{% if size %} checkbox-{{ size }}{% endif %}{% if state %} checkbox-{{ state }}{% endif %}" type="checkbox" id="{{ id }}"{% if checked %} checked{% endif %}{% if indeterminate %} data-indeterminate{% endif %}{% if disabled %} disabled{% endif %}{% if required %} required{% endif %}{% if invalid %} aria-invalid="true"{% endif %}{{ html_attrs(attrs) }} />
   {% if description %}
   <div class="field-content">
     <label class="field-label" for="{{ id }}">{{ label }}</label>

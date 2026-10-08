@@ -16,7 +16,7 @@
    A link item with actions: <a class="item-link" href="…"> around the title stretches over the
    item, and the actions stay clickable above it.
    List: <div class="item-group" role="list"><div class="item" role="listitem">…</div>
-         <div class="item-separator" aria-hidden="true"></div>…</div> */
+         <div class="separator" aria-hidden="true"></div>…</div> */
 @layer components {
   .item {
     @apply flex flex-wrap items-center gap-4 rounded-(--radius) border border-transparent p-4 text-sm text-foreground
@@ -24,8 +24,7 @@
   }
   /* The whole item is a link or button */
   :is(a, button).item {
-    @apply cursor-pointer outline-none focus-visible:outline-2 focus-visible:outline-offset-2
-      focus-visible:outline-ring;
+    @apply cursor-pointer outline-none focus-outline;
   }
   button.item {
     @apply w-full text-left;
@@ -139,9 +138,6 @@
   /* A list of items, with optional separators between them */
   .item-group {
     @apply flex flex-col;
-  }
-  .item-separator {
-    @apply m-0 h-px w-full shrink-0 border-0 bg-border;
   }
 
   /* Items as menu entries: <a class="item item-sm" role="menuitem"> inside a .dropdown-menu */

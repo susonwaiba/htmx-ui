@@ -16,12 +16,12 @@
 //   to the trigger for Escape and the backdrop).
 // - Every change fires a bubbling "sidebar:toggle" with detail { expanded, open, mobile }.
 import { queryAll } from "../../utils/dom";
+import { ensureId, isEditable } from "../../utils/shared";
 
 export type SidebarDetail = { expanded: boolean; open: boolean; mobile: boolean };
 
 const COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
 const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), summary, [tabindex]:not([tabindex="-1"])';
-let ids = 0;
 let listening = false;
 let resizeQueued = false;
 const openers = new WeakMap<HTMLElement, HTMLElement | null>();
@@ -146,11 +146,6 @@ function focusables(s: HTMLElement) {
   );
 }
 
-function isTyping(target: EventTarget | null) {
-  if (!(target instanceof HTMLElement)) return false;
-  return target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName);
-}
-
 function listen() {
   if (listening) return;
   listening = true;
@@ -185,7 +180,7 @@ function listen() {
       }
       return;
     }
-    if (!(e.ctrlKey || e.metaKey) || e.altKey || e.shiftKey || isTyping(e.target)) return;
+    if (!(e.ctrlKey || e.metaKey) || e.altKey || e.shiftKey || isEditable(e.target)) return;
     let handled = false;
     for (const s of sidebars()) {
       const key = s.dataset.shortcut ?? "b";
@@ -228,7 +223,7 @@ export function initSidebar(root: ParentNode = document) {
 
   queryAll(root, "[data-sidebar]:not([data-init])").forEach((s) => {
     s.dataset.init = "";
-    s.id ||= `sidebar-${++ids}`;
+    ensureId(s, "sidebar");
     if (s.dataset.state !== "collapsed") s.dataset.state = "expanded";
     const name = cookieName(s);
     const saved = name ? readCookie(name) : null;

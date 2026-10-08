@@ -15,12 +15,11 @@
   }
   .collapsible-trigger {
     @apply flex w-full cursor-pointer list-none items-center justify-between gap-2 rounded-[calc(var(--radius)-2px)]
-      text-left text-sm font-medium select-none focus-visible:outline-2 focus-visible:outline-offset-2
-      focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-50 [&::-webkit-details-marker]:hidden
+      text-left text-sm font-medium select-none focus-outline disabled:cursor-not-allowed disabled:opacity-50 [&::-webkit-details-marker]:hidden
       [&_svg]:size-4 [&_svg]:shrink-0;
   }
   .collapsible-icon {
-    @apply text-muted-foreground transition-[rotate] duration-200 motion-reduce:transition-none;
+    @apply text-muted-foreground transition-[rotate] duration-(--motion-duration-moderate) motion-reduce:transition-none;
   }
   :is([aria-expanded="true"], details[open] > summary) > .collapsible-icon {
     rotate: var(--collapsible-rotate, 180deg);

@@ -19,7 +19,7 @@
   }
   .breadcrumb-link {
     @apply inline-flex cursor-pointer items-center gap-1 rounded-sm transition-colors outline-none
-      hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring
+      hover:text-foreground focus-outline
       aria-expanded:text-foreground;
   }
   .breadcrumb-page {

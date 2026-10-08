@@ -22,13 +22,12 @@
 //   the trigger + the option's data-value + a space (or the option's data-insert), then fires
 //   "prompt-input:select" on the form with detail { trigger, value, option, query }.
 import { queryAll } from "../../utils/dom";
+import { dismissable } from "../../utils/dismiss";
+import { activeDescendant, filterOptions, reachable } from "../../utils/listbox";
+import { ensureId, responseOk } from "../../utils/shared";
 
 type Token = { menu: HTMLElement; trigger: string; start: number; end: number; query: string };
 
-let ids = 0;
-
-const OPTION = '[role="option"]';
-const normalize = (s: string) => s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
 
 export function initPromptInput(root: ParentNode) {
   queryAll<HTMLFormElement>(root, "[data-prompt-input]:not([data-init])").forEach((form) => {
@@ -40,7 +39,6 @@ export function initPromptInput(root: ParentNode) {
     const submits = [...form.querySelectorAll<HTMLButtonElement>("[data-prompt-input-submit]")];
     const labels = new Map(submits.map((b) => [b, b.getAttribute("aria-label")]));
     let token: Token | null = null;
-    let active: HTMLElement | null = null;
     let dismissed: { menu: HTMLElement; start: number } | null = null;
     let inflight = false;
 
@@ -91,9 +89,7 @@ export function initPromptInput(root: ParentNode) {
       if (e.target !== form) return;
       inflight = false;
       delete form.dataset.state;
-      const ctx = (e as CustomEvent).detail?.ctx;
-      const ok = ctx?.response && ctx.response.status < 400 && !String(ctx.status ?? "").startsWith("error");
-      if (ok && form.dataset.promptInputClear !== "false") {
+      if (responseOk(e) && form.dataset.promptInputClear !== "false") {
         textarea.value = "";
         textarea.dispatchEvent(new Event("input", { bubbles: true }));
       }
@@ -110,7 +106,7 @@ export function initPromptInput(root: ParentNode) {
 
     // --- Menus --------------------------------------------------------------------------------
     for (const menu of menus) {
-      menu.id ||= `prompt-input-menu-${++ids}`;
+      ensureId(menu, "prompt-input-menu");
       if (!menu.hasAttribute("role")) menu.setAttribute("role", "listbox");
       menu.hidden = true;
     }
@@ -123,9 +119,7 @@ export function initPromptInput(root: ParentNode) {
     }
 
     const triggerOf = (menu: HTMLElement) => menu.dataset.promptInputMenu || "@";
-    const all = (menu: HTMLElement) => [...menu.querySelectorAll<HTMLElement>(OPTION)];
-    const options = (menu: HTMLElement) =>
-      all(menu).filter((o) => !o.hidden && !o.closest("[role='group'][hidden]") && o.getAttribute("aria-disabled") !== "true");
+    const options = (menu: HTMLElement) => reachable(menu);
     const valueOf = (o: HTMLElement) => o.dataset.value ?? o.getAttribute("value") ?? o.textContent?.trim() ?? "";
 
     // The trigger and query the caret is in, if any: the one starting closest to the caret.
@@ -149,41 +143,38 @@ export function initPromptInput(root: ParentNode) {
       return found;
     }
 
+    // Matches the query anywhere in an option's value, text or data-keywords.
     function filter(menu: HTMLElement, query: string) {
-      const q = normalize(query);
-      for (const o of all(menu)) {
-        o.hidden = !normalize(`${valueOf(o)} ${o.textContent ?? ""} ${o.dataset.keywords ?? ""}`).includes(q);
-      }
-      for (const group of menu.querySelectorAll<HTMLElement>("[role='group']")) {
-        group.hidden = !group.querySelector(`${OPTION}:not([hidden])`);
-      }
+      const shown = filterOptions(menu, query, {
+        matches: (text, q) => text.includes(q),
+        text: (o) => `${valueOf(o)} ${o.textContent ?? ""} ${o.dataset.keywords ?? ""}`,
+      });
       const none = menu.querySelector<HTMLElement>("[data-prompt-input-empty]");
-      if (none) none.hidden = all(menu).some((o) => !o.hidden);
+      if (none) none.hidden = shown > 0;
     }
 
-    function highlight(option: HTMLElement | null | undefined, scroll = true) {
-      active = option ?? null;
-      for (const menu of menus) for (const o of all(menu)) o.toggleAttribute("data-highlighted", o === active);
-      if (active) {
-        textarea!.setAttribute("aria-activedescendant", active.id);
-        if (scroll) active.scrollIntoView?.({ block: "nearest" });
-      } else textarea!.removeAttribute("aria-activedescendant");
-    }
-
-    const onOutside = (e: PointerEvent) => {
-      if (!form.contains(e.target as Node)) close();
-    };
+    // The highlight moves through the open menu while focus stays in the textarea.
+    const open = () => menus.find((m) => !m.hidden);
+    const list = activeDescendant(textarea, {
+      all: () => menus.flatMap((m) => [...m.querySelectorAll<HTMLElement>('[role="option"]')]),
+      options: () => {
+        const menu = open();
+        return menu ? options(menu) : [];
+      },
+    });
+    const highlight = list.highlight;
+    const dismiss = dismissable(form, () => close());
 
     // Show `menu` for the current token, or close it when there is nothing to show.
     function show(menu: HTMLElement) {
-      all(menu).forEach((o, i) => (o.id ||= `${menu.id}-option-${i}`));
-      const list = options(menu);
+      menu.querySelectorAll<HTMLElement>('[role="option"]').forEach((o, i) => (o.id ||= `${menu.id}-option-${i}`));
+      const reach = options(menu);
       const none = menu.querySelector<HTMLElement>("[data-prompt-input-empty]:not([hidden])");
-      if (!list.length && !none) return close();
+      if (!reach.length && !none) return close();
       for (const m of menus) if (m !== menu) m.hidden = true;
       if (menu.hidden) {
         menu.hidden = false;
-        document.addEventListener("pointerdown", onOutside);
+        dismiss.opened();
         // Opens above the box; below instead when it doesn't fit above and there's more room there.
         if (!menu.classList.contains("prompt-input-menu-down")) {
           const box = form.getBoundingClientRect();
@@ -194,13 +185,14 @@ export function initPromptInput(root: ParentNode) {
       }
       textarea!.setAttribute("aria-expanded", "true");
       textarea!.setAttribute("aria-controls", menu.id);
-      highlight(active && list.includes(active) ? active : list[0], false);
+      const active = list.active;
+      highlight(active && reach.includes(active) ? active : reach[0], false);
     }
 
     function close() {
       token = null;
       highlight(null);
-      document.removeEventListener("pointerdown", onOutside);
+      dismiss.closed();
       for (const m of menus) m.hidden = true;
       if (menus.length) textarea!.setAttribute("aria-expanded", "false");
       textarea!.removeAttribute("aria-controls");
@@ -224,7 +216,7 @@ export function initPromptInput(root: ParentNode) {
           });
           const body = await res.text();
           if (ctrl.signal.aborted || token?.menu !== t.menu || token.start !== t.start) return;
-          active = null;
+          highlight(null);
           t.menu.innerHTML = res.ok ? body : "";
           show(t.menu);
         } catch {
@@ -269,14 +261,6 @@ export function initPromptInput(root: ParentNode) {
       form.dispatchEvent(new CustomEvent("prompt-input:select", { bubbles: true, detail: { trigger, value, option, query } }));
     }
 
-    function move(step: 1 | -1) {
-      const menu = menus.find((m) => !m.hidden);
-      const list = menu ? options(menu) : [];
-      if (!list.length) return;
-      const i = active ? list.indexOf(active) : -1;
-      highlight(list[i < 0 ? (step > 0 ? 0 : list.length - 1) : (i + step + list.length) % list.length]);
-    }
-
     // --- Keys ---------------------------------------------------------------------------------
     // Capture phase on the form, so this runs before any keydown handler on the textarea itself
     // (data-textarea-submit would otherwise send the form on Enter too).
@@ -287,14 +271,14 @@ export function initPromptInput(root: ParentNode) {
         if (isOpen()) {
           if (e.key === "ArrowDown" || e.key === "ArrowUp") {
             e.preventDefault();
-            move(e.key === "ArrowDown" ? 1 : -1);
+            list.move(e.key === "ArrowDown" ? 1 : -1);
             return;
           }
           if ((e.key === "Enter" && !e.shiftKey) || (e.key === "Tab" && !e.shiftKey)) {
-            if (active) {
+            if (list.active) {
               e.preventDefault();
               e.stopPropagation();
-              pick(active);
+              pick(list.active);
               return;
             }
           }
@@ -323,24 +307,16 @@ export function initPromptInput(root: ParentNode) {
     textarea.addEventListener("keyup", (e) => {
       if (/^(Arrow(Left|Right)|Home|End)$/.test(e.key)) evaluate();
     });
-    form.addEventListener("focusout", (e) => {
-      const next = e.relatedTarget as Node | null;
-      if (next && !form.contains(next)) close();
-    });
 
     for (const menu of menus) {
-      // Clicks on the list must not take focus from the textarea.
-      menu.addEventListener("mousedown", (e) => e.preventDefault());
+      // Clicks on the list must not take focus from the textarea; the highlight follows the pointer.
+      list.bindPointer(menu);
       menu.addEventListener("click", (e) => {
-        const option = (e.target as Element).closest<HTMLElement>(OPTION);
+        const option = (e.target as Element).closest<HTMLElement>('[role="option"]');
         if (option && options(menu).includes(option)) {
           pick(option);
           textarea.focus();
         }
-      });
-      menu.addEventListener("mousemove", (e) => {
-        const option = (e.target as Element).closest<HTMLElement>(OPTION);
-        if (option && option !== active && options(menu).includes(option)) highlight(option, false);
       });
     }
 

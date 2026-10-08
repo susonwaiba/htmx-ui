@@ -58,11 +58,11 @@
     transform: translateY(calc(var(--lift) * -100%));
     translate: var(--swipe-x, 0px) var(--swipe-y, 0px);
     transition:
-      transform 400ms ease,
-      opacity 400ms ease,
-      height 400ms ease,
-      translate 400ms ease,
-      box-shadow 200ms ease;
+      transform var(--motion-duration-slower) ease,
+      opacity var(--motion-duration-slower) ease,
+      height var(--motion-duration-slower) ease,
+      translate var(--motion-duration-slower) ease,
+      box-shadow var(--motion-duration-moderate) ease;
     touch-action: none;
     overflow-wrap: anywhere;
   }
@@ -94,7 +94,7 @@
     height: var(--front-height);
   }
   .toast > * {
-    @apply transition-opacity duration-300;
+    @apply transition-opacity duration-(--motion-duration-slow);
   }
   .toaster-list:not([data-expanded]) > .toast[data-mounted]:not([data-front]) > * {
     @apply opacity-0;

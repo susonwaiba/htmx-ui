@@ -12,7 +12,7 @@
        <button class="btn btn-outline" data-dialog-close>Cancel</button>
        <button class="btn btn-primary">Save</button>
      </div>
-     <button class="sheet-close" data-dialog-close aria-label="Close">{{ icon("x") }}</button>   optional
+     <button class="btn btn-ghost btn-icon btn-sm sheet-close" data-dialog-close aria-label="Close">{{ icon("x") }}</button>   optional
    </dialog>
 
    Sides: .sheet-right (the default), .sheet-left, .sheet-top, .sheet-bottom.
@@ -28,7 +28,7 @@
     @apply flex;
   }
   .sheet::backdrop {
-    @apply bg-black/50;
+    @apply bg-overlay;
   }
 
   /* Sides. :where() keeps them at the specificity of .sheet, so size classes and utilities
@@ -89,7 +89,7 @@
     @apply flex shrink-0 flex-col gap-1.5;
   }
   .sheet-title {
-    @apply text-lg leading-none font-semibold tracking-tight;
+    @apply panel-title;
   }
   .sheet-description {
     @apply text-muted-foreground;
@@ -111,12 +111,11 @@
   .sheet-footer-sticky {
     @apply -mx-6 -mb-6 border-t border-border bg-muted/50 px-6 py-4;
   }
-  /* The corner close button. Leave it out to close with Escape, a click outside or a button of
-     your own. */
+  /* The corner close button: <button class="btn btn-ghost btn-icon btn-sm sheet-close">. The button
+     look comes from .btn; this only places it. Leave it out to close with Escape, a click outside
+     or a button of your own. */
   .sheet-close {
-    @apply absolute top-4 right-4 inline-flex size-7 cursor-pointer items-center justify-center rounded-md
-      text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-2
-      focus-visible:outline-ring [&_svg]:size-4;
+    @apply absolute top-3.5 right-3.5 text-muted-foreground;
   }
   .sheet:has(> .sheet-close) .sheet-header {
     @apply pr-8;

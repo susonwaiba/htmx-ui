@@ -7,6 +7,7 @@
 //   `value` attributes (falling back to their text).
 // Buttons are looked up on every event, so buttons swapped in by htmx just work.
 import { queryAll } from "../../utils/dom";
+import { isRtl, nextIndex } from "../../utils/shared";
 
 const valueOf = (b: HTMLElement) => b.getAttribute("value") ?? b.textContent?.trim() ?? "";
 
@@ -46,12 +47,10 @@ export function initToggleGroup(root: ParentNode) {
       const list = items();
       const i = list.indexOf(document.activeElement as HTMLElement);
       if (i < 0) return;
-      const next = { ArrowRight: i + 1, ArrowDown: i + 1, ArrowLeft: i - 1, ArrowUp: i - 1, Home: 0, End: list.length - 1 }[
-        e.key
-      ];
+      const next = nextIndex(e.key, i, list.length, { rtl: isRtl(group) });
       if (next === undefined) return;
       e.preventDefault();
-      const target = list[(next + list.length) % list.length]!;
+      const target = list[next]!;
       rove(target);
       target.focus();
     });

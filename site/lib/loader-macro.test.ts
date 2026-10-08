@@ -67,6 +67,13 @@ describe("loader()", () => {
     expect(el.querySelector(".sr-only")).toBeNull();
   });
 
+  test("label=none on a text variant drops the status role but keeps the text readable", async () => {
+    const el = (await macro(`{{ loader("text-shimmer", text="Thinking", label=none) }}`)).querySelector(".loader")!;
+    expect(el.hasAttribute("role")).toBe(false);
+    expect(el.hasAttribute("aria-hidden")).toBe(false);
+    expect(el.textContent).toBe("Thinking");
+  });
+
   test("size, class and attrs", async () => {
     const el = (
       await macro(`{{ loader("pulse-dot", size="lg", class="htmx-indicator text-primary", attrs={"id": "busy", "style": "--loader-duration: 2s"}) }}`)

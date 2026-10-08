@@ -16,13 +16,13 @@
 //   [data-combobox-toggle] opens and closes the list.
 // - Every change fires a bubbling "combobox:change" with detail { value, label, values, labels }.
 import { queryAll } from "../../utils/dom";
+import { dismissable } from "../../utils/dismiss";
+import { activeDescendant, filterOptions, OPTION, optionLabel, reachable } from "../../utils/listbox";
+import { place } from "../../utils/position";
+import { ensureId } from "../../utils/shared";
 
 type Choice = { value: string; label: string };
 
-let ids = 0;
-
-const OPTION = '[role="option"]';
-const normalize = (s: string) => s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
 
 export function initCombobox(root: ParentNode) {
   queryAll(root, "[data-combobox]:not([data-init])").forEach((box) => {
@@ -42,7 +42,7 @@ export function initCombobox(root: ParentNode) {
     // Multiple values submit as one hidden field each, cloned from the one in the markup.
     if (multiple) field?.remove();
 
-    popup.id ||= `combobox-${++ids}`;
+    ensureId(popup, "combobox");
     input.setAttribute("role", "combobox");
     input.setAttribute("aria-controls", popup.id);
     input.setAttribute("aria-expanded", "false");
@@ -53,9 +53,8 @@ export function initCombobox(root: ParentNode) {
 
     const all = () => [...popup!.querySelectorAll<HTMLElement>(OPTION)];
     // What the keyboard can reach: not filtered out, not in a hidden group, not disabled.
-    const options = () =>
-      all().filter((o) => !o.hidden && !o.closest("[role='group'][hidden]") && o.getAttribute("aria-disabled") !== "true");
-    const label = (o: HTMLElement) => o.getAttribute("data-label") ?? o.textContent?.trim() ?? "";
+    const options = () => reachable(popup!);
+    const label = optionLabel;
     const valueOf = (o: HTMLElement) => o.getAttribute("value") ?? label(o);
     const choiceOf = (o: HTMLElement): Choice => ({ value: valueOf(o), label: label(o) });
     const isChosen = (value: string) => chosen.some((c) => c.value === value);
@@ -65,7 +64,8 @@ export function initCombobox(root: ParentNode) {
       .map(choiceOf)
       .slice(0, multiple ? undefined : 1);
     const initial = [...chosen];
-    let active: HTMLElement | null = null;
+    const list = activeDescendant(input, { all, options });
+    const highlight = list.highlight;
 
     // Options carry the choice as aria-selected, and an id for aria-activedescendant.
     function mark() {
@@ -75,47 +75,17 @@ export function initCombobox(root: ParentNode) {
       });
     }
 
-    function highlight(option: HTMLElement | null | undefined, scroll = true) {
-      active = option ?? null;
-      for (const o of all()) o.toggleAttribute("data-highlighted", o === active);
-      if (active) {
-        input!.setAttribute("aria-activedescendant", active.id);
-        if (scroll) active.scrollIntoView?.({ block: "nearest" });
-      } else input!.removeAttribute("aria-activedescendant");
-    }
-
     function filter(query: string) {
-      const words = normalize(query).split(/\s+/).filter(Boolean);
-      let shown = 0;
-      for (const o of all()) {
-        const text = normalize(`${label(o)} ${o.dataset.keywords ?? ""}`);
-        o.hidden = filtering && !words.every((w) => text.includes(w));
-        if (!o.hidden) shown++;
-      }
-      for (const group of popup!.querySelectorAll<HTMLElement>("[role='group']")) {
-        group.hidden = !group.querySelector(`${OPTION}:not([hidden])`);
-      }
-      // A separator shows only with something visible both before and after it.
-      let seen = false;
-      let pending: HTMLElement | null = null;
-      for (const el of popup!.children as HTMLCollectionOf<HTMLElement>) {
-        if (el.matches("[role='separator'], .combobox-separator")) {
-          el.hidden = true;
-          if (seen) pending = el;
-        } else if (!el.hidden && el.matches(`${OPTION}, [role='group']`)) {
-          if (pending) pending.hidden = false;
-          pending = null;
-          seen = true;
-        }
-      }
+      const shown = filterOptions(popup!, query, { match: filtering, separator: "[role='separator'], .combobox-separator" });
       const empty = box.querySelector<HTMLElement>("[data-combobox-empty]");
       if (empty) empty.hidden = shown > 0;
     }
 
     // After typing or a new list: keep the highlight if it is still there, or take the first.
     function rehighlight() {
-      const list = options();
-      highlight(autoHighlight ? list[0] : active && list.includes(active) ? active : null);
+      const reach = options();
+      const active = list.active;
+      highlight(autoHighlight ? reach[0] : active && reach.includes(active) ? active : null);
     }
 
     function sync() {
@@ -168,25 +138,25 @@ export function initCombobox(root: ParentNode) {
       );
     }
 
-    const onOutside = (e: PointerEvent) => {
-      if (!box.contains(e.target as Node)) close();
-    };
+    // A pointer down outside or focus leaving the combobox closes the list.
+    const dismiss = dismissable(box, () => close());
     function open() {
       if (!popup!.hidden) return;
       popup!.hidden = false;
       input!.setAttribute("aria-expanded", "true");
-      document.addEventListener("pointerdown", onOutside);
+      dismiss.opened();
       mark();
       // Single: the input shows the current label, which is not a search, so list everything.
       filter(multiple ? input!.value : "");
-      const list = options();
-      highlight(autoHighlight ? list[0] : (list.find((o) => isChosen(valueOf(o))) ?? null));
+      const reach = options();
+      highlight(autoHighlight ? reach[0] : (reach.find((o) => isChosen(valueOf(o))) ?? null));
+      place(popup!, box);
     }
     function close() {
       if (popup!.hidden) return;
       popup!.hidden = true;
       input!.setAttribute("aria-expanded", "false");
-      document.removeEventListener("pointerdown", onOutside);
+      dismiss.closed();
       highlight(null);
       if (multiple) input!.value = "";
       else if (!input!.value.trim() && chosen.length) {
@@ -211,13 +181,6 @@ export function initCombobox(root: ParentNode) {
       changed();
     }
 
-    function move(step: 1 | -1) {
-      const list = options();
-      if (!list.length) return;
-      const i = active ? list.indexOf(active) : -1;
-      highlight(list[i < 0 ? (step > 0 ? 0 : list.length - 1) : (i + step + list.length) % list.length]);
-    }
-
     input.addEventListener("input", () => {
       open();
       filter(input.value);
@@ -230,10 +193,10 @@ export function initCombobox(root: ParentNode) {
       if (e.key === "ArrowDown" || e.key === "ArrowUp") {
         e.preventDefault();
         if (closed) open();
-        if (!closed || !active) move(e.key === "ArrowDown" ? 1 : -1);
-      } else if (e.key === "Enter" && !closed && active) {
+        if (!closed || !list.active) list.move(e.key === "ArrowDown" ? 1 : -1);
+      } else if (e.key === "Enter" && !closed && list.active) {
         e.preventDefault();
-        pick(active);
+        pick(list.active);
       } else if (e.key === "Escape" && !closed) {
         e.preventDefault();
         close();
@@ -244,8 +207,10 @@ export function initCombobox(root: ParentNode) {
       }
     });
 
-    // Clicks on the list, chips and buttons must not take focus from the input.
-    for (const el of [popup, chips, clear, toggle]) {
+    // Clicks on the list, chips and buttons must not take focus from the input; the highlight
+    // follows the pointer over the list.
+    list.bindPointer(popup);
+    for (const el of [chips, clear, toggle]) {
       el?.addEventListener("mousedown", (e) => {
         if (e.target !== input) e.preventDefault();
       });
@@ -253,10 +218,6 @@ export function initCombobox(root: ParentNode) {
     popup.addEventListener("click", (e) => {
       const option = (e.target as Element).closest<HTMLElement>(OPTION);
       if (option && options().includes(option)) pick(option);
-    });
-    popup.addEventListener("mousemove", (e) => {
-      const option = (e.target as Element).closest<HTMLElement>(OPTION);
-      if (option && option !== active && options().includes(option)) highlight(option, false);
     });
     chips?.addEventListener("click", (e) => {
       const remove = (e.target as Element).closest(".combobox-chip-remove");
@@ -279,10 +240,6 @@ export function initCombobox(root: ParentNode) {
       if (popup.hidden) open();
       else close();
       input.focus();
-    });
-    box.addEventListener("focusout", (e) => {
-      const next = e.relatedTarget as Node | null;
-      if (next && !box.contains(next)) close();
     });
     input.form?.addEventListener("reset", () => {
       chosen = [...initial];

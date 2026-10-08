@@ -43,7 +43,7 @@
     @apply flex;
   }
   .drawer::backdrop {
-    @apply bg-black/50;
+    @apply bg-overlay;
   }
   /* A drawer opened over another: the one behind is already dimmed by the first backdrop. */
   .drawer[data-drawer-nested]::backdrop {
@@ -171,7 +171,7 @@
     @apply text-left;
   }
   .drawer-title {
-    @apply text-lg leading-none font-semibold tracking-tight;
+    @apply panel-title;
   }
   .drawer-description {
     @apply text-muted-foreground;

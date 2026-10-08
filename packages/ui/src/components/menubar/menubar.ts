@@ -13,6 +13,7 @@
 // - Escape closes the menu and returns focus to its trigger; clicking outside, Tab, or focus
 //   leaving the menubar close it; choosing an item closes it.
 import { queryAll } from "../../utils/dom";
+import { place } from "../../utils/position";
 import {
   ITEM,
   bindMenus,
@@ -21,7 +22,6 @@ import {
   isDisabled,
   menuClosed,
   menuOpened,
-  place,
   prepareMenu,
   subMenuOf,
   typeahead,

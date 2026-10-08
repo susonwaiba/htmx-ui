@@ -35,8 +35,7 @@
 
   /* The whole card is the hit area: the label wraps the radio, so clicking either picks it. */
   .radio-card {
-    @apply flex cursor-pointer items-start gap-3 rounded-(--radius) border border-border bg-surface p-3 text-sm
-      text-foreground transition-[color,box-shadow,border-color,background-color] hover:bg-accent/40;
+    @apply choice-card;
   }
   /* Picked: primary border and a faint tint. One color-mix() per rule (see components/alert).
      Disabled comes first, so a checked but disabled option keeps its tint. */

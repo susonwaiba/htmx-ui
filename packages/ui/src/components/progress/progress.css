@@ -29,7 +29,7 @@
     @apply rounded-full bg-transparent;
   }
   .progress::-webkit-progress-value {
-    @apply rounded-full transition-[width] duration-300 ease-out motion-reduce:transition-none;
+    @apply rounded-full transition-[width] duration-(--motion-duration-slow) ease-out motion-reduce:transition-none;
     background-color: var(--progress-tone);
   }
   .progress::-moz-progress-bar {

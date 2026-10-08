@@ -19,6 +19,7 @@
    size=none           "sm" | "lg"
    attrs=none          more attributes for every input, as a dict ({"hx-post": "/volume", …})
    class=""            more classes on the .slider #}
+{% from "macros/attrs.html" import attrs as html_attrs %}
 
 {% macro slider(value=50, min=0, max=100, step=1, name=none, names=none, id=none, aria_label=none, labels=none, orientation=none, gap=none, disabled=false, invalid=false, variant=none, size=none, attrs=none, class="") %}
 {% set values = value if (value is iterable and not (value is string)) else [value] %}
@@ -41,7 +42,7 @@
     {%- if orientation %} aria-orientation="{{ orientation }}"{% endif %}
     {%- if disabled %} disabled{% endif %}
     {%- if invalid %} aria-invalid="true"{% endif %}
-    {%- if attrs %}{% for k, a in attrs %} {{ k }}="{{ a }}"{% endfor %}{% endif %} />
+    {{- html_attrs(attrs) }} />
   {% endfor %}
 </div>
 {%- endmacro %}

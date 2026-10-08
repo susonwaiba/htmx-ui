@@ -8,8 +8,9 @@
    value: the preselected value (a list with multiple). name: hidden field(s) for the form.
    multiple: chips. autohighlight: Enter takes the first match. clear: a clear button.
    label: the accessible name of the input and list. empty: the "no matches" text.
-   invalid, disabled, required: on the input. class: on the wrapper (a width: w-64). attrs: extra
-   attributes on the input. #}
+   invalid, disabled, required: on the input. class: on the wrapper (a width: w-64). attrs: more
+   attributes on the input, as a dict ({"hx-get": "/countries", "hx-trigger": "input changed delay:200ms"}). #}
+{% from "macros/attrs.html" import attrs as html_attrs %}
 
 {% macro _option(o, value, multiple) %}
 {% set val = o.value if o.value is defined else o %}
@@ -19,10 +20,10 @@
 <div class="combobox-item" role="option" value="{{ val }}" aria-selected="{{ 'true' if picked else 'false' }}"{% if o.keywords %} data-keywords="{{ o.keywords }}"{% endif %}{% if o.disabled %} aria-disabled="true"{% endif %}>{{ text }}<span class="combobox-check">{{ icon("check") }}</span></div>
 {%- endmacro %}
 
-{% macro combobox(id, options, value=none, name=none, label=none, placeholder="Search…", multiple=false, autohighlight=false, clear=true, empty="No results.", invalid=false, disabled=false, required=false, class="", attrs="") %}
+{% macro combobox(id, options, value=none, name=none, label=none, placeholder="Search…", multiple=false, autohighlight=false, clear=true, empty="No results.", invalid=false, disabled=false, required=false, class="", attrs=none) %}
 {% from "components/icon/icon.html" import icon %}
 {% set value = value if value is not none else ([] if multiple else "") %}
-{% set input_attrs %} id="{{ id }}" data-combobox-input placeholder="{{ placeholder }}"{% if label %} aria-label="{{ label }}"{% endif %}{% if invalid %} aria-invalid="true"{% endif %}{% if disabled %} disabled{% endif %}{% if required %} required{% endif %}{% if attrs %} {{ attrs | safe }}{% endif %}{% endset %}
+{% set input_attrs %} id="{{ id }}" data-combobox-input placeholder="{{ placeholder }}"{% if label %} aria-label="{{ label }}"{% endif %}{% if invalid %} aria-invalid="true"{% endif %}{% if disabled %} disabled{% endif %}{% if required %} required{% endif %}{{ html_attrs(attrs) }}{% endset %}
 <div class="combobox{% if class %} {{ class }}{% endif %}" data-combobox{% if multiple %} data-multiple{% endif %}{% if autohighlight %} data-autohighlight{% endif %}>
   {% if multiple %}
   <div class="combobox-chips" data-combobox-chips>

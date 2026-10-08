@@ -1,0 +1,106 @@
+/* Shared building blocks for the component styles. Each is a Tailwind utility, so a component
+   reuses it with @apply (Tailwind's @apply takes utilities, not other components' classes), and
+   they can be used in markup too. Imported by styles.css before the components. */
+
+/* An option or item row in a popup list: select, combobox, command, dropdown, prompt input.
+   Each component adds what tells its rows apart: the highlight (hover and focus for lists that
+   move focus, data-highlighted for those driven by aria-activedescendant) and its own extras. */
+@utility menu-item {
+  @apply flex w-full cursor-pointer items-center gap-2 rounded-[calc(var(--radius)-2px)] px-2 py-1.5 text-left
+    text-sm outline-none select-none aria-disabled:pointer-events-none aria-disabled:opacity-50 [&_svg]:size-4
+    [&_svg]:shrink-0;
+}
+/* A small muted heading over a group of rows */
+@utility menu-label {
+  @apply px-2 py-1.5 text-xs font-medium text-muted-foreground;
+}
+/* A divider between groups, edge to edge across the panel's padding */
+@utility menu-separator {
+  @apply -mx-1 my-1 h-px bg-border;
+}
+/* "No results" under a filtered list */
+@utility menu-empty {
+  @apply px-2 py-4 text-center text-sm text-muted-foreground;
+}
+
+/* The surface of a floating panel: listboxes, menus, popovers, hover cards, the command palette.
+   Shadows differ (menus shadow-lg, larger panels shadow-md), so each adds its own. Their
+   scrollbars stay visible, so a long list shows it can scroll. */
+@utility popup-surface {
+  @apply scrollbar-visible rounded-(--radius) border border-border bg-surface text-foreground;
+}
+
+/* A scrollbar thumb that shows without hovering (styles.css hides it until then): for scroll
+   areas inside a component (a popup list, a card's scrolling content) that should look scrollable. */
+@utility scrollbar-visible {
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+  &:hover {
+    scrollbar-color: var(--scrollbar-thumb-hover) transparent;
+  }
+}
+
+/* The keyboard focus outline of buttons, links and other clickable things */
+@utility focus-outline {
+  @apply focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring;
+}
+
+/* A text field with no box of its own, inside a box that draws it (input group, combobox chips,
+   prompt input, command palette) */
+@utility input-bare {
+  @apply border-0 bg-transparent text-foreground outline-none placeholder:text-muted-foreground
+    disabled:cursor-not-allowed;
+}
+
+/* The text of a form label (.label, .field-label) and of the help text under or beside it */
+@utility label-text {
+  @apply flex w-fit items-center gap-2 text-sm leading-snug font-medium text-foreground select-none [&_svg]:size-4;
+}
+@utility description-text {
+  @apply text-sm leading-normal font-normal text-muted-foreground;
+}
+
+/* A bordered card around a choice that is the hit area for it (.label-card, .radio-card). Each
+   component adds its checked tint and focus ring (one color-mix() per rule: see alert.css). */
+@utility choice-card {
+  @apply flex cursor-pointer items-start gap-3 rounded-(--radius) border border-border bg-surface p-3 text-sm
+    text-foreground transition-[color,box-shadow,border-color,background-color] hover:bg-accent/40;
+}
+
+/* The heading of a dialog, sheet or drawer */
+@utility panel-title {
+  @apply text-lg leading-none font-semibold tracking-tight;
+}
+
+/* A chevron, drawn from the text colour by masking the element: put it on a ::after (or any
+   empty element) with a size and bg-current, and turn it when open. Accordion, reasoning, chain
+   of thought. */
+@utility chevron-mask {
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")
+    center / contain no-repeat;
+}
+
+/* A quiet <summary> that folds its <details> away: reasoning, chain of thought */
+@utility summary-trigger {
+  @apply inline-flex max-w-full cursor-pointer list-none items-center gap-1.5 rounded-md py-0.5 text-sm
+    text-muted-foreground transition-colors select-none hover:text-foreground focus-visible:outline-2
+    focus-visible:outline-offset-2 focus-visible:outline-ring [&::-webkit-details-marker]:hidden [&>svg]:size-4
+    [&>svg]:shrink-0;
+}
+
+/* On a <details>: open and close smoothly where the browser can animate to height: auto
+   (Chromium); elsewhere it just snaps. The duration token is 0s for prefers-reduced-motion. */
+@utility details-animate {
+  @supports selector(::details-content) {
+    interpolate-size: allow-keywords;
+    &::details-content {
+      height: 0;
+      overflow: clip;
+      transition:
+        height var(--motion-duration-moderate) ease,
+        content-visibility var(--motion-duration-moderate) allow-discrete;
+    }
+    &[open]::details-content {
+      height: auto;
+    }
+  }
+}

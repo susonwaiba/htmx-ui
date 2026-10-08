@@ -62,8 +62,8 @@
   /* Panel: below the trigger, at its left edge. Hidden (visibility) while closed, so it is out of
      the tab order and the accessibility tree, and can fade out as well as in. */
   .navigation-menu-content {
-    @apply invisible absolute top-full left-0 z-50 mt-1.5 w-max max-w-[calc(100vw-2rem)] origin-top-left
-      rounded-(--radius) border border-border bg-surface p-2 text-sm text-foreground opacity-0 shadow-md;
+    @apply popup-surface invisible absolute top-full left-0 z-50 mt-1.5 w-max max-w-[calc(100vw-2rem)]
+      origin-top-left p-2 text-sm opacity-0 shadow-md;
     scale: 0.96;
     transition:
       opacity var(--motion-duration-fast) var(--motion-ease-out),

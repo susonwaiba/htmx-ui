@@ -14,30 +14,11 @@
 //   data-command-hotkey="mod+shift+p" activates it while the command has focus.
 // - Each time its dialog opens, the query is cleared and the first item highlighted.
 import { queryAll } from "../../utils/dom";
+import { matchesHotkey } from "../../utils/hotkey";
+import { activeDescendant, filterOptions, reachable } from "../../utils/listbox";
+import { ensureId, isEditable } from "../../utils/shared";
 
 const ITEM = ".command-item, [data-command-item]";
-let ids = 0;
-
-const isApple = () => /mac|iphone|ipad|ipod/i.test(navigator.platform || navigator.userAgent);
-
-/** Does `e` match a combo like "mod+shift+k"? */
-export function matchesHotkey(e: KeyboardEvent, combo: string): boolean {
-  const parts = combo.toLowerCase().split("+").map((p) => p.trim());
-  const key = parts.pop();
-  if (!key) return false;
-  const want = { ctrl: false, meta: false, alt: false, shift: false };
-  for (const p of parts) {
-    if (p === "mod") want[isApple() ? "meta" : "ctrl"] = true;
-    else if (p === "cmd" || p === "meta") want.meta = true;
-    else if (p === "ctrl" || p === "control") want.ctrl = true;
-    else if (p === "alt" || p === "option") want.alt = true;
-    else if (p === "shift") want.shift = true;
-  }
-  const pressed = e.key.toLowerCase();
-  const code = e.code?.toLowerCase() ?? "";
-  const keyMatches = pressed === key || code === `key${key}` || code === `digit${key}`;
-  return keyMatches && e.ctrlKey === want.ctrl && e.metaKey === want.meta && e.altKey === want.alt && e.shiftKey === want.shift;
-}
 
 /** Letters of `query` appear in `text` in order; whitespace-separated words each must match. */
 export function commandMatches(text: string, query: string): boolean {
@@ -54,9 +35,6 @@ export function commandMatches(text: string, query: string): boolean {
     });
 }
 
-const editable = (el: EventTarget | null) =>
-  el instanceof HTMLElement && (el.isContentEditable || /^(input|textarea|select)$/i.test(el.tagName));
-
 export function initCommand(root: ParentNode) {
   queryAll(root, "[data-command]:not([data-init])").forEach((command) => {
     command.dataset.init = "";
@@ -67,7 +45,7 @@ export function initCommand(root: ParentNode) {
     const filtering = command.dataset.commandFilter !== "false";
     if (!list) return;
 
-    list.id ||= `command-list-${++ids}`;
+    ensureId(list, "command-list");
     if (!list.hasAttribute("role")) list.setAttribute("role", "listbox");
     if (input) {
       input.setAttribute("role", "combobox");
@@ -79,26 +57,13 @@ export function initCommand(root: ParentNode) {
     }
 
     const items = () => [...list.querySelectorAll<HTMLElement>(ITEM)];
-    const visible = () => items().filter((i) => !i.hidden && i.getAttribute("aria-disabled") !== "true");
-    let current: HTMLElement | null = null;
-
+    const visible = () => reachable(list, ITEM);
+    // The highlighted item is also aria-selected: it is the one Enter activates. The list
+    // scrolls to it, never the page around it.
+    const highlighter = activeDescendant(input ?? list, { all: items, options: visible, select: true });
     const highlight = (item: HTMLElement | null, scroll = true) => {
-      if (current && current !== item) {
-        delete current.dataset.highlighted;
-        current.setAttribute("aria-selected", "false");
-      }
-      current = item;
-      if (!item) return input?.removeAttribute("aria-activedescendant");
-      item.id ||= `command-item-${++ids}`;
-      item.dataset.highlighted = "";
-      item.setAttribute("aria-selected", "true");
-      input?.setAttribute("aria-activedescendant", item.id);
-      // Scroll the list only, never the page around it.
-      if (!scroll) return;
-      const r = item.getBoundingClientRect();
-      const l = list.getBoundingClientRect();
-      if (r.top < l.top) list.scrollTop -= l.top - r.top;
-      else if (r.bottom > l.bottom) list.scrollTop += r.bottom - l.bottom;
+      if (item) ensureId(item, "command-item");
+      highlighter.highlight(item, scroll);
     };
 
     const prepare = () =>
@@ -108,45 +73,24 @@ export function initCommand(root: ParentNode) {
         if (item.tagName === "A") item.tabIndex = -1;
       });
 
+    // Letters in order (commandMatches) over an item's text, data-keywords and data-value; groups
+    // and separators left with nothing hide (utils/listbox.ts).
     const filter = () => {
       const query = filtering ? (input?.value.trim() ?? "") : "";
-      items().forEach((item) => {
-        const text = `${item.textContent ?? ""} ${item.dataset.keywords ?? ""} ${item.dataset.value ?? ""}`;
-        item.hidden = !!query && !commandMatches(text, query);
+      const any = filterOptions(list, query, {
+        matches: commandMatches,
+        text: (item) => `${item.textContent ?? ""} ${item.dataset.keywords ?? ""} ${item.dataset.value ?? ""}`,
+        option: ITEM,
+        group: ".command-group, [role='group']",
+        separator: ".command-separator, [role='separator']",
       });
-      // Groups with no item left
-      list.querySelectorAll<HTMLElement>(".command-group, [role='group']").forEach((group) => {
-        group.hidden = !group.querySelector(`:is(${ITEM}):not([hidden])`);
-      });
-      // Separators: hide those at an edge or next to another visible separator
-      let previousVisible: HTMLElement | null = null;
-      const children = [...list.children] as HTMLElement[];
-      const shown = (el: HTMLElement) => !el.hidden && !el.matches("[data-command-empty], .command-empty");
-      children.forEach((el) => {
-        if (!el.matches(".command-separator, [role='separator']")) {
-          if (shown(el)) previousVisible = el;
-          return;
-        }
-        const next = children.slice(children.indexOf(el) + 1).find(shown);
-        el.hidden = !previousVisible || previousVisible.matches(".command-separator, [role='separator']") || !next || next.matches(".command-separator, [role='separator']");
-        if (!el.hidden) previousVisible = el;
-      });
-      const any = items().some((i) => !i.hidden);
-      if (empty) empty.hidden = any;
+      if (empty) empty.hidden = any > 0;
+      const current = highlighter.active;
       if (!current || current.hidden || !current.isConnected) highlight(visible()[0] ?? null);
       else if (query) highlight(visible()[0] ?? null);
     };
 
-    const move = (by: number | "first" | "last") => {
-      const all = visible();
-      if (!all.length) return;
-      let index: number;
-      if (by === "first") index = 0;
-      else if (by === "last") index = all.length - 1;
-      else index = (all.indexOf(current!) + by + all.length) % all.length;
-      if (!current && typeof by === "number") index = by > 0 ? 0 : all.length - 1;
-      highlight(all[index]!);
-    };
+    const move = highlighter.move;
 
     const activate = (item: HTMLElement) => {
       if (item.getAttribute("aria-disabled") === "true") return;
@@ -162,7 +106,7 @@ export function initCommand(root: ParentNode) {
     });
     list.addEventListener("pointermove", (e) => {
       const item = (e.target as Element).closest<HTMLElement>(ITEM);
-      if (item && item !== current && !item.hidden && item.getAttribute("aria-disabled") !== "true") highlight(item, false);
+      if (item && item !== highlighter.active && visible().includes(item)) highlight(item, false);
     });
 
     command.addEventListener("keydown", (e) => {
@@ -189,8 +133,8 @@ export function initCommand(root: ParentNode) {
           move("last");
           break;
         case "Enter":
-          if (!current) return;
-          current.click();
+          if (!highlighter.active) return;
+          highlighter.active.click();
           break;
         default:
           return;
@@ -216,7 +160,7 @@ export function initCommand(root: ParentNode) {
       document.addEventListener("keydown", (e) => {
         if (!command.isConnected || !matchesHotkey(e, hotkey)) return;
         const bare = !e.ctrlKey && !e.metaKey && !e.altKey;
-        if (bare && editable(e.target)) return;
+        if (bare && isEditable(e.target)) return;
         e.preventDefault();
         if (dialog) {
           if (dialog.open) dialog.close();
@@ -233,6 +177,6 @@ export function initCommand(root: ParentNode) {
 
     prepare();
     filter();
-    if (!current) highlight(visible()[0] ?? null, false);
+    if (!highlighter.active) highlight(visible()[0] ?? null, false);
   });
 }

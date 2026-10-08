@@ -4,9 +4,9 @@
 // - Escape hides any open tooltip without moving focus or the pointer (WCAG 1.4.13); it comes
 //   back once the pointer leaves the trigger and returns, or focus moves.
 import { queryAll } from "../../utils/dom";
+import { ensureId } from "../../utils/shared";
 
 const FOCUSABLE = "[data-tooltip-trigger], a[href], button, input, select, textarea, [tabindex]";
-let ids = 0;
 let listening = false;
 
 export function initTooltip(root: ParentNode) {
@@ -26,7 +26,7 @@ export function initTooltip(root: ParentNode) {
     const trigger = tooltip.querySelector<HTMLElement>(FOCUSABLE);
     if (!content) return;
 
-    content.id ||= `tooltip-${++ids}`;
+    ensureId(content, "tooltip");
     content.setAttribute("role", "tooltip");
     if (trigger && trigger !== content && !content.contains(trigger)) {
       const described = (trigger.getAttribute("aria-describedby") ?? "").split(/\s+/).filter(Boolean);

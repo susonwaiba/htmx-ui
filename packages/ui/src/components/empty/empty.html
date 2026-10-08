@@ -9,11 +9,13 @@
    variant=none       "outline" | "muted"
    size=none          "sm" for small panels and table bodies
    heading="h3"       the title element: a heading level that fits the page, or "p"
-   class=""           more classes on .empty #}
+   class=""           more classes on .empty
+   attrs=none         more attributes, as a dict ({"id": "no-results"}) #}
+{% from "macros/attrs.html" import attrs as html_attrs %}
 {% from "components/icon/icon.html" import icon as icon_svg %}
 
-{% macro empty(title, description=none, icon=none, variant=none, size=none, heading="h3", class="") %}
-<div class="empty{% if variant %} empty-{{ variant }}{% endif %}{% if size %} empty-{{ size }}{% endif %}{% if class %} {{ class }}{% endif %}">
+{% macro empty(title, description=none, icon=none, variant=none, size=none, heading="h3", class="", attrs=none) %}
+<div class="empty{% if variant %} empty-{{ variant }}{% endif %}{% if size %} empty-{{ size }}{% endif %}{% if class %} {{ class }}{% endif %}"{{ html_attrs(attrs) }}>
   <div class="empty-header">
     {% if icon %}<div class="empty-media empty-media-icon">{{ icon_svg(icon) }}</div>{% endif %}
     <{{ heading }} class="empty-title">{{ title }}</{{ heading }}>

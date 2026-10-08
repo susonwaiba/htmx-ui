@@ -28,8 +28,7 @@
   .pagination-link {
     @apply inline-flex h-9 min-w-9 shrink-0 cursor-pointer items-center justify-center gap-1 rounded-(--radius) border
       border-transparent px-2 text-sm font-medium whitespace-nowrap text-foreground tabular-nums transition-colors
-      select-none hover:bg-accent hover:text-accent-foreground focus-visible:outline-2
-      focus-visible:outline-offset-2 focus-visible:outline-ring;
+      select-none hover:bg-accent hover:text-accent-foreground focus-outline;
   }
   .pagination-link[aria-current="page"] {
     @apply border-border bg-background shadow-xs hover:bg-accent;

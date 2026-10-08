@@ -15,7 +15,9 @@
    id=none               give one when htmx replaces it (outerHTML) while it streams
    attrs=none            more attributes, as a dict: {"hx-get": "/chat/7/reasoning", …}
    class=""              more classes on the <details> #}
+{% from "macros/attrs.html" import attrs as html_attrs %}
 {% from "components/icon/icon.html" import icon as icon_svg %}
+{% from "components/loader/loader.html" import loader %}
 
 {% macro reasoning(label=none, streaming=false, open=false, duration=none, streaming_label="Thinking…", done_label=none, auto_close=true, close_delay=none, icon="sparkles", plain=false, id=none, attrs=none, class="") %}
 {% if label %}
@@ -34,11 +36,11 @@
   {%- if done_label %} data-reasoning-done-label="{{ done_label }}"{% endif %}
   {%- if not auto_close %} data-reasoning-auto-close="false"{% endif %}
   {%- if close_delay != none %} data-reasoning-close-delay="{{ close_delay }}"{% endif %}
-  {%- if attrs %}{% for k, v in attrs %} {{ k }}="{{ v }}"{% endfor %}{% endif %}>
+  {{- html_attrs(attrs) }}>
   <summary class="reasoning-trigger">
     {%- if icon %}{{ icon_svg(icon) }}{% endif -%}
     <span class="reasoning-label">
-      {%- if streaming %}<span class="loader loader-text-shimmer">{{ streaming_label }}</span>{% else %}{{ text }}{% endif -%}
+      {%- if streaming %}{{ loader("text-shimmer", text=streaming_label, label=none) }}{% else %}{{ text }}{% endif -%}
     </span>
   </summary>
   <div class="reasoning-content">{{ caller() if caller else "" }}</div>

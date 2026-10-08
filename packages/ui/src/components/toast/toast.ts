@@ -25,7 +25,14 @@
 // data-close-button="false"); without one it is created on the first toast. Hovering or focusing
 // the stack expands it and pauses the timers; Alt+T focuses it; Escape dismisses the focused
 // toast; swiping a toast towards the edge dismisses it.
+import alertTriangle from "../../icons/alert-triangle.svg" with { type: "text" };
+import checkCircle from "../../icons/check-circle.svg" with { type: "text" };
+import info from "../../icons/info.svg" with { type: "text" };
+import loader from "../../icons/loader.svg" with { type: "text" };
+import xCircle from "../../icons/x-circle.svg" with { type: "text" };
+import x from "../../icons/x.svg" with { type: "text" };
 import { queryAll } from "../../utils/dom";
+import { responseOk } from "../../utils/shared";
 
 export type ToastType = "default" | "success" | "info" | "warning" | "error" | "loading";
 export type ToastPosition = "top-left" | "top-center" | "top-right" | "bottom-left" | "bottom-center" | "bottom-right";
@@ -71,16 +78,16 @@ interface Entry {
 
 const GAP = 14;
 const EXIT_MS = 400;
-const svg = (body: string, cls = "") =>
-  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"${cls ? ` class="${cls}"` : ""}>${body}</svg>`;
+// The icons from src/icons, as the icon() macro renders them (decorative here).
+const decorative = (markup: string) => markup.trim().replace("<svg ", '<svg aria-hidden="true" ');
 const ICONS: Partial<Record<ToastType, string>> = {
-  success: svg('<circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>'),
-  info: svg('<circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>'),
-  warning: svg('<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4M12 17h.01"/>'),
-  error: svg('<circle cx="12" cy="12" r="10"/><path d="m15 9-6 6M9 9l6 6"/>'),
-  loading: svg('<path d="M21 12a9 9 0 1 1-6.22-8.56"/>'),
+  success: decorative(checkCircle),
+  info: decorative(info),
+  warning: decorative(alertTriangle),
+  error: decorative(xCircle),
+  loading: decorative(loader),
 };
-const CLOSE = svg('<path d="M18 6 6 18M6 6l12 12"/>');
+const CLOSE = decorative(x);
 
 const entries = new Map<string, Entry>();
 let count = 0;
@@ -457,8 +464,7 @@ export function initToast(root: ParentNode) {
       const id = el && requests.get(el);
       if (!id) return;
       requests.delete(el);
-      const ctx = (e as CustomEvent).detail?.ctx;
-      const ok = ctx?.response && ctx.response.status < 400 && !String(ctx.status ?? "").startsWith("error");
+      const ok = responseOk(e);
       const message = ok ? el.dataset.toastSuccess : el.dataset.toastError;
       const { type: _type, duration: _duration, ...rest } = fromData(el);
       if (message) toast(message, { ...rest, id, type: ok ? "success" : "error" });

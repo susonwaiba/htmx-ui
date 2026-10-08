@@ -13,6 +13,7 @@
 //   (detail: { api }) then, and carousel:select (detail: { index, api }) when the slide changes.
 import type { EmblaCarouselType, EmblaOptionsType, EmblaPluginType } from "embla-carousel";
 import { queryAll } from "../../utils/dom";
+import { isEditable } from "../../utils/shared";
 
 // Each plugin factory takes its own options type.
 type PluginFactory = (options?: any) => EmblaPluginType;
@@ -121,8 +122,7 @@ async function setup(carousel: HTMLElement) {
   sync();
 
   carousel.addEventListener("keydown", (e) => {
-    const target = e.target as HTMLElement;
-    if (/^(input|textarea|select)$/i.test(target.tagName) || target.isContentEditable) return;
+    if (isEditable(e.target)) return;
     const [back, forward] = vertical ? ["ArrowUp", "ArrowDown"] : rtl ? ["ArrowRight", "ArrowLeft"] : ["ArrowLeft", "ArrowRight"];
     if (e.key === back) api.scrollPrev();
     else if (e.key === forward) api.scrollNext();

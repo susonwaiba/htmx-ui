@@ -1,0 +1,15 @@
+{# Extra attributes for a component macro's element.
+   {% from "macros/attrs.html" import attrs %}
+   <div class="…"{{ attrs(attrs_param) }}>
+   value: a dict, {"hx-get": "/items", "hx-target": "#list", "data-id": 3}: true renders a bare
+   attribute (hidden), none and false leave it out; values are escaped. A string of markup is
+   still accepted (written as is), for calls from before every macro took a dict. #}
+{% macro attrs(value) -%}
+{%- if value is string -%}
+  {%- if value %} {{ value | safe }}{% endif -%}
+{%- elif value -%}
+  {%- for k, v in value -%}
+    {%- if v === true %} {{ k }}{% elif v !== none and v !== false %} {{ k }}="{{ v }}"{% endif -%}
+  {%- endfor -%}
+{%- endif -%}
+{%- endmacro %}

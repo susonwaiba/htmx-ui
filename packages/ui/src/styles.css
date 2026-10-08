@@ -29,6 +29,8 @@
     --accent-foreground: var(--color-zinc-900);
     --border: var(--color-zinc-200);
     --ring: var(--color-indigo-500);
+    /* The dimmed page behind modal dialogs, sheets, drawers and the mobile sidebar */
+    --overlay: oklch(0 0 0 / 0.5);
 
     --primary: var(--color-indigo-600);
     --primary-foreground: var(--color-white);
@@ -150,7 +152,8 @@
 
   /* Scrollbars: thin, transparent track, thumb tinted from the text colour so it
      blends into any theme in light and dark. Override --scrollbar-thumb(-hover)
-     to restyle, or set `scrollbar-color: auto` on an element for native bars. */
+     to restyle, set `scrollbar-color: auto` on an element for native bars, or add
+     `scrollbar-visible` (utilities.css) to show the thumb without hovering. */
   /* One color-mix() per rule, on distinct selectors: Tailwind's optimiser keeps
      only one color-mix() per rule and drops the rest (see components/alert). */
   :root {
@@ -158,6 +161,11 @@
   }
   html {
     --scrollbar-thumb-hover: color-mix(in oklab, var(--foreground) 32%, transparent);
+  }
+  /* The page keeps room for its scrollbar, so it doesn't shift sideways when a modal dialog,
+     sheet or drawer hides the scrollbar (overflow-hidden on html) or a page is too short to scroll. */
+  :where(html) {
+    scrollbar-gutter: stable;
   }
   * {
     scrollbar-width: thin;
@@ -201,6 +209,7 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-border: var(--border);
   --color-ring: var(--ring);
+  --color-overlay: var(--overlay);
   --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
   --color-secondary: var(--secondary);
@@ -220,6 +229,7 @@
   --color-sidebar-ring: var(--sidebar-ring);
 }
 
+@import "./utilities.css";
 @import "./components/accordion/accordion.css";
 @import "./components/alert/alert.css";
 @import "./components/attachment/attachment.css";
