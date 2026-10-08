@@ -224,16 +224,38 @@ function children(el: Element): string {
   return out.join("\n\n");
 }
 
-function parse(html: string): Document {
-  const window = new Window();
-  window.document.write(html);
-  // happy-dom implements the DOM API; its types are separate from lib.dom's
-  return window.document as unknown as Document;
+// One inert Window parses every page. happy-dom gives each element with an id a
+// named property on its Window (window.installation, ...), and that element keeps its
+// whole document alive: a Window per page, or pages left attached to a shared one,
+// held every page parsed (several GB for the site's ~100 pages). So each page is
+// detached once read, which unregisters its ids.
+let parser: DOMParser | null = null;
+
+function withDocument<T>(html: string, read: (doc: Document) => T): T {
+  parser ??= new new Window({
+    settings: {
+      disableJavaScriptEvaluation: true,
+      disableJavaScriptFileLoading: true,
+      disableCSSFileLoading: true,
+      disableIframePageLoading: true,
+      disableComputedStyleRendering: true,
+    },
+    // happy-dom implements the DOM API; its types are separate from lib.dom's
+  }).DOMParser() as unknown as DOMParser;
+  const doc = parser.parseFromString(html, "text/html");
+  try {
+    return read(doc);
+  } finally {
+    doc.documentElement?.remove();
+  }
 }
 
 /** Title, description, section and h2/h3 outline of a rendered page. */
 export function pageMeta(html: string): PageMeta {
-  const doc = parse(html);
+  return withDocument(html, metaOf);
+}
+
+function metaOf(doc: Document): PageMeta {
   const article = doc.querySelector("article") ?? doc.body;
   return {
     title: (article.querySelector("h1") ?? doc.querySelector("title"))?.textContent?.trim() ?? "",
@@ -251,20 +273,21 @@ export function pageMeta(html: string): PageMeta {
 
 /** Markdown for a rendered docs page, with YAML frontmatter. */
 export function pageMarkdown(html: string, url: string): string {
-  const doc = parse(html);
-  const meta = pageMeta(html);
-  const body = doc.querySelector("article [data-docs-content]");
-  const yaml = (v: string) => JSON.stringify(v);
-  const front = [
-    "---",
-    `title: ${yaml(meta.title)}`,
-    `description: ${yaml(meta.description)}`,
-    `url: ${yaml(url)}`,
-    meta.section && `section: ${yaml(meta.section)}`,
-    "---",
-  ].filter(Boolean);
-  const md = [front.join("\n"), `# ${meta.title}`, meta.description, body ? children(body) : ""]
-    .filter((s) => s.trim())
-    .join("\n\n");
-  return md.replace(/\n{3,}/g, "\n\n").trimEnd() + "\n";
+  return withDocument(html, (doc) => {
+    const meta = metaOf(doc);
+    const body = doc.querySelector("article [data-docs-content]");
+    const yaml = (v: string) => JSON.stringify(v);
+    const front = [
+      "---",
+      `title: ${yaml(meta.title)}`,
+      `description: ${yaml(meta.description)}`,
+      `url: ${yaml(url)}`,
+      meta.section && `section: ${yaml(meta.section)}`,
+      "---",
+    ].filter(Boolean);
+    const md = [front.join("\n"), `# ${meta.title}`, meta.description, body ? children(body) : ""]
+      .filter((s) => s.trim())
+      .join("\n\n");
+    return md.replace(/\n{3,}/g, "\n\n").trimEnd() + "\n";
+  });
 }
