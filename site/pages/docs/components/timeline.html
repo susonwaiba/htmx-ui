@@ -1,0 +1,385 @@
+{% extends "layouts/docs.html" %}
+{% from "components/icon/icon.html" import icon %}
+{% from "components/code/code.html" import code %}
+{% from "docs/macros.html" import demo, classes %}
+{% set title = "Timeline" %}
+{% set description = "A list of events in chronological order along a line: dots, icons or avatars, colours and sizes, vertical or horizontal, on one side or alternating." %}
+
+{% block content %}
+  {% call demo("justify-start") %}
+    <ol class="timeline max-w-md">
+      <li class="timeline-item">
+        <span class="timeline-marker timeline-marker-primary"></span>
+        <div class="timeline-content">
+          <time class="timeline-time" datetime="2026-10-07">7 October 2026</time>
+          <h3 class="timeline-title">Version 1.0 released</h3>
+          <p class="timeline-description">Stable APIs for every component, the engine and the plugins.</p>
+        </div>
+      </li>
+      <li class="timeline-item">
+        <span class="timeline-marker"></span>
+        <div class="timeline-content">
+          <time class="timeline-time" datetime="2026-08-14">14 August 2026</time>
+          <h3 class="timeline-title">Release candidate</h3>
+          <p class="timeline-description">Feature freeze, and a public call for testing.</p>
+        </div>
+      </li>
+      <li class="timeline-item">
+        <span class="timeline-marker"></span>
+        <div class="timeline-content">
+          <time class="timeline-time" datetime="2026-05-02">2 May 2026</time>
+          <h3 class="timeline-title">First public beta</h3>
+          <p class="timeline-description">Forty components and the docs site.</p>
+        </div>
+      </li>
+    </ol>
+  {% endcall %}
+
+  <h2 id="markup">Markup</h2>
+  <ul>
+    <li>An <code>&lt;ol class="timeline"&gt;</code> of <code>&lt;li class="timeline-item"&gt;</code>: a list in order, which is what screen readers announce. It is CSS only, with no behaviour.</li>
+    <li>Each item has a <code>.timeline-marker</code> and a <code>.timeline-content</code>. Inside the content, <code>.timeline-time</code> (a <code>&lt;time datetime&gt;</code>), <code>.timeline-title</code> and <code>.timeline-description</code> are all optional; any other markup works too.</li>
+    <li>The line to the next item is drawn for you, and stops at the last item.</li>
+    <li>Newest first or oldest first is up to you: the timeline shows items in the order they are written.</li>
+  </ul>
+
+  <h2 id="markers">Markers</h2>
+  <p>
+    An empty <code>.timeline-marker</code> is a dot. <code>.timeline-marker-primary</code>, <code>-success</code>,
+    <code>-warning</code>, <code>-danger</code> and <code>-info</code> colour it, and <code>.timeline-marker-outline</code>
+    makes it hollow.
+  </p>
+  {% call demo("justify-start gap-10") %}
+    <ol class="timeline">
+      <li class="timeline-item"><span class="timeline-marker"></span><div class="timeline-content"><p class="timeline-title">Default</p></div></li>
+      <li class="timeline-item"><span class="timeline-marker timeline-marker-primary"></span><div class="timeline-content"><p class="timeline-title">Primary</p></div></li>
+      <li class="timeline-item"><span class="timeline-marker timeline-marker-success"></span><div class="timeline-content"><p class="timeline-title">Success</p></div></li>
+      <li class="timeline-item"><span class="timeline-marker timeline-marker-warning"></span><div class="timeline-content"><p class="timeline-title">Warning</p></div></li>
+      <li class="timeline-item"><span class="timeline-marker timeline-marker-danger"></span><div class="timeline-content"><p class="timeline-title">Danger</p></div></li>
+      <li class="timeline-item"><span class="timeline-marker timeline-marker-info"></span><div class="timeline-content"><p class="timeline-title">Info</p></div></li>
+    </ol>
+    <ol class="timeline">
+      <li class="timeline-item"><span class="timeline-marker timeline-marker-outline"></span><div class="timeline-content"><p class="timeline-title">Default</p></div></li>
+      <li class="timeline-item"><span class="timeline-marker timeline-marker-outline timeline-marker-primary"></span><div class="timeline-content"><p class="timeline-title">Primary</p></div></li>
+      <li class="timeline-item"><span class="timeline-marker timeline-marker-outline timeline-marker-success"></span><div class="timeline-content"><p class="timeline-title">Success</p></div></li>
+      <li class="timeline-item"><span class="timeline-marker timeline-marker-outline timeline-marker-warning"></span><div class="timeline-content"><p class="timeline-title">Warning</p></div></li>
+      <li class="timeline-item"><span class="timeline-marker timeline-marker-outline timeline-marker-danger"></span><div class="timeline-content"><p class="timeline-title">Danger</p></div></li>
+      <li class="timeline-item"><span class="timeline-marker timeline-marker-outline timeline-marker-info"></span><div class="timeline-content"><p class="timeline-title">Info</p></div></li>
+    </ol>
+  {% endcall %}
+  <p>
+    Put an icon, a number or an image in the marker and it becomes a circle; the line and the first line of text
+    centre on it. Plain circles have a border; the colours fill them, and <code>.timeline-marker-outline</code> draws a
+    coloured ring instead.
+  </p>
+  {% call demo("justify-start") %}
+    <ol class="timeline max-w-md">
+      <li class="timeline-item">
+        <span class="timeline-marker timeline-marker-success">{{ icon("check") }}</span>
+        <div class="timeline-content">
+          <h3 class="timeline-title">Pull request merged</h3>
+          <p class="timeline-description">feat(ui): timeline component</p>
+        </div>
+      </li>
+      <li class="timeline-item">
+        <span class="timeline-marker">{{ icon("git-commit") }}</span>
+        <div class="timeline-content">
+          <h3 class="timeline-title">3 commits pushed</h3>
+          <p class="timeline-description">Alternating layout, sizes and docs.</p>
+        </div>
+      </li>
+      <li class="timeline-item">
+        <span class="timeline-marker"><img src="{{ asset('images/avatar-1.svg') }}" alt="" /></span>
+        <div class="timeline-content">
+          <h3 class="timeline-title">Review requested from Sam</h3>
+          <time class="timeline-time" datetime="2026-10-06T16:20">Yesterday at 4:20 pm</time>
+        </div>
+      </li>
+      <li class="timeline-item">
+        <span class="timeline-marker timeline-marker-outline timeline-marker-primary">{{ icon("message-square") }}</span>
+        <div class="timeline-content">
+          <h3 class="timeline-title">Comment</h3>
+          <p class="timeline-description">"Looks good: could the dots line up with the first line of text?"</p>
+        </div>
+      </li>
+    </ol>
+  {% endcall %}
+
+  <h2 id="steps">Progress and the current step</h2>
+  <p>
+    For a process (an order, a deployment, an application), colour the steps that are done, mark the current item with
+    <code>aria-current="step"</code>, which adds a ring and tells screen readers where it is, and leave the rest as outline
+    markers. Numbers work as markers too.
+  </p>
+  {% call demo("justify-start gap-12") %}
+    <ol class="timeline">
+      <li class="timeline-item">
+        <span class="timeline-marker timeline-marker-success">{{ icon("check") }}</span>
+        <div class="timeline-content">
+          <h3 class="timeline-title">Order placed</h3>
+          <time class="timeline-time" datetime="2026-10-03T09:12">3 Oct, 9:12 am</time>
+        </div>
+      </li>
+      <li class="timeline-item">
+        <span class="timeline-marker timeline-marker-success">{{ icon("box") }}</span>
+        <div class="timeline-content">
+          <h3 class="timeline-title">Packed</h3>
+          <time class="timeline-time" datetime="2026-10-04T14:40">4 Oct, 2:40 pm</time>
+        </div>
+      </li>
+      <li class="timeline-item" aria-current="step">
+        <span class="timeline-marker timeline-marker-primary">{{ icon("truck") }}</span>
+        <div class="timeline-content">
+          <h3 class="timeline-title">Out for delivery</h3>
+          <p class="timeline-description">Arriving today between 1 and 3 pm.</p>
+        </div>
+      </li>
+      <li class="timeline-item">
+        <span class="timeline-marker timeline-marker-outline">{{ icon("house") }}</span>
+        <div class="timeline-content">
+          <h3 class="timeline-title text-muted-foreground">Delivered</h3>
+        </div>
+      </li>
+    </ol>
+    <ol class="timeline">
+      <li class="timeline-item"><span class="timeline-marker timeline-marker-primary">1</span><div class="timeline-content"><h3 class="timeline-title">Create an account</h3><p class="timeline-description">Done</p></div></li>
+      <li class="timeline-item" aria-current="step"><span class="timeline-marker timeline-marker-outline timeline-marker-primary">2</span><div class="timeline-content"><h3 class="timeline-title">Verify your email</h3><p class="timeline-description">Check your inbox</p></div></li>
+      <li class="timeline-item"><span class="timeline-marker">3</span><div class="timeline-content"><h3 class="timeline-title text-muted-foreground">Invite your team</h3></div></li>
+    </ol>
+  {% endcall %}
+
+  <h2 id="content">Rich content</h2>
+  <p>The content takes any markup: a <a href="/docs/components/card">card</a>, an <a href="/docs/components/alert">alert</a>, buttons.</p>
+  {% call demo("justify-start") %}
+    <ol class="timeline w-full max-w-lg">
+      <li class="timeline-item">
+        <span class="timeline-marker timeline-marker-danger">{{ icon("alert-triangle") }}</span>
+        <div class="timeline-content">
+          <h3 class="timeline-title">Deploy failed</h3>
+          <time class="timeline-time" datetime="2026-10-07T10:05">10:05 am</time>
+          <div class="alert alert-danger mt-2">
+            {{ icon("x-circle") }}
+            <div class="alert-title">Build step exited with code 1</div>
+            <div class="alert-description">Cannot find module "htmx-ui/timeline". <a href="#content">View logs</a></div>
+          </div>
+        </div>
+      </li>
+      <li class="timeline-item">
+        <span class="timeline-marker">{{ icon("upload") }}</span>
+        <div class="timeline-content">
+          <h3 class="timeline-title">Deploy started</h3>
+          <time class="timeline-time" datetime="2026-10-07T10:03">10:03 am</time>
+          <div class="card mt-2 gap-2 p-4 text-sm">
+            <p class="m-0 font-mono text-xs text-muted-foreground">main · 02e12f4</p>
+            <p class="m-0">docs: 0.2.0 changelog and contributor guides</p>
+          </div>
+        </div>
+      </li>
+    </ol>
+  {% endcall %}
+
+  <h2 id="opposite">Opposite content</h2>
+  <p>
+    A <code>.timeline-opposite</code> in every item goes on the other side of the line, right-aligned in a column
+    <code>--timeline-opposite</code> wide (6rem): dates, times or amounts that read down one edge.
+  </p>
+  {% call demo("justify-start") %}
+    <ol class="timeline max-w-md">
+      <li class="timeline-item">
+        <span class="timeline-marker timeline-marker-primary"></span>
+        <div class="timeline-content"><h3 class="timeline-title">Keynote</h3><p class="timeline-description">Main hall</p></div>
+        <time class="timeline-opposite" datetime="09:00">9:00 am</time>
+      </li>
+      <li class="timeline-item">
+        <span class="timeline-marker"></span>
+        <div class="timeline-content"><h3 class="timeline-title">Building with htmx 4</h3><p class="timeline-description">Room 2</p></div>
+        <time class="timeline-opposite" datetime="10:30">10:30 am</time>
+      </li>
+      <li class="timeline-item">
+        <span class="timeline-marker"></span>
+        <div class="timeline-content"><h3 class="timeline-title">Lunch</h3></div>
+        <time class="timeline-opposite" datetime="12:00">12:00 pm</time>
+      </li>
+    </ol>
+  {% endcall %}
+
+  <h2 id="alternate">Alternating</h2>
+  <p>
+    <code>.timeline-alternate</code> puts the line in the middle and the items on either side of it in turn, with the
+    <code>.timeline-opposite</code>, if any, across from each one. On narrow screens (below the <code>sm</code> breakpoint)
+    it falls back to one side, so nothing gets squeezed.
+  </p>
+  {% call demo() %}
+    <ol class="timeline timeline-alternate w-full max-w-2xl">
+      <li class="timeline-item">
+        <span class="timeline-marker timeline-marker-primary">{{ icon("sparkles") }}</span>
+        <div class="timeline-content">
+          <h3 class="timeline-title">Idea</h3>
+          <p class="timeline-description">A component library for htmx with no React and no build step for users.</p>
+        </div>
+        <time class="timeline-opposite" datetime="2025-11">November 2025</time>
+      </li>
+      <li class="timeline-item">
+        <span class="timeline-marker">{{ icon("code") }}</span>
+        <div class="timeline-content">
+          <h3 class="timeline-title">First components</h3>
+          <p class="timeline-description">Buttons, inputs, dialogs and tabs, styled with Tailwind v4.</p>
+        </div>
+        <time class="timeline-opposite" datetime="2026-01">January 2026</time>
+      </li>
+      <li class="timeline-item">
+        <span class="timeline-marker">{{ icon("book") }}</span>
+        <div class="timeline-content">
+          <h3 class="timeline-title">Docs site</h3>
+          <p class="timeline-description">Built with its own engine, with search and versioned docs.</p>
+        </div>
+        <time class="timeline-opposite" datetime="2026-04">April 2026</time>
+      </li>
+      <li class="timeline-item">
+        <span class="timeline-marker timeline-marker-success">{{ icon("star") }}</span>
+        <div class="timeline-content">
+          <h3 class="timeline-title">Version 1.0</h3>
+          <p class="timeline-description">Stable, with a scaffolder for bun, npm, pnpm and yarn.</p>
+        </div>
+        <time class="timeline-opposite" datetime="2026-10">October 2026</time>
+      </li>
+    </ol>
+  {% endcall %}
+
+  <h2 id="horizontal">Horizontal</h2>
+  <p>
+    <code>.timeline-horizontal</code> lays the items out in a row, each at least <code>--timeline-min</code> (10rem) wide,
+    scrolling sideways when they don't fit. A <code>.timeline-opposite</code> goes above the line.
+  </p>
+  {% call demo() %}
+    <ol class="timeline timeline-horizontal w-full">
+      <li class="timeline-item">
+        <span class="timeline-marker timeline-marker-success">{{ icon("check") }}</span>
+        <div class="timeline-content"><h3 class="timeline-title">Plan</h3><p class="timeline-description">Scope and estimates</p></div>
+        <span class="timeline-opposite">Week 1</span>
+      </li>
+      <li class="timeline-item">
+        <span class="timeline-marker timeline-marker-success">{{ icon("check") }}</span>
+        <div class="timeline-content"><h3 class="timeline-title">Design</h3><p class="timeline-description">Mockups signed off</p></div>
+        <span class="timeline-opposite">Week 2</span>
+      </li>
+      <li class="timeline-item" aria-current="step">
+        <span class="timeline-marker timeline-marker-primary">{{ icon("code") }}</span>
+        <div class="timeline-content"><h3 class="timeline-title">Build</h3><p class="timeline-description">In progress</p></div>
+        <span class="timeline-opposite">Weeks 3–5</span>
+      </li>
+      <li class="timeline-item">
+        <span class="timeline-marker timeline-marker-outline">{{ icon("zap") }}</span>
+        <div class="timeline-content"><h3 class="timeline-title text-muted-foreground">Launch</h3></div>
+        <span class="timeline-opposite">Week 6</span>
+      </li>
+    </ol>
+  {% endcall %}
+  <p>With <code>.timeline-alternate</code>, horizontal items go above and below the line in turn. The markers stay in one row whatever sits above them.</p>
+  {% call demo() %}
+    <ol class="timeline timeline-horizontal timeline-alternate w-full">
+      <li class="timeline-item">
+        <span class="timeline-marker timeline-marker-primary"></span>
+        <div class="timeline-content"><time class="timeline-time" datetime="2026-01">Jan</time><h3 class="timeline-title">Kick-off</h3></div>
+      </li>
+      <li class="timeline-item">
+        <span class="timeline-marker timeline-marker-primary"></span>
+        <div class="timeline-content"><time class="timeline-time" datetime="2026-03">Mar</time><h3 class="timeline-title">Alpha</h3><p class="timeline-description">Internal testing</p></div>
+      </li>
+      <li class="timeline-item">
+        <span class="timeline-marker timeline-marker-primary"></span>
+        <div class="timeline-content"><time class="timeline-time" datetime="2026-05">May</time><h3 class="timeline-title">Beta</h3></div>
+      </li>
+      <li class="timeline-item">
+        <span class="timeline-marker timeline-marker-primary"></span>
+        <div class="timeline-content"><time class="timeline-time" datetime="2026-08">Aug</time><h3 class="timeline-title">Release candidate</h3><p class="timeline-description">Feature freeze</p></div>
+      </li>
+      <li class="timeline-item">
+        <span class="timeline-marker timeline-marker-success"></span>
+        <div class="timeline-content"><time class="timeline-time" datetime="2026-10">Oct</time><h3 class="timeline-title">1.0</h3></div>
+      </li>
+    </ol>
+  {% endcall %}
+
+  <h2 id="line">Line style</h2>
+  <p><code>.timeline-dashed</code> and <code>.timeline-dotted</code> change the line, vertical or horizontal.</p>
+  {% call demo("justify-start gap-12") %}
+    <ol class="timeline timeline-dashed">
+      <li class="timeline-item"><span class="timeline-marker timeline-marker-outline"></span><div class="timeline-content"><p class="timeline-title">Dashed</p></div></li>
+      <li class="timeline-item"><span class="timeline-marker timeline-marker-outline"></span><div class="timeline-content"><p class="timeline-title">Second</p></div></li>
+      <li class="timeline-item"><span class="timeline-marker timeline-marker-outline"></span><div class="timeline-content"><p class="timeline-title">Third</p></div></li>
+    </ol>
+    <ol class="timeline timeline-dotted">
+      <li class="timeline-item"><span class="timeline-marker"></span><div class="timeline-content"><p class="timeline-title">Dotted</p></div></li>
+      <li class="timeline-item"><span class="timeline-marker"></span><div class="timeline-content"><p class="timeline-title">Second</p></div></li>
+      <li class="timeline-item"><span class="timeline-marker"></span><div class="timeline-content"><p class="timeline-title">Third</p></div></li>
+    </ol>
+  {% endcall %}
+
+  <h2 id="sizes">Sizes</h2>
+  <p><code>.timeline-sm</code> and <code>.timeline-lg</code> scale the markers, the text and the spacing together.</p>
+  {% call demo("justify-start items-start gap-12") %}
+    {% for size in ["sm", "", "lg"] %}
+    <ol class="timeline{% if size %} timeline-{{ size }}{% endif %}">
+      <li class="timeline-item">
+        <span class="timeline-marker timeline-marker-primary">{{ icon("check") }}</span>
+        <div class="timeline-content"><h3 class="timeline-title">{{ "Small" if size == "sm" else ("Large" if size == "lg" else "Default") }}</h3><p class="timeline-description">Signed up</p></div>
+      </li>
+      <li class="timeline-item">
+        <span class="timeline-marker">{{ icon("mail") }}</span>
+        <div class="timeline-content"><h3 class="timeline-title">Email sent</h3><p class="timeline-description">Welcome</p></div>
+      </li>
+      <li class="timeline-item">
+        <span class="timeline-marker">{{ icon("user") }}</span>
+        <div class="timeline-content"><h3 class="timeline-title">Profile</h3><p class="timeline-description">Completed</p></div>
+      </li>
+    </ol>
+    {% endfor %}
+  {% endcall %}
+
+  <h2 id="htmx">With htmx</h2>
+  <p>
+    A timeline is a list, so loading more events is appending items. Here a button at the end fetches the next page and
+    replaces itself with it (<code>hx-swap="outerHTML"</code>), the response being more
+    <code>&lt;li class="timeline-item"&gt;</code>s and a new button:
+  </p>
+  {% call code("html", title="activity.html") %}
+    {% raw %}<ol class="timeline">
+  <li class="timeline-item">…</li>
+  <li class="timeline-item">
+    <span class="timeline-marker"></span>
+    <div class="timeline-content">
+      <button class="btn btn-outline btn-sm" hx-get="/activity?page=2"
+              hx-target="closest li" hx-swap="outerHTML">Load older</button>
+    </div>
+  </li>
+</ol>{% endraw %}
+  {% endcall %}
+
+  <h2 id="customise">Customising</h2>
+  <p>Every measurement is a custom property on <code>.timeline</code>; set them with Tailwind's arbitrary properties or your own CSS.</p>
+  {{ classes([
+    ["--timeline-dot", "Dot size (0.75rem)."],
+    ["--timeline-icon", "Circle size for icon, text and image markers (2rem)."],
+    ["--timeline-line", "Line thickness (2px)."],
+    ["--timeline-gap", "Between the marker and the content (0.75rem)."],
+    ["--timeline-space", "Between items (1.5rem)."],
+    ["--timeline-opposite", "Width of the .timeline-opposite column, vertical (6rem)."],
+    ["--timeline-min", "Narrowest item, horizontal (10rem)."]
+  ], heading="Property") }}
+
+  <h2 id="reference">Reference</h2>
+  {{ classes([
+    [".timeline", "The list: an <ol>."],
+    [".timeline-item", "One event: an <li>. aria-current=\"step\" rings its marker."],
+    [".timeline-marker", "Empty: a dot. With an icon, text or image: a circle."],
+    [".timeline-marker-primary / -success / -warning / -danger / -info", "Marker colours."],
+    [".timeline-marker-outline", "A hollow marker, in its colour."],
+    [".timeline-content", "The event: .timeline-time, .timeline-title, .timeline-description, or anything."],
+    [".timeline-opposite", "Across the line from the content."],
+    [".timeline-alternate", "Items on both sides of the line in turn."],
+    [".timeline-horizontal", "Items in a row."],
+    [".timeline-dashed / .timeline-dotted", "Line style."],
+    [".timeline-sm / .timeline-lg", "Sizes."]
+  ], heading="Class / attribute") }}
+{% endblock %}

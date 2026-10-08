@@ -103,6 +103,7 @@
         { "title": "Avatar", "href": "/docs/components/avatar", "description": "An image with a fallback for a user: sizes, status badges, groups with a count, and menu triggers.", "component": true, "category": "data" },
         { "title": "Item", "href": "/docs/components/item", "description": "A row of content with media, a title, a description and actions, alone or in a list.", "component": true, "category": "data" },
         { "title": "Table", "href": "/docs/components/table", "description": "Readable data tables with optional hover rows.", "component": true, "category": "data" },
+        { "title": "Timeline", "href": "/docs/components/timeline", "description": "Events in chronological order: dots, icons or avatars, colours, sizes, vertical or horizontal, alternating sides.", "component": true, "category": "data" },
         { "title": "Code block", "href": "/docs/components/code-block", "description": "Highlighted source with a copy button and package-manager tabs.", "component": true, "category": "content" },
         { "title": "Icon", "href": "/docs/components/icon", "description": "SVG icons inlined at build time, or linked as images.", "component": true, "category": "content" },
         { "title": "Kbd", "href": "/docs/components/kbd", "description": "Keyboard keys and shortcuts, on their own or in buttons, tooltips and input groups.", "component": true, "category": "content" },

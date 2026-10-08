@@ -1,0 +1,279 @@
+/* Events in order, along a line. CSS only.
+   <ol class="timeline">
+     <li class="timeline-item">
+       <span class="timeline-marker"></span>                    empty: a dot; with an icon, image or text: a circle
+       <div class="timeline-content">
+         <time class="timeline-time" datetime="2026-10-07">7 Oct 2026</time>
+         <h3 class="timeline-title">Released v1.0</h3>
+         <p class="timeline-description">…</p>
+       </div>
+       <div class="timeline-opposite">…</div>                  optional: across the line (a date, a figure)
+     </li>
+   </ol>
+   Markers: .timeline-marker-primary / -success / -warning / -danger / -info, .timeline-marker-outline,
+   aria-current="step" on the item rings the current one. Line: .timeline-dashed / .timeline-dotted.
+   Sizes: .timeline-sm / .timeline-lg. Orientation: .timeline-horizontal. .timeline-alternate puts
+   the content on both sides of the line (from the sm breakpoint when vertical).
+   Every item's parts are placed by grid-template-areas: marker, line (the ::before), content, opposite. */
+@layer components {
+  .timeline {
+    --timeline-dot: 0.75rem;
+    --timeline-icon: 2rem;
+    --timeline-lead: 1.25rem;
+    --timeline-row: var(--timeline-lead);
+    --timeline-line: 2px;
+    --timeline-gap: 0.75rem;
+    --timeline-space: 1.5rem;
+    --timeline-opposite: 6rem;
+    --timeline-track: var(--timeline-dot);
+    --timeline-dash: to bottom;
+    @apply m-0 flex list-none flex-col p-0;
+  }
+  /* Any icon marker: the track widens to it and the first line centres on it. */
+  .timeline:has(.timeline-marker:not(:empty)) {
+    --timeline-track: var(--timeline-icon);
+    --timeline-row: var(--timeline-icon);
+  }
+
+  .timeline-item {
+    @apply relative m-0 grid p-0;
+    grid-template-columns: var(--timeline-track) minmax(0, 1fr);
+    grid-template-rows: auto 1fr;
+    grid-template-areas: "marker content" "line content";
+    column-gap: var(--timeline-gap);
+  }
+  .timeline:has(.timeline-opposite) > .timeline-item {
+    grid-template-columns: var(--timeline-opposite) var(--timeline-track) minmax(0, 1fr);
+    grid-template-areas: "opposite marker content" "opposite line content";
+  }
+
+  /* The line to the next item. */
+  .timeline-item::before {
+    @apply my-1.5 min-h-4 bg-border content-[''];
+    grid-area: line;
+    justify-self: center;
+    width: var(--timeline-line);
+  }
+  .timeline-item:last-child::before {
+    @apply hidden;
+  }
+  .timeline-dashed > .timeline-item::before,
+  .timeline-dotted > .timeline-item::before {
+    @apply bg-transparent;
+    background-image: repeating-linear-gradient(
+      var(--timeline-dash),
+      var(--border) 0 var(--timeline-dash-on),
+      transparent var(--timeline-dash-on) var(--timeline-dash-period)
+    );
+  }
+  .timeline-dashed {
+    --timeline-dash-on: 6px;
+    --timeline-dash-period: 10px;
+  }
+  .timeline-dotted {
+    --timeline-dash-on: var(--timeline-line);
+    --timeline-dash-period: calc(var(--timeline-line) * 3);
+  }
+
+  /* Markers. --timeline-color is the marker's colour, --timeline-color-foreground its icon's on a fill. */
+  .timeline-marker {
+    --timeline-color: var(--muted-foreground);
+    --timeline-color-foreground: var(--background);
+    @apply relative z-[1] flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-(--timeline-color);
+    grid-area: marker;
+    justify-self: center;
+    align-self: start;
+    width: var(--timeline-dot);
+    height: var(--timeline-dot);
+    margin-top: calc((var(--timeline-row) - var(--timeline-dot)) / 2);
+  }
+  .timeline-marker:not(:empty) {
+    @apply border border-border bg-background text-xs font-medium text-muted-foreground [&>svg]:size-4!;
+    width: var(--timeline-icon);
+    height: var(--timeline-icon);
+    margin-top: calc((var(--timeline-row) - var(--timeline-icon)) / 2);
+  }
+  .timeline-marker > img {
+    @apply size-full object-cover;
+  }
+  .timeline-marker-primary {
+    --timeline-color: var(--primary);
+    --timeline-color-foreground: var(--primary-foreground);
+  }
+  .timeline-marker-success {
+    --timeline-color: var(--success);
+  }
+  .timeline-marker-warning {
+    --timeline-color: var(--warning);
+  }
+  .timeline-marker-danger {
+    --timeline-color: var(--danger);
+    --timeline-color-foreground: var(--danger-foreground);
+  }
+  .timeline-marker-info {
+    --timeline-color: var(--info);
+  }
+  .timeline-marker:is(
+      .timeline-marker-primary,
+      .timeline-marker-success,
+      .timeline-marker-warning,
+      .timeline-marker-danger,
+      .timeline-marker-info
+    ):not(:empty) {
+    @apply border-transparent bg-(--timeline-color) text-(--timeline-color-foreground);
+  }
+  /* Hollow: a ring in the marker's colour. */
+  .timeline-marker.timeline-marker-outline {
+    @apply border-2 border-(--timeline-color) bg-background;
+  }
+  .timeline-marker.timeline-marker-outline:not(:empty) {
+    @apply border-(--timeline-color) bg-background text-(--timeline-color);
+  }
+  /* The current step. */
+  .timeline-item[aria-current] > .timeline-marker {
+    @apply ring-4 ring-(--timeline-color)/20;
+  }
+
+  /* Content */
+  .timeline-content {
+    @apply min-w-0;
+    grid-area: content;
+    padding-top: calc((var(--timeline-row) - var(--timeline-lead)) / 2);
+    padding-bottom: var(--timeline-space);
+  }
+  .timeline-item:last-child > .timeline-content,
+  .timeline-item:last-child > .timeline-opposite {
+    @apply pb-0;
+  }
+  .timeline-opposite {
+    @apply min-w-0 text-end text-sm/5 text-muted-foreground;
+    grid-area: opposite;
+    padding-top: calc((var(--timeline-row) - var(--timeline-lead)) / 2);
+    padding-bottom: var(--timeline-space);
+  }
+  .timeline-time {
+    @apply block text-xs/5 text-muted-foreground;
+  }
+  .timeline-title {
+    @apply m-0 text-sm/5 font-medium text-foreground;
+  }
+  .timeline-description {
+    @apply mt-1 mb-0 text-sm text-muted-foreground;
+  }
+  .timeline-content > :is(.card, .item, .alert) {
+    @apply mt-2;
+  }
+  .timeline-content > :is(.card, .item, .alert):first-child {
+    @apply mt-0;
+  }
+
+  /* Sizes */
+  .timeline-sm {
+    --timeline-dot: 0.5rem;
+    --timeline-icon: 1.5rem;
+    --timeline-lead: 1rem;
+    --timeline-gap: 0.5rem;
+    --timeline-space: 1rem;
+  }
+  .timeline-sm .timeline-title,
+  .timeline-sm .timeline-opposite {
+    @apply text-xs/4;
+  }
+  .timeline-sm .timeline-time {
+    @apply text-[11px]/4;
+  }
+  .timeline-sm .timeline-description {
+    @apply mt-0.5 text-xs;
+  }
+  .timeline-sm .timeline-marker:not(:empty) {
+    @apply text-[10px] [&>svg]:size-3!;
+  }
+  .timeline-lg {
+    --timeline-dot: 1rem;
+    --timeline-icon: 2.5rem;
+    --timeline-lead: 1.5rem;
+    --timeline-gap: 1rem;
+    --timeline-space: 2rem;
+  }
+  .timeline-lg .timeline-title,
+  .timeline-lg .timeline-opposite {
+    @apply text-base/6;
+  }
+  .timeline-lg .timeline-time {
+    @apply text-sm/6;
+  }
+  .timeline-lg .timeline-description {
+    @apply text-base;
+  }
+  .timeline-lg .timeline-marker:not(:empty) {
+    @apply text-sm [&>svg]:size-5!;
+  }
+
+  /* Alternating, vertical: the line in the middle, content on either side, from sm up. */
+  @media (width >= 40rem) {
+    .timeline-alternate:not(.timeline-horizontal) > .timeline-item {
+      grid-template-columns: minmax(0, 1fr) var(--timeline-track) minmax(0, 1fr);
+      grid-template-areas: "opposite marker content" "opposite line content";
+    }
+    .timeline-alternate:not(.timeline-horizontal) > .timeline-item:nth-child(even) {
+      grid-template-areas: "content marker opposite" "content line opposite";
+    }
+    .timeline-alternate:not(.timeline-horizontal) > .timeline-item:nth-child(even) > .timeline-content {
+      @apply text-end;
+    }
+    .timeline-alternate:not(.timeline-horizontal) > .timeline-item:nth-child(even) > .timeline-opposite {
+      @apply text-start;
+    }
+  }
+
+  /* Horizontal: one column per item, scrolling sideways when they don't fit. Items share three
+     rows (subgrid), so markers line up whatever sits above them: above / marker + line / below. */
+  .timeline-horizontal {
+    --timeline-dash: to right;
+    --timeline-min: 10rem;
+    @apply grid overflow-x-auto;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(var(--timeline-min), 1fr);
+    grid-template-rows: auto auto auto;
+  }
+  .timeline-horizontal > .timeline-item,
+  .timeline:has(.timeline-opposite).timeline-horizontal > .timeline-item {
+    grid-row: span 3;
+    grid-template-rows: subgrid;
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas: "opposite opposite" "marker line" "content content";
+    column-gap: 0;
+  }
+  .timeline-horizontal > .timeline-item::before {
+    @apply mx-1.5 my-0 min-h-0;
+    justify-self: stretch;
+    align-self: center;
+    width: auto;
+    height: var(--timeline-line);
+  }
+  .timeline-horizontal .timeline-marker,
+  .timeline-horizontal .timeline-marker:not(:empty) {
+    @apply mt-0;
+    justify-self: start;
+    align-self: center;
+  }
+  .timeline-horizontal .timeline-content,
+  .timeline-horizontal .timeline-item:last-child > .timeline-content {
+    @apply pt-3 pb-0;
+    padding-inline-end: var(--timeline-space);
+  }
+  .timeline-horizontal .timeline-opposite,
+  .timeline-horizontal .timeline-item:last-child > .timeline-opposite {
+    @apply pt-0 pb-3 text-start;
+    padding-inline-end: var(--timeline-space);
+  }
+  .timeline-horizontal.timeline-alternate > .timeline-item:nth-child(even) {
+    grid-template-areas: "content content" "marker line" "opposite opposite";
+  }
+  .timeline-horizontal.timeline-alternate > .timeline-item:nth-child(even) > .timeline-content {
+    @apply self-end pt-0 pb-3;
+  }
+  .timeline-horizontal.timeline-alternate > .timeline-item:nth-child(even) > .timeline-opposite {
+    @apply self-start pt-3 pb-0;
+  }
+}

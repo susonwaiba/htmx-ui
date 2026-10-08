@@ -284,6 +284,7 @@
 @import "./components/tabs/tabs.css";
 @import "./components/text/text.css";
 @import "./components/textarea/textarea.css";
+@import "./components/timeline/timeline.css";
 @import "./components/toast/toast.css";
 @import "./components/toggle-group/toggle-group.css";
 @import "./components/toggle/toggle.css";
