@@ -271,6 +271,7 @@
 @import "./components/prompt-input/prompt-input.css";
 @import "./components/radio-group/radio-group.css";
 @import "./components/reasoning/reasoning.css";
+@import "./components/resizable/resizable.css";
 @import "./components/scroll-button/scroll-button.css";
 @import "./components/select/select.css";
 @import "./components/separator/separator.css";

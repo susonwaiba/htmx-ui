@@ -22,6 +22,7 @@ import { initPasswordInput } from "./password-input/password-input";
 import { initPopover } from "./popover/popover";
 import { initPromptInput } from "./prompt-input/prompt-input";
 import { initReasoning } from "./reasoning/reasoning";
+import { initResizable } from "./resizable/resizable";
 import { initScrollButton } from "./scroll-button/scroll-button";
 import { initSelect } from "./select/select";
 import { initSidebar } from "./sidebar/sidebar";
@@ -66,4 +67,5 @@ export function initComponents(root: ParentNode = document) {
   initMessageScroller(root);
   initPasswordInput(root);
   initClipboard(root);
+  initResizable(root);
 }

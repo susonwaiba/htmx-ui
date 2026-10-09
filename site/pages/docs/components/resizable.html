@@ -1,0 +1,82 @@
+{% extends "layouts/docs.html" %}
+{% from "components/icon/icon.html" import icon %}
+{% from "docs/macros.html" import demo, classes %}
+{% set title = "Resizable" %}
+{% set description = "Panels with draggable handles between them: an editor layout, a sidebar you can widen or close, a split view." %}
+
+{% block content %}
+  {% call demo("min-h-80") %}
+    <div class="h-72 w-full max-w-2xl overflow-hidden rounded-(--radius) border border-border">
+      <div class="resizable" data-resizable>
+        <div class="resizable-panel" data-resizable-panel id="demo-files" data-size="25" data-min="15" data-max="45" data-collapsible>
+          <div class="grid h-full place-items-center bg-muted/40 text-sm font-medium">Files</div>
+        </div>
+        <div class="resizable-handle" data-resizable-handle aria-label="Resize files"></div>
+        <div class="resizable-panel" data-resizable-panel>
+          <div class="resizable" data-resizable data-orientation="vertical">
+            <div class="resizable-panel" data-resizable-panel data-size="65" data-min="20">
+              <div class="grid h-full place-items-center text-sm font-medium">Editor</div>
+            </div>
+            <div class="resizable-handle resizable-handle-grip" data-resizable-handle aria-label="Resize terminal"></div>
+            <div class="resizable-panel" data-resizable-panel data-min="15" data-collapsible>
+              <div class="grid h-full place-items-center bg-muted/40 text-sm font-medium">Terminal</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endcall %}
+
+  <h2 id="markup">Markup</h2>
+  <ul>
+    <li>A <code>.resizable</code> group with <code>data-resizable</code> holds <code>.resizable-panel</code> elements with <code>data-resizable-panel</code>, separated by <code>.resizable-handle</code> elements with <code>data-resizable-handle</code>. Give each handle an <code>aria-label</code>; the behaviour makes it a focusable <code>role="separator"</code> and keeps <code>aria-valuenow</code> (the size of the panel before it) up to date.</li>
+    <li>Sizes are percentages of the group: <code>data-size="25"</code>. Panels without one share what is left. <code>data-min</code> and <code>data-max</code> bound a panel (default 0 and 100).</li>
+    <li><code>data-orientation="vertical"</code> stacks the panels; give the group a height. Groups nest: a panel can hold another group, and each handle only resizes the panels on either side of it.</li>
+    <li>Arrow keys move a focused handle by 5% (with Shift, 1%); Home and End go to the limits. Double-click a handle to restore the starting sizes.</li>
+    <li>While dragging, iframes in the group stop catching the pointer, so a drag over a preview keeps tracking.</li>
+  </ul>
+
+  <h2 id="collapse">Collapse a panel</h2>
+  <p>
+    A <code>data-collapsible</code> panel closes when it is dragged under half its minimum, or with Enter on its
+    handle. A <code>&lt;button data-resizable-toggle="panel-id"&gt;</code> anywhere on the page closes and reopens a
+    panel by id, and gets <code>aria-expanded</code> and <code>aria-controls</code>. The space goes to the panel next to
+    it, so the others stay put, and the panel reopens at the size it had.
+  </p>
+  {% call demo("min-h-72") %}
+    <div class="flex w-full max-w-2xl flex-col gap-2">
+      <div>
+        <button type="button" class="btn btn-outline btn-sm" data-resizable-toggle="demo-sidebar">{{ icon("panel-left") }} Toggle sidebar</button>
+      </div>
+      <div class="h-56 overflow-hidden rounded-(--radius) border border-border">
+        <div class="resizable" data-resizable data-resizable-id="docs-demo">
+          <div class="resizable-panel" data-resizable-panel id="demo-sidebar" data-size="30" data-min="20" data-max="50" data-collapsible>
+            <div class="grid h-full place-items-center bg-muted/40 text-sm font-medium">Sidebar</div>
+          </div>
+          <div class="resizable-handle resizable-handle-grip" data-resizable-handle aria-label="Resize sidebar"></div>
+          <div class="resizable-panel" data-resizable-panel>
+            <div class="grid h-full place-items-center text-sm font-medium">Content</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  {% endcall %}
+  <p>
+    This one also has <code>data-resizable-id</code>, so its sizes and whether the sidebar is open are kept in
+    <code>localStorage</code> across visits.
+  </p>
+
+  <h2 id="events">Events</h2>
+  <p>
+    The group fires <code>resizable:change</code> after every resize, collapse or reopen, with
+    <code>detail.sizes</code> (percentages, 0 for collapsed panels) and <code>detail.collapsed</code> (their ids).
+  </p>
+
+  <h2 id="reference">Reference</h2>
+  {{ classes([
+    [".resizable", "The group: panels and handles in a row, or a column with data-orientation=\"vertical\"."],
+    [".resizable-panel", "A panel; its size is set by the behaviour. Hidden while data-collapsed."],
+    [".resizable-handle", "The 1px divider with a wider hit area. Highlights on hover, focus and drag."],
+    [".resizable-handle-grip", "Adds a small grip in the middle of the handle."]
+  ]) }}
+{% endblock %}

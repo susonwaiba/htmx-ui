@@ -5,6 +5,16 @@ create-htmx-ui are listed here. The packages are released together with one vers
 versions may contain breaking changes, each listed with migration notes.
 The docs site has a fuller page per release (`/docs/changelog`).
 
+## Unreleased
+
+### Added
+
+- **Resizable** (`.resizable`, `data-resizable`): panels with draggable, keyboard-accessible handles between them
+  (`role="separator"`, arrows / Shift+arrows / Home / End), per-panel `data-size` / `data-min` / `data-max`,
+  vertical groups and nesting, collapsible panels (drag past half the minimum, Enter on the handle, or
+  `data-resizable-toggle` buttons anywhere), `data-resizable-id` to remember the layout, and a `resizable:change`
+  event. Iframes ignore the pointer while dragging so drags over previews keep tracking.
+
 ## 0.3.0 — 2026-10-08
 
 ### Breaking

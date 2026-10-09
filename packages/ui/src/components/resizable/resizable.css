@@ -1,0 +1,84 @@
+/* Panels side by side (or stacked) with draggable handles between them: an editor layout, a
+   sidebar you can widen, a split preview. Sizes are percentages of the group; the behaviour
+   (resizable.ts) drags and keyboard-resizes them, keeps them within each panel's min/max,
+   collapses panels and can remember the layout.
+
+   <div class="resizable" data-resizable data-resizable-id="editor">
+     <div class="resizable-panel" data-resizable-panel id="files" data-size="20" data-min="10"
+       data-max="40" data-collapsible>…</div>
+     <div class="resizable-handle" data-resizable-handle tabindex="0" aria-label="Resize files"></div>
+     <div class="resizable-panel" data-resizable-panel id="code">…</div>
+   </div>
+
+   Panels without data-size share what is left. data-min / data-max bound a panel (percent;
+   default 0 / 100). data-orientation="vertical" stacks the panels (give the group a height);
+   groups nest, each handle resizes the two panels on either side of it in its own group.
+   data-resizable-id keeps the sizes and collapsed panels in localStorage.
+   Collapse: data-collapsible panels collapse when dragged under half their minimum, with
+   Enter on the handle, or with a button anywhere — <button data-resizable-toggle="files">.
+   Toggle buttons get aria-expanded and aria-controls. A collapsed panel has data-collapsed.
+   Handles: role="separator" with aria-valuenow (the panel before it), arrow keys move 5%
+   (Shift: 1%), Home/End to the limits, double-click restores the starting sizes.
+   .resizable-handle-grip draws a grip on the handle. The group fires "resizable:change"
+   with detail { sizes, collapsed } after every resize, collapse or expand. */
+@layer components {
+  .resizable {
+    @apply flex h-full min-h-0 w-full min-w-0;
+  }
+  .resizable[data-orientation="vertical"] {
+    @apply flex-col;
+  }
+  .resizable-panel {
+    flex: 1 1 0px;
+    @apply relative min-h-0 min-w-0 overflow-hidden;
+  }
+  .resizable-panel[data-collapsed] {
+    @apply hidden;
+  }
+
+  /* A 1px rule with a wider invisible hit area, so it is easy to grab. */
+  .resizable-handle {
+    @apply relative z-10 w-px shrink-0 cursor-col-resize touch-none bg-border outline-none transition-colors select-none;
+  }
+  .resizable-handle::after {
+    content: "";
+    @apply absolute inset-y-0 -inset-x-1;
+  }
+  .resizable[data-orientation="vertical"] > .resizable-handle {
+    @apply h-px w-auto cursor-row-resize;
+  }
+  .resizable[data-orientation="vertical"] > .resizable-handle::after {
+    @apply inset-x-0 -inset-y-1;
+  }
+  .resizable-handle:hover,
+  .resizable-handle[data-dragging] {
+    @apply bg-primary/60;
+  }
+  .resizable-handle:focus-visible {
+    @apply bg-primary ring-2 ring-ring/50;
+  }
+  .resizable-handle[hidden] {
+    @apply hidden;
+  }
+
+  /* A small grip in the middle of the handle. */
+  .resizable-handle-grip::before {
+    content: "";
+    @apply absolute top-1/2 left-1/2 h-6 w-1 -translate-x-1/2 -translate-y-1/2 rounded-full border border-border bg-muted;
+  }
+  .resizable[data-orientation="vertical"] > .resizable-handle-grip::before {
+    @apply h-1 w-6;
+  }
+
+  /* While dragging: no text selection, the resize cursor everywhere, and iframes (previews,
+     embeds) stop swallowing the pointer so the drag keeps tracking over them. */
+  .resizable[data-resizing] {
+    @apply cursor-col-resize select-none;
+  }
+  .resizable[data-resizing][data-orientation="vertical"] {
+    @apply cursor-row-resize;
+  }
+  .resizable[data-resizing] iframe {
+    @apply pointer-events-none;
+  }
+}

@@ -101,6 +101,7 @@
         { "title": "Card", "href": "/docs/components/card", "description": "Header, content and footer, with media, an action slot and scrolling content.", "component": true, "category": "layout" },
         { "title": "Carousel", "href": "/docs/components/carousel", "description": "Slides that drag, swipe and snap with momentum (Embla): item sizes, spacing, vertical, options and plugins.", "component": true, "category": "layout" },
         { "title": "Collapsible", "href": "/docs/components/collapsible", "description": "A button that shows and hides a panel: extra settings, nested file trees, or <details> with no JavaScript.", "component": true, "category": "layout" },
+        { "title": "Resizable", "href": "/docs/components/resizable", "description": "Panels with draggable handles: editor layouts, resizable and collapsible sidebars.", "component": true, "category": "layout" },
         { "title": "Separator", "href": "/docs/components/separator", "description": "A horizontal or vertical line between content, semantic or purely visual.", "component": true, "category": "layout" },
         { "title": "Avatar", "href": "/docs/components/avatar", "description": "An image with a fallback for a user: sizes, status badges, groups with a count, and menu triggers.", "component": true, "category": "data" },
         { "title": "Item", "href": "/docs/components/item", "description": "A row of content with media, a title, a description and actions, alone or in a list.", "component": true, "category": "data" },
