@@ -147,6 +147,24 @@ describe("bun adapter", () => {
     for (const href of preloads) expect(await Bun.file(join(dir, "dist", href!)).exists()).toBe(true);
   }, 30_000);
 
+test("the build hands Tailwind the project root, not pages/, so layouts and partials are scanned as in dev", async () => {
+  // A stand-in for bun-plugin-tailwind that records the root it is given.
+  const dir = await project({
+    "node_modules/bun-plugin-tailwind/package.json": '{ "name": "bun-plugin-tailwind", "main": "index.js" }',
+    "node_modules/bun-plugin-tailwind/index.js":
+      'export default { name: "@tailwindcss/bun", setup(build) { globalThis.__tailwindRoot = build.config.root; } };',
+    "pages/index.html": "<p>home</p>",
+  });
+  const log = console.log;
+  console.log = () => {};
+  try {
+    expect(await build(resolveConfig({ ui: false }, dir))).toBe(true);
+  } finally {
+    console.log = log;
+  }
+  expect((globalThis as { __tailwindRoot?: string }).__tailwindRoot).toBe(dir);
+});
+
 test("assetVer()'s ?ver= never breaks the build, and lands on the tags Bun passes through", async () => {
     const dir = await project({
       "package.json": '{"name":"fixture","version":"1.2.3"}',

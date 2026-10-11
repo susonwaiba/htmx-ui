@@ -10,6 +10,7 @@ import { writeNotFound } from "../core/not-found";
 import { applyVersions } from "../core/ver";
 import { optimizeChunks } from "./chunks";
 import { htmxUiPlugin, PUBLIC_ORIGIN } from "./plugin";
+import { rootedTailwind } from "./tailwind";
 
 export async function build(config: ResolvedConfig): Promise<boolean> {
   const { outDir } = config;
@@ -23,7 +24,8 @@ export async function build(config: ResolvedConfig): Promise<boolean> {
   const rendered = new Map<string, string>();
   const plugins = [htmxUiPlugin(config, (path, html) => rendered.set(path, html))];
   try {
-    plugins.push((await import(Bun.resolveSync("bun-plugin-tailwind", config.root))).default);
+    // Rooted at the project, not pages/ (Bun.build's root): Tailwind scans layouts and partials too, as in dev.
+    plugins.push(rootedTailwind((await import(Bun.resolveSync("bun-plugin-tailwind", config.root))).default, config.root));
   } catch {
     console.warn("htmx-ui: bun-plugin-tailwind is not installed; building without Tailwind (bun add -d bun-plugin-tailwind tailwindcss)");
   }
