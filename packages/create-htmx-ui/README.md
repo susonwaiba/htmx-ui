@@ -11,7 +11,8 @@ yarn create htmx-ui my-site
 
 You get pages, a layout with a theme toggle, Tailwind with htmx-ui's styles, an htmx demo talking to a mock
 endpoint, and `dev` / `build` / `preview` scripts powered by
-[htmx-ui-engine](https://www.npmjs.com/package/htmx-ui-engine). Bun projects run on Bun; npm, pnpm and yarn
+[htmx-ui-engine](https://www.npmjs.com/package/htmx-ui-engine), and an `AGENTS.md` that tells AI coding agents how the
+site is built and where the docs for its htmx-ui version are. Bun projects run on Bun; npm, pnpm and yarn
 projects run on Node with Vite.
 
 | Option | |

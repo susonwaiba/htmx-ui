@@ -70,7 +70,8 @@ export function projectPackage(name, { pm, runtime, version = self.version }) {
 
 const sortKeys = (o) => Object.fromEntries(Object.entries(o).sort(([a], [b]) => a.localeCompare(b)));
 
-const run = (pm, script) => (pm === "npm" ? `npm run ${script}` : `${pm} ${script}`);
+// \`bun build\` is Bun's bundler, not the script, so Bun (like npm) needs \`run\`.
+const run = (pm, script) => (pm === "npm" || pm === "bun" ? `${pm} run ${script}` : `${pm} ${script}`);
 
 /** npm-safe package name from a directory name. */
 export const packageName = (dir) =>
@@ -96,7 +97,94 @@ ${run(pm, "preview")}   # serve dist/
 - \`app.ts\`, \`styles.css\`: client entry and Tailwind + htmx-ui styles
 - \`public/\`: served and copied as-is
 - \`htmx-ui.config.ts\`: engine options and mock dev routes for htmx
+- \`AGENTS.md\`: guidance for AI coding agents working on the site
 `;
+}
+
+/** Where the htmx-ui docs live: every page is also Markdown (add .md), indexed by llms.txt. */
+export const DOCS_URL = "https://susonwaiba.github.io/htmx-ui";
+
+/** The markers around the part of AGENTS.md that htmx-ui owns (and refreshes on upgrade). */
+export const AGENTS_START = "<!-- htmx-ui:start";
+export const AGENTS_END = "<!-- htmx-ui:end -->";
+
+/**
+ * The htmx-ui section of AGENTS.md for a version: the stack, the layout, the conventions
+ * and where the docs are. Kept short; agents read it on every turn. Tools that upgrade a
+ * project replace it with the new version's section (see refreshAgentsGuide).
+ */
+export function agentsSection({ pm = "bun", version = self.version } = {}) {
+  const minor = version.split(".").slice(0, 2).join(".");
+  return `${AGENTS_START} v${version}: written by create-htmx-ui and refreshed on upgrade. Put your own notes after the end marker. -->
+## Stack
+
+- [htmx-ui](${DOCS_URL}/docs) ${version}: Tailwind CSS v4 components, plain HTML classes and \`data-*\` behaviours.
+- [htmx](https://htmx.org) 4 for server round trips (\`hx-get\`, \`hx-post\`, \`hx-target\`, \`hx-swap\`).
+- Pages are [Nunjucks](https://mozilla.github.io/nunjucks/) templates built by htmx-ui-engine.
+- No React, JSX, Vue or Svelte. No CSS framework other than Tailwind.
+
+## Layout
+
+| Path | What |
+| :--- | :--- |
+| \`pages/**/*.html\` | Routes: \`pages/index.html\` is \`/\`, \`pages/blog/post.html\` is \`/blog/post\` |
+| \`layouts/\` | Page shells; pages \`{% extends "layouts/base.html" %}\` and fill \`{% block content %}\` |
+| \`partials/\` | Shared markup: \`{% include "partials/header.html" %}\` |
+| \`data/*.json\` | Content, read in templates with \`json("data/site.json")\` |
+| \`public/\` | Served and copied as-is (\`public/logo.svg\` is \`/logo.svg\`) |
+| \`app.ts\` | Client entry: htmx, styles, \`initComponents()\` |
+| \`styles.css\` | Tailwind + htmx-ui styles, and theme token overrides only |
+| \`htmx-ui.config.ts\` | Engine options and mock routes for htmx requests while developing |
+
+## Conventions
+
+- Use htmx-ui component classes (\`btn btn-primary\`, \`card\`, \`badge\`, \`alert\`, \`input\`…) and Tailwind utilities. Don't write custom CSS when a component or utility does it.
+- Colours come from tokens (\`bg-background\`, \`text-foreground\`, \`text-muted-foreground\`, \`border-border\`, \`bg-primary\`…), so light and dark mode both work. Don't hard-code colours.
+- Interactive components are \`data-*\` attributes (\`data-dialog\`, \`data-dropdown\`, \`data-tabs\`…). \`initComponents()\` wires them, including in content htmx swaps in.
+- Macros: \`{% from "components/icon/icon.html" import icon %}\` then \`{{ icon("arrow-right") }}\`. Icon names are the files in \`node_modules/htmx-ui/src/icons/\`.
+- Template helpers: \`json()\`, \`svg()\`, \`glob()\`, \`asset()\`, \`url()\`. Long text goes in \`.prose\`; components inside it take \`not-prose\`.
+- Look a component up before using it. Copy the markup from its docs page instead of guessing class names.
+
+## Docs (htmx-ui ${minor})
+
+- Index of every page: ${DOCS_URL}/llms.txt (add \`.md\` to any docs URL for Markdown, e.g. ${DOCS_URL}/docs/components/button.md).
+- Older versions: ${DOCS_URL}/docs/versions.json. This project is on ${minor}.
+
+## Commands
+
+\`\`\`sh
+${run(pm, "dev")}       # dev server with hot reload
+${run(pm, "build")}     # static build in dist/
+${run(pm, "preview")}   # serve dist/
+\`\`\`
+
+Upgrade htmx-ui with \`${pm === "bun" ? "bunx" : pm === "npm" ? "npx" : `${pm} dlx`} htmx-ui-upgrade@latest\`. It rewrites the code and \`package.json\` together. Don't change the htmx-ui versions in \`package.json\` by hand.
+${AGENTS_END}`;
+}
+
+/** AGENTS.md for a new project: the htmx-ui section, then a place for the project's own notes. */
+export function agentsGuide(name, options = {}) {
+  return `# AGENTS.md
+
+Guidance for AI coding agents (and people) working on ${name}.
+
+${agentsSection(options)}
+
+## This project
+
+Notes for agents about this site: what it's for, its pages, brand and voice, decisions made. Keep it current.
+`;
+}
+
+/**
+ * Replace the htmx-ui section of an existing AGENTS.md with the one for \`version\`, keeping
+ * everything around it. Returns null when the file has no section to replace.
+ */
+export function refreshAgentsGuide(text, options = {}) {
+  const start = text.indexOf(AGENTS_START);
+  const end = text.indexOf(AGENTS_END, start);
+  if (start < 0 || end < 0) return null;
+  return text.slice(0, start) + agentsSection(options) + text.slice(end + AGENTS_END.length);
 }
 
 /** Write the project. Returns the absolute directory. */
@@ -111,6 +199,7 @@ export function scaffold(dir, { pm = "bun", runtime = pm === "bun" ? "bun" : "no
   const name = packageName(target);
   writeFileSync(resolve(target, "package.json"), JSON.stringify(projectPackage(name, { pm, runtime, version }), null, 2) + "\n");
   writeFileSync(resolve(target, "README.md"), readme(name, pm));
+  writeFileSync(resolve(target, "AGENTS.md"), agentsGuide(name, { pm, version: version ?? self.version }));
   return target;
 }
 

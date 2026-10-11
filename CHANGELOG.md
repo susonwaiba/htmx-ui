@@ -14,6 +14,18 @@ The docs site has a fuller page per release (`/docs/changelog`).
   vertical groups and nesting, collapsible panels (drag past half the minimum, Enter on the handle, or
   `data-resizable-toggle` buttons anywhere), `data-resizable-id` to remember the layout, and a `resizable:change`
   event. Iframes ignore the pointer while dragging so drags over previews keep tracking.
+- **create-htmx-ui** writes an `AGENTS.md`: the stack, the project layout, htmx-ui conventions, the docs for the
+  project's htmx-ui version and the commands, between `<!-- htmx-ui:start -->` / `<!-- htmx-ui:end -->` markers,
+  followed by a section for the project's own notes. `agentsSection()`, `agentsGuide()` and `refreshAgentsGuide()`
+  are exported, so tools can rewrite the htmx-ui section for a newer version and keep the rest.
+
+### Fixed
+
+- **create-htmx-ui**: the generated README said `bun build` (Bun's bundler) for the build script; it says
+  `bun run build` now.
+- **Engine (Bun)**: `htmx-ui build` gave Tailwind `pages/` as its root (Bun.build's), so automatic source detection
+  skipped `layouts/` and `partials/`, and classes used only there were missing from the built CSS unless the
+  stylesheet had `@source "./"`. The build now hands Tailwind the project root, as `htmx-ui dev` already did.
 
 ## 0.3.0 — 2026-10-08
 

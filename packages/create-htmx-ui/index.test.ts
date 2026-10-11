@@ -3,7 +3,9 @@ import { existsSync, readFileSync } from "node:fs";
 import { mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { detectManager, packageName, projectPackage, scaffold } from "./index.js";
+import { AGENTS_END, AGENTS_START, agentsGuide, detectManager, packageName, projectPackage, refreshAgentsGuide, scaffold } from "./index.js";
+
+const { version } = JSON.parse(readFileSync(new URL("package.json", import.meta.url), "utf8"));
 
 describe("create-htmx-ui", () => {
   test("detects the package manager that ran it", () => {
@@ -41,6 +43,21 @@ describe("create-htmx-ui", () => {
     expect(existsSync(join(dir, "_gitignore"))).toBe(false);
     expect(JSON.parse(readFileSync(join(dir, "package.json"), "utf8")).name).toBe("site");
     expect(readFileSync(join(dir, "README.md"), "utf8")).toContain("pnpm dev");
+    const guide = readFileSync(join(dir, "AGENTS.md"), "utf8");
+    expect(guide).toContain(`${AGENTS_START} v${version}`);
+    expect(guide).toContain("pnpm dlx htmx-ui-upgrade@latest");
+    expect(guide).toContain("## This project");
+  });
+
+  test("AGENTS.md: the htmx-ui section is pinned to a version and refreshed in place", () => {
+    const old = agentsGuide("site", { version: "0.2.0" }).replace("Keep it current.", "Brand colour is teal.");
+    expect(old).toContain("This project is on 0.2.");
+    const next = refreshAgentsGuide(old, { version: "0.3.0" })!;
+    expect(next).toContain(`${AGENTS_START} v0.3.0`);
+    expect(next).not.toContain("v0.2.0");
+    expect(next).toContain("Brand colour is teal.");
+    expect(next.split(AGENTS_END)).toHaveLength(2);
+    expect(refreshAgentsGuide("# My own notes", { version: "0.3.0" })).toBeNull();
   });
 
   test("refuses a non-empty directory unless forced", async () => {
