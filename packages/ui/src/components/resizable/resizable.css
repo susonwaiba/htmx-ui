@@ -32,8 +32,10 @@
     flex: 1 1 0px;
     @apply relative min-h-0 min-w-0 overflow-hidden;
   }
+  /* !important: panels are usually flex containers too (class="resizable-panel flex …"), and a
+     display utility outranks this layer — a collapsed panel would linger as a sliver. */
   .resizable-panel[data-collapsed] {
-    @apply hidden;
+    display: none !important;
   }
 
   /* A 1px rule with a wider invisible hit area, so it is easy to grab. */
@@ -58,7 +60,7 @@
     @apply bg-primary ring-2 ring-ring/50;
   }
   .resizable-handle[hidden] {
-    @apply hidden;
+    display: none !important;
   }
 
   /* A small grip in the middle of the handle. */
